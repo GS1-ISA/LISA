@@ -44,7 +44,12 @@
       "version": "1.0.6",
       "date": "2025-06-21",
       "description": "Implemented Roocode Mode Architecture v2.1 improvements, including LLM re-assignments, new modes, advanced prompt engineering, failure simulation plans, and versioning strategies."
+    },
+    {
+      "version": "1.0.7",
+      "date": "2025-06-21",
+      "description": "Fixed spelling error 'juni' to 'June' in Git commit message file."
     }
   ],
-  "last_updated": "2025-06-21T13:53:35Z"
+  "last_updated": "2025-06-21T19:26:08Z"
 }

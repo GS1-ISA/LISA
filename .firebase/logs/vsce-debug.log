@@ -501,3 +501,17 @@ Generated sources: esm/index.esm.js [109B] esm/package.json [17B] package.json [
 [debug] [2025-06-21T13:10:56.415Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
 [debug] [2025-06-21T13:10:56.944Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
 [debug] [2025-06-21T13:10:56.945Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-06-21T17:33:51.996Z] [Firebase Plugin] Activating Firebase extension.
+[info] [Firebase Plugin] Checked firebase-tools, is up to date!
+[debug] [2025-06-21T17:33:53.938Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-06-21T17:33:53.939Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-21T17:33:53.939Z] > authorizing via signed-in user (frisowempe@gmail.com)
+[debug] [2025-06-21T17:33:53.941Z] Checked if tokens are valid: true, expires at: 1750530794946
+[debug] [2025-06-21T17:33:53.941Z] Checked if tokens are valid: true, expires at: 1750530794946
+[debug] [2025-06-21T17:33:53.941Z] [Firebase Plugin] User found:  frisowempe@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-06-21T17:33:53.941Z] Checked if tokens are valid: true, expires at: 1750530794946
+[debug] [2025-06-21T17:33:53.942Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-06-21T17:33:53.947Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[debug] [2025-06-21T17:33:54.381Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-06-21T17:33:54.381Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
