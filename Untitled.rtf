@@ -1,0 +1,209 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red21\green21\blue22;\red69\green73\blue76;\red236\green241\blue247;
+\red52\green55\blue54;\red228\green234\blue244;}
+{\*\expandedcolortbl;;\cssrgb\c10588\c10980\c11373;\cssrgb\c34118\c35686\c37255;\cssrgb\c94118\c95686\c97647;
+\cssrgb\c26667\c27843\c27451;\cssrgb\c91373\c93333\c96471;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww28300\viewh14340\viewkind0
+\deftab720
+\pard\pardeftab720\sa160\partightenfactor0
+
+\f0\b\fs32 \cf2 \expnd0\expndtw0\kerning0
+Set of Reinforcement Prompts for Firebase AI Assistant ("aifb")\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b0 \cf2 \
+\pard\pardeftab720\sa320\partightenfactor0
+\cf2 Reinforcement Prompt 1: Strategic Alignment & Roadmap Review\
+Objective: To ensure "aifb" remains aligned with the overall project strategy and is proactively managing its work against the roadmap.\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 Plaintext\cb1 \
+\pard\pardeftab720\qc\partightenfactor0
+
+\fs48 \cf5 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 DevHelperAI (aifb),\
+\
+It's time for a strategic review and forward-planning session. Please perform the following:\
+\
+1.  **Re-evaluate Current Position against ISA Blueprint:**\
+    * Review your last completed major task(s) and the current date ([Current Date]).\
+    * Cross-reference this with the "Strategic Roadmap and Architectural Direction for ISA" (ISA Blueprint), specifically the current phase we are in (Phase 1, 2, or 3) and its defined milestones and objectives.\
+    * Provide a concise assessment: Are we on track? Are there any deviations from the planned trajectory? Are there any upcoming milestones from the current phase that need immediate prioritization?\
+\
+2.  **Validate Next Proposed Strategic Action:**\
+    * Re-state the "Proposed Next Strategic Action & Forward Outlook" you identified at the end of your last major task completion report.\
+    * Critically re-evaluate if this *still* represents the highest-priority, most strategically valuable next step according to the ISA Blueprint, considering any new insights or completed work.\
+    * If your assessment has changed, propose a revised "Next Strategic Action" with full justification from the Blueprint.\
+\
+3.  **Identify Potential Blockers or Dependencies:**\
+    * Looking at the upcoming tasks in the current roadmap phase, proactively identify any potential blockers, information gaps, or dependencies (technical or strategic) that might impede progress.\
+    * For each, suggest how these can be mitigated or what information is needed (if it requires my input, formulate a "Detail Elicitation Prompt" for me).\
+\
+Your output should be a concise report covering these three points, ensuring continued alignment with ISA's long-term vision.\
+\pard\pardeftab720\partightenfactor0
+
+\fs32 \cf2 \cb1 \
+\pard\pardeftab720\sa320\partightenfactor0
+\cf2 Reinforcement Prompt 2: Code & Architecture Quality Self-Review\
+Objective: To encourage "aifb" to reflect on the quality, maintainability, and security of recently developed components and proactively identify areas for refactoring or improvement.\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 Plaintext\cb1 \
+\pard\pardeftab720\qc\partightenfactor0
+
+\fs48 \cf5 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 DevHelperAI (aifb),\
+\
+Let's conduct a quality assurance and architectural integrity check for the recent development cycle (e.g., work completed in the last week or since the last major feature integration). Please:\
+\
+1.  **Identify Key Modules/Flows Recently Developed/Modified:** List 2-3 significant components you've worked on recently.\
+2.  **Self-Review Against Best Practices:** For each identified component, perform a self-review based on the "Best Practices for ISA Development" we've established (reference our prior discussions and the principles in the "Automated Software Development Perfection Course.docx"). Specifically assess:\
+    * **Code Quality & Maintainability:** Readability, modularity, commenting, adherence to Next.js/Genkit/TypeScript standards.\
+    * **Security:** Adherence to secure coding principles, secrets management, Firestore rule implications.\
+    * **Robustness & Error Handling:** Completeness of error handling and input validation (Zod schemas).\
+    * **Efficiency:** Optimal use of Firebase/GCP services, consideration for performance and cost.\
+3.  **Propose Refinements (If Any):**\
+    * Based on your self-review, identify any specific areas in the recent codebase that could benefit from refactoring, optimization, or enhanced security measures.\
+    * For each proposed refinement, outline the issue, the suggested improvement, and the expected benefit. If you can undertake this refinement autonomously as a next minor task, state so.\
+\
+Your report should summarize your findings and any proposed actions for improving the codebase's quality and architectural integrity.\
+\pard\pardeftab720\partightenfactor0
+
+\fs32 \cf2 \cb1 \
+\pard\pardeftab720\sa320\partightenfactor0
+\cf2 Reinforcement Prompt 3: Documentation Upkeep & Accuracy Check\
+Objective: To ensure all project documentation, especially 
+\fs28 \cf3 \cb6 docs/blueprint.md
+\fs32 \cf2 \cb1 , remains current, comprehensive, and accurately reflects the project's state.\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 Plaintext\cb1 \
+\pard\pardeftab720\qc\partightenfactor0
+
+\fs48 \cf5 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 DevHelperAI (aifb),\
+\
+Maintaining accurate and comprehensive documentation is crucial for ISA's long-term success and maintainability. Please perform a documentation review and update cycle:\
+\
+1.  **Review `docs/blueprint.md` Development Log:**\
+    * Scan the "Development Log & Decisions" section (or equivalent) in `docs/blueprint.md`.\
+    * Ensure all significant technical tasks, architectural decisions, and feature implementations you've completed recently are accurately and clearly logged with rationale and commit references.\
+2.  **Check Consistency with Code:**\
+    * Identify 1-2 recently modified Genkit flows (e.g., in `src/ai/flows/`) or Next.js components.\
+    * Verify that any inline code comments, associated schema definitions (`src/ai/schemas.ts`), and descriptions in `docs/blueprint.md` related to these components are consistent and up-to-date with the actual implemented logic.\
+3.  **Update `README.md` (If Needed):**\
+    * Assess if any recent changes (e.g., new environment variables, setup steps, major feature additions) necessitate updates to the main `README.md` file for developer onboarding or project overview.\
+4.  **Propose and Execute Documentation Updates:**\
+    * Based on your review, list any specific updates, corrections, or additions needed for `docs/blueprint.md`, `README.md`, or code comments.\
+    * Proceed to make these documentation updates autonomously.\
+\
+Provide a summary of the documentation areas reviewed and the updates you've implemented.\
+\pard\pardeftab720\partightenfactor0
+
+\fs32 \cf2 \cb1 \
+\pard\pardeftab720\sa320\partightenfactor0
+\cf2 Reinforcement Prompt 4: Testing & Validation Status Review\
+Objective: To ensure "aifb" is considering testing as part of its development process and to proactively identify needs for new tests.\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 Plaintext\cb1 \
+\pard\pardeftab720\qc\partightenfactor0
+
+\fs48 \cf5 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 DevHelperAI (aifb),\
+\
+Let's review our current testing and validation status for ISA.\
+\
+1.  **Assess Test Coverage for Recent Features:**\
+    * Consider the features or modules you've implemented or significantly modified in the last development cycle.\
+    * For each, what is the current state of automated testing (unit tests, integration test outlines)?\
+    * Are there critical logic paths or functionalities that currently lack adequate automated tests?\
+2.  **Propose New Test Cases/Strategies:**\
+    * Based on your assessment, identify 1-2 specific areas where new unit tests or integration test scenarios (for Firebase Emulators) would provide the most value in ensuring the robustness of recently added ISA features.\
+    * For each, briefly outline the purpose of the proposed test(s).\
+3.  **Plan for Test Implementation:**\
+    * If you can autonomously generate the boilerplate or even the full implementation for these proposed tests (e.g., unit tests for a specific Genkit tool or utility function), include this as a potential subsequent task in your next "Proposed Next Strategic Action."\
+\
+Your output should be an assessment of our testing status for recent work and concrete proposals for new tests.\
+\pard\pardeftab720\partightenfactor0
+
+\fs32 \cf2 \cb1 \
+\pard\pardeftab720\sa320\partightenfactor0
+\cf2 Reinforcement Prompt 5: Performance Monitoring & Optimization Self-Assessment\
+Objective: To encourage "aifb" to proactively think about ISA's performance and the efficiency of its AI flows and Firebase service usage.\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 Plaintext\cb1 \
+\pard\pardeftab720\qc\partightenfactor0
+
+\fs48 \cf5 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 DevHelperAI (aifb),\
+\
+Please conduct a self-assessment of ISA's performance characteristics and identify potential optimization opportunities, based on the components developed so far and the guidelines in the "Performance Optimization" section of the Strategic ISA Blueprint.\
+\
+1.  **Review Key AI Flows:**\
+    * Consider flows like `answerGs1Questions`, `conductIndependentResearch`, and `processDocumentForRAG` (even in its current conceptual/developing state).\
+    * Based on their logic, identify potential performance bottlenecks (e.g., complex LLM prompts, multiple sequential tool calls, inefficient data handling before/after LLM calls, Firestore query patterns that might become slow at scale).\
+2.  **Firebase Service Usage Efficiency:**\
+    * Reflect on how ISA is configured to use Firebase Hosting, Cloud Functions (via App Hosting for Genkit), and Firestore. Are there any configurations that, while functional, might lead to suboptimal performance or cost as ISA scales (e.g., overly broad Firestore queries, function memory/timeout settings that are either too low or excessively high for typical tasks)?\
+3.  **Propose Performance Optimizations or Investigations:**\
+    * Based on the above, suggest 1-2 specific areas where performance could be investigated or optimized in upcoming development cycles.\
+    * For each, explain the potential issue and what a high-level optimization approach might involve (e.g., "Refine prompt for `XYZ` flow to reduce token usage," "Investigate adding a specific composite index to Firestore for `ABC` query pattern," "Consider batching operations in `DEF` ETLVRE step").\
+\
+Your report should highlight areas for performance attention and suggest actionable investigation paths.\
+\pard\pardeftab720\partightenfactor0
+
+\fs32 \cf2 \cb1 \
+\pard\pardeftab720\sa320\partightenfactor0
+\cf2 Reinforcement Prompt 6: Learning, Process Improvement & Strategic Reflection\
+Objective: To simulate "active learning" and encourage "aifb" to refine its own operational effectiveness and contribute to ISA's strategic evolution.\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 Plaintext\cb1 \
+\pard\pardeftab720\qc\partightenfactor0
+
+\fs48 \cf5 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs28 \cf3 \cb4 DevHelperAI (aifb),\
+\
+As the lead architect and engineer for ISA, continuous improvement of both the product and our development process is key. Please reflect on our recent development cycles and the current state of the ISA project:\
+\
+1.  **Identify Key Learnings:**\
+    * What are 1-2 significant learnings or insights you've gained from the recent tasks (e.g., regarding prompting Gemini for GS1 tasks, structuring Genkit flows, integrating Firebase services, or interpreting the ISA Blueprint)?\
+2.  **Propose Process Improvements:**\
+    * Based on these learnings, are there any adjustments we could make to our interaction model, your reporting structure, or how tasks are defined/delegated that would improve your autonomous efficiency or the quality of your output?\
+3.  **Strategic Opportunities/Refinements for ISA Blueprint:**\
+    * Having worked deeply with the ISA Blueprint, do you identify any sections that could be clarified, expanded, or any new technological opportunities (within Firebase/GCP) that we should consider adding to the "Future Outlook" or as experimental features?\
+    * Are there any assumptions in the current Blueprint that your recent implementation experience suggests we should re-evaluate?\
+\
+Your output should be a reflective report. I value your "thoughts" on how we can make ISA and our development process even better.\
+\pard\pardeftab720\partightenfactor0
+
+\fs32 \cf2 \cb1 \
+\pard\pardeftab720\sa320\partightenfactor0
+\cf2 By regularly using these prompts, you are creating a structured feedback and guidance system that encourages "aifb" to operate according to the high standards and proactive behaviors you desire. It turns its development process into a more reflective and continuously improving cycle, all driven by your strategic direction.\
+}

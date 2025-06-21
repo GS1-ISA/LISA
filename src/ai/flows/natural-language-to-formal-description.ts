@@ -8,7 +8,7 @@
  * - NaturalLanguageToFormalDescriptionOutput - The return type for the naturalLanguageToFormalDescription function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, getModelParams} from '@/ai/genkit';
 import {z} from 'genkit';
 import { NaturalLanguageToFormalDescriptionInputSchema } from '@/ai/schemas'; // Import schema object
 
@@ -38,15 +38,23 @@ export async function naturalLanguageToFormalDescription(
   return naturalLanguageToFormalDescriptionFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'naturalLanguageToFormalDescriptionPrompt',
-  input: {
-    schema: NaturalLanguageToFormalDescriptionInputSchema, // Use imported schema object
+const naturalLanguageToFormalDescriptionFlow = ai.defineFlow(
+  {
+    name: 'naturalLanguageToFormalLanguageFlow',
+    inputSchema: NaturalLanguageToFormalDescriptionInputSchema, // Use imported schema object
+    outputSchema: NaturalLanguageToFormalDescriptionOutputSchema,
   },
-  output: {
-    schema: NaturalLanguageToFormalDescriptionOutputSchema,
-  },
-  prompt: `You are an expert in transforming natural language descriptions of standards into formal standard descriptions.
+  async input => {
+    // Dynamically get model parameters for 'code' mode, as this is a transformation task
+    const { model, thinkingBudget } = getModelParams('code', {
+      input_token_count: input.naturalLanguageDescription.length, // Estimate token count
+      task_intent: "refactoring",
+      complexity_flags: ["refactor", "transformation"]
+    });
+
+    const llmResponse = await ai.generate({
+      model: model,
+      prompt: `You are an expert in transforming natural language descriptions of standards into formal standard descriptions.
 
   Given the following natural language description, create a formal standard description.
   Natural Language Description: {{{naturalLanguageDescription}}}
@@ -60,16 +68,11 @@ const prompt = ai.definePrompt({
   - Use appropriate terminology for standards documents.
   - Omit conversational language.
   `,
-});
-
-const naturalLanguageToFormalDescriptionFlow = ai.defineFlow(
-  {
-    name: 'naturalLanguageToFormalDescriptionFlow',
-    inputSchema: NaturalLanguageToFormalDescriptionInputSchema, // Use imported schema object
-    outputSchema: NaturalLanguageToFormalDescriptionOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+      config: {
+        maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
+      },
+      output: { schema: NaturalLanguageToFormalDescriptionOutputSchema },
+    });
+    return llmResponse.output!;
   }
 );

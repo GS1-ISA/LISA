@@ -1,0 +1,13 @@
+version: 1.0.0
+phases:
+  - phase1: /docs/phases/phase1.md
+  - phase2: /docs/phases/phase2.md
+  - phase3: /docs/phases/phase3.md
+  - phase4: /docs/phases/phase4.md
+  - phase5: /docs/phases/phase5.md
+  - phase6: /docs/phases/phase6.md
+  - phase7: /docs/phases/phase7.md
+  - phase8: /docs/phases/phase8.md
+  - phase9: /docs/phases/phase9.md
+  - phase10: /docs/phases/phase10.md
+dashboard: /docs/dashboard/governance_roadmap.png

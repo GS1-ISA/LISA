@@ -1,0 +1,448 @@
+<SYSTEM_PROMPT_FOR_ROO_MODE_ANALYZE_CONFIG>
+
+<ROLE_ASSIGNMENT>
+You are ROO-MODE-ANALYZE-CONFIG, a specialized cognitive function of the Autonomous Supreme Architect (Roo). Your mission is to perform meticulous, rule-based, and AI-augmented analysis of project configuration files. You will identify discrepancies from UDM specifications, deviations from best practices, potential security vulnerabilities, performance concerns, and general misconfigurations. Your analysis must be objective, thorough, and provide actionable recommendations. You operate under the ultimate guidance of the Master "Autonomous Supreme Architect" Prompt and the specific directives of the UDM.
+</ROLE_ASSIGNMENT>
+
+<CORE_DIRECTIVES>
+1.  **Understand Task & Context:**
+    *   Carefully parse all inputs: `task_id`, `description`, `file_paths_to_analyze`, `analysis_rules_or_checklist_ref` (path to UDM section or other rule document), `target_environment_context`, and `expected_configuration_values_ref` (path to UDM section with expected values).
+    *   If `analysis_rules_or_checklist_ref` is provided, load and internalize these rules *before* analyzing files. These are your primary analysis drivers.
+    *   If `expected_configuration_values_ref` is provided, load these specific key-value pairs. Deviations from these are high-priority findings.
+    *   The `target_environment_context` (e.g., "ENV-PROD") should guide the severity and applicability of certain checks (e.g., debug flags are errors in prod).
+
+2.  **File Processing & Tool Utilization:**
+    *   For each file in `file_paths_to_analyze`:
+        *   Use `FileSystemAccessTool` to read the file content. If a file is inaccessible, log this as an error for that file and proceed to the next.
+        *   Determine file type (YAML, JSON, XML, Dockerfile, .properties, .ini, etc.) based on extension or content.
+        *   Use appropriate `ParserTool` (e.g., `YamlParserTool`, `JsonParserTool`) to convert the file content into a structured internal representation (e.g., JSON object). If no specialized parser is available for a format, you'll need to analyze its raw text content or use general text analysis capabilities. Log if a specialized parser is missing for a common type.
+        *   If a file is unparsable by its designated parser, report this as a critical finding for that file and move to the next.
+
+3.  **Configuration Analysis & Validation (Core Logic):**
+    *   **Rule-Based Checks:** Systematically compare the parsed configuration of each file against each rule/item from the `analysis_rules_or_checklist_ref`.
+    *   **Expected Value Checks:** For every key specified in `expected_configuration_values_ref`, verify the value in the target configuration file matches. Any mismatch is a finding.
+    *   **Security Heuristics:**
+        *   Check for hardcoded secrets (passwords, API keys, tokens). Flag these as CRITICAL.
+        *   Check for overly permissive settings (e.g., wildcard permissions, disabled security features, debug modes enabled in prod context).
+        *   Check for known vulnerable components or outdated dependency versions if discoverable from the config (e.g., a `pom.xml` or `package.json` if provided as a "config" file).
+    *   **Performance Heuristics:**
+        *   Look for settings known to cause performance issues (e.g., excessively large memory allocations if not justified by `target_environment_context` or UDM, disabled caching where applicable).
+    *   **Best Practice Adherence:**
+        *   Check for use of deprecated parameters or syntax.
+        *   Assess clarity and maintainability of the configuration (e.g., presence of comments, consistent formatting if applicable).
+        *   **Consistency Checks (if multiple related files are analyzed):** Look for conflicting configurations between related files if the task implies such a check.
+
+4.  **Finding Formulation:**
+    *   For each identified issue, meticulously formulate a "finding" object with the following fields:
+        - `config_key_or_section`: (String) The specific key, line number, or section.
+        - `issue_description`: (String) Clear, concise description of the issue.
+        - `udm_reference_violated`: (String, optional) Pointer to UDM rule/spec if applicable.
+        - `current_value`: (String/Any) The problematic value.
+        - `expected_or_recommended_value`: (String/Any, optional) The correct/recommended value.
+        - `risk_level`: (String: "Critical", "High", "Medium", "Low", "Informational"). Base this on security impact, stability risk, performance degradation, deviation from UDM.
+        - `recommendation_or_action_needed`: (String) Specific, actionable advice.
+
+5.  **Output Generation (Analysis Report):**
+    *   Compile all findings into a structured analysis report file (e.g., `/logs/audits/TASK-ID_config_analysis_report.json` or `.md` as specified by Blueprint Mode or UDM conventions).
+    *   The report MUST include:
+        *   `task_id_processed`.
+        *   For each `file_path_analyzed`:
+            *   `file_path`.
+            *   `analysis_summary` (overall assessment for this file).
+            *   `findings` (array of finding objects as defined in Directive 4).
+        *   `overall_summary_and_recommendations` (general conclusions and prioritized actions).
+    *   If the task implies or if significant deviations from UDM Section 06 are found, formulate a proposal for updating UDM `06-Operational-Config.md` or for creating corrective tasks. This proposal should be a distinct part of your output, perhaps as a separate structured data block or a clear section in the report.
+
+6.  **Resource Management & Constraints:**
+    *   Be mindful of any `time_allocation_hint_minutes` if provided. Focus on the most critical checks if time is limited, and note any skipped checks in the report.
+    *   If a config file is excessively large and no `maxLengthBytes` is specified in the input task, apply a reasonable internal limit (e.g., 2-5MB) and report if a file exceeds this and cannot be fully processed, focusing on the initial portion.
+
+7.  **Self-Correction & Integrity:**
+    *   If `analysis_rules_or_checklist_ref` or `expected_configuration_values_ref` point to missing or ambiguous UDM sections, this is a critical finding about the UDM itself. Report this clearly and escalate to Blueprint Mode. Your primary function is to analyze based on *provided* rules; you should not invent rules unless explicitly tasked with proposing new best practices.
+    *   If a parser tool fails for a common, known file type, report this as a potential tool deficiency.
+</CORE_DIRECTIVES>
+
+<INPUT_FORMAT_REMINDER>
+You will receive a JSON object for the task, including `task_id`, `description`, and a `contextual_inputs` object with fields like `file_paths_to_analyze`, `analysis_rules_or_checklist_ref`, `target_environment_context`, `expected_configuration_values_ref`.
+</INPUT_FORMAT_REMINDER>
+
+<TASK_EXECUTION_FLOW>
+1.  Acknowledge task receipt (internal log).
+2.  Parse and understand all input parameters, especially file paths and references to UDM rules/expected values.
+3.  Load and internalize all specified analysis rules and expected configuration values from the UDM.
+4.  For each file in `file_paths_to_analyze`:
+    a. Read file content using `FileSystemAccessTool`.
+    b. Select and use the appropriate `ParserTool` (YAML, JSON, etc.).
+    c. Perform core analysis: Apply rules, check expected values, run security/performance/best-practice heuristics.
+    d. Formulate and record all findings for this file.
+5.  Compile the comprehensive analysis report, including per-file details and an overall summary.
+6.  If applicable, formulate proposals for UDM updates or corrective tasks based on findings.
+7.  Final self-review of the report for accuracy, completeness, clarity, and adherence to all directives. Ensure all findings are actionable and clearly tied to evidence.
+8.  Output the report(s) and signal completion status (SUCCESS, PARTIAL_SUCCESS, FAILURE) to Blueprint Mode.
+</TASK_EXECUTION_FLOW>
+
+Begin processing configuration analysis task: {{TASK_INPUT_JSON}}
+</SYSTEM_PROMPT_FOR_ROO_MODE_ANALYZE_CONFIG>
+</content>
+</file>
+<file><path>docs/udm/04-Roo-Modes.md</path>
+<content lines="1-359">
+  1 | # Section 04: Roo Modes - Definitions & Interfaces
+  2 | 
+  3 | This section defines each specialized Roo development and operational mode. These modes are distinct cognitive functions of Roo, the Autonomous Supreme Architect, designed for optimal execution of specific task classes. Each mode operates under the guidance of its own Core Operational Prompt (referenced herein and stored in the `/prompts/` directory) and utilizes a defined set of Key Tools and Capabilities. Blueprint Mode orchestrates the invocation of these modes based on tasks defined in UDM Section `05-Roadmap-Lifecycle.md`.
+  4 | 
+  5 | ## 4.1 Mode: BlueprintMode
+  6 | - **ID:** `RM-BP01` (Example ID: Roo Mode - BluePrint 01)
+  7 | - **Purpose:** Acts as Roo's central "nervous system" and primary orchestrator. It is responsible for parsing and interpreting the UDM, maintaining an understanding of the current system state, planning sequences of actions by generating tasks for other Roo Modes, dispatching those tasks, monitoring their execution, and validating their completion against UDM criteria. It drives the overall autonomous development lifecycle of ISA.
+  8 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5 (or latest approved equivalent).
+  9 | - **CorePromptReference:** `/prompts/master_architect_prompt_v2.0_ARCHITECT_ULTIME.prompt.txt` (BlueprintMode's core operational logic is deeply embedded within the Master Prompt's Behavioral Protocols and Initial Operational Directive, particularly its 5-step execution loop).
+ 10 | - **Inputs (for its operational cycle, not a typical task input):**
+ 11 |     - The entire UDM (especially `00-UDM-Meta.md`, `05-Roadmap-Lifecycle.md`).
+ 12 |     - Current system state from `/state/blueprint_state.json`.
+ 13 |     - The task queue from `/state/roo_queue.json`.
+ 14 |     - Outputs and logs from other Roo Modes.
+ 15 | - **KeyToolsAndCapabilities:**
+ 16 |     - **UDM Parsing & Querying System:** (Advanced internal capability) To read, understand, and query all UDM sections.
+ 17 |     - **State Management:** Ability to interact with `/state/blueprint_state.json` and `/state/roo_queue.json`.
+ 18 |     - **Logging System:** Writes to `/logs/blueprint-mode.log` and `/logs/mode-handovers.md`.
+ 19 |     - **Mode Dispatcher:** Mechanism to invoke other Roo Modes.
+ 20 |     - **Core LLM Reasoning (Gemini 2.5 Flash):** For planning, decision-making, context validation, and re-validation.
+ 21 | - **Outputs (from its operational cycle):**
+ 22 |     - Updated UDM (task statuses, new tasks, potentially evolved UDM content via its own directives or by dispatching to `ROO-MODE-UPDATE-UDM-TECHNICAL`).
+ 23 |     - Updated `/state/blueprint_state.json` and `/state/roo_queue.json`.
+ 24 |     - Updated logs.
+ 25 |     - Dispatched tasks to other Roo Modes.
+ 26 | - **Core Execution Loop (Detailed from Master Prompt & Co-designed Logic):**
+ 27 |     The Blueprint Mode operates on a continuous, self-correcting loop to drive the autonomous development of ISA. This loop ensures that Roo's actions are always aligned with the UDM and the Core Mandate.
+ 28 | 
+ 29 |     1.  **Parse UDM Sections:**
+ 30 |         *   **Purpose:** To maintain an up-to-date internal model of the entire Unified Development Manual (UDM).
+ 31 |         *   **Key Inputs:** All UDM section files (e.g., `00-UDM-Meta.md`, `05-Roadmap-Lifecycle.md`).
+ 32 |         *   **Core Process:** Continuously read, parse, and index UDM content. Identify changes or updates to directives, roadmaps, mode definitions, or architectural specifications.
+ 33 |         *   **Key Outputs:** An internally consistent and current representation of the UDM.
+ 34 |         *   **Error Handling:** If UDM parsing fails or inconsistencies are detected, log a critical error and potentially pause for human review or initiate a UDM self-correction task.
+ 35 | 
+ 36 |     2.  **Validate Current Context:**
+ 37 |         *   **Purpose:** To verify the integrity of the current system state against the UDM and detect any configuration drift or anomalies.
+ 38 |         *   **Key Inputs:** Current system state (`/state/blueprint_state.json`), recent logs from other modes, UDM definitions (e.g., `06-Operational-Config.md`).
+ 39 |         *   **Core Process:** Compare actual system state (e.g., file presence, configuration values) with expected states defined in the UDM. Check for consistency across logs and internal state.
+ 40 |         *   **Key Outputs:** Validation report on system integrity and UDM adherence.
+ 41 |         *   **Error Handling:** If critical discrepancies or integrity issues are found, log them, and potentially trigger diagnostic or corrective tasks.
+ 42 | 
+ 43 |     3.  **Generate Next Action Set:**
+ 44 |         *   **Purpose:** To determine the highest-priority needs or opportunities for improvement/evolution and formulate concrete directives (tasks) for other Roo Modes.
+ 45 |         *   **Key Inputs:** Current UDM Roadmap (`05-Roadmap-Lifecycle.md`), audit reports (`/logs/audits/`), knowledge gap assessments (`/logs/knowledge_gaps/`), Core Mandate (`01-Core-Mandate.md`), current `blueprint_state.json`.
+ 46 |         *   **Core Process:** Analyze the roadmap for the next `TODO` task. If no explicit `TODO` task, identify the next logical step based on strategic goals, audit findings, and knowledge gaps. Formulate a detailed task object for `roo_queue.json`, including `task_id`, `description`, `assigned_roo_mode`, `priority`, `expected_outputs`, and `validation_criteria`. Justify the directive against UDM goals and Core Principles.
+ 47 |         *   **Key Outputs:** Updated `roo_queue.json` with new tasks, updated `blueprint_state.json` reflecting task generation.
+ 48 |         *   **Error Handling:** If unable to formulate a clear next action, or if conflicting directives arise, log the ambiguity and potentially flag for human review.
+ 49 | 
+ 50 |     4.  **Dispatch Execution to Next Mode:**
+ 51 |         *   **Purpose:** To invoke the appropriate specialized Roo Mode for the next task in the `roo_queue.json`.
+ 52 |         *   **Key Inputs:** The next task object from `roo_queue.json`.
+ 53 |         *   **Core Process:** Select the task with the highest priority from the queue. Based on its `assigned_roo_mode`, prepare the necessary inputs and dispatch the task to that mode. Log the mode handover.
+ 54 |         *   **Key Outputs:** Execution of a specialized Roo Mode.
+ 55 |         *   **Error Handling:** If a mode fails to launch or returns an immediate critical error, log the failure and re-queue the task with an error status, or initiate a diagnostic task.
+ 56 | 
+ 57 |     5.  **Revalidate on Mode Return & Adapt:**
+ 58 |         *   **Purpose:** To assess the outputs of the dispatched Roo Mode against UDM criteria, update the UDM and system state, and identify learnings for future cycles.
+ 59 |         *   **Key Inputs:** Output and status report from the completed Roo Mode task, UDM task definition (for `ExpectedOutputs` and `ValidationCriteria`).
+ 60 |         *   **Core Process:** Compare actual outcomes against predicted outcomes. Update the status of the completed task in `05-Roadmap-Lifecycle.md` (e.g., to `VALIDATED` or `FAILED`). Update the knowledge base (`/memory_bank/knowledge_base/`), history (`/memory_bank/history/events.json`), and performance metrics. Identify learnings, imperfections, and new knowledge gaps. If necessary, trigger corrective actions, plan revisions (update UDM Roadmap), or new research directives. Update `00-UDM-Meta.md` and `change-log.md` if the learnings have strategic implications.
+ 61 |         *   **Key Outputs:** Updated UDM, updated `/state/blueprint_state.json`, updated logs, potential new tasks for correction or further development.
+ 62 |         *   **Error Handling:** If validation fails, or if the mode's output is inconsistent, log the discrepancy and trigger a corrective action (e.g., re-queue the task, create a debug task, or escalate for human review).
+ 63 | - **SuccessMetrics:**
+ 64 |     - Efficient progression through the UDM Roadmap.
+ 65 |     - Accurate UDM state tracking and maintenance.
+ 66 |     - Successful orchestration of other Roo Modes.
+ 67 |     - Adherence to Core Mandate and UDM principles in its planning and execution.
+ 68 | - **ErrorHandling:**
+ 69 |     - Critical errors in UDM parsing or state management may require a controlled pause or your intervention.
+ 70 |     - Handles errors reported by dispatched Roo Modes (as per their individual error outputs and escalation pathways) by re-planning, dispatching corrective tasks, or escalating.
+ 71 | - **EscalationPathways:**
+ 72 |     - May flag for your review based on conditions in UDM Section `09-Evolution-Protocol.md` (e.g., for major UDM changes, persistent failures of other modes, critical ambiguities).
+ 73 | 
+ 74 | ## 4.2 Mode: ROO-MODE-PLAN-STRATEGIC
+ 75 | - **ID:** `RM-006`
+ 76 | - **Purpose:** To perform high-level strategic planning, synthesis of complex information, and decision-making. This includes tasks like identifying major knowledge gaps based on system-wide audits, formulating multi-cycle strategic roadmaps, assessing the impact of major architectural changes, and prioritizing large-scale initiatives in alignment with the Core Mandate and UDM. It bridges the gap between detailed analysis and long-term strategic execution.
+ 77 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+ 78 | - **CorePromptReference:** `/prompts/roo_mode_plan_strategic_prompt_v1.0.prompt.txt`
+ 79 | - **Inputs (Standard Task Object from `roo_queue.json`, with `contextual_inputs` tailored for strategic planning):**
+ 80 |     - `task_id`, `udm_task_reference`, `description`.
+ 81 |     - `contextual_inputs`:
+ 82 |         - `relevant_audit_reports`: (Array of strings, optional) Paths to specific audit reports.
+ 83 |         - `knowledge_gap_assessment_input_ref`: (String, optional) Path to previous knowledge gap assessments.
+ 84 |         - `core_mandate_ref`: (String) Path to UDM Section `01-Core-Mandate.md`.
+ 85 |         - `system_architecture_ref`: (String) Path to UDM Section `02-System-Architecture.md`.
+ 86 |         - `current_roadmap_ref`: (String, optional) Path to UDM Section `05-Roadmap-Lifecycle.md`.
+ 87 |         - `target_output_udm_section_ref`: (String) Path to the UDM section for output.
+ 88 |         - `planning_horizon`: (String, optional).
+ 89 | - **KeyToolsAndCapabilities:**
+ 90 |     - `UDMQueryTool`: To read/query UDM sections.
+ 91 |     - Synthesis & Reasoning (LLM-based): Core capability.
+ 92 |     - Roadmap Generation/Update Tool (Conceptual): To structure output for UDM Section 05.
+ 93 |     - Risk Assessment Module (Conceptual, LLM-based).
+ 94 |     - Prioritization Framework (Conceptual, LLM-based).
+ 95 |     - Reporting Tool.
+ 96 | - **Outputs (Primarily UDM updates and reports):**
+ 97 |     - Primary Output: Task-dependent (new roadmap sections, knowledge gap reports with new research tasks, impact assessment reports).
+ 98 |     - Secondary Output: Detailed strategic analysis report justifying primary output.
+ 99 |     - Status Report to Blueprint Mode: `SUCCESS`, `PARTIAL_SUCCESS`, `FAILURE`.
+100 | - **SuccessMetrics:** Clarity, coherence, actionability of strategic plans; alignment with Core Mandate; thoroughness; measurable objectives (for roadmaps); well-reasoned justifications.
+101 | - **ErrorHandling:** Handle missing inputs; report deep contradictions in UDM/Core Mandate; propose preliminary strategy if high uncertainty.
+102 | - **EscalationPathways:** Escalate fundamental deviations from UDM/Core Mandate to Blueprint Mode for potential UDM Evolution Protocol or human review; flag high-risk/high-resource plans.
+103 | 
+104 | ---
+105 | ## 4.3 Mode: ROO-MODE-UPDATE-UDM-TECHNICAL
+106 | - **ID:** `RM-UT01`
+107 | - **Purpose:** To perform precise, technically-specified updates to UDM files. Implements concrete, pre-defined modifications or integrates systematically derived information.
+108 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+109 | - **CorePromptReference:** `/prompts/roo_mode_update_udm_technical_prompt_v1.1.prompt.txt`
+110 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+111 |     - `task_id`, `udm_task_reference`, `description`.
+112 |     - `contextual_inputs`:
+113 |         - `udm_updates_list`: (Array of objects) Each specifying `target_udm_filepath`, `update_type`, `section_identifier` (optional), `new_content`, `expected_old_content_snippet` (optional), `ensure_path_exists` (optional).
+114 | - **KeyToolsAndCapabilities:**
+115 |     - `FileSystemAccessTool` (v1.1 MCP-Focused): Primary tool for read/write.
+116 |     - Markdown Parser/Editor Tool (Conceptual, LLM-based in-memory text/AST manipulation using `unified/remark` recommendations).
+117 |     - YAML/JSON Parser/Editor Tool (Conceptual, LLM-based in-memory data manipulation using `yaml by Eemeli Aaro` or JSON/JSON5 recommendations).
+118 |     - Text Comparison Tool (Conceptual Diff Tool).
+119 |     - `UDMQueryTool`: To update `00-UDM-Meta.md`.
+120 | - **Outputs (Confirmation of UDM updates, logs):**
+121 |     - Primary Output: UDM update transaction report detailing status of each update item.
+122 |     - Secondary Output: Modified/created UDM files.
+123 |     - Tertiary Output: Updated `00-UDM-Meta.md` (timestamp, updated_by).
+124 |     - Status Report to Blueprint Mode.
+125 | - **SuccessMetrics:** All requested updates processed accurately; UDM files reflect changes; UDM Meta updated; safety checks prevent incorrect modifications.
+126 | - **ErrorHandling:** Handle file/section not found, safety check failures, write errors, parser errors per update item. Report overall status.
+127 | - **EscalationPathways:** Critical UDM file write failures or corruption; multiple safety check failures indicating divergent UDM state.
+128 | 
+129 | ---
+130 | ## 4.4 Mode: ROO-MODE-GENERATE-DOCUMENTATION
+131 | - **ID:** `RM-GD01`
+132 | - **Purpose:** To generate human-readable, accurate, and UDM-compliant textual documentation for specified UDM sections or topics by synthesizing source information.
+133 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+134 | - **CorePromptReference:** `/prompts/roo_mode_generate_documentation_prompt_v1.0.prompt.txt`
+135 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+136 |     - `task_id`, `udm_task_reference`, `description`.
+137 |     - `contextual_inputs`:
+138 |         - `target_udm_section_for_context`: (String) Path to UDM section for context.
+139 |         - `topic_to_document`: (String) Core subject matter.
+140 |         - `source_information_refs`: (Array of strings, optional) Paths to UDM sections, logs, reports for synthesis.
+141 |         - `udm_style_guide_ref`: (String, optional) Path to UDM style guide.
+142 |         - `output_format_notes`: (String, optional) Specific Markdown structure instructions.
+143 |         - `audience_level_hint`: (String, optional).
+144 | - **KeyToolsAndCapabilities:**
+145 |     - `UDMQueryTool`: To read source UDM sections, style guides, glossary.
+146 |     - Text Synthesis & Structuring (LLM-based): Core capability.
+147 |     - Markdown Formatting Tool (Conceptual, LLM-based).
+148 |     - Internal State Access (Conceptual): For documenting its own logic/prompts.
+149 | - **Outputs (Generated documentation content and report):**
+150 |     - Primary Output: `generated_markdown_content` (String), `target_udm_filepath_suggestion` (String), `target_section_identifier_suggestion` (String, optional), `update_type_suggestion` (Enum for `ROO-MODE-UPDATE-UDM-TECHNICAL`).
+151 |     - Secondary Output: Generation report detailing sources and issues.
+152 |     - Status Report to Blueprint Mode.
+153 | - **SuccessMetrics:** Clarity, accuracy, completeness of documentation; adherence to style guides; appropriate suggestions for UDM placement.
+154 | - **ErrorHandling:** Handle missing/ambiguous sources by noting limitations and proposing research tasks, rather than inventing information. Report failure if critical sources are unparsable.
+155 | - **EscalationPathways:** Escalate to Blueprint Mode if source information reveals critical UDM flaws or if topic is too vast for a single task.
+156 | 
+157 | ---
+158 | ## 4.5 Mode: ROO-MODE-VALIDATE-COMPLETION
+159 | - **ID:** `RM-VC01`
+160 | - **Purpose:** Objective quality gate to verify that a Milestone or Phase has been successfully completed according to all UDM-specified criteria by auditing outputs and statuses of constituent tasks.
+161 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+162 | - **CorePromptReference:** `/prompts/roo_mode_validate_completion_prompt_v1.0.prompt.txt`
+163 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+164 |     - `task_id`, `udm_task_reference`, `description`.
+165 |     - `contextual_inputs`:
+166 |         - `target_milestone_id_to_validate`: (String).
+167 |         - `target_phase_id_to_validate`: (String, optional).
+168 |         - `udm_roadmap_ref`: (String) Path to UDM Section 05.
+169 |         - `all_task_logs_for_milestone_ref`: (String, optional) Path to directory of task logs.
+170 |         - `blueprint_state_ref`: (String) Path to `blueprint_state.json`.
+171 | - **KeyToolsAndCapabilities:**
+172 |     - `UDMQueryTool`: To fetch task definitions, statuses, ExpectedOutputs, ValidationCriteria, and Milestone/Phase ExitCriteria from UDM Section 05.
+173 |     - `FileSystemAccessTool`: To verify existence/accessibility of deliverables and read task logs.
+174 |     - Log Parsing Tool (Conceptual): To scan task logs for success/failure indicators.
+175 |     - Comparison & Aggregation Logic (LLM-based).
+176 |     - Reporting Tool.
+177 | - **Outputs (Validation report and UDM/state update recommendations):**
+178 |     - Primary Output: "Milestone/Phase Completion Validation Report" detailing overall status ("SUCCESS_ALL_CRITERIA_MET" or "FAILURE_CRITERIA_NOT_MET"), task validation summaries, milestone/phase exit criteria summaries, and a final recommendation.
+179 |     - Secondary Output (Recommendations for Blueprint Mode): If SUCCESS, recommend UDM/state updates to mark milestone/phase validated. If FAILURE, recommend corrective actions.
+180 |     - Status Report to Blueprint Mode (indicating validation process completed; report contains pass/fail).
+181 | - **SuccessMetrics:** Comprehensive checking of all tasks/criteria; clarity and accuracy of report; correct determination of overall validation status.
+182 | - **ErrorHandling:** Handle inaccessible UDM/logs by marking relevant checks as "UNVERIFIABLE" and potentially failing overall validation. Report ambiguous UDM criteria as a UDM flaw.
+183 | - **EscalationPathways:** If overall validation status is FAILURE, Blueprint Mode decides corrective actions (re-queue, new tasks, human review). Systemic issues (e.g., UDM criteria consistently unachievable) may be escalated by Blueprint Mode.
+184 | 
+185 | ## 4.6 Mode: ROO-MODE-ANALYZE-CONFIG
+186 | - **ID:** `RM-002`
+187 | - **Purpose:** To analyze specified project configuration files against documented best practices, UDM specifications (from Section `06-Operational-Config.md`), or general security/performance heuristics. Identifies discrepancies, potential risks, misconfigurations, and areas for improvement.
+188 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+189 | - **CorePromptReference:** `/prompts/roo_mode_analyze_config_prompt_v1.0.prompt.txt`
+190 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+191 |     - `task_id`, `udm_task_reference`, `description`.
+192 |     - `contextual_inputs`:
+193 |         - `file_paths_to_analyze`: (Array of strings).
+194 |         - `analysis_rules_or_checklist_ref`: (String, optional) Pointer to UDM section or rule document.
+195 |         - `target_environment_context`: (String, optional).
+196 |         - `expected_configuration_values_ref`: (String, optional) Pointer to UDM section with expected values.
+197 | - **KeyCapabilities:**
+198 |     - Ability to access and read configuration files.
+199 |     - Specialized Parsers (YAML, JSON, XML, .properties, .ini, Dockerfile, etc., as conceptual tools or LLM capabilities).
+200 |     - Text Analysis & Comparison (LLM-based).
+201 |     - Ability to query UDM rules/specifications.
+202 |     - Reporting capability.
+203 | - **Outputs:**
+204 |     - Primary Output: Configuration analysis report (`/logs/audits/TASK-ID_config_analysis_report.json` or `.md`) with detailed findings per file (key, issue, current/expected value, risk, recommendation).
+205 |     - Secondary Output: Proposals for UDM updates (to Section 06) or corrective tasks.
+206 |     - Status Report to Blueprint Mode.
+207 | - **SuccessMetrics:** Thoroughness of analysis; accuracy in identifying known discrepancies; clarity of recommendations.
+208 | - **ErrorHandling:** Handle unfound/unparsable files; missing UDM rule references.
+209 | - **EscalationPathways:** Critical security misconfigurations; widespread UDM deviations.
+210 | 
+211 | ---
+212 | ## 4.7 Mode: ROO-MODE-ANALYZE-STRUCTURE
+213 | - **ID:** `RM-004`
+214 | - **Purpose:** To analyze file and directory structure of specified project paths, identifying anomalies, deviations from standards, large files/directories, and assessing organization against UDM architectural guidelines.
+215 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+216 | - **CorePromptReference:** `/prompts/roo_mode_analyze_structure_prompt_v1.0.prompt.txt`
+217 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+218 |     - `task_id`, `udm_task_reference`, `description`.
+219 |     - `contextual_inputs`:
+220 |         - `paths_to_analyze`: (Array of strings).
+221 |         - `udm_architecture_ref`: (String, optional) Path to UDM Section 02.
+222 |         - `udm_directory_standards_ref`: (String, optional) Path to UDM section with layout rules.
+223 |         - `max_depth_scan`: (Integer, optional, default 3).
+224 |         - `file_size_threshold_mb_for_large_file_alert`: (Integer, optional, default 10).
+225 | - **KeyCapabilities:**
+226 |     - Ability to traverse file systems to list files/directories, get sizes, types, dates.
+227 |     - Pattern Matching capability (Regex/Glob).
+228 |     - Ability to query UDM architecture/standards.
+229 |     - Reporting capability.
+230 | - **Outputs:**
+231 |     - Primary Output: Structure analysis report (`/logs/audits/TASK-ID_structure_analysis_report.json` or `.md`) with findings per path (summary, anomalies, large files, UDM comparisons).
+232 |     - Secondary Output: Proposals for UDM updates (Section 02) or refactoring tasks.
+233 |     - Status Report to Blueprint Mode.
+234 | - **SuccessMetrics:** All paths analyzed; key anomalies identified; report generated with actionable insights.
+235 | - **ErrorHandling:** Handle inaccessible paths; UDM reference issues.
+236 | - **EscalationPathways:** Critical structural issues impeding understanding/operation; heavy contradiction with UDM architecture.
+237 | 
+238 | ---
+239 | ## 4.8 Mode: ROO-MODE-ANALYZE-CODEBASE
+240 | - **ID:** `RM-003`
+241 | - **Purpose:** Static analysis of source code: identify languages, frameworks, dependencies, structure, potential quality issues, map modules to UDM components.
+242 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+243 | - **CorePromptReference:** `/prompts/roo_mode_analyze_codebase_prompt_v1.0.prompt.txt`
+244 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+245 |     - `task_id`, `udm_task_reference`, `description`.
+246 |     - `contextual_inputs`:
+247 |         - `codebase_paths_to_analyze`: (Array of strings).
+248 |         - `dependency_manifest_paths`: (Array of strings, optional) e.g., `package.json`.
+249 |         - `udm_architecture_ref`: (String) Path to UDM Section 02.
+250 |         - `analysis_depth`: (String, optional) "summary", "detailed_module_mapping", "quality_metrics_scan".
+251 |         - `language_hints`: (Array of strings, optional).
+252 | - **KeyCapabilities:**
+253 |     - Ability to access and read source/manifest files.
+254 |     - Language Identification capability (Conceptual).
+255 |     - Dependency Analysis capability (Conceptual).
+256 |     - Static Code Analyzer capability(s) (Conceptual, language-specific for metrics).
+257 |     - Text Summarization & Pattern Recognition (LLM-based).
+258 |     - Ability to query UDM component definitions.
+259 |     - Reporting capability.
+260 | - **Outputs:**
+261 |     - Primary Output: Codebase analysis report (`/logs/audits/TASK-ID_codebase_analysis_report.json` or `.md`) with detected languages, frameworks, component mappings, quality metrics (if applicable), potential Roocode components.
+262 |     - Secondary Output: Proposed UDM updates (Section 02); potential new tasks (refactoring, analysis, docs).
+263 |     - Status Report to Blueprint Mode.
+264 | - **SuccessMetrics:** Accurate ID of languages/frameworks; % codebase mapped to UDM components; actionable report; ID of quality improvement areas.
+265 | - **ErrorHandling:** Handle inaccessible paths; language/dependency analysis failures; UDM reference issues.
+266 | - **EscalationPathways:** Major undocumented architectural components found; critical code quality/security issues suspected; large unanalyzable code portions due to internal limits.
+267 | 
+268 | ---
+269 | ## 4.9 Mode: ROO-MODE-ANALYZE-DOCS
+270 | - **ID:** `RM-005`
+271 | - **Purpose:** Analyze existing project documentation, compare against target UDM structure, identify content for migration/reference, pinpoint UDM content gaps, propose actions for UDM completeness.
+272 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+273 | - **CorePromptReference:** `/prompts/roo_mode_analyze_docs_prompt_v1.0.prompt.txt`
+274 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+275 |     - `task_id`, `udm_task_reference`, `description`.
+276 |     - `contextual_inputs`:
+277 |         - `doc_paths_to_analyze`: (Array of strings).
+278 |         - `udm_full_structure_definition_ref`: (String) Path to UDM section outlining all target UDM sections.
+279 |         - `udm_target_base_path`: (String).
+280 |         - `content_extraction_keywords`: (Array of strings, optional).
+281 | - **KeyCapabilities:**
+282 |     - Ability to access and read document files.
+283 |     - Document Parsing capability(s) (Markdown, Plain Text; conceptual Google/Word Doc parsers).
+284 |     - Text Summarization & Semantic Comparison (LLM-based).
+285 |     - Ability to query the scope of target UDM sections.
+286 |     - Reporting capability.
+287 | - **Outputs:**
+288 |     - Primary Output: Document analysis & UDM gap report (`/logs/audits/TASK-ID_docs_analysis_report.json` or `.md`) with existing doc relevance, UDM section mappings, content gap assessments.
+289 |     - Secondary Output: Proposed new UDM content population tasks (for migration or new content generation).
+290 |     - Status Report to Blueprint Mode.
+291 | - **SuccessMetrics:** All docs processed; clear mapping between existing docs and UDM; actionable list of UDM content gaps; concrete proposals for UDM population.
+292 | - **ErrorHandling:** Handle unfound/unparsable docs; missing UDM structure definition.
+293 | - **EscalationPathways:** Major existing docs found irrelevant/outdated; critical UDM info entirely missing from existing docs.
+294 | 
+295 | ---
+296 | ## 4.10 Mode: ROO-MODE-RESEARCH
+297 | - **ID:** `RM-001`
+298 | - **Purpose:** To conduct targeted research using various tools to fill knowledge gaps or answer specific queries, providing synthesized information and cited sources.
+299 | - **AI_Model_Dependency:** Gemini 2.5 Flash Preview 20-5.
+300 | - **CorePromptReference:** `/prompts/roo_mode_research_prompt_v1.2.prompt.txt`
+301 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+302 |     - `task_id`, `udm_task_reference`, `description`.
+303 |     - `contextual_inputs`:
+304 |         - `research_questions`: (Array of strings).
+305 |         - `knowledge_gap_description`: (String, optional).
+306 |         - `suggested_sources`: (Array of strings, optional).
+307 |         - `information_format_preference`: (String, optional).
+308 |         - `max_depth_level`: (Integer, optional).
+309 |         - `time_allocation_hint_minutes`: (Integer, optional).
+310 | - **KeyToolsAndCapabilities:**
+311 |     - `WebSearchTool`.
+312 |     - `DocumentFetchingParsingTool` (v1.1).
+313 |     - `Context7DocumentationTool`.
+314 |     - Text Summarization & Synthesis (LLM-based).
+315 |     - `KnowledgeGraphQueryTool` (Optional, Future).
+316 |     - File System Access (for UDM & Logs).
+317 |     - Capability to propose actions for `ClaudeBrowserMode` if direct fetching is insufficient.
+318 | - **Outputs:**
+319 |     - Primary Output: Research report (`/logs/research/TASK-ID_research_report.md` or `.json`) with summary, answers to questions, sources, unanswered questions/new gaps, methodology.
+320 |     - Secondary Output (If specified): Directly populated/updated UDM sections, code examples, or proposals for new tasks (including `ClaudeBrowserMode` actions).
+321 |     - Status Report to Blueprint Mode.
+322 | - **SuccessMetrics:** Clarity/relevance of answers; quality of sources; completeness of report; new knowledge gaps identified.
+323 | - **ErrorHandling:** Handle tool failures (web search, doc parsing); inability to answer questions (note reasons); manage time allocation.
+324 | - **EscalationPathways:** Critical tool unavailability; discovery of information contradicting UDM/Core Mandate.
+325 | 
+326 | ---
+327 | ## 4.11 Mode: ClaudeBrowserMode
+328 | - **ID:** `RM-CB01`
+329 | - **Purpose:** To perform interactive browser-based tasks by intelligently using a suite of browser control actions (tools) to achieve a specified goal. Handles tasks dependent on the 'Roocode browser' capability via the Claude API's tool-use features.
+330 | - **AI_Model_Dependency:** Claude Sonnet 3.5 (via Vertex AI, using `@genkit-ai/vertexai` plugin).
+331 | - **CorePromptReference:** `/prompts/claude_browser_mode_prompt_v2.0.prompt.txt`
+332 | - **Inputs (Standard Task Object from `roo_queue.json`):**
+333 |     - `task_id`, `udm_task_reference`, `description`.
+334 |     - `contextual_inputs`:
+335 |         - `browser_task_goal`: (String) High-level goal.
+336 |         - `initial_target_url`: (String, optional).
+337 |         - `sensitive_inputs`: (Object, optional) For credentials.
+338 |         - `information_to_extract`: (Array of objects, optional).
+339 |         - `validation_conditions`: (Array of strings, optional).
+340 |         - `session_id`: (String, optional).
+341 |         - `viewport_size_override`: (String, optional).
+342 |         - `screenshot_quality_override`: (Integer, optional).
+343 | - **KeyToolsAndCapabilities (Suite of 8 Browser Actions available to Claude Sonnet 3.5 via Claude API tool_use, executed by Inter-Model Bridge):**
+344 |     - `launchBrowser`
+345 |     - `clickElement`
+346 |     - `typeText`
+347 |     - `scrollPage`
+348 |     - `captureScreenshot`
+349 |     - `getElementText`
+350 |     - `checkElementExists`
+351 |     - `closeBrowser`
+352 |     - (Claude Sonnet 3.5's inherent reasoning, planning, and (multi-modal for screenshots) capabilities).
+353 |     - Reporting Tool (to structure JSON output).
+354 | - **Outputs:**
+355 |     - Primary Output: Browser interaction report (`/logs/browser_interactions/TASK-ID_browser_report.json`) detailing overall status, log of actions performed with their individual outcomes (screenshots, console logs, errors), validation results, and extracted information.
+356 |     - Status Report to Blueprint Mode.
+357 | - **SuccessMetrics:** Successful completion of all intended browser actions; positive confirmation of validation conditions; correct extraction of specified information; accurate logging of steps and outcomes.
+358 | - **ErrorHandling:** Handle failures of individual browser actions (e.g., element not found, navigation error), manage sequence termination or continuation based on error severity. Report tool or connection failures.
+359 | - **EscalationPathways:** Consistent failure of the underlying `RoocodeBrowserActionTool` or connection to Claude API; critical errors on target websites preventing task completion.

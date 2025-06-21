@@ -1,0 +1,17 @@
+[
+  {
+    "prompt": "Validate GPC brick 1001234",
+    "actual": "Valid. Brick ID exists.",
+    "expected": "Valid. Brick ID exists."
+  },
+  {
+    "prompt": "Check cardinality of GTIN in product schema",
+    "actual": "Error: GTIN cardinality exceeded.",
+    "expected": "Error: GTIN cardinality exceeded."
+  },
+  {
+    "prompt": "Compare phase 9 vs phase 10 schema",
+    "actual": "Field 'netContent' added.",
+    "expected": "Field 'netContent' added."
+  }
+]

@@ -9,7 +9,7 @@
  * - DetectStandardErrorsOutput - The return type for the detectStandardErrors function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, getModelParams} from '@/ai/genkit';
 import {z} from 'genkit';
 import { DetectStandardErrorsInputSchema } from '@/ai/schemas';
 
@@ -46,11 +46,23 @@ export async function detectStandardErrors(input: DetectStandardErrorsInput): Pr
   return detectStandardErrorsFlow(input);
 }
 
-const detectStandardErrorsPrompt = ai.definePrompt({
-  name: 'detectStandardErrorsPrompt',
-  input: {schema: DetectStandardErrorsInputSchema},
-  output: {schema: DetectStandardErrorsOutputSchema},
-  prompt: `You are an expert standards auditor with a keen eye for detail. Your task is to meticulously analyze the provided standards document content to identify and report errors, inconsistencies, ambiguities, and overlapping definitions.
+const detectStandardErrorsFlow = ai.defineFlow(
+  {
+    name: 'detectStandardErrorsFlow',
+    inputSchema: DetectStandardErrorsInputSchema,
+    outputSchema: DetectStandardErrorsOutputSchema,
+  },
+  async input => {
+    // Dynamically get model parameters for 'debug' mode
+    const { model, thinkingBudget } = getModelParams('debug', {
+      input_token_count: input.documentContent.length, // Estimate token count
+      task_intent: "error investigation",
+      complexity_flags: ["complex problem diagnosis", "error investigation", "root cause analysis"]
+    });
+
+    const llmResponse = await ai.generate({
+      model: model,
+      prompt: `You are an expert standards auditor with a keen eye for detail. Your task is to meticulously analyze the provided standards document content to identify and report errors, inconsistencies, ambiguities, and overlapping definitions.
 
 Document Content:
 \`\`\`
@@ -75,16 +87,11 @@ Finally, provide a brief 'summary' of your overall findings, noting the quantity
 
 Structure your output according to the provided JSON schema. Focus on actionable and clear feedback.
 `,
-});
-
-const detectStandardErrorsFlow = ai.defineFlow(
-  {
-    name: 'detectStandardErrorsFlow',
-    inputSchema: DetectStandardErrorsInputSchema,
-    outputSchema: DetectStandardErrorsOutputSchema,
-  },
-  async input => {
-    const {output} = await detectStandardErrorsPrompt(input);
-    return output!;
+      config: {
+        maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
+      },
+      output: { schema: DetectStandardErrorsOutputSchema },
+    });
+    return llmResponse.output!;
   }
 );

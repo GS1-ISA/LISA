@@ -1,0 +1,13 @@
+
+# Sample retry logic snippet for GitHub Actions
+- name: Run Genkit Flow Check
+  run: npm run genkit:build
+  continue-on-error: true
+  id: genkit_check
+
+- name: Retry Genkit Flow Check if failed
+  if: steps.genkit_check.outcome == 'failure'
+  run: |
+    echo "First attempt failed. Retrying..."
+    sleep 10
+    npm run genkit:build

@@ -1,0 +1,11 @@
+version: 1.0
+type: trust-ledger
+format: score-based
+fields:
+  - node_id
+  - trust_score
+  - last_sync
+  - data_quality_index
+update_rules:
+  - trust_score is recalculated on merge success or rejection
+  - nodes with <60 score must pass human review

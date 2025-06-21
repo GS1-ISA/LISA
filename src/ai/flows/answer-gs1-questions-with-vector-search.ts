@@ -16,9 +16,9 @@
  * - AnswerGs1QuestionsWithVectorSearchOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, getModelParams} from '@/ai/genkit';
 import {z} from 'genkit';
-import { AnswerGs1QuestionsWithVectorSearchInputSchema, DocumentChunkSchema } from '@/ai/schemas'; 
+import { AnswerGs1QuestionsWithVectorSearchInputSchema, DocumentChunkSchema } from '@/ai/schemas';
 import { queryVectorStoreTool } from '@/ai/tools/vector-store-tools';
 import { logger } from '@/lib/logger';
 
@@ -47,11 +47,54 @@ const SynthesisPromptInputSchema = z.object({
 });
 
 
-const synthesizeAnswerFromChunksPrompt = ai.definePrompt({
-  name: 'synthesizeAnswerFromChunksPrompt',
-  input: { schema: SynthesisPromptInputSchema },
-  output: { schema: AnswerGs1QuestionsWithVectorSearchOutputSchema.omit({ retrievedChunksCount: true }) }, 
-  prompt: `You are an AI assistant that answers questions about GS1 standards based *only* on the provided document content snippets.
+export async function answerGs1QuestionsWithVectorSearch(
+  input: AnswerGs1QuestionsWithVectorSearchInput
+): Promise<AnswerGs1QuestionsWithVectorSearchOutput> {
+  let retrievedChunksCount = 0;
+  logger.info(`[FLOW_VECTOR_SEARCH] Received input: question="${input.question}"`);
+  try {
+    // Dynamically get model parameters for 'ask' mode, as this is a question-answering task
+    const { model, thinkingBudget } = getModelParams('ask', {
+      input_token_count: input.question.length, // Estimate token count
+      task_intent: "quick lookups",
+      complexity_flags: ["simple", "quick"]
+    });
+
+    // Step 1: Call the (mocked) vector store tool to retrieve document chunks.
+    const toolInput = {
+      query: input.question,
+    };
+    logger.info(`[FLOW_VECTOR_SEARCH] Calling queryVectorStoreTool with input: ${JSON.stringify(toolInput, null, 2)}`);
+    const toolOutput = await queryVectorStoreTool(toolInput);
+
+    if (!toolOutput || !toolOutput.results) {
+        logger.error("[FLOW_VECTOR_SEARCH] queryVectorStoreTool did not return valid results.");
+        return {
+            answer: "Failed to retrieve information from the conceptual vector store. The tool did not provide valid results.",
+            citedSources: [],
+            reasoningSteps: ["Error querying the conceptual vector store: Tool returned invalid or no results."],
+            retrievedChunksCount: 0,
+        };
+    }
+    const retrievedDocumentChunks = toolOutput.results;
+    retrievedChunksCount = retrievedDocumentChunks.length;
+    logger.info(`[FLOW_VECTOR_SEARCH] queryVectorStoreTool returned ${retrievedChunksCount} chunk(s).`);
+    if (retrievedChunksCount > 0) {
+        logger.info('[FLOW_VECTOR_SEARCH] First retrieved chunk content (preview): ' + retrievedDocumentChunks[0].content.substring(0, 100) + '...');
+    } else {
+        logger.info('[FLOW_VECTOR_SEARCH] No chunks retrieved by queryVectorStoreTool.');
+    }
+    
+    // Step 3: Synthesize an answer from the retrieved chunks using an LLM.
+    const synthesisInput = {
+      question: input.question,
+      documentChunks: retrievedDocumentChunks,
+    };
+    logger.info(`[FLOW_VECTOR_SEARCH] Calling LLM for synthesis with ${retrievedDocumentChunks.length} chunks.`);
+
+    const llmResponse = await ai.generate({
+      model: model,
+      prompt: `You are an AI assistant that answers questions about GS1 standards based *only* on the provided document content snippets.
 
 Provided Document Chunks:
 {{#if documentChunks.length}}
@@ -89,51 +132,16 @@ Based solely on the provided content snippets (if any):
      - "Unable to synthesize answer due to lack of relevant information from the knowledge base."
 
 Begin.`,
-});
+      config: {
+        maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
+      },
+      output: { schema: AnswerGs1QuestionsWithVectorSearchOutputSchema.omit({ retrievedChunksCount: true }) },
+    });
 
-
-export async function answerGs1QuestionsWithVectorSearch(
-  input: AnswerGs1QuestionsWithVectorSearchInput
-): Promise<AnswerGs1QuestionsWithVectorSearchOutput> {
-  let retrievedChunksCount = 0;
-  logger.info(`[FLOW_VECTOR_SEARCH] Received input: question="${input.question}"`);
-  try {
-    // Step 1: Call the (mocked) vector store tool to retrieve document chunks.
-    const toolInput = {
-      query: input.question,
-    };
-    logger.info(`[FLOW_VECTOR_SEARCH] Calling queryVectorStoreTool with input: ${JSON.stringify(toolInput, null, 2)}`);
-    const toolOutput = await queryVectorStoreTool(toolInput);
-
-    if (!toolOutput || !toolOutput.results) {
-        logger.error("[FLOW_VECTOR_SEARCH] queryVectorStoreTool did not return valid results.");
-        return {
-            answer: "Failed to retrieve information from the conceptual vector store. The tool did not provide valid results.",
-            citedSources: [],
-            reasoningSteps: ["Error querying the conceptual vector store: Tool returned invalid or no results."],
-            retrievedChunksCount: 0,
-        };
-    }
-    const retrievedDocumentChunks = toolOutput.results;
-    retrievedChunksCount = retrievedDocumentChunks.length;
-    logger.info(`[FLOW_VECTOR_SEARCH] queryVectorStoreTool returned ${retrievedChunksCount} chunk(s).`);
-    if (retrievedChunksCount > 0) {
-        logger.info('[FLOW_VECTOR_SEARCH] First retrieved chunk content (preview): ' + retrievedDocumentChunks[0].content.substring(0, 100) + '...');
-    } else {
-        logger.info('[FLOW_VECTOR_SEARCH] No chunks retrieved by queryVectorStoreTool.');
-    }
-    
-    // Step 3: Synthesize an answer from the retrieved chunks using an LLM.
-    const synthesisInput = {
-      question: input.question,
-      documentChunks: retrievedDocumentChunks,
-    };
-    logger.info(`[FLOW_VECTOR_SEARCH] Calling synthesizeAnswerFromChunksPrompt with ${retrievedDocumentChunks.length} chunks.`);
-
-    const { output: synthesisOutput } = await synthesizeAnswerFromChunksPrompt(synthesisInput);
+    const synthesisOutput = llmResponse.output;
 
     if (!synthesisOutput) {
-      logger.error('[FLOW_VECTOR_SEARCH] synthesizeAnswerFromChunksPrompt did not return a valid output.');
+      logger.error('[FLOW_VECTOR_SEARCH] LLM synthesis did not return a valid output.');
       return {
         answer: "I encountered an issue generating an answer from the retrieved information. The AI model failed to produce a structured response during synthesis. Please try again.",
         citedSources: [],
@@ -154,7 +162,7 @@ export async function answerGs1QuestionsWithVectorSearch(
       answer: `An unexpected error occurred while processing your request with vector search: ${error.message || error}. Please check the input or try again later.`,
       citedSources: [],
       reasoningSteps: ["An unexpected error occurred in the RAG pipeline."],
-      retrievedChunksCount: retrievedChunksCount, 
+      retrievedChunksCount: retrievedChunksCount,
     };
   }
 }

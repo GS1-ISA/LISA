@@ -1,0 +1,11 @@
+nodes:
+  - id: schema_diff
+    type: action
+  - id: translate_schema
+    type: action
+  - id: vote_governance
+    type: decision
+  - id: validate_patch
+    type: action
+  - id: version_sync
+    type: update

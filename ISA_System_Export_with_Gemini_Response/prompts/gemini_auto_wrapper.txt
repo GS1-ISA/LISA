@@ -1,0 +1,1 @@
+Depending on task scope, choose between concise and comprehensive ISA prompt variants.

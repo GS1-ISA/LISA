@@ -19,9 +19,18 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@isa-schemas/*": ["./isa/schemas/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "docs/archive/**"]
+  "exclude": ["node_modules", "docs/archive/**"],
+  "references": [
+    { "path": "./Roo-Code-main/packages/config-typescript" },
+    { "path": "./Roo-Code-main/packages/types" },
+    { "path": "./Roo-Code-main/apps/web-evals" },
+    { "path": "./Roo-Code-main/apps/web-roo-code" },
+    { "path": "./Roo-Code-main/apps/vscode-e2e" },
+    { "path": "./Roo-Code-main/webview-ui" }
+  ]
 }

@@ -1,0 +1,4 @@
+✅ Phase 15 Simulation Log
+- LLMCoalitionAgent proposed protocol revision.
+- Conflict between AgentA and AgentC resolved via override vote.
+- Consensus achieved. Logs stored in /governance/logs/vote_2025_06_15.yaml.

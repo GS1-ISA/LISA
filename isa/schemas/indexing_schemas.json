@@ -1,0 +1,54 @@
+{
+  "definitions": {
+    "DocumentChunk": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the chunk" },
+        "content": { "type": "string", "description": "Textual content of the chunk" },
+        "source_ref": { "type": "string", "description": "Path to the source file" },
+        "start_line": { "type": "integer", "description": "Starting line number in the source file" },
+        "end_line": { "type": "integer", "description": "Ending line number in the source file" },
+        "embedding_vector": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Vector embedding of the content"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata for the chunk (e.g., file type, language, function name)",
+          "additionalProperties": true
+        }
+      },
+      "required": ["id", "content", "source_ref", "embedding_vector"]
+    },
+    "KnowledgeGraphEntity": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the entity" },
+        "type": { "type": "string", "description": "Type of entity (e.g., File, Function, Class, Concept, Task)" },
+        "name": { "type": "string", "description": "Name of the entity" },
+        "properties": {
+          "type": "object",
+          "description": "Key-value pairs for entity properties",
+          "additionalProperties": true
+        }
+      },
+      "required": ["id", "type", "name"]
+    },
+    "KnowledgeGraphRelationship": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the relationship" },
+        "source_entity_id": { "type": "string", "description": "ID of the source entity" },
+        "target_entity_id": { "type": "string", "description": "ID of the target entity" },
+        "type": { "type": "string", "description": "Type of relationship (e.g., imports, defines, references, relatesTo)" },
+        "properties": {
+          "type": "object",
+          "description": "Key-value pairs for relationship properties",
+          "additionalProperties": true
+        }
+      },
+      "required": ["id", "source_entity_id", "target_entity_id", "type"]
+    }
+  }
+}

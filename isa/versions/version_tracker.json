@@ -16,5 +16,35 @@
   "dashboard": "/docs/dashboard/governance_roadmap.png",
   "reports": {
     "gemini_model_optimization_plan": "isa/reports/gemini_model_optimization_plan.md"
-  }
+  },
+  "last_modified_file": "src/ai/genkit.ts",
+  "last_modified_task": "Implement Gemini model optimizations.",
+  "changes": [
+    {
+      "version": "1.0.1",
+      "date": "2025-06-20",
+      "description": "Clarified `project_journal.md` as a preferred logging location in global instructions."
+    },
+    {
+      "version": "1.0.2",
+      "date": "2025-06-20",
+      "description": "Created isa/reports/status_dashboard.md and isa/core/isa_summarizer.py as part of logging and testing verification."
+    },
+    {
+      "version": "1.0.4",
+      "date": "2025-06-21",
+      "description": "Removed artificial delay in mode switching to improve responsiveness."
+    },
+    {
+      "version": "1.0.5",
+      "date": "2025-06-21",
+      "description": "Revised Roocode Mode Architecture, updated mode definitions, model assignments, and thinking budgets in `isa/config/roo_mode_map.json`."
+    },
+    {
+      "version": "1.0.6",
+      "date": "2025-06-21",
+      "description": "Implemented Roocode Mode Architecture v2.1 improvements, including LLM re-assignments, new modes, advanced prompt engineering, failure simulation plans, and versioning strategies."
+    }
+  ],
+  "last_updated": "2025-06-21T13:53:35Z"
 }

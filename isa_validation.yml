@@ -1,0 +1,48 @@
+
+name: ISA Validation & Integration Cycle
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'   # Weekly on Mondays at 07:00 UTC
+    - cron: '0 0 * * *'   # Daily light checks at midnight UTC
+  push:
+    paths:
+      - 'Phase*/**'
+      - 'VERSION.yaml'
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Cross-Phase Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🧰 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: 🔍 Run Schema & Governance Validator
+        run: |
+          python scripts/validate_schema_links.py
+          python scripts/governance_drift_check.py
+
+      - name: 🧪 Run Integration Tests
+        run: |
+          python tests/run_multi_agent_tests.py > simulation_logs/integration_tests/latest.log
+
+      - name: 🧾 Commit Validation Report
+        run: |
+          git config --global user.name 'ISA Validator Bot'
+          git config --global user.email 'isa-bot@example.com'
+          git add simulation_logs/integration_tests/latest.log
+          git commit -m "🧪 Validation log $(date +'%Y-%m-%d %H:%M')"
+          git push

@@ -1,0 +1,9 @@
+{
+  "source": "user_feedback_aggregation",
+  "sample_questions": [
+    "Can a product have multiple GTINs?",
+    "What is the GLN assignment rule for third-party warehouses?",
+    "Are SSCCs reused in closed-loop supply chains?"
+  ],
+  "status": "feedback analysis queued"
+}

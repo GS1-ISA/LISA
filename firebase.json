@@ -1,4 +1,7 @@
 {
+  "projects": {
+    "default": "main-6-juni-48577360"
+  },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"

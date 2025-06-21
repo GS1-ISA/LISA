@@ -2,52 +2,13 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import type { Tool } from 'genkit';
 import { logger } from '@/lib/logger';
-
-// Mock in-memory vector database
-interface DocumentChunk {
-  content: string;
-  sourceName: string;
-  embedding: number[];
-}
-
-const mockVectorDatabase: DocumentChunk[] = [
-  {
-    content: 'ISA standard for barcode is GS1-128',
-    sourceName: 'ISA Docs',
-    embedding: [0.1, 0.2, 0.3],
-  },
-  {
-    content: 'The main office is located in Brussels',
-    sourceName: 'ISA Website',
-    embedding: [0.4, 0.5, 0.6],
-  },
-  {
-    content: 'Contact information for support is support@isa.example.com',
-    sourceName: 'ISA Contact Page',
-    embedding: [0.7, 0.8, 0.9],
-  },
-  {
-    content: 'Membership benefits include access to exclusive events',
-    sourceName: 'ISA Membership Brochure',
-    embedding: [0.0, 0.1, 0.2],
-  },
-  {
-    content: 'Annual conference will be held in October',
-    sourceName: 'ISA Events Calendar',
-    embedding: [0.3, 0.4, 0.5],
-  },
-];
-
-interface DocumentChunkWithEmbedding extends DocumentChunk {
-  embedding: number[]; // Assuming embeddings are just arrays of numbers for this mock
-}
-
+import { execa } from 'execa'; // Import execa for running external commands
 
 export const queryVectorStoreTool = ai.defineTool(
   {
     name: 'queryVectorStore',
     description:
-      'Queries a vector store with a natural language question to find relevant document chunks.',
+      'Queries a vector store with a natural language question to find relevant document chunks using the Python semantic search interface.',
     inputSchema: z.object({
       query: z.string().describe('The natural language question for the vector store.'),
     }),
@@ -55,39 +16,37 @@ export const queryVectorStoreTool = ai.defineTool(
       results: z.array(
         z.object({
           content: z.string(),
-          sourceName: z.string(),
+          sourceName: z.string().optional(), // Source name might not be available from Python mock
         })
       ),
     }),
   },
   async ({ query }: { query: string }) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
+    logger.info(`[TOOL_VECTOR_STORE] Calling Python semantic search with query: "${query}"`);
+    try {
+      // Execute the Python script
+      const { stdout } = await execa('python', ['isa/core/run_semantic_search.py', query]);
+      const output = JSON.parse(stdout);
 
-      logger.info(`Mock Vector Store Tool Called with query: "${query}"`);
-
-      const queryKeywords = query
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(keyword => keyword.length > 2);
-
-      let relevantChunks: DocumentChunkWithEmbedding[] = [];
-
-      if (queryKeywords.length > 0) {
-        relevantChunks = mockVectorDatabase.filter(chunk =>
-          queryKeywords.some(keyword =>
-            chunk.content.toLowerCase().includes(keyword)
-          )
-        );
-      }
-
-      if (relevantChunks.length > 0) {
-        logger.info('Mock Tool Output: Relevant chunks found.');
-        return { results: relevantChunks };
-      } else {
-        logger.info('Mock Tool Output: No relevant chunks found.');
+      if (output.error) {
+        logger.error(`[TOOL_VECTOR_STORE] Python script error: ${output.error}`);
         return { results: [] };
       }
+
+      // The Python script returns a list of strings, so we map them to the expected DocumentChunk format.
+      // For now, sourceName is omitted as the mock Python script doesn't provide it.
+      const results = output.results.map((chunkContent: string) => ({
+        content: chunkContent,
+        sourceName: 'Indexed Project Knowledge', // Default source name
+      }));
+
+      logger.info(`[TOOL_VECTOR_STORE] Python script returned ${results.length} results.`);
+      return { results };
+    } catch (error: any) {
+      logger.error({ err: error }, '[TOOL_VECTOR_STORE] Error executing Python semantic search script.');
+      return { results: [] };
     }
+  }
 );
 
 export const vectorStoreTools: Tool[] = [queryVectorStoreTool];

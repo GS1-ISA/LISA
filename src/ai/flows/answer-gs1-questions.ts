@@ -9,7 +9,7 @@
  * - AnswerGs1QuestionsOutput - The return type for the answerGs1Questions function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, getModelParams} from '@/ai/genkit';
 import {z} from 'genkit';
 import { AnswerGs1QuestionsInputSchema } from '@/ai/schemas'; // Import schema object
 
@@ -25,21 +25,6 @@ export async function answerGs1Questions(input: AnswerGs1QuestionsInput): Promis
   return answerGs1QuestionsFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'answerGs1QuestionsPrompt',
-  input: {schema: AnswerGs1QuestionsInputSchema}, // Use imported schema object
-  output: {schema: AnswerGs1QuestionsOutputSchema},
-  prompt: `You are an AI assistant that answers questions about GS1 standards documents.
-
-  You will be provided with a question and the content of a GS1 standards document.
-  Your task is to answer the question based on the information in the document.
-
-  Question: {{{question}}}
-  Document Content: {{{documentContent}}}
-
-  Answer:`, 
-});
-
 const answerGs1QuestionsFlow = ai.defineFlow(
   {
     name: 'answerGs1QuestionsFlow',
@@ -47,7 +32,29 @@ const answerGs1QuestionsFlow = ai.defineFlow(
     outputSchema: AnswerGs1QuestionsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    // Dynamically get model parameters for 'ask' mode
+    const { model, thinkingBudget } = getModelParams('ask', {
+      input_token_count: input.question.length + input.documentContent.length, // Estimate token count
+      task_intent: "quick lookups",
+      complexity_flags: ["simple", "quick"]
+    });
+
+    const llmResponse = await ai.generate({
+      model: model,
+      prompt: `You are an AI assistant that answers questions about GS1 standards documents.
+
+  You will be provided with a question and the content of a GS1 standards document.
+  Your task is to answer the question based on the information in the document.
+
+  Question: {{{question}}}
+  Document Content: {{{documentContent}}}
+
+  Answer:`,
+      config: {
+        maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
+      },
+      output: { schema: AnswerGs1QuestionsOutputSchema },
+    });
+    return llmResponse.output!;
   }
 );

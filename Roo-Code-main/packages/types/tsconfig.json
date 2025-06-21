@@ -1,0 +1,9 @@
+{
+	"extends": "../config-typescript/base.json",
+	"compilerOptions": {
+		"types": ["vitest/globals", "jest", "mocha", "vscode"],
+		"outDir": "dist"
+	},
+	"include": ["src"],
+	"exclude": ["node_modules"]
+}

@@ -9,7 +9,7 @@
  * - AnalyzeStandardsOutput - The return type for the analyzeStandards function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, getModelParams} from '@/ai/genkit';
 import {z} from 'genkit';
 import { AnalyzeStandardsInputSchema } from '@/ai/schemas'; // Import schema object
 
@@ -31,20 +31,6 @@ export async function analyzeStandards(input: AnalyzeStandardsInput): Promise<An
   return analyzeStandardsFlow(input);
 }
 
-const analyzeStandardsPrompt = ai.definePrompt({
-  name: 'analyzeStandardsPrompt',
-  input: {schema: AnalyzeStandardsInputSchema}, // Use imported schema object
-  output: {schema: AnalyzeStandardsOutputSchema},
-  prompt: `You are an expert standards analyst. Your task is to analyze the provided standards document for inconsistencies and structural issues.
-
-Document Content: {{{documentContent}}}
-
-Identify any inconsistencies, overlapping definitions, or structural problems in the document. Provide a summary of your analysis.
-
-Output the inconsistencies and structural issues as lists of strings, and a summary.
-`,
-});
-
 const analyzeStandardsFlow = ai.defineFlow(
   {
     name: 'analyzeStandardsFlow',
@@ -52,7 +38,25 @@ const analyzeStandardsFlow = ai.defineFlow(
     outputSchema: AnalyzeStandardsOutputSchema,
   },
   async input => {
-    const {output} = await analyzeStandardsPrompt(input);
-    return output!;
+    // Dynamically get model parameters for 'architect' mode as this is a complex analysis task
+    const { model, thinkingBudget } = getModelParams('architect', {
+      input_token_count: input.documentContent.length, // Estimate token count
+      task_intent: "deep analysis",
+      complexity_flags: ["architect", "complex", "deep analysis"]
+    });
+
+    const llmResponse = await ai.generate({
+      model: model,
+      prompt: `You are an expert standards analyst. Your task is to analyze the provided standards document for inconsistencies and structural issues.
+Document Content: {{{documentContent}}}
+Identify any inconsistencies, overlapping definitions, or structural problems in the document. Provide a summary of your analysis.
+Output the inconsistencies and structural issues as lists of strings, and a summary.
+`,
+      config: {
+        maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
+      },
+      output: { schema: AnalyzeStandardsOutputSchema },
+    });
+    return llmResponse.output!;
   }
 );

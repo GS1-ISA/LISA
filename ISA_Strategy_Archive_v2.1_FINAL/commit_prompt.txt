@@ -1,0 +1,13 @@
+📌 ISA Strategy Integration Commit
+
+Summary:
+This commit integrates the v2.1 strategic execution framework for the Intelligent Standards Assistant (ISA). It includes:
+- A dynamic execution roadmap with trigger abstraction and semantic contract logic
+- Concise and comprehensive prompt strategies
+- Mermaid visuals for DAG and Gantt roadmap overview
+- GitHub Actions workflow for autonomous prompt execution
+
+Review:
+Ensure compatibility with existing pipeline triggers. Validate that the `execution_plan.yaml` reflects current repository structure.
+
+Tags: [roadmap] [gemini] [ci/cd] [autonomous-development]

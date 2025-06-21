@@ -27,6 +27,12 @@ Use the helper script to set the active Firebase project and gcloud project ID b
 ```
 This script reads `GCP_PROJECT_ID` from `.env` and configures both the Firebase CLI and gcloud. Ensure you are logged in (`firebase login` and `gcloud auth login`) before running it.
 
+### Primary Firebase Development Project
+The primary Firebase development project for ISA is accessible via the Firebase Studio at:
+`https://studio.firebase.google.com/main-6-juni-48577360`
+
+This project ID (`main-6-juni-48577360`) is configured in your `.env` file under `GCP_PROJECT_ID` and in `firebase.json` as the default project.
+
 ## 5. Start the emulators
 ```bash
 firebase emulators:start

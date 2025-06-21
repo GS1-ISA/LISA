@@ -1,0 +1,22 @@
+cd /Users/frisowempe/ISA && \
+openai agents init isa && \
+cd isa && \
+echo 'export OPENAI_API_KEY="psk-proj-cxdbDCwCg4cO75ZwwwWr2IAP436xYDxcARhZWGEDJL11wUjBIv5K-Fb9cOES2wYZc6BII0EuIYT3BlbkFJsfvI6MJKCVmks5HoPhfVDZK-kbZHAqW5dINrOhhzsIj7jMZYX2p5N_HN4kDilvuuHi_B8aXr0A"' >> ~/.zshrc && \
+echo 'export OPENAI_TRACE="true"' >> ~/.zshrc && \
+source ~/.zshrc && \
+cat > agent.yaml <<EOF
+name: isa
+model: gpt-4o
+instructions: |
+  Je bent een intelligente assistent voor GS1 Nederland. Je helpt bij het analyseren, verbeteren en controleren van standaarden, zoals GTIN, GDSN en GLN. Geef altijd een redenatie bij je antwoord.
+tools:
+  - file_search
+EOF
+cat > main.py <<EOF
+from openai import AssistantAgent
+
+agent = AssistantAgent.from_directory(".")
+response = agent.run("Wat is het semantisch verschil tussen 'Net weight' en 'Gross weight' in GDSN?")
+print(response)
+EOF
+python3 main.py

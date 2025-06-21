@@ -1,0 +1,11 @@
+{
+  "question": "Is a GTIN required for an inner pack of 3 toothpaste tubes?",
+  "steps": [
+    "Step 1: Identify the entity in question: inner pack of 3 tubes.",
+    "Step 2: Search QA vector store for 'GTIN inner pack rules'.",
+    "Step 3: Retrieve GS1 General Specification clause 4.2.3.",
+    "Step 4: Determine if inner packs intended for POS require GTINs.",
+    "Step 5: Conclude based on packaging level and trading partner agreement."
+  ],
+  "final_answer": "Yes, a GTIN is typically required if the inner pack is intended to be sold separately or scanned at POS."
+}

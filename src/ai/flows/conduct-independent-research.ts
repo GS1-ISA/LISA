@@ -8,7 +8,7 @@
  * - ConductIndependentResearchOutput - The return type for the conductIndependentResearch function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, getModelParams} from '@/ai/genkit';
 import {z} from 'genkit';
 import { ConductIndependentResearchInputSchema } from '@/ai/schemas'; // Import schema object
 
@@ -62,12 +62,23 @@ const researchTool = ai.defineTool(
   }
 );
 
-const prompt = ai.definePrompt({
-  name: 'conductIndependentResearchPrompt',
-  input: {schema: ConductIndependentResearchInputSchema}, // Use imported schema object
-  output: {schema: ConductIndependentResearchOutputSchema},
-  tools: [researchTool],
-  prompt: `You are an AI assistant helping a standards expert conduct independent research.
+const conductIndependentResearchFlow = ai.defineFlow(
+  {
+    name: 'conductIndependentResearchFlow',
+    inputSchema: ConductIndependentResearchInputSchema, // Use imported schema object
+    outputSchema: ConductIndependentResearchOutputSchema,
+  },
+  async input => {
+    // Dynamically get model parameters for 'claude-browser-mode-v2-0' mode
+    const { model, thinkingBudget } = getModelParams('claude-browser-mode-v2-0', {
+      input_token_count: input.topic.length + (input.researchQuestion?.length || 0), // Estimate token count
+      task_intent: "web research",
+      complexity_flags: ["web research", "information gathering"]
+    });
+
+    const llmResponse = await ai.generate({
+      model: model,
+      prompt: `You are an AI assistant helping a standards expert conduct independent research.
 
   The expert is researching the following topic: {{{topic}}}
 
@@ -84,16 +95,12 @@ const prompt = ai.definePrompt({
   List all unique, actionable "formulatedQuestions".
   List the "sources" based on information provided by the webSearch tool if any (e.g. URLs mentioned in results).
   `,
-});
-
-const conductIndependentResearchFlow = ai.defineFlow(
-  {
-    name: 'conductIndependentResearchFlow',
-    inputSchema: ConductIndependentResearchInputSchema, // Use imported schema object
-    outputSchema: ConductIndependentResearchOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+      tools: [researchTool],
+      config: {
+        maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
+      },
+      output: { schema: ConductIndependentResearchOutputSchema },
+    });
+    return llmResponse.output!;
   }
 );

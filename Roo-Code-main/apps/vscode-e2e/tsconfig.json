@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"module": "CommonJS",
+		"moduleResolution": "Node",
+		"esModuleInterop": true,
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM"],
+		"sourceMap": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"useUnknownInCatchVariables": false,
+		"outDir": "out",
+		"types": ["jest", "mocha", "vscode"]
+	},
+	"include": ["src"],
+	"exclude": [".vscode-test", "**/node_modules/**", "out"],
+	"references": [
+		{ "path": "../../packages/types" }
+	]
+}

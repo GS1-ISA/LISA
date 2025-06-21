@@ -1,0 +1,29 @@
+version: 7.0.0
+phase: "Phase 7 - Externalization & Ecosystem Growth"
+compatible_models:
+  - name: "Gemini 2.5 Pro"
+    type: "Google"
+    features:
+      - deep_research_mode
+      - tool_use
+      - system_prompt_embedding
+  - name: "OpenAI Codex-1"
+    type: "OpenAI"
+    features:
+      - code_mutation
+      - automated scaffolding
+      - mode orchestration
+  - name: "Roocode (2025 Agent Spec)"
+    type: "Autonomous IDE"
+    features:
+      - prompt memory
+      - doc templating
+      - federation linking
+document_compatibility:
+  formats: ["markdown", "yaml", "json"]
+  constraints:
+    - Must support AUTO_EXPAND_ON
+    - Must define governance references
+drift_policy:
+  detect_on: ["weekly", "phase_transition"]
+  action: "raise alert and freeze expansion until verified"

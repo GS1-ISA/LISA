@@ -1,0 +1,8 @@
+# This is a placeholder for Google Cloud App Hosting configuration.
+# Further configuration will be added based on audit findings and deployment needs.
+# Example minimal configuration:
+# service: default
+# regions:
+#   - us-central1
+#   - us-east1
+# memoryMiB: 512 # This is a known discrepancy from initial human review, will be audited.

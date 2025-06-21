@@ -1,0 +1,8 @@
+Stage,Failure,Impact,Suggested Fix
+Setup,Node version mismatch,Build blocked,Pin node version in .nvmrc
+Lint & Type Check,TS Error in /flows/index.ts,Type error blocks deployment,Fix type definitions
+Genkit Flow Check,Invalid schema in vectorSearchFlow,Flow broken,Run `genkit build` locally to debug
+Firebase Emulators,Firestore port already in use,Emulator fails to start,Free port 8080 or change config
+Secret Sync,Missing GOOGLE_API_KEY,Genkit auth fails,Check Secret Manager for key registration
+Deploy to Firebase,Functions deploy timeout,Functions not available,Optimize build or increase timeout
+Post-deploy Monitoring,Missing logs in Pino,No observability,Ensure structured logging is active
