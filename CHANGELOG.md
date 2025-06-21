@@ -1,5 +1,8 @@
 # Changelog
 
+### 2025-06-21 - Git Commit Message Spelling Correction
+- Corrected spelling error "juni" to "June" in `.git/COMMIT_EDITMSG`.
+
 ### 2025-06-21 - Roocode Mode Architecture Revision
 - Analyzed and revised the proposed Roocode Mode Architecture, including critical evaluation, revised mode proposal, and prompt engineering recommendations.
 - Updated `isa/config/roo_mode_map.json` to reflect the revised mode architecture, including new modes (`architect`, `debugger`, `validator`, `synthesizer`, `auditor`, `brainstormer`, `human-input`), updated model assignments, and thinking budget configurations.

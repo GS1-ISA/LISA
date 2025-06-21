@@ -85,6 +85,13 @@ export const HumanFeedbackRequesterOutputSchema = z.object({
 
 
 // 2. LangGraph State Definition
+export const ToolActionSchema = z.object({
+  toolName: z.string(),
+  toolInput: z.record(z.any()),
+});
+
+export type ToolAction = z.infer<typeof ToolActionSchema>;
+
 export const ProposalReviewStateSchema = z.object({
   proposalId: z.string().describe('Unique identifier for the proposal.'),
   rawProposalContent: z.string().describe('Raw content of the proposal.'),
@@ -107,6 +114,8 @@ export const ProposalReviewStateSchema = z.object({
     "FAILED"
   ]).describe('Current status of the workflow.'),
   errorMessage: z.string().optional().describe('Error message if the workflow failed.'),
+  lastToolAction: ToolActionSchema.optional().describe('The last tool action requested by an agent.'),
+  lastToolOutput: z.any().optional().describe('The output of the last executed tool.'),
 });
 
 export type IngestDocumentInput = z.infer<typeof IngestDocumentInputSchema>;

@@ -23,8 +23,8 @@
       "@isa-schemas/*": ["./isa/schemas/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "docs/archive/**"],
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "docs/archive/**", "Roo-Code-main/**"],
   "references": [
     { "path": "./Roo-Code-main/packages/config-typescript" },
     { "path": "./Roo-Code-main/packages/types" },

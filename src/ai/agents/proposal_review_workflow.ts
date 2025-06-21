@@ -1,7 +1,15 @@
-import { Graph, StateGraph } from '@langchain/langgraph';
-import { BaseMessage } from '@langchain/core/messages';
 import {
-  ProposalReviewState,
+  StateGraph,
+  Annotation,
+  START,
+  END,
+} from "@langchain/langgraph";
+import {
+  AIMessage,
+  BaseMessage,
+  HumanMessage,
+} from "@langchain/core/messages";
+import {
   IngestDocumentInput,
   KnowledgeGraphRetrieverInput,
   VectorSearchRetrieverInput,
@@ -9,6 +17,8 @@ import {
   ImpactAnalyzerInput,
   ReportDrafterInput,
   HumanFeedbackRequesterInput,
+  ToolAction,
+  VectorSearchRetrieverOutput, // Added import
 } from '@isa-schemas/agentic_workflows/proposal_review_schemas';
 import {
   ingestDocumentTool,
@@ -19,128 +29,183 @@ import {
   reportDrafter,
   humanFeedbackRequester,
 } from '../tools/agentic_workflows/proposal_review_tools';
+import { ai } from '../genkit'; // Corrected import path
 
-// Define the state for the LangGraph
-const workflowState: ProposalReviewState = {
-  proposalId: '',
-  rawProposalContent: '',
-  status: 'INGESTED',
+// Define the structure of your custom state using Annotation.Root
+export const ProposalReviewState = Annotation.Root({
+  proposalId: Annotation<string>(),
+  rawProposalContent: Annotation<string>(),
+  status: Annotation<
+    'INGESTED' | 'RETRIEVING_CONTEXT' | 'VALIDATING' | 'ANALYZING_IMPACT' | 'GENERATING_REPORT' | 'AWAITING_HUMAN_FEEDBACK' | 'COMPLETED' | 'FAILED'
+  >(),
+  parsedContent: Annotation<string | undefined>(),
+  retrievedKgContext: Annotation<Record<string, any> | undefined>(),
+  retrievedVectorContext: Annotation<VectorSearchRetrieverOutput['relevantChunks'] | undefined>(), // Corrected type
+  validationResults: Annotation<any | undefined>(), // Use 'any' for now, refine later
+  impactAnalysisResults: Annotation<any | undefined>(),
+  draftReport: Annotation<string | undefined>(),
+  humanFeedback: Annotation<any | undefined>(),
+  finalReport: Annotation<string | undefined>(),
+  lastToolAction: Annotation<ToolAction | undefined>(),
+  lastToolOutput: Annotation<any | undefined>(),
+  // Add a messages channel as suggested by the user, even if not directly used by current nodes
+  messages: Annotation<BaseMessage[]>({
+    reducer: (x, y) => x.concat(y),
+    default: () => [],
+  }),
+});
+
+// Get the TypeScript type from the Annotation for use in node functions
+type ProposalReviewStateType = typeof ProposalReviewState.State;
+
+// Adding a comment to force TypeScript re-evaluation
+
+// Custom node to execute Genkit tools
+const executeGenkitTool = async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
+  const toolAction = state.lastToolAction;
+  if (!toolAction) {
+    throw new Error("No tool action found in state.");
+  }
+
+  // Reverting to direct tool invocation with type assertion
+  const toolToExecute = {
+    ingestDocumentTool,
+    knowledgeGraphRetriever,
+    vectorSearchRetriever,
+    genSpecValidator,
+    impactAnalyzer,
+    reportDrafter,
+    humanFeedbackRequester,
+  }[toolAction.toolName];
+
+  if (!toolToExecute) {
+    throw new Error(`Tool ${toolAction.toolName} not found.`);
+  }
+
+  const result = await (toolToExecute as any).invoke(toolAction.toolInput); // Directly invoke the tool with type assertion
+  
+  return { lastToolOutput: result }; // Return partial state update
 };
 
 // Define the nodes for the graph
 const nodes = {
-  ingest: async (state: ProposalReviewState) => {
+  ingest: async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
     const input: IngestDocumentInput = { documentPath: state.rawProposalContent };
-    // Directly call the handler function of the Genkit tool
-    const result = await ingestDocumentTool.handler(input);
-    return { ...state, parsedContent: result.parsedContent, status: 'RETRIEVING_CONTEXT' };
+    return { lastToolAction: { toolName: 'ingestDocumentTool', toolInput: input }, status: 'INGESTED' };
   },
-  retrieveContext: async (state: ProposalReviewState) => {
+  executeIngestTool: executeGenkitTool,
+  retrieveContext: async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
     const kgInput: KnowledgeGraphRetrieverInput = { query: state.parsedContent || '', concepts: [] };
-    // Directly call the handler function of the Genkit tool
-    const kgResult = await knowledgeGraphRetriever.handler(kgInput);
-
     const vectorInput: VectorSearchRetrieverInput = { query: state.parsedContent || '', topK: 5 };
-    // Directly call the handler function of the Genkit tool
-    const vectorResult = await vectorSearchRetriever.handler(vectorInput);
 
     return {
-      ...state,
-      retrievedKgContext: kgResult.structuredData,
-      retrievedVectorContext: vectorResult.relevantChunks,
-      status: 'VALIDATING',
+      lastToolAction: { toolName: 'knowledgeGraphRetriever', toolInput: kgInput },
+      status: 'RETRIEVING_CONTEXT',
     };
   },
-  validateProposal: async (state: ProposalReviewState) => {
+  executeKgTool: executeGenkitTool,
+  executeVectorTool: executeGenkitTool,
+  validateProposal: async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
     const input: GenSpecValidatorInput = {
       proposalContent: state.parsedContent || '',
       kgContext: state.retrievedKgContext,
       vectorContext: state.retrievedVectorContext,
     };
-    // Directly call the handler function of the Genkit tool
-    const result = await genSpecValidator.handler(input);
-    return { ...state, validationResults: result, status: 'ANALYZING_IMPACT' };
+    return { lastToolAction: { toolName: 'genSpecValidator', toolInput: input }, status: 'VALIDATING' };
   },
-  analyzeImpact: async (state: ProposalReviewState) => {
+  executeValidatorTool: executeGenkitTool,
+  analyzeImpact: async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
     const input: ImpactAnalyzerInput = {
       proposalContent: state.parsedContent || '',
       validationResults: state.validationResults,
       kgContext: state.retrievedKgContext,
     };
-    // Directly call the handler function of the Genkit tool
-    const result = await impactAnalyzer.handler(input);
-    return { ...state, impactAnalysisResults: result, status: 'GENERATING_REPORT' };
+    return { lastToolAction: { toolName: 'impactAnalyzer', toolInput: input }, status: 'ANALYZING_IMPACT' };
   },
-  generateDraftReport: async (state: ProposalReviewState) => {
+  executeImpactTool: executeGenkitTool,
+  generateDraftReport: async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
     const input: ReportDrafterInput = {
       proposalContent: state.parsedContent || '',
       validationResults: state.validationResults,
       impactAnalysisResults: state.impactAnalysisResults,
-      humanFeedback: state.humanFeedback, // Pass human feedback for re-drafting
+      humanFeedback: state.humanFeedback,
     };
-    // Directly call the handler function of the Genkit tool
-    const result = await reportDrafter.handler(input);
-    return { ...state, draftReport: result.draftReport, status: 'AWAITING_HUMAN_FEEDBACK' };
+    return { lastToolAction: { toolName: 'reportDrafter', toolInput: input }, status: 'GENERATING_REPORT' };
   },
-  requestHumanFeedback: async (state: ProposalReviewState) => {
+  executeReportDrafterTool: executeGenkitTool,
+  requestHumanFeedback: async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
     const input: HumanFeedbackRequesterInput = {
       proposalSummary: state.parsedContent?.substring(0, 100) || '',
       draftReport: state.draftReport || '',
       identifiedIssues: state.validationResults?.errors || [],
     };
-    // In a real scenario, this tool would trigger an external notification
-    // and the workflow would pause until external human input updates the state.
-    // For this simulation, we'll directly invoke it and get a mock response.
-    const result = await humanFeedbackRequester.handler(input);
-    return { ...state, humanFeedback: result, status: 'GENERATING_REPORT' }; // Loop back to generate report after feedback
+    return { lastToolAction: { toolName: 'humanFeedbackRequester', toolInput: input }, status: 'AWAITING_HUMAN_FEEDBACK' };
   },
-  finalizeReport: async (state: ProposalReviewState) => {
-    // This node simply marks the report as final.
-    return { ...state, finalReport: state.draftReport, status: 'COMPLETED' };
+  executeHumanFeedbackTool: executeGenkitTool,
+  finalizeReport: async (state: ProposalReviewStateType): Promise<Partial<ProposalReviewStateType>> => {
+    return { finalReport: state.draftReport, status: 'COMPLETED' };
   },
 };
 
 // Define the conditional edges
 const conditionalEdges = {
-  // After validation, decide whether to analyze impact or request human feedback
-  afterValidate: (state: ProposalReviewState) => {
-    if (state.validationResults && (!state.validationResults.isValid || state.validationResults.conflicts?.length > 0)) {
+  afterValidate: (state: ProposalReviewStateType) => {
+    if (state.validationResults && (!state.validationResults.isValid || (state.validationResults.conflicts && state.validationResults.conflicts.length > 0))) {
       return 'requestHumanFeedback';
     }
     return 'analyzeImpact';
   },
-  // After generating a draft, decide whether to finalize or request more human feedback
-  afterGenerateDraft: (state: ProposalReviewState) => {
+  afterGenerateDraft: (state: ProposalReviewStateType) => {
     if (state.humanFeedback && !state.humanFeedback.approval) {
-      return 'requestHumanFeedback'; // Loop back for revisions
+      return 'requestHumanFeedback';
     }
     return 'finalizeReport';
+  },
+  shouldExecuteTool: (state: ProposalReviewStateType) => {
+    return state.lastToolAction ? 'executeTool' : 'noTool';
   },
 };
 
 // Build the graph
-export const proposalReviewGraph = new StateGraph({
-  nodes,
-  edges: [
-    ['ingest', 'retrieveContext'],
-    ['retrieveContext', 'validateProposal'],
-    ['analyzeImpact', 'generateDraftReport'],
-    ['finalizeReport', Graph.END], // End the workflow
-  ],
-  conditionalEdges: {
-    validateProposal: conditionalEdges.afterValidate,
-    generateDraftReport: conditionalEdges.afterGenerateDraft,
-  },
-  entryPoint: 'ingest',
-});
+export const proposalReviewGraph = new StateGraph(ProposalReviewState) // Changed constructor to use Annotation.Root
+  .addNode('ingest', nodes.ingest)
+  .addNode('executeIngestTool', nodes.executeIngestTool)
+  .addNode('retrieveContext', nodes.retrieveContext)
+  .addNode('executeKgTool', nodes.executeKgTool)
+  .addNode('executeVectorTool', nodes.executeVectorTool)
+  .addNode('validateProposal', nodes.validateProposal)
+  .addNode('executeValidatorTool', nodes.executeValidatorTool)
+  .addNode('analyzeImpact', nodes.analyzeImpact)
+  .addNode('executeImpactTool', nodes.executeImpactTool)
+  .addNode('generateDraftReport', nodes.generateDraftReport)
+  .addNode('executeReportDrafterTool', nodes.executeReportDrafterTool)
+  .addNode('requestHumanFeedback', nodes.requestHumanFeedback)
+  .addNode('executeHumanFeedbackTool', nodes.executeHumanFeedbackTool)
+  .addNode('finalizeReport', nodes.finalizeReport)
+  .addEdge('ingest', 'executeIngestTool')
+  .addEdge('executeIngestTool', 'retrieveContext')
+  .addEdge('retrieveContext', 'executeKgTool')
+  .addEdge('executeKgTool', 'executeVectorTool')
+  .addEdge('executeVectorTool', 'validateProposal')
+  .addEdge('executeValidatorTool', 'analyzeImpact')
+  .addEdge('analyzeImpact', 'generateDraftReport')
+  .addEdge('generateDraftReport', 'executeReportDrafterTool')
+  .addEdge('executeReportDrafterTool', 'requestHumanFeedback')
+  .addEdge('requestHumanFeedback', 'executeHumanFeedbackTool')
+  .addEdge('executeHumanFeedbackTool', 'generateDraftReport')
+  .addEdge('finalizeReport', END)
+  .addConditionalEdges('validateProposal', conditionalEdges.afterValidate)
+  .addConditionalEdges('generateDraftReport', conditionalEdges.afterGenerateDraft)
+  .setEntryPoint('ingest');
 
 // Example of how to run the graph (for testing/demonstration)
 /*
 async function runProposalReview(proposalContent: string) {
-  const initialInput: ProposalReviewState = {
+  const initialInput: ProposalReviewStateType = {
     proposalId: `prop-${Date.now()}`,
     rawProposalContent: proposalContent,
     status: 'INGESTED',
+    messages: [], // Initialize messages channel
   };
 
   let currentState = initialInput;

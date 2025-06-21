@@ -1,6 +1,7 @@
 {
 	"extends": "../config-typescript/base.json",
 	"compilerOptions": {
+		"composite": true,
 		"types": ["vitest/globals", "jest", "mocha", "vscode"],
 		"outDir": "dist"
 	},

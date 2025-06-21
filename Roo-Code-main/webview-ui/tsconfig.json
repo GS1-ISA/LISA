@@ -1,6 +1,9 @@
 {
 	"extends": "../packages/config-typescript/base.json",
 	"compilerOptions": {
+		"composite": true,
+		"incremental": true,
+		"noEmit": false,
 		"target": "es5",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"allowJs": true,
@@ -16,14 +19,14 @@
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
-		"noEmit": true,
 		"jsx": "react-jsx",
 		"baseUrl": ".",
+		"outDir": "lib",
 		"paths": {
 			"@/*": ["./src/*"],
 			"@src/*": ["./src/*"],
-			"@roo/*": ["../src/shared/*"]
+			"@roo-code/types": ["../packages/types/src"]
 		}
 	},
-	"include": ["src", "../src/shared", "../packages/config-typescript"]
+	"include": ["src"]
 }

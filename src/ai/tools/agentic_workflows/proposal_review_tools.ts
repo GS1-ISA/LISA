@@ -149,7 +149,7 @@ export const genSpecValidator = ai.defineTool(
     inputSchema: GenSpecValidatorInputSchema,
     outputSchema: GenSpecValidatorOutputSchema,
   },
-  async (input: ReportDrafterInput) => {
+  async (input: z.infer<typeof GenSpecValidatorInputSchema>) => {
     console.log('Validating proposal...');
     // This tool would use LLM reasoning (potentially with CoT) and KG rules to validate.
     // It might call a Genkit flow like 'detect-standard-errors.ts' internally.
@@ -196,11 +196,11 @@ export const impactAnalyzer = ai.defineTool(
     inputSchema: ImpactAnalyzerInputSchema,
     outputSchema: ImpactAnalyzerOutputSchema,
   },
-  async (input: ImpactAnalyzerInput) => {
+  async (input: z.infer<typeof ImpactAnalyzerInputSchema>) => {
     console.log('Analyzing proposal impact...');
     // This tool would use LLM reasoning, potentially with multi-hop KG traversal.
 
-    let riskLevel: ImpactAnalyzerOutputSchema['shape']['riskLevel']['_type'] = 'LOW';
+    let riskLevel: z.infer<typeof ImpactAnalyzerOutputSchema>['riskLevel'] = 'LOW';
     const affectedStandards: string[] = [];
     let implications = 'No significant implications identified.';
     const suggestedMitigations: string[] = [];
@@ -240,7 +240,7 @@ export const reportDrafter = ai.defineTool(
     inputSchema: ReportDrafterInputSchema,
     outputSchema: ReportDrafterOutputSchema,
   },
-  async (input: GenSpecValidatorInput) => {
+  async (input: ReportDrafterInput) => {
     console.log('Drafting report...');
     // This tool would use LLM for generative report writing, potentially with CoT.
 
@@ -312,7 +312,6 @@ export const humanFeedbackRequester = ai.defineTool(
     // This part would typically be handled by an external system that updates Firestore
     // and then LangGraph picks up the state change.
     // For a direct tool call, we'd need a way to "wait" or mock the human input.
-    // For this demo, we'll simulate an immediate approval or rejection.
 
     const simulatedApproval = true; // Or false, based on test scenario
     const simulatedClarification = simulatedApproval ? undefined : "Please clarify the impact on existing GTIN allocation rules.";
