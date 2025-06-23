@@ -1,5 +1,9 @@
 # Changelog
 
+### 2025-06-21 - Agentic Workflows Refinement and LangChain Integration
+- Created `isa/agentic_workflows/` directory for advanced agentic workflow implementations.
+- Implemented `isa/agentic_workflows/langchain_integration.py` with a basic multi-agent workflow using LangChain/LangGraph, demonstrating inter-agent communication.
+
 ### 2025-06-21 - Git Commit Message Spelling Correction
 - Corrected spelling error "juni" to "June" in `.git/COMMIT_EDITMSG`.
 
@@ -64,3 +68,32 @@
 - Documented mode failure simulation blueprints in `isa/config/mode_failures_simulation_plan.md`.
 - Documented mode versioning and prompt management strategy in `isa/config/mode_versioning_strategy.md`.
 - Defined mode deprecation logic and handshake protocols for inter-mode communication.
+
+### 2025-06-21 - LLM API Key Validation
+- Executed `isa/core/validate_llm_keys.py` to validate LLM API keys.
+- Validation completed successfully (placeholder).
+
+### 2025-06-21 - Knowledge Graph Schema Definition
+- Defined the Knowledge Graph schema and saved it to `isa/schemas/knowledge_graph_schema.md`.
+
+### 2025-06-21 - Knowledge Graph Technology Selection
+- Selected Knowledge Graph technology and documented it in `isa/architecture/knowledge_graph_technology_selection.md`.
+
+### 2025-06-21 - Initial Knowledge Graph (KG) Ingestion Process
+- Implemented the initial Knowledge Graph (KG) ingestion process using Neo4j.
+- Created `isa/indexing/kg_ingestor.py` to house the KG ingestion logic, including Neo4j connection and basic data loading functions.
+
+### 2025-06-21 - AI Flow Enhancement with Chain-of-Thought Reasoning
+- Modified `src/ai/flows/answer-gs1-questions.ts` to incorporate Chain-of-Thought (CoT) reasoning.
+- The flow now includes steps for generating a thought process, an initial answer, and a refined answer through self-reflection.
+
+### 2025-06-21 - ELTVRE Pipeline Implementation
+- Created the `isa/eltvre/` directory to house the ELTVRE pipeline components.
+- Implemented basic placeholder functions for the following ELTVRE pipeline components:
+    - `isa/eltvre/extractor.py`: For extracting raw content from various document types.
+    - `isa/eltvre/loader.py`: For loading extracted data into a staging area or directly into the KG/Vector Store.
+    - `isa/eltvre/transformer.py`: For transforming raw data into structured formats.
+    - `isa/eltvre/validator.py`: For implementing data quality checks.
+    - `isa/eltvre/refiner.py`: For normalizing and cleaning data.
+    - `isa/eltvre/enricher.py`: For adding additional context or metadata.
+- Created `isa/eltvre/__init__.py` to make `isa/eltvre/` a Python package.

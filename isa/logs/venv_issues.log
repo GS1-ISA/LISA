@@ -1,0 +1,7 @@
+[2025-06-21 19:36:09] --- Starting Python Runtime Environment Validation ---
+[2025-06-21 19:36:09] SUCCESS: Virtual environment is active. VIRTUAL_ENV: /Users/frisowempe/Desktop/isa_workspace/.venv, sys.prefix: /Users/frisowempe/Desktop/isa_workspace/.venv
+[2025-06-21 19:36:09] SUCCESS: python-dotenv is installed.
+[2025-06-21 19:36:09] SUCCESS: .env file is present in the root directory.
+[2025-06-21 19:36:09] SUCCESS: .env file loaded successfully (python-dotenv check).
+[2025-06-21 19:36:09] --- Python Runtime Environment Validation Complete ---
+[2025-06-21 19:36:09] Overall Status: All checks passed. Python runtime environment is configured correctly.

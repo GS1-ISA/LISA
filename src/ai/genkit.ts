@@ -2,6 +2,7 @@ import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { execSync } from 'child_process';
 import path from 'path';
+import { queryKnowledgeGraphTool } from './tools/knowledge-graph-tools';
 
 /**
  * Function to get model parameters from the Python ModelManager.
@@ -36,6 +37,9 @@ export const ai = genkit({
     googleAI(), // Initialize without specific model/maxOutputTokens here
   ],
 });
+
+// Register the new tool
+genkit.addTool(queryKnowledgeGraphTool);
 
 /*
 // Example of how to use getModelParams in a Genkit flow:
