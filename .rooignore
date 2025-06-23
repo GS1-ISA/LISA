@@ -1,7 +1,5 @@
-archive/
-.genkit/
-.next/
-node_modules/
-.DS_Store
-*.log
 *.pem
+*.key
+*.crt
+*.env
+client_secret*.json

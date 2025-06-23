@@ -123,3 +123,11 @@
     - Updated `.env` and `.env.example` to remove sensitive values and reflect secure secret management.
 - **Standardized Local Development Workflow:** Documented `gcloud auth application-default login` and programmatic secret access.
 - **Documentation Updates:** Updated `docs/blueprint.md` and `isa/context/governance.md` to reflect Phase 1 completion and new practices.
+- **Comprehensive Project Review:** Conducted a comprehensive project review, identifying inconsistencies and gaps in documentation and directory structure. A detailed report has been generated at `isa/reports/project_review_report.md`.
+
+### 2025-06-24 - Standardized Naming Conventions and Refactored Redundant Directories
+- Established a single, authoritative `isa/` root directory.
+- Consolidated relevant files from redundant project directories (`github-ISA-FullStack-Synced/`, `ISA_Future_Phases_Complete 2/`, `ISA_Codex_Ready_Workspace 3/`, `ISA_Project_Updated_CI/`) into the authoritative `isa/` directory.
+- Standardized mode naming conventions in `isa/config/roo_mode_map.json` to PascalCase.
+- Created missing core files: `isa/isa_manifest.yaml` and `isa/roo_modes.md`.
+- Archived old redundant directories to `archive/`.

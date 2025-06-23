@@ -20,8 +20,7 @@ def validate_llm_keys():
         "GITHUB_PAT",
         "GOOGLE_APPLICATION_CREDENTIALS",
         "CLAUDE_API_KEY",
-        "GOOGLE_CLOUD_PROJECT",
-        "GCP_SERVICE_ACCOUNT_KEY"
+        "GOOGLE_CLOUD_PROJECT"
     ]
 
     missing_keys = []

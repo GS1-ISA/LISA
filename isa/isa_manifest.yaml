@@ -1,0 +1,48 @@
+# ISA Project Manifest
+
+version: 1.0.0
+project_name: Intelligent Standards Assistant (ISA)
+author: Roo
+description: A multi-agent AI system for standards analysis, development, and governance.
+
+# Core Directories
+directories:
+  context: isa/context/
+  config: isa/config/
+  prompts: isa/prompts/
+  reports: isa/reports/
+  logs: isa/logs/
+  versions: isa/versions/
+  architecture: isa/architecture/
+  schemas: isa/schemas/
+  core: isa/core/
+  docs: isa/docs/
+  agentic_workflows: isa/agentic_workflows/
+  indexing: isa/indexing/
+
+# Critical Files
+critical_files:
+  - isa/context/ISA_Roadmap.md
+  - isa/config/roo_mode_map.json
+  - isa/context/governance.md
+  - isa/context/ISA_Roo_Definitive_Architecture_v1.md
+  - isa/isa_validator.py
+  - isa/core/isa_summarizer.py
+  - isa/prompts/unified_autopilot.json
+  - isa/roo_modes.md # This file will be created/enhanced
+  - CHANGELOG.md
+  - isa/logs/agent_task_history.json
+  - isa/versions/version_tracker.json
+
+# Mode Configuration
+modes_config_file: isa/config/roo_mode_map.json
+
+# Documentation
+main_documentation: README.md
+project_structure_doc: PROJECT_STRUCTURE.md
+
+# Validation and Logging
+validator_script: isa/isa_validator.py
+summarizer_script: isa/core/isa_summarizer.py
+agent_history_log: isa/logs/agent_task_history.json
+version_tracker: isa/versions/version_tracker.json

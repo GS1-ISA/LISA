@@ -36,85 +36,85 @@
       "description": "To troubleshoot issues, investigate errors, diagnose problems, and identify root causes within the system or generated outputs."
     },
     {
-      "slug": "research",
-      "name": "ROO-MODE-RESEARCH",
+      "slug": "researchMode",
+      "name": "ResearchMode",
       "model": "claude-3.5-sonnet",
       "thinkingBudget": -1,
       "description": "To conduct comprehensive external (web, documentation) and internal (project files, knowledge base) research, synthesize information, identify conflicts, and extract relevant insights."
     },
     {
-      "slug": "validator",
-      "name": "ROO-MODE-VALIDATOR",
+      "slug": "validatorMode",
+      "name": "ValidatorMode",
       "model": "claude-3.5-sonnet",
       "thinkingBudget": 5000,
       "description": "To rigorously validate code, content, or system outputs against predefined specifications, schemas, rules, and quality gates."
     },
     {
-      "slug": "synthesizer",
-      "name": "ROO-MODE-SYNTHESIZER",
+      "slug": "synthesizerMode",
+      "name": "SynthesizerMode",
       "model": "claude-3.5-sonnet",
       "thinkingBudget": 5000,
       "description": "To integrate and synthesize diverse outputs from multiple agents into a coherent, unified, and high-quality final product or report."
     },
     {
-      "slug": "auditor",
-      "name": "ROO-MODE-AUDITOR",
+      "slug": "auditorMode",
+      "name": "AuditorMode",
       "model": "gemini-2.5-flash",
       "thinkingBudget": 5000,
       "description": "To continuously scan project structure, code, and outputs for adherence to standards, identify technical debt, monitor versioning consistency, and proactively act as an Inspector/Guardian by reviewing inter-agent messages for compliance and monitoring agent heartbeats."
     },
     {
-      "slug": "brainstormer",
-      "name": "ROO-MODE-BRAINSTORMER",
+      "slug": "brainstormerMode",
+      "name": "BrainstormerMode",
       "model": "gemini-2.5-flash",
       "thinkingBudget": 5000,
       "description": "To generate creative solutions, propose naming schemes, interface ideas, and overcome impasses through divergent thinking and goal alignment."
     },
     {
-      "slug": "human-input",
-      "name": "ROO-MODE-HUMAN-INPUT",
+      "slug": "humanInput",
+      "name": "HumanInput",
       "model": "N/A",
       "thinkingBudget": 0,
       "description": "To serve as a dedicated interface for awaiting and processing human input, ensuring contextual resumption of AI workflows."
     },
     {
-      "slug": "dependency-monitor",
-      "name": "Dependency Monitor",
+      "slug": "dependencyMonitor",
+      "name": "DependencyMonitor",
       "model": "gemini-2.5-flash",
       "thinkingBudget": 1000,
       "description": "Checks CI/build, lint, and package health."
     },
     {
-      "slug": "devops-gcp",
-      "name": "DevOps/GCP Mode",
+      "slug": "devopsGcp",
+      "name": "DevOpsGcpMode",
       "model": "gemini-2.5-flash",
       "thinkingBudget": -1,
       "description": "Manages Firebase/GCP deployments, emulators, and credential rotation."
     },
     {
-      "slug": "key-rotation",
-      "name": "Key Rotation Mode",
+      "slug": "keyRotation",
+      "name": "KeyRotationMode",
       "model": "gemini-2.5-flash",
       "thinkingBudget": 500,
       "description": "Handles LLM API key rotation and management."
     },
     {
-      "slug": "memory-sync",
-      "name": "Memory Sync Mode",
+      "slug": "memorySync",
+      "name": "MemorySyncMode",
       "model": "gemini-2.5-flash",
       "thinkingBudget": -1,
       "description": "Syncs session state and embeddings into long-term memory bank."
     },
     {
-      "slug": "reject",
-      "name": "Reject Mode",
+      "slug": "rejectMode",
+      "name": "RejectMode",
       "model": "gemini-2.5-flash-lite-preview-06-17",
       "thinkingBudget": 100,
       "description": "Safe fallback response mode (\"I can't do that\") to avoid loops."
     },
     {
-      "slug": "trigger",
-      "name": "Trigger Mode",
+      "slug": "triggerMode",
+      "name": "TriggerMode",
       "model": "gemini-2.5-flash-lite-preview-06-17",
       "thinkingBudget": 100,
       "description": "Initiates model switching based on task complexity or resource quotas."

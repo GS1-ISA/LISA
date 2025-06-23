@@ -13,7 +13,7 @@ documentation:
   governance: "isa/context/governance.md"
   architecture: "isa/context/ISA_Roo_Definitive_Architecture_v1.md"
   glossary: "isa/context/glossary.md"
-  roo_modes: "isa/roo_modes.md"
+  roo_modes: "isa/context/roo_modes.md"
   agent_operational_guidelines: "isa/context/agent_operational_guidelines.md"
 
 versioning:
@@ -25,8 +25,8 @@ logging:
   venv_issues: "isa/logs/venv_issues.log"
 
 tools:
-  validator_script: "isa_validator.py"
-  summarizer_script: "isa_summarizer.py"
+  validator_script: "isa/core/isa_validator.py"
+  summarizer_script: "isa/core/isa_summarizer.py"
 
 # Future sections can include:
 # - dependencies

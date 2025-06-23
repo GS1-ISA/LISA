@@ -1,30 +1,33 @@
 {
-  "projects": {
-    "default": "main-6-juni-48577360"
+  "hosting": {
+    "public": "web/out",
+    "rewrites": [
+      {
+        "source": "**",
+        "function": "app"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/api/**",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET, POST, OPTIONS"
+          },
+          {
+            "key": "Access-Control-Allow-Headers",
+            "value": "Content-Type, Authorization"
+          }
+        ]
+      }
+    ]
   },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "emulators": {
-    "auth": {
-      "port": 9099
-    },
-    "functions": {
-      "port": 5001
-    },
-    "firestore": {
-      "port": 8080
-    },
-    "hosting": {
-      "port": 9003
-    },
-    "ui": {
-      "enabled": true,
-      "port": 4000
-    },
-    "storage": {
-      "port": 9199
-    }
+  "functions": {
+    "source": "functions"
   }
 }
