@@ -1,4 +1,0 @@
-# ROO-MODE-RESEARCH Prompt v1.1
-# Task ID: TASK-P0-M0.1-T010
-# Status: Superseded by v1.2 (TASK-P0-M0.1-T019) and v1.3 (TASK-P0-M0.1-T030).
-# This file is created for historical task completion.

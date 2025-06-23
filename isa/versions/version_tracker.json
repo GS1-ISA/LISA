@@ -22,5 +22,6 @@
       "description": "Completed Phase 1: Foundational Stability and Security. This includes standardizing repository structure, formalizing GitHub workflow (branching, PRs, issue templates), integrating Google Secret Manager via Workload Identity Federation in GitHub Actions, refactoring application code for programmatic secret access, and updating relevant documentation.",
       "date": "2025-06-23T09:51:00Z"
     }
-  ]
+  ],
+  "isa_phases_tracked": [11, 12, 13, 14, 15, 16, 17, 18]
 }
