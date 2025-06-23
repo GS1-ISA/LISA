@@ -9,5 +9,20 @@
     "src/",
     "scripts/",
     "memory_bank/"
-  ]
+  ],
+  "mcpServers": {
+    "github": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "Cline/MCP/sqlite-mcp-server/servers/src/github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "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"
+      },
+      "alwaysAllow": [
+        "search_repositories"
+      ]
+    }
+  }
 }

@@ -1,28 +1,37 @@
 import neo4j, { Driver, Session, Record } from 'neo4j-driver';
-import { z } from 'zod'; // Assuming zod is used for schema definition in Genkit
-import { ai } from '../genkit'; // Import the ai object
+import { z } from 'zod';
+import { ai } from '../genkit';
+import { getSecret } from '../lib/secretManager'; // Import the getSecret function
 
 let driver: Driver | null = null;
 
+// Define your Google Cloud Project ID for secrets
+const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID || 'isa-firebase-5cf2f'; // Fallback to a default or ensure it's set securely
+
 // Initialize Neo4j Driver
-function initializeNeo4jDriver() {
+async function initializeNeo4jDriver() {
   if (!driver) {
-    const uri = process.env.NEO4J_URI || 'bolt://localhost:7687';
-    const user = process.env.NEO4J_USER || 'neo4j';
-    const password = process.env.NEO4J_PASSWORD || 'password'; // Consider more secure handling
+    // Fetch credentials from Google Secret Manager
+    const uri = await getSecret(GCP_PROJECT_ID, 'neo4j-uri-secret') || 'bolt://localhost:7687';
+    const user = await getSecret(GCP_PROJECT_ID, 'neo4j-user-secret') || 'neo4j';
+    const password = await getSecret(GCP_PROJECT_ID, 'neo4j-password-secret') || 'password';
+
+    if (!uri || !user || !password) {
+      console.error('Missing Neo4j credentials from Secret Manager or environment variables.');
+      throw new Error('Neo4j credentials not available.');
+    }
 
     driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
     // Verify connection on initialization
-    driver.verifyConnectivity()
-      .then(() => {
-        console.log('Neo4j Driver initialized and connected successfully.');
-      })
-      .catch((error: Error) => { // Explicitly type error
-        console.error('Neo4j Driver initialization failed:', error);
-        driver = null; // Reset driver if connection fails
-        throw error;
-      });
+    try {
+      await driver.verifyConnectivity();
+      console.log('Neo4j Driver initialized and connected successfully.');
+    } catch (error: unknown) {
+      console.error('Neo4j Driver initialization failed:', error);
+      driver = null; // Reset driver if connection fails
+      throw error;
+    }
   }
   return driver;
 }

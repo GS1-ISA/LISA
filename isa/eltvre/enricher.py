@@ -1,8 +1,15 @@
-def enrich_data(refined_data: dict) -> dict:
+from .extractor import ExtractedDocument
+
+def enrich_data(extracted_doc: ExtractedDocument) -> ExtractedDocument:
     """
-    Adds additional context or metadata to the data.
-    This is a placeholder function.
+    Enriches the ExtractedDocument by adding external context or derived information.
     """
-    print("Enriching data")
+    print(f"Enriching content from {extracted_doc.document_path}")
     # Placeholder for actual enrichment logic
-    return refined_data
+    # This stage could involve:
+    # - Fetching additional data from external APIs based on extracted entities
+    # - Generating new insights or relationships using reasoning engines
+    # - Adding timestamps, source information, or other metadata
+
+    # For now, it just passes through.
+    return extracted_doc

@@ -1,5 +1,3 @@
-import { config } from 'dotenv';
-config();
 
 import '@/ai/flows/answer-gs1-questions.ts';
 import '@/ai/flows/conduct-independent-research.ts';

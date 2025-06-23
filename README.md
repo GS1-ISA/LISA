@@ -1,62 +1,65 @@
-# Intelligent Standards Assistant (ISA)
+# ISA Project
 
-This repository hosts the **Intelligent Standards Assistant** – a Next.js and Genkit based application deployed on Firebase App Hosting. ISA provides AI powered tools for working with GS1 standards.
+## Intelligent System Architecture
 
-## Overview
-- **Frontend**: Next.js App Router with React and Tailwind CSS
-- **AI Orchestration**: Genkit using Google Gemini models
-- **Deployment**: Firebase App Hosting with hardened Firestore security
-- **Infrastructure as Code**: Terraform modules under `iam_infra/` with a GitHub Actions workflow
-- **Logging**: Structured logging via [Pino](https://github.com/pinojs/pino)
-- **Continuous Integration**: Lint, type check and build verified by `ci.yml`
+This project aims to develop a sophisticated multi-agent AI system capable of solving complex, multi-step tasks. It leverages advanced AI techniques and robust software engineering practices to create a scalable, secure, and observable platform.
 
-See `docs/blueprint.md` for a complete roadmap and architectural log. IAM automation details are in `technical_report.md`.
+## Project Overview
 
-## Getting Started
-1. **Run the setup script**
-   ```bash
-   ./scripts/setup.sh
-   ```
-<<<<<<< codex/add-pre-commit-git-hook-for-npm-test
-   This installs dependencies, copies `.env.example` to `.env` if needed, installs git hooks, runs lint and type checks, and builds the project.
-=======
-   This installs dependencies with `npm ci`, ensures the Codex CLI is present, generates `.env.template` plus `.env.{development,test,production}`, runs lint and type checks, builds the project and runs tests.
->>>>>>> main-6-juni
-2. **Configure environment variables**
-  Copy `.env.example` to `.env` and fill in each placeholder with your credentials. The file lists
-  all variables used for local development, including API keys and emulator settings.
-3. **Run the development server**
-   ```bash
-   npm run dev
-   ```
-   The app runs on http://localhost:9002 by default.
-4. **Optional: run Genkit flows**
-   ```bash
-   npm run genkit:dev
-   ```
-   This starts the Genkit developer UI on http://localhost:4000/dev.
+The ISA project is structured into several key components:
 
-For detailed instructions on configuring Firebase emulators, VS Code, and Roocode integration, see [docs/dev_environment_setup.md](docs/dev_environment_setup.md). Additional guidance for setting environment variables and selecting your Firebase project is available in [docs/environment_configuration.md](docs/environment_configuration.md).
+*   **Multi-Agent System:** Core AI agents designed to collaborate and execute complex workflows.
+*   **Knowledge Management:** Systems for acquiring, storing, and retrieving knowledge to inform agent decisions.
+*   **Tool Integration:** Mechanisms for agents to interact with external tools and APIs.
+*   **Observability:** Comprehensive logging, monitoring, and tracing to understand agent behavior and system health.
+*   **Security:** Robust practices for secret management, authentication, and authorization.
 
-## Useful Scripts
-- `./scripts/setup.sh` – one-time project setup (installs dependencies, creates env files and runs checks)
-- `npm run build` – build the Next.js application
-- `npm run lint` – run ESLint
-- `npm run typecheck` – run TypeScript type checks
-- Git hooks installed by `setup.sh` run `npm test` before each commit.
+## Setup Instructions
 
-## Core Features
-- Document Q&A and standards analysis
-- Error detection and NL‑to‑formal text conversion
-- Independent research tooling
-- Conceptual demos for vector search and knowledge graph queries
+To set up the project locally, follow these steps:
 
-For more details on phases and planned work, consult the [Strategic Roadmap](docs/blueprint.md).
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-org/isa-project.git
+    cd isa-project
+    ```
 
-## Troubleshooting
-- **OpenTelemetry build warnings**: During `npm run build`, Next.js may warn about missing `@opentelemetry/exporter-jaeger` or the `require.extensions` API. These come from Genkit's optional tracing setup. The warnings are harmless but can be silenced by installing the Jaeger exporter:
-  ```bash
-  npm install --save-dev @opentelemetry/exporter-jaeger
-```
-For detailed instructions on configuring Firebase emulators, VS Code, and Roocode integration, see [docs/dev_environment_setup.md](docs/dev_environment_setup.md). Additional guidance for setting environment variables and selecting your Firebase project is available in [docs/environment_configuration.md](docs/environment_configuration.md).
+2.  **Install dependencies:**
+    ```bash
+    # For Node.js/TypeScript components
+    npm install
 
+    # For Python components (if applicable)
+    pip install -r requirements.txt
+    ```
+
+3.  **Configure Environment Variables:**
+    This project uses Google Secret Manager for secure secret management. For local development, authenticate with `gcloud`:
+    ```bash
+    gcloud auth application-default login
+    ```
+    Secrets will be fetched programmatically by the application. Refer to `docs/environment_configuration.md` for more details.
+
+4.  **Run the application:**
+    ```bash
+    # Example: Start the development server
+    npm run dev
+    ```
+
+## Contribution Guidelines
+
+We welcome contributions to the ISA project! Please refer to `CONTRIBUTING.md` (to be created) for detailed guidelines on:
+
+*   Branching strategy
+*   Pull request process
+*   Code style
+*   Testing
+*   Issue reporting
+
+## Project Structure
+
+Refer to `PROJECT_STRUCTURE.md` for a detailed overview of the repository's folder structure and the purpose of each directory.
+
+## License
+
+This project is licensed under the [Your License Here] - see the LICENSE.md file for details.

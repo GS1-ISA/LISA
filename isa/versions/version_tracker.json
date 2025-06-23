@@ -1,85 +1,26 @@
 {
-  "version": "1.0.0",
-  "phases": {
-    "phase1": "/docs/phases/phase1.md",
-    "phase2": "/docs/phases/phase2.md",
-    "phase3": "/docs/phases/phase3.md",
-    "phase4": "/docs/phases/phase4.md",
-    "phase5": "/docs/phases/phase5.md",
-    "phase6": "/docs/phases/phase6.md",
-    "phase7": "/docs/phases/phase7.md",
-    "phase8": "isa/docs/phases/phase_8_federated_learning.md",
-    "phase9": "isa/docs/phases/phase_9_multi_objective_reasoning.md",
-    "phase10": "isa/docs/phases/phase_10_autonomous_ecosystem_evolution.md",
-    "phase12": "isa/docs/phases/phase_12_living_ontologies_semantic_contracts.md"
-  },
-  "dashboard": "/docs/dashboard/governance_roadmap.png",
-  "reports": {
-    "gemini_model_optimization_plan": "isa/reports/gemini_model_optimization_plan.md"
-  },
-  "last_modified_file": "isa/indexing/kg_ingestor.py",
-  "last_modified_task": "Implemented the ELTVRE (Extract, Load, Transform, Validate, Refine, Enrich) pipeline for GS1 standards documents.",
-  "changes": [
+  "version": "1.0.3",
+  "last_updated": "2025-06-23T09:51:00Z",
+  "milestones": [
+    {
+      "version": "1.0.0",
+      "description": "Initial setup and basic environment validation.",
+      "date": "2025-06-20T22:12:42Z"
+    },
     {
       "version": "1.0.1",
-      "date": "2025-06-20",
-      "description": "Clarified `project_journal.md` as a preferred logging location in global instructions."
+      "description": "Implemented 'Part 2: Location of Missing Values' and 'Part 3: Insertion & Update' of the Roocode Superprompt, including generating a confidence matrix for .env variables.",
+      "date": "2025-06-22T21:50:54Z"
     },
     {
       "version": "1.0.2",
-      "date": "2025-06-20",
-      "description": "Created isa/reports/status_dashboard.md and isa/core/isa_summarizer.py as part of logging and testing verification."
+      "description": "Updated validate_llm_keys.py to include ANTHROPIC_API_KEY, GOOGLE_CLOUD_PROJECT, and GCP_SERVICE_ACCOUNT_KEY for validation.",
+      "date": "2025-06-23T09:28:23Z"
     },
     {
-      "version": "1.0.4",
-      "date": "2025-06-21",
-      "description": "Removed artificial delay in mode switching to improve responsiveness."
-    },
-    {
-      "version": "1.0.5",
-      "date": "2025-06-21",
-      "description": "Revised Roocode Mode Architecture, updated mode definitions, model assignments, and thinking budgets in `isa/config/roo_mode_map.json`."
-    },
-    {
-      "version": "1.0.6",
-      "date": "2025-06-21",
-      "description": "Implemented Roocode Mode Architecture v2.1 improvements, including LLM re-assignments, new modes, advanced prompt engineering, failure simulation plans, and versioning strategies."
-    },
-    {
-      "version": "1.0.7",
-      "date": "2025-06-21",
-      "description": "Fixed spelling error 'juni' to 'June' in Git commit message file."
-    },
-    {
-      "version": "1.0.8",
-      "date": "2025-06-21",
-      "description": "Defined the Knowledge Graph schema in `isa/schemas/knowledge_graph_schema.md`."
-    },
-    {
-      "version": "1.0.9",
-      "date": "2025-06-21",
-      "description": "Selected Knowledge Graph technology and documented it in `isa/architecture/knowledge_graph_technology_selection.md`."
-    },
-    {
-      "version": "1.0.10",
-      "date": "2025-06-21",
-      "description": "Implemented the initial Knowledge Graph (KG) ingestion process using Neo4j, including `isa/indexing/kg_ingestor.py`."
-    },
-    {
-      "version": "1.0.11",
-      "date": "2025-06-21",
-      "description": "Implemented the ELTVRE (Extract, Load, Transform, Validate, Refine, Enrich) pipeline for GS1 standards documents, including the creation of `isa/eltvre/` directory and its modular Python components (`extractor.py`, `loader.py`, `transformer.py`, `validator.py`, `refiner.py`, `enricher.py`, `__init__.py`)."
-    },
-    {
-      "version": "1.0.12",
-      "date": "2025-06-21",
-      "description": "Enhanced `src/ai/flows/answer-gs1-questions.ts` with Chain-of-Thought (CoT) reasoning, adding steps for thought process generation, initial answer, and refined answer."
-    },
-    {
-      "version": "1.0.13",
-      "date": "2025-06-21",
-      "description": "Refined and expanded agentic workflows by creating `isa/agentic_workflows/` and implementing `langchain_integration.py` with a multi-agent workflow."
+      "version": "1.0.3",
+      "description": "Completed Phase 1: Foundational Stability and Security. This includes standardizing repository structure, formalizing GitHub workflow (branching, PRs, issue templates), integrating Google Secret Manager via Workload Identity Federation in GitHub Actions, refactoring application code for programmatic secret access, and updating relevant documentation.",
+      "date": "2025-06-23T09:51:00Z"
     }
-  ],
-  "last_updated": "2025-06-21T20:24:11Z"
+  ]
 }

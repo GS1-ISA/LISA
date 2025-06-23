@@ -97,3 +97,29 @@
     - `isa/eltvre/refiner.py`: For normalizing and cleaning data.
     - `isa/eltvre/enricher.py`: For adding additional context or metadata.
 - Created `isa/eltvre/__init__.py` to make `isa/eltvre/` a Python package.
+
+### 2025-06-21 - Multi-Modal Understanding Integration
+- Modified `isa/eltvre/extractor.py` to incorporate PDF processing logic from `isa/prototype/multi_modal_understanding/pdf_processor.py` and return a structured `ExtractedDocument` object.
+- Updated function signatures and logic in `isa/eltvre/transformer.py`, `isa/eltvre/validator.py`, `isa/eltvre/refiner.py`, `isa/eltvre/enricher.py`, and `isa/eltvre/loader.py` to accept and process the `ExtractedDocument` object.
+- Aligned conceptual Neo4j loading logic in `isa/eltvre/loader.py` with the `ExtractedDocument` structure, including conceptual node creation for Document, Page, and Image.
+
+### 2025-06-22 - Comprehensive Security Audit and Credential Validation
+- Performed a comprehensive security audit and validation of credentials and configuration keys from `.env` data.
+- Updated the credential usage map by searching the codebase for each key's usage, refining `USED BY` and `PURPOSE` fields.
+- Executed runtime validation checks for various API keys, GCP/Firebase keys, PostgreSQL, Supabase, and emulator hosts.
+- Identified warnings including unused keys, conflicting entries, and insecure values.
+- Generated a detailed Markdown report `isa/docs/security/env_credentials_audit.md` with credential usage, validation results, warnings, and actionable recommendations.
+- Updated `.env` file: `PG_PASSWORD` updated to a strong, random password; previously removed keys (`OPENAI_API_KEY_SERVICE`, `CLAUDE_API_KEY`, `IDX_SECRET_MANAGER_KEY`, `DEEPSEEK_API_KEY`, `GOOGLE_CLIENT_ID`, `FIREBASE_CLIENT_ID`, `ENABLE_EXPERIMENTAL_FEATURES`, `ALLOWED_DOMAINS`, `REDIRECT_URIS`) restored with placeholder values.
+- Updated `isa/docs/security/env_credentials_audit.md` to reflect `.env` changes, mark restored keys as `⚠️ unresolved (Manual Configuration Needed)`, and add a note on restored keys.
+### 2025-06-23 - Phase 1: Foundational Stability and Security Completed
+
+- **Standardized Repository Structure:** Created `src/`, `scripts/`, `docs/`, `config/` directories. Configured `.gitignore`, `README.md`, and `PROJECT_STRUCTURE.md`.
+- **Formalized GitHub Workflow:** Adopted GitHub Flow. Created `CONTRIBUTING.md`, `.github/CODEOWNERS`, and `.github/PULL_REQUEST_TEMPLATE.md`.
+- **Implemented Bug Tracking:** Created `.github/ISSUE_TEMPLATE/bug_report.md` and `feature_request.md`.
+- **Critical Google Secret Manager Integration:**
+    - Provided `gcloud` commands for Workload Identity Federation (WIF) setup (Pool, Provider, Service Account, IAM bindings).
+    - Integrated WIF into GitHub Actions via `deploy-nextjs.yml` using `google-github-actions/auth` and `google-github-actions/get-secretmanager-secrets`.
+    - Refactored application code (`src/ai/tools/knowledge-graph-tools.ts`, `src/ai/dev.ts`) to use `src/lib/secretManager.ts` for programmatic secret fetching.
+    - Updated `.env` and `.env.example` to remove sensitive values and reflect secure secret management.
+- **Standardized Local Development Workflow:** Documented `gcloud auth application-default login` and programmatic secret access.
+- **Documentation Updates:** Updated `docs/blueprint.md` and `isa/context/governance.md` to reflect Phase 1 completion and new practices.

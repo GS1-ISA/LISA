@@ -1,9 +1,12 @@
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain_core.prompts import PromptTemplate
 from langchain_core.tools import Tool
-from langchain_community.llms import OpenAI
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import OpenAI, ChatOpenAI # Updated import
 from langchain.chains import LLMChain
+from langchain.tools.render import render_text_description # New import
+from dotenv import load_dotenv # New import
+
+load_dotenv() # Load environment variables
 
 # Initialize LLMs (replace with your actual API key or local setup)
 llm = OpenAI(temperature=0)
@@ -31,14 +34,20 @@ tools_agent1 = [
 # This agent will use the UserPreferenceTool to get user preferences.
 prompt_agent1 = PromptTemplate.from_template("""
 You are Agent 1, the Preference Agent. Your goal is to understand user preferences.
+You have access to the following tools:
+{tools}
+
 Use the UserPreferenceTool to get information about the user's preferences.
+The tool names are: {tool_names}
 Once you have a preference, state it clearly.
 
 Question: {input}
 {agent_scratchpad}
 """)
 
-agent1 = create_react_agent(llm, tools_agent1, prompt_agent1)
+tool_names_agent1 = ", ".join([tool.name for tool in tools_agent1])
+
+agent1 = create_react_agent(llm, tools_agent1, prompt_agent1.partial(tools=render_text_description(tools_agent1), tool_names=tool_names_agent1))
 agent_executor1 = AgentExecutor(agent=agent1, tools=tools_agent1, verbose=True, handle_parsing_errors=True)
 
 # Agent 2: Recommendation Agent
@@ -56,16 +65,24 @@ def run_multi_agent_workflow(user_query: str):
 
     # Agent 1 processes the query
     print("--- Agent 1 (Preference Agent) is working ---")
-    agent1_output = agent_executor1.invoke({"input": user_query})
-    preference = agent1_output["output"]
-    print(f"Agent 1 Output (Preference): {preference}\n")
+    try:
+        agent1_output = agent_executor1.invoke({"input": user_query})
+        preference = agent1_output["output"]
+        print(f"Agent 1 Output (Preference): {preference}\n")
+    except Exception as e:
+        print(f"ERROR: Agent 1 failed with: {e}\n")
+        return f"Error in Agent 1: {e}"
 
     # Agent 2 uses the output from Agent 1
     print("--- Agent 2 (Recommendation Agent) is working ---")
-    agent2_chain = LLMChain(llm=chat_llm, prompt=prompt_agent2)
-    agent2_output = agent2_chain.invoke({"preference": preference})
-    recommendation = agent2_output["text"]
-    print(f"Agent 2 Output (Recommendation): {recommendation}\n")
+    try:
+        agent2_chain = LLMChain(llm=chat_llm, prompt=prompt_agent2)
+        agent2_output = agent2_chain.invoke({"preference": preference})
+        recommendation = agent2_output["text"]
+        print(f"Agent 2 Output (Recommendation): {recommendation}\n")
+    except Exception as e:
+        print(f"ERROR: Agent 2 failed with: {e}\n")
+        return f"Error in Agent 2: {e}"
 
     print("--- Workflow Complete ---")
     return recommendation

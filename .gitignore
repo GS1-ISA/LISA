@@ -1,52 +1,56 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+lerna-debug.log*
 
-# vercel
-.vercel
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-.genkit/*
-.env*
-!.env.example
-!.env.template
+# IDEs and other tools
+.vscode/
+.idea/
+.DS_Store
+*.sublime-workspace
+*.sublime-project
 
-# firebase
-firebase-debug.log
-firestore-debug.log
-# Untracked files to ignore
-docs/ISA Archief/
-docs/archive/
-env_scan_results.txt
-studio.bfg-report/
+# Build artifacts
+dist/
+build/
+out/
+.next/
+.genkit/
+
+# Test and coverage
+coverage/
+.nyc_output/
+
+# Other
+*.pem
+archive/
+
+# Virtual environment
+.venv/
+
+# Package manager files
+package-lock.json
+yarn.lock
+
+# Build artifacts and reports
+tsconfig.tsbuildinfo
+validation_report.json
+validation_report.txt
+
+# Firebase logs
+.firebase/logs/

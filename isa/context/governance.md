@@ -43,6 +43,15 @@ As defined in `isa/config/mode_versioning_strategy.md`:
 *   **Prompt Versioning:** Explicitly versioned (e.g., `roo_mode_[slug]_prompt_v[MAJOR].[MINOR].prompt.txt`) for granular tracking and rollback.
 *   **Prompt A/B Testing:** `ORCHESTRATOR` (or `TRIGGER` mode) dynamically selects prompt versions, with `VALIDATOR`/`AUDITOR` analyzing outcomes.
 
+## Branching Strategy and Pull Request Process
+
+The ISA project adheres to a **GitHub Flow** branching strategy. All contributions must follow the guidelines outlined in [`CONTRIBUTING.md`](CONTRIBUTING.md), which details:
+
+*   **Branching:** Feature branches off `main`.
+*   **Pull Requests:** Mandatory for all merges, utilizing `PULL_REQUEST_TEMPLATE.md`.
+*   **Code Ownership:** Enforced via `.github/CODEOWNERS`.
+*   **Branch Protection:** Critical branches (`main`) require status checks and code owner approvals.
+
 ## Tool Mappings and LLM Roles per Mode
 
 Detailed tool mappings and LLM roles are integrated into the Mode Matrix above. Key LLM assignments are:
