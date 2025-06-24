@@ -31,5 +31,9 @@ def main():
 
     print("\nIndexing process completed. Data is ready for storage in Vector DB and KG.")
 
+    # Push data to the (mocked or real) vector database and knowledge graph
+    loader.push_to_vector_db(indexed_data['document_chunks'])
+    loader.push_to_knowledge_graph(indexed_data['kg_entities'])
+
 if __name__ == "__main__":
     main()

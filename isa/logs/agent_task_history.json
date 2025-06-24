@@ -51,5 +51,56 @@
         ],
         "changes_summary": "Established a single, authoritative 'isa/' root directory; consolidated relevant files from redundant project directories; standardized mode naming conventions; created missing core files; and archived old redundant directories.",
         "validator_outcome": "Validation to be performed by user via isa/isa_validator.py and scripts/run_validator.sh."
+    },
+    {
+        "timestamp": "2025-06-24T12:45:30Z",
+        "task": "Implement the foundational PPAM (Perception, Planning, Action, Memory) operational cycle orchestrated by LangGraph.",
+        "files_modified": [
+            "isa/agentic_workflows/langgraph/agent_state.py",
+            "isa/agentic_workflows/langgraph/nodes.py",
+            "isa/agentic_workflows/langgraph/workflow.py",
+            "CHANGELOG.md",
+            "isa/logs/agent_task_history.json",
+            "isa/versions/version_tracker.json"
+        ],
+        "changes_summary": "Implemented the foundational PPAM operational cycle using LangGraph, including AgentState schema, node definitions, workflow construction, prompt integration, and structured logging.",
+        "validator_outcome": "Validation to be performed by user via isa/isa_validator.py and scripts/run_validator.sh."
+    },
+    {
+        "timestamp": "2025-06-24T01:51:04Z",
+        "task": "Implement advanced planning capabilities, including multi-modal knowledge gap detection and automated cost-benefit analysis for research prioritization.",
+        "files_modified": [
+            "isa/planning/gap_detection/intrinsic_uncertainty.py",
+            "isa/planning/gap_detection/collaborative_probing.py",
+            "isa/planning/gap_detection/heuristic_gap_identification.py",
+            "isa/planning/cost_benefit/cost_estimator.py",
+            "isa/planning/cost_benefit/benefit_estimator.py",
+            "isa/planning/cost_benefit/prioritization_score.py",
+            "isa/agentic_workflows/langgraph/nodes.py",
+            "CHANGELOG.md",
+            "isa/logs/agent_task_history.json",
+            "isa/versions/version_tracker.json"
+        ],
+        "changes_summary": "Created new sub-modules for knowledge gap detection and cost-benefit analysis, and integrated them into the Planning node of the LangGraph workflow.",
+        "validator_outcome": "ISA Validator completed successfully."
+    },
+    {
+        "timestamp": "2025-06-24T04:07:00Z",
+        "task": "Enable programmatic mode switching in LangGraph workflow",
+        "files_modified": [
+            "isa/agentic_workflows/langgraph/nodes.py",
+            "CHANGELOG.md",
+            "isa/logs/agent_task_history.json",
+            "isa/versions/version_tracker.json"
+        ],
+        "changes_summary": "Added `switch_mode_tool` to `isa/agentic_workflows/langgraph/nodes.py` and integrated it into the Planning and Action nodes to allow the LangGraph workflow to programmatically request mode switches.",
+        "validator_outcome": "Validation to be performed by user via isa/isa_validator.py and scripts/run_validator.sh."
+    },
+    {
+        "timestamp": "2025-06-24T05:55:42Z",
+        "task": "Create a sample data file for the ELTVRE pipeline.",
+        "file_modified": "isa/pipelines/eltvre/sample_data.txt",
+        "changes": "Created a sample data file with three lines of text for testing the ELTVRE pipeline.",
+        "validator_outcome": "ISA Validator: All checks passed."
     }
 ]

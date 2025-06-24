@@ -36,14 +36,14 @@
       "description": "To troubleshoot issues, investigate errors, diagnose problems, and identify root causes within the system or generated outputs."
     },
     {
-      "slug": "researchMode",
+      "slug": "ResearchMode",
       "name": "ResearchMode",
       "model": "claude-3.5-sonnet",
       "thinkingBudget": -1,
       "description": "To conduct comprehensive external (web, documentation) and internal (project files, knowledge base) research, synthesize information, identify conflicts, and extract relevant insights."
     },
     {
-      "slug": "validatorMode",
+      "slug": "ValidatorMode",
       "name": "ValidatorMode",
       "model": "claude-3.5-sonnet",
       "thinkingBudget": 5000,
@@ -118,6 +118,13 @@
       "model": "gemini-2.5-flash-lite-preview-06-17",
       "thinkingBudget": 100,
       "description": "Initiates model switching based on task complexity or resource quotas."
+    },
+    {
+      "slug": "knowledgeGraph",
+      "name": "🧠 KnowledgeGraph",
+      "model": "gemini-2.5-flash",
+      "thinkingBudget": -1,
+      "description": "To provide a dedicated interface for agents to interact with the Neo4j Knowledge Graph, enabling structured storage, retrieval, and manipulation of knowledge for advanced reasoning, contextual understanding, and data-driven decision-making within the ISA system."
     }
   ],
   "mcpServers": []

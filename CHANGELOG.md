@@ -131,3 +131,21 @@
 - Standardized mode naming conventions in `isa/config/roo_mode_map.json` to PascalCase.
 - Created missing core files: `isa/isa_manifest.yaml` and `isa/roo_modes.md`.
 - Archived old redundant directories to `archive/`.
+
+### 2025-06-24 - Foundational PPAM Operational Cycle with LangGraph
+- Implemented the foundational PPAM (Perception, Planning, Action, Memory) operational cycle using LangGraph.
+- Defined the `AgentState` schema in `isa/agentic_workflows/langgraph/agent_state.py`.
+- Mapped existing ISA functionalities to LangGraph nodes (Perception, Planning, Action, Memory) in `isa/agentic_workflows/langgraph/nodes.py`.
+- Constructed a basic LangGraph workflow in `isa/agentic_workflows/langgraph/workflow.py`, defining nodes and conditional edges.
+- Integrated `isa/prompts/unified_autopilot.json` for prompt management within the LangGraph nodes.
+- Set up initial structured logging for LangGraph state transitions to `isa/logs/agent_activity.json`.
+
+### 2025-06-24 - Advanced Planning Capabilities and Cost-Benefit Analysis
+- Implemented new sub-modules for knowledge gap detection: `isa/planning/gap_detection/intrinsic_uncertainty.py`, `isa/planning/gap_detection/collaborative_probing.py`, and `isa/planning/gap_detection/heuristic_gap_identification.py`.
+- Developed automated cost-benefit analysis components: `isa/planning/cost_benefit/cost_estimator.py`, `isa/planning/cost_benefit/benefit_estimator.py`, and `isa/planning/cost_benefit/prioritization_score.py`.
+- Modified the Planning node in `isa/agentic_workflows/langgraph/nodes.py` to integrate these new capabilities and refine prompt engineering for actionable research questions.
+- Enhanced LangGraph workflow to support programmatic mode switching by adding `switch_mode_tool` to `isa/agentic_workflows/langgraph/nodes.py` and integrating it into the Planning and Action nodes.
+## [Unreleased]
+
+### Added
+- Created `isa/pipelines/eltvre/sample_data.txt` for ELTVRE pipeline testing.

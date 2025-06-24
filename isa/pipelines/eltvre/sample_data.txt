@@ -1,0 +1,3 @@
+This is the first line of our sample data.
+PIPELINE-TEST: This line contains some Punctuation!
+And a third line for good measure.

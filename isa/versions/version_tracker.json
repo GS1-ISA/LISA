@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5",
-  "last_updated": "2025-06-24T12:45:30Z",
+  "version": "1.0.9",
+  "last_updated": "2025-06-24T05:55:42Z",
   "milestones": [
     {
       "version": "1.0.0",
@@ -31,6 +31,26 @@
       "version": "1.0.5",
       "description": "Standardized naming conventions and refactored redundant directories, establishing a single authoritative 'isa/' root, consolidating existing structures, standardizing mode naming, and creating essential missing documentation.",
       "date": "2025-06-24T12:45:30Z"
+    },
+    {
+      "version": "1.0.6",
+      "description": "Implemented the foundational PPAM (Perception, Planning, Action, Memory) operational cycle orchestrated by LangGraph.",
+      "date": "2025-06-24T12:45:30Z"
+    },
+    {
+      "version": "1.0.7",
+      "description": "Implemented advanced planning capabilities, including multi-modal knowledge gap detection and automated cost-benefit analysis for research prioritization.",
+      "date": "2025-06-24T01:51:04Z"
+    },
+    {
+      "version": "1.0.8",
+      "description": "Enabled programmatic mode switching in LangGraph workflow by adding `switch_mode_tool` to `isa/agentic_workflows/langgraph/nodes.py` and integrating it into the Planning and Action nodes.",
+      "date": "2025-06-24T04:07:00Z"
+    },
+    {
+      "version": "1.0.9",
+      "description": "Created a sample data file for the ELTVRE pipeline.",
+      "date": "2025-06-24T05:55:42Z"
     }
   ],
   "isa_phases_tracked": [11, 12, 13, 14, 15, 16, 17, 18]

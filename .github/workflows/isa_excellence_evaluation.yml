@@ -1,0 +1,40 @@
+name: ISA Excellence Evaluation
+
+on:
+  schedule:
+    - cron: '0 3 * * 0' # Run every Sunday at 3 AM
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' # Or any version compatible with your scripts
+
+      - name: Install dependencies
+        run: pip install -r isa/evaluation/requirements.txt
+
+      - name: Run ISA Evaluation Engine
+        run: python isa/evaluation/engine.py
+
+      - name: Generate Status Dashboard
+        run: python isa/evaluation/generate_dashboard.py
+
+      - name: Commit Results if Changed
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add isa/reports/scorecard.yaml isa/reports/status_dashboard.md
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "docs: Update ISA Excellence Scorecard and Status Dashboard [skip ci]"
+            git push
+          fi

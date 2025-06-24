@@ -1,0 +1,238 @@
+versie: 1.0
+laatst_bijgewerkt: '2025-06-24T04:26:00Z'
+evaluatie_metadata:
+  run_id: baseline-manual-20250624
+  prompt_pakket_versie: N/A
+  context_data_hash: N/A
+samenvatting_scores:
+  algemene_score: 5.0
+  technische_volledigheid: 7
+  autonomie_zelflerend_vermogen: 3
+  documentatie_auditeerbaarheid: 6
+  operationele_betrouwbaarheid: 5
+  beveiliging_compliance: 4
+  modulariteit_schaalbaarheid: 8
+  gebruiksvriendelijkheid_aanpasbaarheid: 6
+  tco_performance: 2
+  governance_hitl_procedures: 6
+  risicobeheersing_feedbackloops: 3
+criteria_details:
+- naam: Technische Volledigheid
+  score: 7
+  trend: stabiel
+  samenvatting: Sterke fundamentele documenten, maar architecturale details voor toekomstige
+    fasen ontbreken en een formele DoD is niet vastgesteld.
+  kpis:
+  - naam: Dekkingsgraad Eisen (%)
+    waarde: TBD
+    doel: TBD
+    status: grijs
+  - naam: DoD Nalevingspercentage (%)
+    waarde: TBD
+    doel: TBD
+    status: grijs
+  gap_analyse:
+  - hiaat: Formele, geünificeerde 'Definition of Done' ontbreekt.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: N/A
+  actiepunten:
+  - actie: Stel een formele DoD op voor alle werkitems.
+    eigenaar: '@architect-team'
+    ticket_id: TBD
+    status: open
+- naam: Autonomie & Zelflerend Vermogen
+  score: 3
+  trend: stabiel
+  samenvatting: Autonomie is een duidelijk doel voor de toekomst, maar de huidige
+    focus ligt op het bouwen van de benodigde infrastructuur.
+  kpis:
+  - naam: Frequentie Geautomatiseerde Hertraining
+    waarde: 0/maand
+    doel: TBD
+    status: rood
+  - naam: Menselijke Interventiegraad (%)
+    waarde: 100%
+    doel: <20%
+    status: rood
+  gap_analyse:
+  - hiaat: Geen geautomatiseerde hertrainings- of zelfherstellende pijplijnen geïmplementeerd.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: isa/context/ISA_Roadmap.md
+  actiepunten:
+  - actie: Ontwikkel een pilot voor een geautomatiseerde hertrainingspijplijn (Fase
+      2).
+    eigenaar: '@mlops-team'
+    ticket_id: TBD
+    status: open
+- naam: Documentatie & Auditeerbaarheid
+  score: 6
+  trend: stabiel
+  samenvatting: Uitstekende handmatige documentatie, maar automatisering en een volledig
+    auditeerbaar spoor ontbreken.
+  kpis:
+  - naam: Dekkingsgraad Geautomatiseerde Documentatie (%)
+    waarde: TBD
+    doel: TBD
+    status: grijs
+  - naam: Traceerbaarheidsscore (%)
+    waarde: TBD
+    doel: TBD
+    status: grijs
+  gap_analyse:
+  - hiaat: Documentatie wordt handmatig bijgehouden; geen geautomatiseerde generatie
+      uit code.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: N/A
+  actiepunten:
+  - actie: Implementeer tools voor het automatisch genereren van documentatie (bijv.
+      Sphinx, Javadoc).
+    eigenaar: '@dev-team'
+    ticket_id: TBD
+    status: open
+- naam: Operationele Betrouwbaarheid
+  score: 8
+  trend: omhoog
+  samenvatting: Uptime is strong and CI/CD success rate is high. MTTR needs improvement
+    based on recent incidents.
+  kpis:
+  - naam: Uptime/Beschikbaarheid (%)
+    waarde: 99.95%
+    doel: 99.9%
+    status: groen
+  - naam: Change Failure Rate (CFR)
+    waarde: 10%
+    doel: <15%
+    status: groen
+  gap_analyse:
+  - hiaat: Mean Time to Recovery (MTTR) is higher than industry best practice.
+    ai_vertrouwensscore: 0.92
+    bewijs_link: 'Incident Report #789'
+  actiepunten:
+  - actie: 'Conduct a post-mortem on Incident #789 and implement automated rollback
+      procedures.'
+    eigenaar: '@ops-team'
+    ticket_id: JIRA-456
+    status: open
+- naam: Beveiliging & Compliance
+  score: 4
+  trend: stabiel
+  samenvatting: Basisbeveiliging is aanwezig, maar een systematische, geautomatiseerde
+    aanpak voor beveiliging en compliance ontbreekt.
+  kpis:
+  - naam: Mean Time to Patch (MTTP) (Dagen)
+    waarde: TBD
+    doel: <30
+    status: grijs
+  - naam: Dekkingsgraad Geautomatiseerde Beveiligingstests (%)
+    waarde: 0%
+    doel: '>80%'
+    status: rood
+  gap_analyse:
+  - hiaat: Geen bewijs van geïntegreerde SAST/DAST-scanning in CI/CD-pijplijnen.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: N/A
+  actiepunten:
+  - actie: Integreer een SAST-tool (bijv. SonarQube) in de CI-pijplijn.
+    eigenaar: '@security-team'
+    ticket_id: TBD
+    status: open
+- naam: Modulariteit & Schaalbaarheid
+  score: 8
+  trend: stabiel
+  samenvatting: Het systeem is vanaf de basis ontworpen voor modulariteit en schaalbaarheid,
+    wat een van de sterkste punten is.
+  kpis:
+  - naam: Koppeling tussen Componenten
+    waarde: TBD
+    doel: Laag
+    status: grijs
+  gap_analyse:
+  - hiaat: Koppelingsmetrieken worden niet expliciet gemeten.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: N/A
+  actiepunten:
+  - actie: Introduceer statische analyse om koppelingsmetrieken te meten.
+    eigenaar: '@architect-team'
+    ticket_id: TBD
+    status: open
+- naam: Gebruiksvriendelijkheid & Aanpasbaarheid
+  score: 6
+  trend: stabiel
+  samenvatting: Hoge aanpasbaarheid voor ontwikkelaars; traditionele eindgebruikers-usability
+    is momenteel geen focus.
+  kpis:
+  - naam: System Usability Scale (SUS) Score
+    waarde: N/A
+    doel: N/A
+    status: grijs
+  gap_analyse:
+  - hiaat: Geen formele meting van gebruiksvriendelijkheid.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: N/A
+  actiepunten:
+  - actie: Definieer usability-metrics wanneer eindgebruikersinterfaces worden ontwikkeld.
+    eigenaar: '@product-team'
+    ticket_id: TBD
+    status: open
+- naam: TCO & Performance
+  score: 2
+  trend: stabiel
+  samenvatting: Geen tracking van TCO of performance-efficiëntie; focus ligt op het
+    bouwen van functionaliteit.
+  kpis:
+  - naam: Total Cost of Ownership (€ per jaar)
+    waarde: TBD
+    doel: TBD
+    status: grijs
+  - naam: Return on Investment (ROI) (%)
+    waarde: TBD
+    doel: TBD
+    status: grijs
+  gap_analyse:
+  - hiaat: Volledig gebrek aan financiële en prestatie-efficiëntiemetingen.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: N/A
+  actiepunten:
+  - actie: Implementeer basis cloud-kosten-tracking en rapportage.
+    eigenaar: '@ops-team'
+    ticket_id: TBD
+    status: open
+- naam: Governance & HITL-procedures
+  score: 6
+  trend: stabiel
+  samenvatting: Sterk gedocumenteerd governance-raamwerk, maar de automatisering van
+    handhaving en HITL-procedures is beperkt.
+  kpis:
+  - naam: Percentage van High-Risk Beslissingen met HITL-review
+    waarde: TBD
+    doel: 100%
+    status: grijs
+  gap_analyse:
+  - hiaat: HITL-workflows zijn conceptueel, niet geïmplementeerd in geautomatiseerde
+      systemen.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: isa/context/governance.md
+  actiepunten:
+  - actie: Ontwerp en implementeer een pilot voor een geautomatiseerde HITL-goedkeuringspoort.
+    eigenaar: '@architect-team'
+    ticket_id: TBD
+    status: open
+- naam: Risicobeheersing & Feedbackloops
+  score: 3
+  trend: stabiel
+  samenvatting: Basis feedbackloops bestaan (validator), maar een systematisch, geautomatiseerd
+    risicobeheerproces ontbreekt.
+  kpis:
+  - naam: Key Risk Indicator (KRI) Breach Rate (%)
+    waarde: TBD
+    doel: TBD
+    status: grijs
+  gap_analyse:
+  - hiaat: Geen formele risico-inventaris of KRI-dashboard.
+    ai_vertrouwensscore: 1.0
+    bewijs_link: N/A
+  actiepunten:
+  - actie: Creëer een initiële risico-inventaris voor het project.
+    eigenaar: '@governance-team'
+    ticket_id: TBD
+    status: open
