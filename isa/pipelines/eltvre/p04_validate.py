@@ -28,8 +28,10 @@ def validate_data(data: str) -> Tuple[bool, str]:
     if not isinstance(data, str) or not data.strip():
         return False, "Validation failed: Data is not a non-empty string."
 
-    # Future extension: check for unexpected characters or artifacts
-    # For now, this simple check is sufficient.
+    # Future extension: check for unexpected characters or artifacts, or
+    # adapt this function to accept and validate a pandas DataFrame of chunks
+    # for more granular data quality checks as per the optimization plan.
+    # For now, this simple check is sufficient for the combined content.
 
     return True, "Validation successful."
 

@@ -23,13 +23,15 @@ def refine_data(validated_data: pd.DataFrame, validation_results: Dict[str, Any]
     print("Executing ELTVRE Pipeline: Step 5 - Refine")
     
     # Placeholder for refinement logic.
-    # Future logic will iterate through validation_results and apply corrections.
+    # Future logic will iterate through validation_results and apply corrections,
+    # or flag data entries for manual review, aligning with the "Data Quality Feedback Loop"
+    # and "Automated Data Profiling" aspects of the optimization plan.
     # For example:
     # if not validation_results.get('column_x_check'):
-    #     # Apply correction for column X
+    #     # Apply correction for column X or quarantine row
     #     pass
 
     refined_data = validated_data.copy()
     
-    print("Data refinement complete. No changes applied in this placeholder.")
+    print("Data refinement complete. Placeholder logic applied.")
     return refined_data

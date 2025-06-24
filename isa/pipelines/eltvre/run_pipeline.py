@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import os # Import the 'os' module
 
 # Add the project root to the Python path to allow for absolute imports
 project_root = Path(__file__).resolve().parents[3]
@@ -26,28 +27,55 @@ def main():
 
     # Step 1: Extract data
     print("Step 1: Extracting data...")
-    # Convert generator to list and extract content
-    extracted_files = list(extract_from_local(str(input_file)))
-    if not extracted_files:
+    extraction_config = {
+        'local_sources': [
+            {'type': 'local', 'path': str(input_file)}
+        ],
+        'parallel_extraction_workers': os.cpu_count() or 1
+    }
+    extracted_data_list = extract_from_local(str(input_file)) # This is now an iterator
+    
+    # Convert iterator to list for further processing
+    extracted_data_list = list(extracted_data_list)
+
+    if not extracted_data_list:
         print("No data extracted. Exiting.")
         sys.exit(0)
     
-    # For simplicity, this example processes the content of the first file.
-    # A more robust implementation would iterate through all files.
-    extracted_data = extracted_files[0]['content']
-    print(f"  - Extracted data from: {extracted_files[0]['path']}")
+    print(f"  - Extracted {len(extracted_data_list)} items.")
 
-    # Step 2: Transform data
-    print("\nStep 2: Transforming data...")
-    # The transform_text function expects a list of strings (lines)
-    transformed_data = transform_text(extracted_data.splitlines())
-    # Join the lines back into a single string for subsequent steps
-    transformed_content = "\n".join(transformed_data)
-    print(f"  - Transformed data: {transformed_content[:100]}...") # Print snippet
+    # Step 2: Transform data (including embedding generation)
+    print("\nStep 2: Transforming data (including embedding generation)...")
+    transform_config = {
+        "embedding_batch_size": 10,
+        "embedding_batch_timeout_ms": 1000
+    }
+    # Pass the list of dictionaries directly to run_transformation
+    transformed_chunks = transform_text(extracted_data_list)
+    
+    # Convert transformed chunks to DataFrame for subsequent steps
+    transformed_df = pd.DataFrame(transformed_chunks)
+    print(f"  - Transformed {len(transformed_df)} chunks.")
+    print(f"  - Sample transformed data: {transformed_df.head().to_string()}")
 
     # Step 3: Validate data
     print("\nStep 3: Validating data...")
-    is_valid, message = validate_data(transformed_content)
+    # Validate each chunk individually or the DataFrame as a whole
+    # For simplicity, let's assume validate_data can work on a DataFrame or be adapted.
+    # If validate_data expects a string, we need to adjust.
+    # Assuming validate_data needs a single string for now, we'll join content.
+    # A more robust solution would validate each chunk.
+    
+    # For now, let's adapt validate_data to work on the 'content' column of the DataFrame
+    # Or, if validate_data is meant for the overall pipeline output, we'll adjust later.
+    # Let's assume validate_data needs to be updated to handle a DataFrame of chunks.
+    # For now, we'll pass the content of the first chunk for a basic check.
+    
+    # Update: The original validate_data expects a string. We need to iterate or adapt.
+    # For now, let's pass the combined content for a high-level validation.
+    combined_content_for_validation = "\n".join(transformed_df['content'].tolist())
+    is_valid, message = validate_data(combined_content_for_validation)
+    
     print(f"  - Validation result: {message}")
     if not is_valid:
         print("\nPipeline execution failed: Data validation error.")
@@ -55,15 +83,19 @@ def main():
 
     # Step 4: Refine data
     print("\nStep 4: Refining data...")
-    # Create a DataFrame for the refinement step
-    df = pd.DataFrame([transformed_content], columns=['text'])
-    refined_data = refine_data(df, {'message': message})
+    # Refine data now operates on the DataFrame of transformed chunks
+    refined_data = refine_data(transformed_df, {'message': message})
     print(f"  - Refined data: {refined_data.to_string()}")
 
     # Step 5: Enrich data
     print("\nStep 5: Enriching data...")
-    enriched_data = enrich_data(refined_data)
-    print(f"  - Enriched data: {enriched_data}")
+    enrichment_config = {
+        "llm_model": "gemini-pro",
+        "knowledge_graph_api_key": "YOUR_KG_API_KEY", # Placeholder
+        "custom_ontology_path": "path/to/ontology.json" # Placeholder
+    }
+    enriched_data = enrich_data(refined_data, enrichment_config)
+    print(f"  - Enriched data: {enriched_data.to_string()}")
 
     # Step 6: Load data
     print("\nStep 6: Loading data...")

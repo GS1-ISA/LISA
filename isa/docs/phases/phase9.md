@@ -15,6 +15,22 @@
 - Intent Disambiguation Router
 - Conflict Registry
 
+## Detailed Planning from ISA_Future_Phases_Full_Updated 2
+
+# Phase 9 – Multi-Objective Reasoning Engine
+
+## Objective
+Enable ISA to understand stakeholder intent, resolve conflicts, and balance competing objectives (e.g., sustainability vs. compliance).
+
+## Features
+- Intent detection and justification scoring
+- Tradeoff simulation workflows
+- Policy contradiction resolution
+
+## AUTO_EXPAND_ON
+- Include logic scoring metrics
+- Include stakeholder feedback integration
+
 ### Phase 10 – Living Ontologies & Semantic Contracts
 - Ontology Version Pinning
 - Semantic Conflict Detector

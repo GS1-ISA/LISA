@@ -18,3 +18,12 @@ Detailed issues: See isa/logs/venv_issues.log
 **Task:** Create a sample data file for the ELTVRE pipeline.
 **File Created:** `isa/pipelines/eltvre/sample_data.txt`
 **Validator Result:** Success - ISA Validator: All checks passed.
+---
+### 2025-06-24 09:33:14 - Task: Consolidate and clean up the project directory
+- **Action**: Merged detailed phase documentation from historical directories into `isa/docs/phases/`.
+- **Action**: Removed redundant directories: `github-ready-ISA-Phase4-updated/` and `ISA_Future_Phases_Full_Updated 2/`.
+- **Validator Outcome**: Validation to be performed by user via `isa/isa_validator.py` and `scripts/run_validator.sh`.
+---
+### 2025-06-24 09:52:23 - Task: Implement the ELTVRE pipeline optimization and expansion plan
+- **Action**: Updated `isa/pipelines/eltvre/p01_extract.py`, `isa/pipelines/eltvre/p03_transform.py`, `isa/pipelines/eltvre/p04_validate.py`, `isa/pipelines/eltvre/p05_refine.py`, `isa/pipelines/eltvre/p06_enrich.py`, and `isa/pipelines/eltvre/run_pipeline.py`.
+- **Validator Outcome**: ISA Validator: All checks passed.

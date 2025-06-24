@@ -114,55 +114,61 @@ Provided Document Chunks:
 
 User's Original Question: {{{question}}}
 
-Based solely on the provided content snippets (if any):
-1. If document chunks are available, analyze them to synthesize a clear and concise 'answer' to the user's original 'question'. Ensure your answer directly addresses the question.
-2. If no document chunks are available, state clearly that no relevant information was found in the knowledge base to answer the question. Do not attempt to answer from general knowledge.
-3. Populate the 'citedSources' field with details from the document chunks you primarily used. If no chunks were used or available, this should be an empty array.
-4. Provide a list of 'reasoningSteps' outlining your thought process.
-   If document chunks were used, steps should include:
-     - "Analyzed user question: '{{{question}}}'."
-     - "Identified X relevant document chunks from vector search."
-     - "Synthesized information from chunk(s) [mention key source if possible, e.g., from '{{documentChunks.0.sourceName}}'] to formulate the answer."
-     - "Constructed final answer and identified cited sources."
-   If no document chunks are available or used, steps should be like:
-     - "Analyzed user question: '{{{question}}}'."
-     - "Simulated query embedding generation for the question."
-     - "Queried conceptual vector store with the embedding."
-     - "Vector store returned no relevant document chunks."
-     - "Unable to synthesize answer due to lack of relevant information from the knowledge base."
+Based solely on the provided content snippets (if any), synthesize a comprehensive and accurate answer.
+Consider the following to improve the answer for complex queries:
+1.  **Multi-part Questions**: Break down the user's question into sub-questions if it has multiple parts and address each part using the provided chunks.
+2.  **Nuanced Queries**: Pay close attention to subtle distinctions or specific conditions mentioned in the question and reflect them in the answer.
+3.  **Synthesize from Multiple Chunks**: If information relevant to the answer is spread across several chunks, combine and synthesize it coherently. Avoid simply concatenating information.
+4.  **Confidence Score (Implicit)**: If the information is sparse or contradictory, reflect this uncertainty in the answer (e.g., "Based on the available information, it appears...", "The document suggests...").
+
+For your output:
+1.  Provide a clear and concise 'answer' to the user's original 'question'.
+2.  Populate the 'citedSources' field with details from *all* document chunks that contributed to your answer. If no chunks were used or available, this should be an empty array.
+3.  Provide a detailed list of 'reasoningSteps' outlining your thought process, especially how you handled complex queries and synthesized information.
+    If document chunks were used, steps should include:
+      - "Analyzed user question: '{{{question}}}' for complexity and sub-parts."
+      - "Identified X relevant document chunks from vector search."
+      - "Strategically combined and synthesized information from chunk(s) [mention key sources if possible, e.g., from '{{documentChunks.0.sourceName}}' and '{{documentChunks.1.sourceName}}'] to formulate a comprehensive answer, addressing all nuances."
+      - "Constructed final answer and identified all contributing cited sources."
+    If no document chunks are available or used, steps should be like:
+      - "Analyzed user question: '{{{question}}}'."
+      - "Simulated query embedding generation for the question."
+      - "Queried conceptual vector store with the embedding."
+      - "Vector store returned no relevant document chunks."
+      - "Unable to synthesize answer due to lack of relevant information from the knowledge base."
 
 Begin.`,
-      config: {
-        maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
-      },
-      output: { schema: AnswerGs1QuestionsWithVectorSearchOutputSchema.omit({ retrievedChunksCount: true }) },
-    });
+       config: {
+         maxOutputTokens: thinkingBudget === -1 ? undefined : thinkingBudget,
+       },
+       output: { schema: AnswerGs1QuestionsWithVectorSearchOutputSchema.omit({ retrievedChunksCount: true }) },
+     });
 
-    const synthesisOutput = llmResponse.output;
+     const synthesisOutput = llmResponse.output;
 
-    if (!synthesisOutput) {
-      logger.error('[FLOW_VECTOR_SEARCH] LLM synthesis did not return a valid output.');
-      return {
-        answer: "I encountered an issue generating an answer from the retrieved information. The AI model failed to produce a structured response during synthesis. Please try again.",
-        citedSources: [],
-        reasoningSteps: ["The AI model failed to produce a structured response during the synthesis stage."],
-        retrievedChunksCount: retrievedChunksCount,
-      };
-    }
-    
-    logger.info(`[FLOW_VECTOR_SEARCH] Synthesis successful. Answer preview: ${synthesisOutput.answer.substring(0,100)}...`);
-    return {
-      ...synthesisOutput,
-      retrievedChunksCount: retrievedChunksCount,
-    };
+     if (!synthesisOutput) {
+       logger.error('[FLOW_VECTOR_SEARCH] LLM synthesis did not return a valid output.');
+       return {
+         answer: "I encountered an issue generating an answer from the retrieved information. The AI model failed to produce a structured response during synthesis. Please try again.",
+         citedSources: [],
+         reasoningSteps: ["The AI model failed to produce a structured response during the synthesis stage."],
+         retrievedChunksCount: retrievedChunksCount,
+       };
+     }
+     
+     logger.info(`[FLOW_VECTOR_SEARCH] Synthesis successful. Answer preview: ${synthesisOutput.answer.substring(0,100)}...`);
+     return {
+       ...synthesisOutput,
+       retrievedChunksCount: retrievedChunksCount,
+     };
 
-  } catch (error: any) {
-    logger.error({ err: error }, '[FLOW_VECTOR_SEARCH] Error in answerGs1QuestionsWithVectorSearch flow');
-    return {
-      answer: `An unexpected error occurred while processing your request with vector search: ${error.message || error}. Please check the input or try again later.`,
-      citedSources: [],
-      reasoningSteps: ["An unexpected error occurred in the RAG pipeline."],
-      retrievedChunksCount: retrievedChunksCount,
-    };
-  }
-}
+   } catch (error: any) {
+     logger.error({ err: error }, '[FLOW_VECTOR_SEARCH] Error in answerGs1QuestionsWithVectorSearch flow');
+     return {
+       answer: `An unexpected error occurred while processing your request with vector search: ${error.message || error}. Please check the input or try again later.`,
+       citedSources: [],
+       reasoningSteps: ["An unexpected error occurred in the RAG pipeline."],
+       retrievedChunksCount: retrievedChunksCount,
+     };
+   }
+ }

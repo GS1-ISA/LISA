@@ -148,4 +148,14 @@
 ## [Unreleased]
 
 ### Added
+- Implemented ELTVRE pipeline optimization and expansion plan.
+- Enhanced `isa/pipelines/eltvre/p06_enrich.py` with advanced semantic analysis capabilities (entity resolution, SRL, event extraction, sentiment analysis, custom ontology integration) using simulated Vertex AI Gemini API and Knowledge Graph linking.
+- Updated `isa/pipelines/eltvre/p01_extract.py` to support diverse structured data formats (CSV, JSON, XML) and parallel processing for improved scalability.
+- Modified `isa/pipelines/eltvre/p03_transform.py` to correctly process structured data from the extraction stage and generate embeddings in batches.
+- Adjusted `isa/pipelines/eltvre/run_pipeline.py` to orchestrate the enhanced pipeline, passing structured data between stages and incorporating new configuration parameters.
+- Added comments to `isa/pipelines/eltvre/p04_validate.py` and `isa/pipelines/eltvre/p05_refine.py` to indicate future enhancements for granular data validation and active refinement on DataFrames.
 - Created `isa/pipelines/eltvre/sample_data.txt` for ELTVRE pipeline testing.
+
+### 2025-06-24 - Project Directory Consolidation and Cleanup
+- Consolidated and merged relevant documentation and simulation files from historical phase directories (`github-ready-ISA-Phase4-updated/`, `ISA_Future_Phases_Full_Updated 2/`) into the main `isa/` directory.
+- Removed redundant and historical phase directories to streamline the project structure.

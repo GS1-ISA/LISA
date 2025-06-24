@@ -1,0 +1,67 @@
+[
+  {
+    "id": "chunk1",
+    "content": "This is the first document chunk content.",
+    "source_ref": "doc_a.txt",
+    "start_line": 1,
+    "end_line": 1,
+    "embedding_vector": [
+      0.1,
+      0.2,
+      0.3,
+      0.4
+    ]
+  },
+  {
+    "id": "chunk2",
+    "content": "The second chunk contains more information.",
+    "source_ref": "doc_a.txt",
+    "start_line": 2,
+    "end_line": 2,
+    "embedding_vector": [
+      0.5,
+      0.6,
+      0.7,
+      0.8
+    ]
+  },
+  {
+    "id": "chunk3",
+    "content": "This is from a different document.",
+    "source_ref": "doc_b.txt",
+    "start_line": 1,
+    "end_line": 1,
+    "embedding_vector": [
+      0.9,
+      0.0,
+      0.1,
+      0.2
+    ]
+  },
+  {
+    "id": "chunk4",
+    "content": "Final chunk for testing batching.",
+    "source_ref": "doc_b.txt",
+    "start_line": 2,
+    "end_line": 2,
+    "embedding_vector": [
+      0.3,
+      0.4,
+      0.5,
+      0.6
+    ]
+  },
+  {
+    "id": "chunk5",
+    "content": "Another chunk to fill a batch.",
+    "source_ref": "doc_c.txt",
+    "start_line": 1,
+    "end_line": 1,
+    "embedding_vector": [
+      0.7,
+      0.8,
+      0.9,
+      0.0
+    ]
+  }
+]

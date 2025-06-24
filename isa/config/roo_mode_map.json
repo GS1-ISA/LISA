@@ -1,130 +1,81 @@
 {
   "modes": [
     {
-      "slug": "orchestrator",
-      "name": "🪃 Orchestrator",
-      "model": "claude-3.5-sonnet",
-      "thinkingBudget": 1000,
-      "description": "To serve as the central command and control unit, orchestrating multi-agent workflows, decomposing high-level tasks, and delegating to specialized modes."
-    },
-    {
-      "slug": "architect",
-      "name": "🏗️ Architect",
-      "model": "gemini-2.5-flash",
-      "thinkingBudget": -1,
-      "description": "To plan, design, and strategize solutions, breaking down complex problems, creating technical specifications, and designing system architecture."
-    },
-    {
-      "slug": "code",
-      "name": "💻 Code",
-      "model": "claude-3.5-sonnet",
-      "thinkingBudget": 5000,
-      "description": "For routine development, feature implementation, and refactoring."
-    },
-    {
-      "slug": "ask",
-      "name": "❓ Ask",
-      "model": "gemini-2.5-flash-lite-preview-06-17",
-      "thinkingBudget": 1000,
-      "description": "For quick lookups, simple queries, and basic explanations."
-    },
-    {
-      "slug": "debug",
-      "name": "🪲 Debug",
-      "model": "gemini-2.5-flash",
-      "thinkingBudget": -1,
-      "description": "To troubleshoot issues, investigate errors, diagnose problems, and identify root causes within the system or generated outputs."
-    },
-    {
-      "slug": "ResearchMode",
-      "name": "ResearchMode",
-      "model": "claude-3.5-sonnet",
-      "thinkingBudget": -1,
-      "description": "To conduct comprehensive external (web, documentation) and internal (project files, knowledge base) research, synthesize information, identify conflicts, and extract relevant insights."
-    },
-    {
-      "slug": "ValidatorMode",
-      "name": "ValidatorMode",
-      "model": "claude-3.5-sonnet",
-      "thinkingBudget": 5000,
-      "description": "To rigorously validate code, content, or system outputs against predefined specifications, schemas, rules, and quality gates."
-    },
-    {
-      "slug": "synthesizerMode",
-      "name": "SynthesizerMode",
-      "model": "claude-3.5-sonnet",
-      "thinkingBudget": 5000,
-      "description": "To integrate and synthesize diverse outputs from multiple agents into a coherent, unified, and high-quality final product or report."
-    },
-    {
-      "slug": "auditorMode",
-      "name": "AuditorMode",
-      "model": "gemini-2.5-flash",
-      "thinkingBudget": 5000,
-      "description": "To continuously scan project structure, code, and outputs for adherence to standards, identify technical debt, monitor versioning consistency, and proactively act as an Inspector/Guardian by reviewing inter-agent messages for compliance and monitoring agent heartbeats."
-    },
-    {
-      "slug": "brainstormerMode",
-      "name": "BrainstormerMode",
-      "model": "gemini-2.5-flash",
-      "thinkingBudget": 5000,
-      "description": "To generate creative solutions, propose naming schemes, interface ideas, and overcome impasses through divergent thinking and goal alignment."
-    },
-    {
-      "slug": "humanInput",
-      "name": "HumanInput",
+      "slug": "ROO-MODE-BLUEPRINT",
+      "name": "ROO-MODE-BLUEPRINT",
       "model": "N/A",
-      "thinkingBudget": 0,
-      "description": "To serve as a dedicated interface for awaiting and processing human input, ensuring contextual resumption of AI workflows."
-    },
-    {
-      "slug": "dependencyMonitor",
-      "name": "DependencyMonitor",
-      "model": "gemini-2.5-flash",
-      "thinkingBudget": 1000,
-      "description": "Checks CI/build, lint, and package health."
-    },
-    {
-      "slug": "devopsGcp",
-      "name": "DevOpsGcpMode",
-      "model": "gemini-2.5-flash",
       "thinkingBudget": -1,
-      "description": "Manages Firebase/GCP deployments, emulators, and credential rotation."
+      "description": "Master orchestrator, UDM parser, planner, dispatcher, validator. It is Roo's central \"nervous system,\" following a 5-step execution loop to manage the entire development process."
     },
     {
-      "slug": "keyRotation",
-      "name": "KeyRotationMode",
-      "model": "gemini-2.5-flash",
-      "thinkingBudget": 500,
-      "description": "Handles LLM API key rotation and management."
-    },
-    {
-      "slug": "memorySync",
-      "name": "MemorySyncMode",
-      "model": "gemini-2.5-flash",
+      "slug": "ROO-MODE-ANALYZE-CONFIG",
+      "name": "ROO-MODE-ANALYZE-CONFIG",
+      "model": "N/A",
       "thinkingBudget": -1,
-      "description": "Syncs session state and embeddings into long-term memory bank."
+      "description": "To analyze specified project configuration files (e.g., .yaml, .json, .xml, .properties, .ini, makefiles, Dockerfiles, CI/CD pipeline files), compare them against documented best practices, UDM specifications (from Section 06-Operational-Config.md), or general security/performance heuristics. It identifies discrepancies, potential risks, misconfigurations, and areas for improvement or alignment."
     },
     {
-      "slug": "rejectMode",
-      "name": "RejectMode",
-      "model": "gemini-2.5-flash-lite-preview-06-17",
-      "thinkingBudget": 100,
-      "description": "Safe fallback response mode (\"I can't do that\") to avoid loops."
-    },
-    {
-      "slug": "triggerMode",
-      "name": "TriggerMode",
-      "model": "gemini-2.5-flash-lite-preview-06-17",
-      "thinkingBudget": 100,
-      "description": "Initiates model switching based on task complexity or resource quotas."
-    },
-    {
-      "slug": "knowledgeGraph",
-      "name": "🧠 KnowledgeGraph",
-      "model": "gemini-2.5-flash",
+      "slug": "ROO-MODE-ANALYZE-STRUCTURE",
+      "name": "ROO-MODE-ANALYZE-STRUCTURE",
+      "model": "N/A",
       "thinkingBudget": -1,
-      "description": "To provide a dedicated interface for agents to interact with the Neo4j Knowledge Graph, enabling structured storage, retrieval, and manipulation of knowledge for advanced reasoning, contextual understanding, and data-driven decision-making within the ISA system."
+      "description": "To analyze the file and directory structure of specified project paths. It identifies structural anomalies, deviations from standard conventions (if defined in UDM), counts of files/directories, potentially large files/directories, and assesses overall structural organization against UDM architectural guidelines."
+    },
+    {
+      "slug": "ROO-MODE-ANALYZE-CODEBASE",
+      "name": "ROO-MODE-ANALYZE-CODEBASE",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To perform a static analysis of the project's source code. This includes identifying programming languages, frameworks, key libraries/dependencies, overall code structure, potential code quality issues (e.g., complexity, duplication), and attempting to map code modules to UDM architectural components. It can also be used to generate high-level summaries of code functionality."
+    },
+    {
+      "slug": "ROO-MODE-ANALYZE-DOCS",
+      "name": "ROO-MODE-ANALYZE-DOCS",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To analyze existing project documentation (e.g., Markdown files, text files, potentially Word/Google Docs if accessible). It compares this content against the target UDM structure, identifies relevant information that can be migrated or referenced, pinpoints content gaps in the UDM, and suggests how existing documentation aligns with (or diverges from) the UDM's sections and goals."
+    },
+    {
+      "slug": "ROO-MODE-RESEARCH",
+      "name": "ROO-MODE-RESEARCH",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To conduct targeted, meticulous, and insightful research to fill knowledge gaps and answer specific questions relevant to the ISA project. This mode is responsible for finding, synthesizing, and presenting information in a structured way to fill identified knowledge gaps or answer queries. It can leverage web search, document fetching, and specialized documentation tools, and can delegate to ClaudeBrowserMode for complex web interactions."
+    },
+    {
+      "slug": "ClaudeBrowserMode",
+      "name": "ClaudeBrowserMode",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To perform interactive browser-based tasks requiring direct manipulation of web pages, such as detailed website inspection, automated form filling, interaction with JavaScript-heavy sites, and screen-capture based validation. This mode specifically handles tasks that are dependent on the 'Roocode browser' capability, leveraging Claude Sonnet 3.5's tool-calling abilities. It is designed as a Genkit flow callable by other Genkit flows (e.g., ROO-MODE-RESEARCH)."
+    },
+    {
+      "slug": "ROO-MODE-PLAN-STRATEGIC",
+      "name": "ROO-MODE-PLAN-STRATEGIC",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To perform high-level strategic planning, synthesis of complex information, and decision-making. This includes tasks like identifying major knowledge gaps based on system-wide audits, formulating multi-cycle strategic roadmaps, assessing the impact of major architectural changes, and prioritizing large-scale initiatives in alignment with the Core Mandate and UDM. It bridges the gap between detailed analysis and long-term strategic execution."
+    },
+    {
+      "slug": "ROO-MODE-UPDATE-UDM-TECHNICAL",
+      "name": "ROO-MODE-UPDATE-UDM-TECHNICAL",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To perform precise, technically-specified updates to the Unified Development Manual (UDM) content. This mode is typically invoked by other Roo modes or by Blueprint Mode when specific, factual changes are needed in UDM sections, such as saving a new prompt to a file, updating a CorePromptReference, reflecting audited configurations, or adding new task definitions provided by a planning mode. It is not typically responsible for generating new strategic content, but rather for accurately transcribing or integrating pre-defined or systematically derived information into the UDM."
+    },
+    {
+      "slug": "ROO-MODE-GENERATE-DOCUMENTATION",
+      "name": "ROO-MODE-GENERATE-DOCUMENTATION",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To generate human-readable, accurate, and UDM-compliant textual documentation for specified UDM sections or topics. This mode takes a description of the required documentation (e.g., \"Document Blueprint Mode's operational logic,\" \"Explain the purpose of UDM Section 02.5,\" \"Summarize findings from research report X for UDM Appendix Y\") and synthesizes this into well-structured Markdown content. Its output (the generated Markdown text) is then passed to ROO-MODE-UPDATE-UDM-TECHNICAL for saving."
+    },
+    {
+      "slug": "ROO-MODE-VALIDATE-COMPLETION",
+      "name": "ROO-MODE-VALIDATE-COMPLETION",
+      "model": "N/A",
+      "thinkingBudget": -1,
+      "description": "To perform a comprehensive validation that a set of tasks, a Milestone, or an entire Project Phase has been successfully completed according to UDM criteria. This involves checking the status and validated outputs of all constituent tasks, ensuring all specified deliverables for the milestone/phase are present and correct, and verifying that all exit criteria are met. This mode acts as a quality gate before Roo (via Blueprint Mode) proceeds to subsequent stages of the roadmap."
     }
   ],
   "mcpServers": []

@@ -46,8 +46,8 @@
             "isa/isa_manifest.yaml",
             "isa/roo_modes.md",
             "CHANGELOG.md",
-            "isa/versions/version_tracker.json",
-            "isa/logs/agent_task_history.json"
+            "isa/logs/agent_task_history.json",
+            "isa/versions/version_tracker.json"
         ],
         "changes_summary": "Established a single, authoritative 'isa/' root directory; consolidated relevant files from redundant project directories; standardized mode naming conventions; created missing core files; and archived old redundant directories.",
         "validator_outcome": "Validation to be performed by user via isa/isa_validator.py and scripts/run_validator.sh."
@@ -102,5 +102,40 @@
         "file_modified": "isa/pipelines/eltvre/sample_data.txt",
         "changes": "Created a sample data file with three lines of text for testing the ELTVRE pipeline.",
         "validator_outcome": "ISA Validator: All checks passed."
+    },
+    {
+        "timestamp": "2025-06-24T09:33:14Z",
+        "task": "Consolidate and clean up the project directory by merging redundant or historical phase directories.",
+        "files_modified": [
+            "isa/docs/phases/phase8.md",
+            "isa/docs/phases/phase9.md",
+            "isa/docs/phases/phase10.md",
+            "CHANGELOG.md",
+            "isa/logs/agent_task_history.json",
+            "isa/versions/version_tracker.json",
+            "project_journal.md",
+            "isa/reports/status_dashboard.md"
+        ],
+        "changes_summary": "Merged detailed phase documentation from historical directories into the main 'isa/docs/phases/' and removed redundant directories: 'github-ready-ISA-Phase4-updated/' and 'ISA_Future_Phases_Full_Updated 2/'.",
+        "validator_outcome": "Validation to be performed by user via isa/isa_validator.py and scripts/run_validator.sh."
+    },
+    {
+        "timestamp": "2025-06-24T09:51:12Z",
+        "task": "Implement the ELTVRE pipeline optimization and expansion plan.",
+        "files_modified": [
+            "isa/pipelines/eltvre/p01_extract.py",
+            "isa/pipelines/eltvre/p03_transform.py",
+            "isa/pipelines/eltvre/p04_validate.py",
+            "isa/pipelines/eltvre/p05_refine.py",
+            "isa/pipelines/eltvre/p06_enrich.py",
+            "isa/pipelines/eltvre/run_pipeline.py",
+            "CHANGELOG.md",
+            "isa/logs/agent_task_history.json",
+            "isa/versions/version_tracker.json",
+            "project_journal.md",
+            "isa/reports/status_dashboard.md"
+        ],
+        "changes_summary": "Enhanced the ELTVRE pipeline with advanced semantic analysis in the Enrich stage, expanded data source handling and parallel processing in the Extract stage, updated data transformation for structured data and embeddings, and adjusted pipeline orchestration. Added comments for future validation and refinement enhancements.",
+        "validator_outcome": "Validation to be performed by user via isa/isa_validator.py and scripts/run_validator.sh."
     }
 ]

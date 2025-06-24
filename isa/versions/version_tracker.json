@@ -1,6 +1,6 @@
 {
-  "version": "1.0.9",
-  "last_updated": "2025-06-24T05:55:42Z",
+  "version": "1.1.1",
+  "last_updated": "2025-06-24T09:51:35Z",
   "milestones": [
     {
       "version": "1.0.0",
@@ -51,6 +51,16 @@
       "version": "1.0.9",
       "description": "Created a sample data file for the ELTVRE pipeline.",
       "date": "2025-06-24T05:55:42Z"
+    },
+    {
+      "version": "1.1.0",
+      "description": "Consolidated and cleaned up the project directory by merging relevant documentation and simulation files from historical phase directories into the main 'isa/' directory and removing redundant directories.",
+      "date": "2025-06-24T09:33:14Z"
+    },
+    {
+      "version": "1.1.1",
+      "description": "Implemented the ELTVRE pipeline optimization and expansion plan, enhancing the Enrich stage with advanced semantic analysis, expanding data source handling and parallel processing in the Extract stage, updating data transformation for structured data and embeddings, and adjusting pipeline orchestration. Added comments for future validation and refinement enhancements.",
+      "date": "2025-06-24T09:51:35Z"
     }
   ],
   "isa_phases_tracked": [11, 12, 13, 14, 15, 16, 17, 18]

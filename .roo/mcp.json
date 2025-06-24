@@ -21,7 +21,14 @@
         "GITHUB_TOKEN": "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"
       },
       "alwaysAllow": [
-        "search_repositories"
+        "search_repositories",
+        "create_or_update_file"
+      ],
+      "disabledTools": [
+        "create_or_update_file",
+        "search_repositories",
+        "create_repository",
+        "get_file_contents"
       ]
     }
   }
