@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.0 (2025-09-01)
+
+
+### Features
+
+* Add initial implementation of quota management design document and mock vector database output ([565d16f](https://github.com/GS1-ISA/LISA/commit/565d16fb932a035199cff542d17cc700bfdccca3))
+* Add Roo mode definitions and environment scan summary documentation ([9ced98a](https://github.com/GS1-ISA/LISA/commit/9ced98ae7cf2f5429afef56549d6c8a7dfff31e0))
+* Add Roocode protocol deconstruction report for autonomous knowledge discovery ([0c32d9e](https://github.com/GS1-ISA/LISA/commit/0c32d9ee4265f77ffec7ce096533fe559f8dd94c))
+* Configure Secrets Manager and add Data Connect setup ([13fa233](https://github.com/GS1-ISA/LISA/commit/13fa23366467d7b93e52425cbaab35b4527047b3))
+* Enhance Data Connect Emulator logging and user detection ([8d96ad1](https://github.com/GS1-ISA/LISA/commit/8d96ad10b3100fce9aee2a32477076e571e3cabd))
+* Increase App Hosting memory to 4096MiB ([579b242](https://github.com/GS1-ISA/LISA/commit/579b242b20412c17928ab6fb47f28184f134775f))
+
+
+### Bug Fixes
+
+* correct README formatting ([4f089e3](https://github.com/GS1-ISA/LISA/commit/4f089e37bbdfa7b5909467d3aec61729e915bb9f))
+* correct README formatting ([9595b00](https://github.com/GS1-ISA/LISA/commit/9595b004267b50a94d516b50d7b501e9c3e6d964))
+* correct README formatting ([818fc18](https://github.com/GS1-ISA/LISA/commit/818fc185623e70934096099d6180ab5eed51441d))
+* correct README formatting ([7ece5cf](https://github.com/GS1-ISA/LISA/commit/7ece5cf41e3d2bfcc5fc39ed56d6baeccd57e5dd))
+* Correct Unexpected token error for Collapsible component ([4532233](https://github.com/GS1-ISA/LISA/commit/453223373e1dabd38a3bb065f908f6e84fbcb2b9))
+* Implement stricter Firestore security rules ([2b7a62a](https://github.com/GS1-ISA/LISA/commit/2b7a62a860579d9daec08a7bd623dbb513300a3c))
+* remove committed .env file ([1afff6a](https://github.com/GS1-ISA/LISA/commit/1afff6a3f51081fc26a5c36cbea2f4b2b23c6068))
+* Resolve ERESOLVE by targeting correct package.json and address systemic file duplication ([9bec17b](https://github.com/GS1-ISA/LISA/commit/9bec17b06f17a0aaeead5d6eb1aa08b0225e13be))
+* Resolve npm ERESOLVE conflict for @tanstack-query-firebase/react ([6c2e8a8](https://github.com/GS1-ISA/LISA/commit/6c2e8a8cff84080720b99b76821f159fce8973d8))
+
 ### 2025-06-21 - Agentic Workflows Refinement and LangChain Integration
 - Created `isa/agentic_workflows/` directory for advanced agentic workflow implementations.
 - Implemented `isa/agentic_workflows/langchain_integration.py` with a basic multi-agent workflow using LangChain/LangGraph, demonstrating inter-agent communication.
