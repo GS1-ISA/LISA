@@ -32,3 +32,7 @@ clean:
 	rm -rf agent/outcomes || true
 	rm -rf .lineage || true
 	find . -name '.DS_Store' -delete
+
+.PHONY: index
+index:
+	python scripts/index_repo.py
