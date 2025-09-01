@@ -16,3 +16,9 @@ Consequences
 
 Status: Accepted (conditional enablement via env)
 
+Adoption Notes (2025-09-01)
+- Bench summary (scripts/bench_q11_orjson.py; results in docs/research/q11_orjson_determinism/results.md):
+  - Determinism parity: OK for stdlib and orjson with sorted keys + UTF‑8 + explicit newline policy.
+  - Performance: orjson ≈13.5× faster than stdlib on a medium payload locally.
+- Policy: keep stdlib as default; allow opting into orjson via `CANONICAL_USE_ORJSON=1` in perf‑sensitive paths.
+- Promotion: enable orjson by default only after cross‑OS verification and 7 green nightly snapshot runs.

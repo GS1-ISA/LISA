@@ -14,3 +14,9 @@ Consequences
 
 Status: Accepted (selective use)
 
+Adoption Notes (2025-09-01)
+- Bench summary (scripts/bench_q12_validation.py; results in docs/research/q12_compiled_validators/results.md):
+  - Parity: both Pydantic v2 and fastjsonschema reject invalid inputs in our sample.
+  - Performance (simple schema): Pydantic v2 was faster (~1.0–1.2µs/op vs fastjsonschema ~3.0µs/op) in local measurements.
+- Policy: keep Pydantic v2 as default validator for model‑backed code paths. Use fastjsonschema selectively for pure JSON Schema validation where it shows wins on real schemas.
+- Next: run benches with representative, larger schemas to reassess; adopt behind a feature flag if it wins in targeted hot paths.

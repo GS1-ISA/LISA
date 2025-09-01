@@ -91,6 +91,7 @@ Track J — Performance & Capacity
 - Phase 2–3: Baselines, ≥30% speedup; caching and parallelism.
  - Deep Enhancements:
    - JSON: orjson for dumps and canonical writer; evaluate fastjsonschema and Pydantic v2 compiled validators.
+   - Benchmarks to date: Q11 shows orjson ~13.5× faster with parity; Q12 shows Pydantic v2 faster for simple schema (retest on real schemas).
    - Data: Polars prototypes for heavy transforms; optional DuckDB for large joins.
    - I/O: streaming CSV/JSONL and compressed inputs; avoid large intermediates.
    - Concurrency: safe multiprocessing for CPU-bound, asyncio/httpx for I/O-bound; document limits.
