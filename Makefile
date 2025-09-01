@@ -72,3 +72,7 @@ prom-up:
 
 prom-down:
 	docker compose -f infra/monitoring/docker-compose.yml down
+
+.PHONY: healthcheck
+healthcheck:
+	python3 scripts/healthcheck.py

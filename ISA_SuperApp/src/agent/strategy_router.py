@@ -16,6 +16,8 @@ class ArmStats:
     count: int = 0
     success: int = 0
     reward_sum: float = 0.0
+    success_count: int = 0
+    fail_count: int = 0
 
 
 def load_stats() -> Dict[str, ArmStats]:
@@ -38,23 +40,43 @@ def save_stats(stats: Dict[str, ArmStats]) -> None:
 STRATEGIES = ["test_first", "scaffold_repair", "refactor_then_feature"]
 
 
-def choose_strategy(task_kind: str, epsilon: float = 0.15) -> str:
-    """Epsilon-greedy selection among strategies.
+def choose_strategy(task_kind: str, epsilon: float = 0.15, method: str = "ts") -> str:
+    """Choose a strategy.
 
+    method:
+      - "ts": Thompson Sampling on Bernoulli success (default)
+      - "epsilon": epsilon-greedy on average reward
     task_kind reserved for future contextual policies.
     """
     stats = load_stats()
-    # explore
+    if method == "ts":
+        # Thompson Sampling (Beta prior, Bernoulli success)
+        best = None
+        best_draw = -1.0
+        for s in STRATEGIES:
+            st = stats.get(s, ArmStats())
+            # derive counts if absent (back-compat)
+            succ = st.success_count or st.success
+            fail = st.fail_count or (st.count - st.success if st.count >= st.success else 0)
+            alpha = 1 + max(0, succ)
+            beta = 1 + max(0, fail)
+            # python stdlib has no beta rng; approximate via random.gammavariate
+            draw = random.gammavariate(alpha, 1.0) / (random.gammavariate(alpha, 1.0) + random.gammavariate(beta, 1.0))
+            if draw > best_draw:
+                best = s
+                best_draw = draw
+        return best or STRATEGIES[0]
+    # epsilon-greedy
     if random.random() < epsilon:
         return random.choice(STRATEGIES)
-    # exploit by avg reward
     best = None
     best_avg = -1e9
     for s in STRATEGIES:
         st = stats.get(s, ArmStats())
         avg = (st.reward_sum / st.count) if st.count else 0.0
         if avg > best_avg:
-            best = s; best_avg = avg
+            best = s
+            best_avg = avg
     return best or STRATEGIES[0]
 
 
@@ -68,8 +90,10 @@ def update_reward(strategy: str, success: bool, coverage_delta: float = 0.0, typ
     st.count += 1
     if success:
         st.success += 1
+        st.success_count += 1
+    else:
+        st.fail_count += 1
     reward = (2.0 if success else -2.0) + float(coverage_delta) - 0.5 * float(type_errors)
     st.reward_sum += reward
     stats[strategy] = st
     save_stats(stats)
-
