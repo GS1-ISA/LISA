@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "roots": {
+    "src": "Application code",
+    "scripts": "Operational scripts and automations",
+    "docs": "User/Dev/Ops documentation",
+    "webui": "Static web assets",
+    "artifacts": "Build outputs",
+    "storage": "Project memory and durable state",
+    "logs": "Runtime logs"
+  },
+  "critical_files": [
+    "GEMINI.md",
+    "mkdocs.yml",
+    "docs/PROJECT_MEMORY.md",
+    "CHANGELOG.md",
+    "scripts/verify_credentials.py",
+    "scripts/smoke_test.py",
+    "scripts/generate_tokens.py",
+    "src/api_server.py",
+    "src/llm_client.py"
+  ]
+}

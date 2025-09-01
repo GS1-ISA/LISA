@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite
+*.db
+*.log
+*.pid
+.mypy_cache/
+pytest_cache/
+.pytest_cache/
+.pytype/
+.coverage*
+htmlcov/
+dist/
+build/
+site/
+.eggs/
+*.egg-info/
+
+# venv
+.venv/
+.env
+
+# data
+data/
+logs/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

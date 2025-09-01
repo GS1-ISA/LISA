@@ -1,0 +1,7 @@
+{
+  "@context": "https://www.w3.org/ns/dcat2.jsonld",
+  "@type": "dcat:Catalog",
+  "dct:title": "ISA\u2011ESG Data Catalog v2.1",
+  "dct:publisher": "GS1 Nederland",
+  "dcat:dataset": []
+}

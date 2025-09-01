@@ -1,0 +1,26 @@
+name: Deep Checks (On-Demand)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mutation-fuzz-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov mutmut pytest-benchmark atheris
+      - name: Mutation tests (mutmut) — report only initial
+        continue-on-error: true
+        run: |
+          mutmut run || true
+          mutmut results || true
+      - name: Benchmarks — report only
+        continue-on-error: true
+        run: |
+          pytest -q --benchmark-only || true

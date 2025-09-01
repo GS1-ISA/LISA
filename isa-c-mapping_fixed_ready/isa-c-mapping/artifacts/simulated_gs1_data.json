@@ -1,0 +1,30 @@
+{
+  "product": {
+    "code": "00000000000000",
+    "product_name": "Simulated GS1 Product",
+    "brands": "Simulated Brand",
+    "quantity": "100g",
+    "ingredients_text": "Simulated ingredients: water, sugar, flavorings.",
+    "allergens_from_ingredients": ["gluten", "dairy"],
+    "packaging": "Bottle",
+    "nutriments": {
+      "energy-kcal_100g": 50,
+      "fat_100g": 0.1,
+      "carbohydrates_100g": 12,
+      "proteins_100g": 0.5,
+      "salt_100g": 0.01
+    }
+  },
+  "gs1_digital_link": {
+    "GTIN": "00000000000000",
+    "GLN": "0000000000000",
+    "SSCC": "000000000000000000",
+    "AI_01_GTIN": "00000000000000",
+    "AI_10_BatchLot": "SIMBATCH123",
+    "AI_17_ExpirationDate": "251231",
+    "AI_21_SerialNumber": "SIMSERIAL456",
+    "AI_310x_NetWeight_kg": 2.0,
+    "AI_310y_NetWeight_lbs": 4.4,
+    "AI_392x_PricePerUnit": 15.99
+  }
+}

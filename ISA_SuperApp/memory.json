@@ -1,0 +1,17 @@
+{
+  "entities": {
+    "EUR-LEX:ESG": {
+      "type": "eu_esg_search",
+      "observations": [
+        "Query placeholder: ESG"
+      ]
+    },
+    "EFRAG-News-Seed": {
+      "type": "efrag_news",
+      "observations": [
+        "Seeded offline; replace with live scraper in production."
+      ]
+    }
+  },
+  "relations": []
+}

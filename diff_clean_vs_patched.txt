@@ -1,0 +1,17 @@
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/.DS_Store and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/.DS_Store differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/ISA_gemini_orchestrator_patch_2025-08-20/.env.example and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/ISA_gemini_orchestrator_patch_2025-08-20/.env.example differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/__MACOSX/webui/._admin.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/__MACOSX/webui/._admin.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/__MACOSX/webui/._alerts.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/__MACOSX/webui/._alerts.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/__MACOSX/webui/._graph.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/__MACOSX/webui/._graph.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/__MACOSX/webui/._login.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/__MACOSX/webui/._login.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/__MACOSX/webui/._users.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/__MACOSX/webui/._users.html differ
+Only in /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/docs/dev: local_dev_desktop_backend.md
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/mkdocs.yml and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/mkdocs.yml differ
+Only in /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/scripts: check_csp_html.py
+Only in /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/scripts: check_env_example_sync.py
+Only in /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/scripts: check_subprocess_env.py
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/webui/admin.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/webui/admin.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/webui/alerts.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/webui/alerts.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/webui/graph.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/webui/graph.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/webui/login.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/webui/login.html differ
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_merged_workspace_clean/webui/users.html and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/webui/users.html differ

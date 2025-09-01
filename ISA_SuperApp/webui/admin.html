@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ISA — Admin</title>
+    <link rel="stylesheet" href="/static/tokens.css"><link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap">
+        <strong>ISA — Admin Panel</strong>
+        <div class="nav">
+          <a href="/ui/users">Users</a>
+          <a class="active" href="/ui/admin">Admin</a>
+          <a href="/ui/graph">Graph</a>
+          <a href="/ui/login" style="margin-left:auto">Login</a>
+        </div>
+      </div>
+    </header>
+    <div class="wrap grid" style="grid-template-columns: 1.5fr 1.5fr 1fr;">
+      <section class="panel">
+        <h3>System Tools</h3>
+        <div class="row"><button id="tok-gen">Generate Figma Tokens</button><button id="reindex">Rebuild Vector Index</button></div>
+        <div class="row"><button id="verify">Verify Credentials</button><button id="ingest">Run Ingest</button></div>
+        <pre id="tools-out"></pre>
+      </section>
+      <section class="panel">
+        <h3>Alerts</h3>
+        <div id="alerts"></div>
+        <div class="row"><input id="alert-msg" placeholder="Create test alert..." /><button id="alert-add">Add</button></div>
+      </section>
+      <section class="panel">
+        <h3>Feedback</h3>
+        <div id="fb-list"></div>
+      </section>
+    </div>
+    <footer class="footer"><div class="wrap">Admin-only controls · Use with care.</div></footer>
+    <script src="/static/app_admin.js"></script>
+  </body>
+</html>

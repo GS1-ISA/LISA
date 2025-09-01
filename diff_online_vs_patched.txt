@@ -1,0 +1,4 @@
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_online_only/.DS_Store and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/.DS_Store differ
+Only in /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/docs/dev: local_dev_desktop_backend.md
+Only in /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/docs/dev: packaging.md
+Files /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_online_only/mkdocs.yml and /Users/frisowempe/ISA_D/temp_unzip/ISA_workspace_patched/mkdocs.yml differ

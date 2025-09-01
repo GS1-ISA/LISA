@@ -1,0 +1,51 @@
+site_name: ISA SuperDesign Docs
+site_description: Comprehensive user and developer documentation for the Intelligent Standards Assistant
+site_url: http://localhost:8001
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+      primary: blue
+      accent: indigo
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Install: install.md
+      - Configuration: config.md
+      - Quickstart: quickstart.md
+  - User Guide:
+      - Using the Web UI: user-guide.md
+      - Documents & Chat: documents-and-chat.md
+      - Graph Explorer: graph-explorer.md
+  - Developer Guide:
+      - Architecture: dev/architecture.md
+      - Directory Structure: dev/structure.md
+      - API: dev/api.md
+      - Testing: dev/testing.md
+      - Packaging (Desktop): dev/packaging.md
+      - Workflows: dev/workflows.md
+      - Style & Lint: dev/style.md
+      - Roadmap: roadmap.md
+  - Data & Ingestion:
+      - Sources: data/sources.md
+      - Scheduler: data/scheduler.md
+      - Retrieval: data/retrieval.md
+  - Agents:
+      - Overview: agents/AGENTS.md
+      - Gemini CLI: agents/GEMINI.md
+      - Maintenance Playbook: agents/maintenance_playbook.md
+  - Ops:
+      - Security Notes: ops/security.md
+      - Metrics & Monitoring: ops/metrics.md
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true

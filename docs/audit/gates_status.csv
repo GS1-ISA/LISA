@@ -1,0 +1,16 @@
+Gate,File,Present,Enforced,Line,Evidence,Notes
+Lint (ruff),.github/workflows/ci.yml,True,False,64,ruff check .,
+Format (ruff),.github/workflows/ci.yml,True,False,63,ruff format --check .,
+Typecheck (mypy),.github/workflows/ci.yml,True,True,25,pip install ruff mypy pytest pytest-cov bandit pip-audit radon,
+Tests (pytest),.github/workflows/ci.yml,True,False,83,cd ISA_SuperApp && pytest -q || true,
+Coverage XML,.github/workflows/ci.yml,True,False,87,cd ISA_SuperApp && pytest -q --cov=src --cov-report=xml || true,
+Coverage delta,.github/workflows/ci.yml,True,False,97,python scripts/check_coverage_delta.py || true,
+Bandit,.github/workflows/ci.yml,True,True,25,pip install ruff mypy pytest pytest-cov bandit pip-audit radon,
+pip-audit,.github/workflows/ci.yml,True,True,25,pip install ruff mypy pytest pytest-cov bandit pip-audit radon,
+Radon,.github/workflows/ci.yml,True,False,109,radon cc -s -n D ISA_SuperApp/src || true,
+Semgrep (deep),.github/workflows/ci.yml,True,False,114,pip install semgrep,Conditional on significance
+Significance trigger,.github/workflows/ci.yml,True,True,42,"python scripts/significance_trigger.py --base ""${{ steps.base.outputs.sha }}"" \",
+Gitleaks,.github/workflows/ci.yml,True,False,126,uses: gitleaks/gitleaks-action@v2,
+Mutation/fuzz/bench (on-demand),.github/workflows/nightly.yml,True,False,17,pip install pytest pytest-cov mutmut pytest-benchmark atheris,On-demand workflow (no cron)
+CrossHair (on-demand),.github/workflows/weekly.yml,True,False,17,pip install crosshair-tool,On-demand workflow (no cron)
+SBOM/Trivy (on-demand),.github/workflows/weekly.yml,True,True,32,uses: aquasecurity/trivy-action@0.24.0,On-demand workflow (no cron)

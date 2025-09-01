@@ -1,0 +1,32 @@
+import subprocess, time, sys, json, urllib.request
+import os, signal
+
+def wait_http(url, timeout=20):
+    t0=time.time()
+    while time.time()-t0<timeout:
+        try:
+            with urllib.request.urlopen(url, timeout=2) as r:
+                return r.read()
+        except Exception:
+            time.sleep(0.5)
+    raise TimeoutError("timeout waiting for "+url)
+
+def main():
+    env=os.environ.copy()
+    env["ISA_TEST_MODE"]="1"
+    # Start server
+    proc = subprocess.Popen([sys.executable,"-m","uvicorn","src.api_server:app","--host","127.0.0.1","--port","8787"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    try:
+        wait_http("http://127.0.0.1:8787/health", timeout=30)
+        data = wait_http("http://127.0.0.1:8787/version", timeout=5)
+        print("Health OK, version:", data.decode() if isinstance(data, bytes) else data)
+        print("SMOKE TEST ✅")
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except Exception:
+            proc.kill()
+
+if __name__=="__main__":
+    main()

@@ -1,0 +1,47 @@
+*** a/src/api_server.py
+--- b/src/api_server.py
+***************
+*** 1,6 ****
+--- 1,10 ----
+  import os
++ import sys
++ import pathlib
++ import subprocess
+  # ... existing imports ...
+  
++ PROJECT_ROOT = str(pathlib.Path(__file__).resolve().parents[1])
++ 
+  # ... existing code ...
+  
+***************
+*** 100,115 ****
+--- 104,134 ----
+  def tokens_generate():
+-     result = subprocess.run(
+-         ["python", "scripts/generate_tokens.py"],
+-         capture_output=True, text=True
+-     )
++     env = os.environ.copy()
++     env["PYTHONPATH"] = f"{PROJECT_ROOT}{os.pathsep}" + env.get("PYTHONPATH", "")
++     out_css = os.path.join(PROJECT_ROOT, "webui", "tokens.css")
++     result = subprocess.run(
++         [sys.executable, "scripts/generate_tokens.py", "--out", out_css],
++         capture_output=True, text=True, cwd=PROJECT_ROOT, env=env
++     )
+      if result.returncode != 0:
+          # log stderr...
+          raise RuntimeError(f"tokens generation failed: {result.stderr}")
+  
+  def verify_credentials():
+-     result = subprocess.run(["python", "scripts/verify_credentials.py"], capture_output=True, text=True)
++     env = os.environ.copy()
++     env["PYTHONPATH"] = f"{PROJECT_ROOT}{os.pathsep}" + env.get("PYTHONPATH", "")
++     result = subprocess.run([sys.executable, "scripts/verify_credentials.py"], capture_output=True, text=True, cwd=PROJECT_ROOT, env=env)
+      if result.returncode != 0:
+          # log stderr...
+          raise RuntimeError(f"credential verification failed: {result.stderr}")
+  
+***************
+*** 200,206 ****
+- app.mount("/static", StaticFiles(directory="webui"), name="static")
++ app.mount("/static", StaticFiles(directory=os.path.join(PROJECT_ROOT, "webui")), name="static")

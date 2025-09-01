@@ -1,0 +1,22 @@
+{
+  "profile": "data-package",
+  "name": "isa-esg-v2-1",
+  "resources": [
+    {
+      "name": "products",
+      "path": "data/silver/products.csv",
+      "schema": {
+        "fields": [
+          {
+            "name": "gtin",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

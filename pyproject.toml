@@ -1,0 +1,16 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E","F","W","I","UP"]
+ignore = ["E203","E501"]
+fix = true
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+namespace_packages = true
+mypy_path = ["ISA_SuperApp/src"]
+

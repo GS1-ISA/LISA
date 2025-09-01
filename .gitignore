@@ -1,0 +1,31 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Coverage/artifacts
+.coverage
+coverage.xml
+.mypy_linecount/
+semgrep.json
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+
+# Local agent + lineage outputs
+agent/outcomes/
+.lineage/
+
+# App specific
+ISA_SuperApp/coverage.xml
+ISA_SuperApp/__MACOSX/
+temp_unzip/

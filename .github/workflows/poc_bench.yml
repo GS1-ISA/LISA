@@ -1,0 +1,39 @@
+name: Research POC Benches (On-Demand)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  benches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dev deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ISA_SuperApp/requirements-dev.txt
+      - name: Run Q11 (orjson determinism/bench)
+        run: |
+          python scripts/bench_q11_orjson.py | tee docs/research/q11_orjson_determinism/results.md
+      - name: Run Q12 (compiled validators bench)
+        run: |
+          python scripts/bench_q12_validation.py | tee docs/research/q12_compiled_validators/results.md
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: research_bench_results
+          path: |
+            docs/research/q11_orjson_determinism/results.md
+            docs/research/q12_compiled_validators/results.md
+      - name: Create PR with results
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "docs(research): add Q11/Q12 POC bench results"
+          title: "docs(research): add Q11/Q12 POC bench results"
+          body: "Automated research POC results from benches."
+          branch: research/benches-q11-q12
+          labels: documentation
+

@@ -1,0 +1,20 @@
+name: Tidy Check (On PR)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check for disallowed files and folders
+        run: |
+          echo "Changed files:" && git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }}
+          disallowed=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E '\.DS_Store|__MACOSX|temp_unzip|\.egg-info/' || true)
+          if [ -n "$disallowed" ]; then
+            echo "Disallowed files detected:" && echo "$disallowed" && exit 1
+          fi

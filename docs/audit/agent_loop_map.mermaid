@@ -1,0 +1,24 @@
+flowchart LR
+  User(Developer/User) --> Planner
+  Planner --> Builder
+  Builder --> Verifier
+  Verifier -- pass --> Merge[Branch/PR Merge]
+  Verifier -- fail --> Critic
+  Critic --> Planner
+  Builder --> TraceLogger
+  Verifier --> TraceLogger
+  Critic --> RewardAggregator
+  RewardAggregator --> Planner
+  Planner --> Policy
+  subgraph Agent Core
+    Planner
+    Builder
+    Verifier
+    Critic
+    RewardAggregator
+    TraceLogger
+    Policy
+  end
+  Orchestrator -. invokes .-> Planner
+  Orchestrator -. invokes .-> Builder
+  Orchestrator -. invokes .-> Verifier

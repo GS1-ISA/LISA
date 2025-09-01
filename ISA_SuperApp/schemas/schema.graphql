@@ -1,0 +1,3 @@
+type Dataset { id: ID!, title: String, format: String, createdAt: String }
+type Query { datasets: [Dataset!]!, records(datasetId: ID!): [String!]! }
+schema { query: Query }

@@ -1,0 +1,43 @@
+meta:
+  version: 0.1
+  last_updated: 2025-09-01
+  next_review: 2025-09-08
+
+gates:
+  promote_after_green_days: 7
+  enforce:
+    - ruff
+    - pytest_core
+    - coverage_delta
+    - semgrep_significant
+
+kill_switch:
+  label: policy/agent-blocked
+  endpoint: /agent/kill
+
+waiver:
+  label: policy/waiver
+  expires_days: 30
+
+jobs:
+  - id: determinism_snapshot
+    name: Determinism snapshot gate
+    when:
+      changed_paths_any:
+        - ISA_SuperApp/src/utils/json_canonical.py
+        - ISA_SuperApp/tests/snapshots/**
+    requires_waiver: false
+  - id: container_smoke
+    name: Build image and curl /metrics
+    when:
+      changed_paths_any:
+        - ISA_SuperApp/Dockerfile
+        - ISA_SuperApp/docker-compose.yml
+        - ISA_SuperApp/src/api_server.py
+    requires_waiver: false
+  - id: deep_checks
+    name: Semgrep + extended tests (significance)
+    when:
+      significance: true
+    requires_waiver: false
+

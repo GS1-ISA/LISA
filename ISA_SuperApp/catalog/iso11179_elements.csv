@@ -1,0 +1,3 @@
+id,object_class,property,definition,datatype,unit,code_list
+E001,Product,gtin,Global Trade Item Number,string,,
+E002,Emissions,scope3,Scope 3 emissions value,number,kgCO2e,
