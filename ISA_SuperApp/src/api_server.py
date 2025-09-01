@@ -15,6 +15,7 @@ from .logging_conf import setup_logging
 # from .memory import ChatHistory # Removed as ChatHistory is not defined in src/memory.py
 # from .utils.path_utils import find_project_root  # unused; removed to avoid import error
 from .nesy.lnn_validator import validate_record
+from .utils.otel import init_tracing
 
 # Configure logging
 setup_logging()
@@ -23,6 +24,9 @@ log = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="webui"), name="static")
+
+# Optional tracing (OpenTelemetry) — controlled by OTEL_ENABLED=1
+init_tracing(app)
 
 # Initialize Jinja2 templates
 templates = Jinja2Templates(directory="webui")
