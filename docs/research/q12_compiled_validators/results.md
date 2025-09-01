@@ -1,6 +1,9 @@
-Last updated: 
+Last updated: 2025-09-01T21:42:39Z
 
 POC Q12 — Validation Performance (Pydantic v2 vs fastjsonschema)
 
-This file is auto-updated by the on-demand workflow `.github/workflows/poc_bench.yml`.
-
+pydantic parity: ValidationError OK
+fastjsonschema parity: error OK
+pydantic: 796225.9 ops/s, 0.001 ms/op
+fastjsonschema: 335138.4 ops/s, 0.003 ms/op
+Speed ratio fastjsonschema/pydantic: 0.42x
