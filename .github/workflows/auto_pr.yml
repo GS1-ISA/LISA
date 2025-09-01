@@ -1,0 +1,84 @@
+name: Auto PR on Push
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const wanted = [
+              { name: 'autoupdate', color: '1D76DB', description: 'Auto update PRs from base' },
+              { name: 'automerge', color: '0E8A16', description: 'Merge automatically when checks pass' },
+            ];
+            const { data: existing } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const names = new Set(existing.map(l => l.name));
+            for (const l of wanted) {
+              if (!names.has(l.name)) {
+                try { await github.rest.issues.createLabel({ owner: context.repo.owner, repo: context.repo.repo, ...l }); } catch {}
+              }
+            }
+      - name: Create or reuse PR to main
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = context.ref.replace('refs/heads/', '');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            // Check for existing open PR from this branch to main
+            const { data: prs } = await github.rest.pulls.list({
+              owner, repo, state: 'open', head: `${owner}:${branch}`
+            });
+            if (prs.length > 0) {
+              core.setOutput('created', 'false');
+              core.setOutput('number', String(prs[0].number));
+            } else {
+              const title = `auto: ${branch}`;
+              const body = 'Automated PR from push.';
+              const { data: pr } = await github.rest.pulls.create({
+                owner, repo, title, head: branch, base: 'main', draft: false,
+                body, maintainer_can_modify: true
+              });
+              core.setOutput('created', 'true');
+              core.setOutput('number', String(pr.number));
+            }
+      - name: Add default labels (autoupdate)
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = Number('${{ steps.pr.outputs.number || 0 }}');
+            if (!prNumber) { return; }
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ['autoupdate']
+            });
+      - name: Comment summary
+        if: steps.pr.outputs.created == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number('${{ steps.pr.outputs.number }}'),
+              body: 'PR created automatically from branch push. Labelled with `autoupdate`.\n\nAdd `automerge` to enable label-driven auto-merge.'
+            });

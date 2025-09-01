@@ -1,0 +1,44 @@
+name: PR Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure default labels exist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const wanted = [
+              { name: 'autoupdate', color: '1D76DB', description: 'Auto update PRs from base' },
+              { name: 'automerge', color: '0E8A16', description: 'Merge automatically when checks pass' },
+              { name: 'documentation', color: '0075ca', description: 'Docs changes' },
+              { name: 'ci', color: 'cfd3d7', description: 'CI/workflows' },
+              { name: 'infra', color: 'd4c5f9', description: 'Infra/ops' },
+              { name: 'python', color: '5319e7', description: 'Python changes' },
+            ];
+            const { data: existing } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const names = new Set(existing.map(l => l.name));
+            for (const l of wanted) {
+              if (!names.has(l.name)) {
+                try {
+                  await github.rest.issues.createLabel({ owner: context.repo.owner, repo: context.repo.repo, ...l });
+                } catch (e) {
+                  core.warning(`label create failed for ${l.name}: ${e}`);
+                }
+              }
+            }
+      - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml

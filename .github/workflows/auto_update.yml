@@ -1,0 +1,22 @@
+name: Auto Update PR Branch
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-branch:
+    if: contains(github.event.pull_request.labels.*.name, 'autoupdate')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update PR branch with base
+        uses: peter-evans/update-branch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # default merge method keeps history; change to 'rebase' if desired
+          # update-branch picks PR from event context
+
