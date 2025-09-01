@@ -1,5 +1,6 @@
 import argparse, os, sys, datetime, pathlib, json
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True, help="Output CSS path (e.g., webui/tokens.css)")
@@ -24,6 +25,7 @@ def main():
     ]
     out_path.write_text("\n".join(css_lines), encoding="utf-8")
     print(f"Wrote {out_path} with {len(tokens)} tokens.")
+
 
 if __name__ == "__main__":
     sys.exit(main())

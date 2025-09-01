@@ -1,5 +1,6 @@
 import requests, sys
 
+
 def main():
     base = "http://127.0.0.1:8787"
     paths = ["/healthz", "/ui/users", "/static/styles.css", "/static/tokens.css"]
@@ -14,6 +15,7 @@ def main():
             print(p, "ERROR", e)
             ok = False
     return 0 if ok else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

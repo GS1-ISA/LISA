@@ -8,6 +8,7 @@ try:
 except Exception:  # noqa: BLE001
     duckdb = None  # type: ignore
 
+
 class IdempotencyStore:
     def __init__(self, db_path: str = "data/idempotency.duckdb"):
         self.db_path = db_path

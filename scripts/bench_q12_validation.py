@@ -45,7 +45,7 @@ def bench_pydantic(iters: int = 20000) -> float:
         Item.model_validate(ok)
     t1 = time.perf_counter()
     dur = t1 - t0
-    print(f"pydantic: {iters/dur:.1f} ops/s, {dur*1000/iters:.3f} ms/op")
+    print(f"pydantic: {iters / dur:.1f} ops/s, {dur * 1000 / iters:.3f} ms/op")
     return iters / dur
 
 
@@ -62,7 +62,7 @@ def bench_fastjsonschema(iters: int = 20000) -> float:
         validate(ok)
     t1 = time.perf_counter()
     dur = t1 - t0
-    print(f"fastjsonschema: {iters/dur:.1f} ops/s, {dur*1000/iters:.3f} ms/op")
+    print(f"fastjsonschema: {iters / dur:.1f} ops/s, {dur * 1000 / iters:.3f} ms/op")
     return iters / dur
 
 
@@ -87,10 +87,9 @@ def main() -> int:
     p1 = bench_pydantic()
     p2 = bench_fastjsonschema()
     if p2 > 0:
-        print(f"Speed ratio fastjsonschema/pydantic: {p2/p1:.2f}x")
+        print(f"Speed ratio fastjsonschema/pydantic: {p2 / p1:.2f}x")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

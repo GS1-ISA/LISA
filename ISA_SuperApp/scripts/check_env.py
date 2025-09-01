@@ -2,8 +2,10 @@
 """Check required environment variables and print a compact report.
 Run: python3 scripts/check_env.py
 """
+
 import os
 from textwrap import indent
+
 
 def check(keys):
     res = {}
@@ -11,6 +13,7 @@ def check(keys):
         v = os.getenv(k)
         res[k] = bool(v)
     return res
+
 
 REQUIRED = [
     "ISA_LLM_PROVIDER",
@@ -26,13 +29,13 @@ REQUIRED = [
 
 if __name__ == "__main__":
     report = check(REQUIRED)
-    missing = [k for k,v in report.items() if not v]
+    missing = [k for k, v in report.items() if not v]
     print("Environment check:\n")
-    for k,v in report.items():
+    for k, v in report.items():
         print(f"  {k}: {'OK' if v else 'MISSING'}")
     print()
     if missing:
         print("Missing variables (edit .env or export in your shell):")
-        print(indent('\n'.join(missing), '  '))
+        print(indent("\n".join(missing), "  "))
         raise SystemExit(2)
     print("All required env vars appear present.")

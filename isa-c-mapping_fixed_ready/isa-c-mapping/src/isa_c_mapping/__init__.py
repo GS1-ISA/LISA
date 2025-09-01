@@ -1,1 +1,1 @@
-__all__ = ['cli', 'mapping']
+__all__ = ["cli", "mapping"]

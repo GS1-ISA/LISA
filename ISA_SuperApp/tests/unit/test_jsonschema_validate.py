@@ -24,4 +24,3 @@ def test_fastjsonschema_compiled_validator_validates_ok():
     validate({"id": 1, "name": "x"})
     with pytest.raises(Exception):
         validate({"id": 0, "name": "x"})
-

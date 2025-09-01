@@ -1,9 +1,11 @@
 from __future__ import annotations
 import hashlib, os
+
 try:
     from diskcache import Cache  # type: ignore
 except Exception:  # noqa: BLE001
     Cache = None  # type: ignore
+
 
 class DataCache:
     def __init__(self, cache_dir: str = ".cache", ttl: int = 3600):

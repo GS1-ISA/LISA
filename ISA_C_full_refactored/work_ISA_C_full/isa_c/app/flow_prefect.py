@@ -6,6 +6,7 @@ from importlib import import_module
 
 log = logging.getLogger("isa_c.flow")
 
+
 def run_flow() -> None:
     try:
         from prefect import flow, task  # type: ignore
@@ -20,6 +21,7 @@ def run_flow() -> None:
         p = f"data/raw/{mod}/latest.csv"
         import os
         from pathlib import Path
+
         Path(f"data/raw/{mod}").mkdir(parents=True, exist_ok=True)
         df.to_csv(p, index=False)
 

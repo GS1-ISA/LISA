@@ -13,7 +13,7 @@ STD_MAP = {
     "Data": ["GDPR/DPIA", "Data Lineage (OpenLineage)"],
     "Docs": ["Docs-as-code"],
     "Agentic": ["NIST AI RMF", "Safe Autonomy Policies"],
-    "Process": ["Lean/Agile"]
+    "Process": ["Lean/Agile"],
 }
 
 
@@ -29,10 +29,24 @@ def main() -> int:
     catalog = root / "docs" / "audit" / "rule_catalog.csv"
     out = root / "docs" / "audit" / "standards_alignment.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
-    with catalog.open("r", encoding="utf-8") as f_in, out.open("w", newline="", encoding="utf-8") as f_out:
+    with (
+        catalog.open("r", encoding="utf-8") as f_in,
+        out.open("w", newline="", encoding="utf-8") as f_out,
+    ):
         r = csv.DictReader(f_in)
         w = csv.writer(f_out)
-        w.writerow(["RuleID", "Category", "Standards", "Deviation", "Justification", "SourceFile", "Line", "Title"])
+        w.writerow(
+            [
+                "RuleID",
+                "Category",
+                "Standards",
+                "Deviation",
+                "Justification",
+                "SourceFile",
+                "Line",
+                "Title",
+            ]
+        )
         for row in r:
             rid = row["RuleID"]
             cat = row["Category"] or "Process"
@@ -46,4 +60,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

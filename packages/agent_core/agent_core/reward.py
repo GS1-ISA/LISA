@@ -13,4 +13,3 @@ class RewardAggregator:
         if signals.get("revert"):
             score -= 4
         return score
-

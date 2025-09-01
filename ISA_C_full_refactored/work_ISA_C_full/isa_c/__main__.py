@@ -4,6 +4,7 @@ from datetime import datetime
 from isa_c.app.runner import run_pipeline, get_default_modules
 from isa_c.utils.log import setup_logging
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="ISA_C ESG Pipeline")
     parser.add_argument("--since", type=str, default="1970-01-01", help="ISO date cutoff")
@@ -25,6 +26,7 @@ def main() -> int:
     modules = get_default_modules()
     run_pipeline(modules, since)
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

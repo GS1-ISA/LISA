@@ -35,13 +35,17 @@ def find_evidence(rule_text: str, source_file: str) -> tuple[str, Evidence | Non
     t = rule_text.lower()
     # Lint (ruff)
     if "ruff" in t or ("lint" in t and "ruff" in source_file.lower()):
-        for p in search_paths([".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]):
+        for p in search_paths(
+            [".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]
+        ):
             ev = grep_first(p, re.compile(r"ruff"))
             if ev:
                 return "PASS", ev
     # Typecheck (mypy)
     if "mypy" in t or ("typecheck" in t or "typing" in t):
-        for p in search_paths([".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]):
+        for p in search_paths(
+            [".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]
+        ):
             ev = grep_first(p, re.compile(r"mypy"))
             if ev:
                 return "PASS", ev
@@ -53,7 +57,12 @@ def find_evidence(rule_text: str, source_file: str) -> tuple[str, Evidence | Non
                 return "PASS", ev
     # Determinism / snapshots
     if "determinism" in t or "snapshot" in t or "canonical" in t:
-        for p in search_paths(["ISA_SuperApp/src/utils/json_canonical.py", "ISA_SuperApp/tests/unit/test_snapshot_canonical_sample.py"]):
+        for p in search_paths(
+            [
+                "ISA_SuperApp/src/utils/json_canonical.py",
+                "ISA_SuperApp/tests/unit/test_snapshot_canonical_sample.py",
+            ]
+        ):
             if p.exists():
                 ev = grep_first(p, re.compile(r"canonical|snapshot|sorted"))
                 if ev:
@@ -106,7 +115,10 @@ def main() -> int:
     catalog = root / "docs" / "audit" / "rule_catalog.csv"
     out = root / "docs" / "audit" / "traceability_matrix.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
-    with catalog.open("r", encoding="utf-8") as f_in, out.open("w", newline="", encoding="utf-8") as f_out:
+    with (
+        catalog.open("r", encoding="utf-8") as f_in,
+        out.open("w", newline="", encoding="utf-8") as f_out,
+    ):
         r = csv.DictReader(f_in)
         w = csv.writer(f_out)
         w.writerow(["RuleID", "SourceFile", "Line", "Artefact", "Status", "Evidence"])

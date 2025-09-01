@@ -13,4 +13,3 @@ class Planner:
 
     def plan(self, goal: str, context: Dict[str, Any]) -> List[PlanStep]:
         return [PlanStep(description=f"Plan for: {goal}", tools=["ruff", "pytest"])]
-

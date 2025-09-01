@@ -11,8 +11,10 @@ REQUIRED = [
     # "SUPABASE_URL", "SUPABASE_ANON_KEY",
 ]
 
+
 def redacted(v: str) -> str:
     return v if not v else (v[:4] + "…" + v[-4:])
+
 
 def main():
     load_dotenv()
@@ -36,6 +38,7 @@ def main():
         print("\nMissing required variables:\n  - " + "\n  - ".join(missing))
         return 1
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

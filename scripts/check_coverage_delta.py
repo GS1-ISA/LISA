@@ -6,6 +6,7 @@ Usage: scripts/check_coverage_delta.py [--baseline docs/coverage_baseline.txt] [
 Exits non-zero if coverage.xml exists and baseline exists and the drop > threshold percent.
 If baseline is missing, prints a notice and exits 0 (advisory mode).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -56,4 +57,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

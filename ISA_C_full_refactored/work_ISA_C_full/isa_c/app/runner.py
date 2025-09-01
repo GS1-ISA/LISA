@@ -6,8 +6,10 @@ from isa_c.utils.settings import SETTINGS
 
 log = logging.getLogger("isa_c.runner")
 
+
 def get_default_modules() -> list[str]:
     return SETTINGS.default_modules
+
 
 def run_module(mod: str, since: datetime) -> None:
     stamp = Path(f"data/raw/.{mod}.done")
@@ -23,6 +25,7 @@ def run_module(mod: str, since: datetime) -> None:
     df.to_csv(p, index=False)
     stamp.touch()
     log.info("written", extra={"module": mod, "path": str(p)})
+
 
 def run_pipeline(modules: list[str], since: datetime) -> None:
     log.info("start pipeline", extra={"modules": modules, "since": since.isoformat()})

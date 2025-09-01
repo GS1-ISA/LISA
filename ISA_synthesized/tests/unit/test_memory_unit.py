@@ -1,6 +1,9 @@
 import os, pathlib
-os.environ['ISA_TEST_MODE']='1'
+
+os.environ["ISA_TEST_MODE"] = "1"
 from src.memory import KnowledgeGraphMemory
+
+
 def test_memory_unit(tmp_path):
     p = tmp_path / "mem.json"
     m = KnowledgeGraphMemory(path=str(p))

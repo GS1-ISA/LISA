@@ -6,4 +6,3 @@ class Verifier:
 
     def verify(self, context: Dict[str, Any]) -> Dict[str, bool]:
         return {"lint": True, "tests": True, "typecheck": True}
-

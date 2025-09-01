@@ -52,4 +52,3 @@ def kill_switch_active(pr: PRContext, policy: Optional[Dict[str, Any]] = None) -
     pol = policy or load_policy()
     label = pol.get("kill_switch", {}).get("label", "policy/agent-blocked")
     return label in pr.labels
-

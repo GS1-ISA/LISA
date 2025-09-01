@@ -9,6 +9,7 @@ Signals (any true => significant):
 Outputs:
 - Writes `significant=true|false` and a `reason=...` line to $GITHUB_OUTPUT
 """
+
 from __future__ import annotations
 
 import argparse
@@ -57,11 +58,7 @@ def main() -> int:
     loc = diff_loc(args.base)
     crit, hit = touched_critical(files, args.critical)
 
-    significant = (
-        len(files) > args.threshold_files
-        or loc > args.threshold_loc
-        or crit
-    )
+    significant = len(files) > args.threshold_files or loc > args.threshold_loc or crit
     reason_parts = []
     if len(files) > args.threshold_files:
         reason_parts.append(f"files>{args.threshold_files} ({len(files)})")
@@ -82,4 +79,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

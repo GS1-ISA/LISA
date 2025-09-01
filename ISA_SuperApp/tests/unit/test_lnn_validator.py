@@ -18,7 +18,8 @@ def test_validate_record_runs_all_rules():
     rec = {"geo": {"latitude": "52.1234", "longitude": "4.123456"}}
     violations = validate_record(rec)
     # latitude has only 4 decimals
-    assert any(v.rule_id == "EUDR_GEO_PRECISION" and v.path == ("geo", "lat") for v in violations) or any(
+    assert any(
+        v.rule_id == "EUDR_GEO_PRECISION" and v.path == ("geo", "lat") for v in violations
+    ) or any(
         v.rule_id == "EUDR_GEO_PRECISION" and v.path == ("geo", "latitude") for v in violations
     )
-

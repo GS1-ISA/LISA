@@ -1,7 +1,8 @@
-
 from __future__ import annotations
 import time, argparse, json
 from .agent import run_once
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--loop", action="store_true", help="run continuous loop")
@@ -10,10 +11,22 @@ def main():
     if args.loop:
         while True:
             res = run_once()
-            print(json.dumps({"decision":res.get("decision"),"next":res.get("next_action")}, ensure_ascii=False))
+            print(
+                json.dumps(
+                    {"decision": res.get("decision"), "next": res.get("next_action")},
+                    ensure_ascii=False,
+                )
+            )
             time.sleep(args.sleep)
     else:
         res = run_once()
-        print(json.dumps({"decision":res.get("decision"),"next":res.get("next_action")}, ensure_ascii=False))
-if __name__=="__main__":
+        print(
+            json.dumps(
+                {"decision": res.get("decision"), "next": res.get("next_action")},
+                ensure_ascii=False,
+            )
+        )
+
+
+if __name__ == "__main__":
     main()

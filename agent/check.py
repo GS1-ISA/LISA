@@ -11,7 +11,9 @@ from pathlib import Path
 
 def run(cmd: str) -> tuple[int, str]:
     print(f"$ {cmd}")
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
     out, _ = p.communicate()
     print(out)
     return p.returncode, out
@@ -55,4 +57,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

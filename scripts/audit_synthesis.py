@@ -112,17 +112,29 @@ def write_audit_report(passes: int, warns: int, fails: int, overall: float) -> N
     md.append("")
     md.append("### Dashboard")
     md.append("- Lint/Type/Tests/Sec: present (promotion pending for some gates)")
-    md.append("- Observability: /metrics and histograms present (api_server.py sha=" + sha_api + ")")
+    md.append(
+        "- Observability: /metrics and histograms present (api_server.py sha=" + sha_api + ")"
+    )
     md.append("- Container: non-root + healthcheck present (Dockerfile sha=" + sha_docker + ")")
-    md.append("- Determinism: canonical writer + snapshot present (json_canonical.py sha=" + sha_canon + ")")
-    md.append("- Event-driven deep checks: significance trigger and semgrep wired (ci.yml sha=" + sha_ci + ")")
+    md.append(
+        "- Determinism: canonical writer + snapshot present (json_canonical.py sha="
+        + sha_canon
+        + ")"
+    )
+    md.append(
+        "- Event-driven deep checks: significance trigger and semgrep wired (ci.yml sha="
+        + sha_ci
+        + ")"
+    )
     md.append("")
     md.append("### Go/No-Go Recommendation")
     go = overall >= 70.0 and fails == 0
     if go:
         md.append("- Recommendation: GO ✅")
     else:
-        md.append("- Recommendation: CONDITIONAL (AMBER) — Fix priority items in remediation plan, then GO")
+        md.append(
+            "- Recommendation: CONDITIONAL (AMBER) — Fix priority items in remediation plan, then GO"
+        )
     out.write_text("\n".join(md) + "\n", encoding="utf-8")
 
 
@@ -137,8 +149,12 @@ def write_remediation_plan() -> None:
     plan.append("- [ ] Add container build + /metrics curl check in CI (2 pts)")
     plan.append("- [ ] Enforce kill-switch/waiver labels in CI (1 pt)")
     plan.append("- [ ] Link dependency files to pip-audit policy in QUALITY_GATES (1 pt)")
-    plan.append("- [ ] Reference workflows (docs_auto_sync, poc_bench) in CI_WORKFLOWS and QUALITY_GATES (1 pt)")
-    plan.append("- [ ] Reduce completeness gaps by referencing key docs in ROADMAP/TODO/DoD (2 pts)")
+    plan.append(
+        "- [ ] Reference workflows (docs_auto_sync, poc_bench) in CI_WORKFLOWS and QUALITY_GATES (1 pt)"
+    )
+    plan.append(
+        "- [ ] Reduce completeness gaps by referencing key docs in ROADMAP/TODO/DoD (2 pts)"
+    )
     plan.append("")
     plan.append("Owner: Project (You + Agent) — single-owner model")
     out.write_text("\n".join(plan) + "\n", encoding="utf-8")
@@ -155,4 +171,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

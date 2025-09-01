@@ -19,4 +19,3 @@ def test_validate_passes_on_good_precision():
     assert resp.status_code == 200
     data = resp.json()
     assert data.get("violations", []) == []
-

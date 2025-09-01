@@ -23,4 +23,3 @@ def compile_schema_file(path: str | Path) -> Callable[[Dict[str, Any]], None]:
     import json
 
     return fastjsonschema.compile(json.loads(data))
-

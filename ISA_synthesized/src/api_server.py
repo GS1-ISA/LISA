@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from .logging_conf import setup_logging
 from .assistant import AssistantOrchestrator
+
 # from .memory import ChatHistory # Removed as ChatHistory is not defined in src/memory.py
 from .utils.path_utils import find_project_root
 
@@ -25,6 +26,7 @@ orchestrator = AssistantOrchestrator()
 
 uvicorn_process = None
 
+
 def start_uvicorn():
     global uvicorn_process
     host = "127.0.0.1"
@@ -33,29 +35,36 @@ def start_uvicorn():
     uvicorn_process = subprocess.Popen(command)
     log.info(f"FastAPI server started at http://{host}:{port}")
 
+
 def cleanup_processes():
     if uvicorn_process:
         uvicorn_process.terminate()
         uvicorn_process.wait()
 
+
 # --- Routes ---
+
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return RedirectResponse(url="/ui/users")
 
+
 @app.get("/ui/users", response_class=HTMLResponse)
 async def user_interface(request: Request):
     return templates.TemplateResponse("users.html", {"request": request})
+
 
 @app.get("/ui/admin", response_class=HTMLResponse)
 async def admin_interface(request: Request):
     return templates.TemplateResponse("admin.html", {"request": request})
 
+
 @app.post("/chat")
 async def chat(request: Request, user_input: str = Form(...), session_id: str = Form(...)):
     response = orchestrator.process_user_input(user_input, session_id)
     return {"response": response}
+
 
 # @app.get("/history/{session_id}") # Removed as ChatHistory is not defined in src/memory.py
 # async def get_history(session_id: str):

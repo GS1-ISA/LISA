@@ -7,4 +7,3 @@ class Builder:
     def apply(self, changes: Dict[str, Any]) -> bool:
         # Placeholder always succeeds
         return True
-

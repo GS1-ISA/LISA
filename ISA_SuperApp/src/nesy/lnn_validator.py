@@ -21,7 +21,9 @@ def _decimal_precision(value: str | float | int) -> Optional[int]:
         return None
 
 
-def validate_eudr_geo_precision(record: Dict[str, Any], min_decimals: int = 6) -> List[RuleViolation]:
+def validate_eudr_geo_precision(
+    record: Dict[str, Any], min_decimals: int = 6
+) -> List[RuleViolation]:
     """EUDR example: geolocation precision must be >= min_decimals.
 
     Accepts fields under common keys: ("geo", {"lat"|"latitude"}, {"lon"|"lng"|"longitude"}).
@@ -79,4 +81,3 @@ def validate_record(record: Dict[str, Any]) -> List[RuleViolation]:
     violations: List[RuleViolation] = []
     violations.extend(validate_eudr_geo_precision(record))
     return violations
-

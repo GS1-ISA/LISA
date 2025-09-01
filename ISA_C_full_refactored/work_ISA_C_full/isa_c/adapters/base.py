@@ -4,11 +4,13 @@ from dataclasses import dataclass
 from datetime import datetime
 import pandas as pd
 
+
 @dataclass
 class ValidationResult:
     is_valid: bool = True
     errors: list[str] | None = None
     warnings: list[str] | None = None
+
 
 class BaseAdapter(ABC):
     @abstractmethod

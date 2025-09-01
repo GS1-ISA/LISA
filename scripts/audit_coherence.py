@@ -29,12 +29,14 @@ def workflow_script_refs() -> List[Dict[str, str]]:
         for m in re.finditer(r"python\s+([\w\-/\.]+\.py)", txt):
             rel = m.group(1)
             if not path_exists(rel):
-                issues.append({
-                    "type": "missing_script",
-                    "workflow": str(wf),
-                    "path": rel,
-                    "suggestion": f"Create {rel} or update workflow step to correct path",
-                })
+                issues.append(
+                    {
+                        "type": "missing_script",
+                        "workflow": str(wf),
+                        "path": rel,
+                        "suggestion": f"Create {rel} or update workflow step to correct path",
+                    }
+                )
     return issues
 
 
@@ -49,12 +51,14 @@ def dockerfile_copy_refs() -> List[Dict[str, str]]:
                 continue
             rel = str((df.parent / src).relative_to(ROOT)) if not src.startswith("/") else src[1:]
             if not path_exists(rel):
-                issues.append({
-                    "type": "missing_copy_source",
-                    "dockerfile": str(df),
-                    "path": rel,
-                    "suggestion": f"Add {rel} or adjust COPY path",
-                })
+                issues.append(
+                    {
+                        "type": "missing_copy_source",
+                        "dockerfile": str(df),
+                        "path": rel,
+                        "suggestion": f"Add {rel} or adjust COPY path",
+                    }
+                )
     return issues
 
 
@@ -69,13 +73,15 @@ def python_import_refs() -> List[Dict[str, str]]:
             base = ROOT / "ISA_SuperApp" / "src" / "/".join(parts)
             candidates = [base.with_suffix(".py"), base / "__init__.py"]
             if not any(c.exists() for c in candidates):
-                issues.append({
-                    "type": "missing_module",
-                    "source": str(py),
-                    "module": f"src.{mod}",
-                    "candidates": [str(c.relative_to(ROOT)) for c in candidates],
-                    "suggestion": "Create module or fix import path",
-                })
+                issues.append(
+                    {
+                        "type": "missing_module",
+                        "source": str(py),
+                        "module": f"src.{mod}",
+                        "candidates": [str(c.relative_to(ROOT)) for c in candidates],
+                        "suggestion": "Create module or fix import path",
+                    }
+                )
     return issues
 
 
@@ -94,4 +100,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

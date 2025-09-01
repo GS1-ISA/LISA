@@ -55,4 +55,3 @@ def record_lineage(
     with p.open("a", encoding="utf-8") as f:
         f.write(json.dumps(asdict(rec), ensure_ascii=False) + "\n")
     return rid
-

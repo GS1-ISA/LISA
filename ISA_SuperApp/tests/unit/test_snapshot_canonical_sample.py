@@ -9,4 +9,3 @@ def test_snapshot_canonical_sample_matches():
     expected = Path("tests/snapshots/canonical_sample.json").read_text(encoding="utf-8")
     actual = canonical_dumps(obj) + "\n"
     assert actual == expected
-

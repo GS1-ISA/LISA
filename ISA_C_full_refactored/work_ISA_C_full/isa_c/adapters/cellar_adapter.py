@@ -4,19 +4,25 @@ import os, pandas as pd
 from pathlib import Path
 from isa_c.adapters.base import BaseAdapter
 
+
 class CellarAdapter(BaseAdapter):
     def fetch(self, since: datetime) -> pd.DataFrame:
-        offline = os.getenv("ISA_OFFLINE","1") == "1"
+        offline = os.getenv("ISA_OFFLINE", "1") == "1"
         outdir = Path("data/raw/cellar")
         outdir.mkdir(parents=True, exist_ok=True)
         sample = outdir / "sample.csv"
         if offline:
             # Write a fresh sample each run (timestamped row)
-            sample.write_text("id,title,date\n1,Offline Sample,{datetime.utcnow().date()}\n", encoding="utf-8")
+            sample.write_text(
+                "id,title,date\n1,Offline Sample,{datetime.utcnow().date()}\n", encoding="utf-8"
+            )
             return pd.read_csv(sample)
         # TODO: implement real API call here
-        sample.write_text("id,title,date\n1,Online Placeholder,{datetime.utcnow().date()}\n", encoding="utf-8")
+        sample.write_text(
+            "id,title,date\n1,Online Placeholder,{datetime.utcnow().date()}\n", encoding="utf-8"
+        )
         return pd.read_csv(sample)
+
 
 def run(since: datetime) -> pd.DataFrame:
     return CellarAdapter().run(since)
