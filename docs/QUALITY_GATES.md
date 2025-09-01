@@ -19,6 +19,11 @@ Weekly
 - CrossHair: advisory report; human triage.
 - SBOM + Trivy: zero high/critical; treat as break-glass gate.
 
+Dependencies & Audit Policy
+- Dependency manifests: `ISA_SuperApp/requirements.txt`, `ISA_SuperApp/requirements-dev.txt`, root `pyproject.toml`, and package-level `requirements*.txt`.
+- pip-audit runs in PR CI (advisory → enforced) against these manifests; remediation is required for high/critical.
+- SBOM (syft) generated weekly; Trivy scans track CVEs; zero high/critical on `main` is the promotion condition for security gates.
+
 Promotion Rules
 - Flip a check to enforced only after it runs green for a sustained period or has waivers documented in TECH_DEBT.md.
 

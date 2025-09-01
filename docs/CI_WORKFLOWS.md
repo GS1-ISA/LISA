@@ -45,3 +45,5 @@ Automation — Git & PR Management
 - Commit message lint (commitlint.yml): enforces Conventional Commits on PRs.
 - Auto-merge (automerge.yml): when `automerge` label present and checks pass, enables squash auto-merge.
 - Releases (release-please.yml): drafts release PRs and tags based on commit history.
+- Docs auto-sync (docs_auto_sync.yml): updates “Last updated” lines in docs and opens a PR.
+- Research benches (poc_bench.yml): runs Q11/Q12 micro-benches and opens a PR with results.
