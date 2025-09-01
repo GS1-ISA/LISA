@@ -20,7 +20,9 @@ test:
 
 ci: lint typecheck test
 
-
+.PHONY: api
+api:
+	cd ISA_SuperApp && python -m uvicorn src.api_server:app --host 127.0.0.1 --port 8787 --reload
 
 .PHONY: clean
 clean:
