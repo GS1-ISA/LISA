@@ -1,10 +1,10 @@
-from typing import Dict, Any
+from typing import Any
 
 
 class RewardAggregator:
     """Computes a simple reward score (skeleton)."""
 
-    def score(self, signals: Dict[str, Any]) -> float:
+    def score(self, signals: dict[str, Any]) -> float:
         score = 0.0
         if signals.get("tests_pass"):
             score += 3

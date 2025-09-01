@@ -1,5 +1,8 @@
-import os, time, jwt
+import os
+import time
 from typing import Optional, Tuple
+
+import jwt
 
 SECRET = os.getenv("ISA_AUTH_SECRET", "dev-secret-change-me")
 ALG = "HS256"

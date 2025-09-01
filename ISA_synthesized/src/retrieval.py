@@ -1,6 +1,10 @@
-import os, math, json, logging, re
-from typing import List, Dict, Tuple, Optional
+import json
+import logging
+import math
+import os
+import re
 from collections import Counter
+from typing import Dict, List, Optional, Tuple
 
 log = logging.getLogger("retrieval")
 
@@ -58,7 +62,7 @@ class VectorIndex:
     def _load(self):
         if os.path.exists(self.storage_path):
             try:
-                with open(self.storage_path, "r", encoding="utf-8") as f:
+                with open(self.storage_path, encoding="utf-8") as f:
                     data = json.load(f)
                 self.docs = data.get("docs", [])
                 self.vecs = data.get("vecs")

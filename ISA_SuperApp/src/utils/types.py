@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass
 class Entity:
     name: str
     type: str
-    observations: List[str] = field(default_factory=list)
+    observations: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -24,5 +23,5 @@ class Thought:
 
 @dataclass
 class ReasoningResult:
-    thoughts: List[Thought]
+    thoughts: list[Thought]
     final_answer: str

@@ -1,7 +1,7 @@
-from typing import Any, Dict
+from typing import Any
 
 
-def to_isa_c(record: Dict[str, Any]) -> Dict[str, Any]:
+def to_isa_c(record: dict[str, Any]) -> dict[str, Any]:
     p = record.get("product", {}) or {}
     dl = record.get("gs1_digital_link", {}) or {}
     nutr = p.get("nutriments", {}) or {}

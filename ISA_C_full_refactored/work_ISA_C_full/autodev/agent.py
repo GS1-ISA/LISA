@@ -1,13 +1,17 @@
 from __future__ import annotations
-import os, json, re
-from typing import Dict, Any
-from .markdown_io import extract_tasks
+
+import json
+import os
+import re
+from typing import Any
+
 from .llm_providers import LLMClient
+from .markdown_io import extract_tasks
 from .state import load_state, save_state, tick_cost
 
 
 def read(p):
-    return open(p, "r", encoding="utf-8").read() if os.path.exists(p) else ""
+    return open(p, encoding="utf-8").read() if os.path.exists(p) else ""
 
 
 def write_file(path: str, content: str):
@@ -27,7 +31,7 @@ def replace_first_open_checkbox(md_text: str) -> str:
     return re.sub(r"- \[ \] ", "- [x] ", md_text, count=1)
 
 
-def run_once() -> Dict[str, Any]:
+def run_once() -> dict[str, Any]:
     state = load_state()
     gem = read("Gemini.md")
     roadmap = read("roadmap.md")

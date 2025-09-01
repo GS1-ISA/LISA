@@ -1,5 +1,8 @@
-import os, json, logging
-from typing import List, Dict, Optional
+import json
+import logging
+import os
+from typing import Dict, List, Optional
+
 from .logging_conf import setup_logging
 from .utils.types import Entity, Relation
 
@@ -17,7 +20,7 @@ class KnowledgeGraphMemory:
     def _load(self):
         if os.path.exists(self.path):
             try:
-                with open(self.path, "r", encoding="utf-8") as f:
+                with open(self.path, encoding="utf-8") as f:
                     data = json.load(f)
                 self._entities = {
                     k: Entity(

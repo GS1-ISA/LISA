@@ -1,5 +1,9 @@
-import os, logging, requests, re
-from typing import Tuple, Optional, Dict, Any, List
+import logging
+import os
+import re
+from typing import Any, Dict, Optional, Tuple
+
+import requests
 
 log = logging.getLogger("figma_client")
 FIGMA_API = "https://api.figma.com/v1"
@@ -22,7 +26,7 @@ def verify_token() -> Tuple[bool, str]:
         r = requests.get(f"{FIGMA_API}/me", headers={"X-FIGMA-TOKEN": token}, timeout=30)
         if r.status_code == 200:
             me = r.json()
-            return True, f"Figma auth OK."
+            return True, "Figma auth OK."
         return False, f"Figma /me failed: {r.status_code} {r.text[:200]}"
     except Exception as e:
         return False, f"Figma verification error: {e}"

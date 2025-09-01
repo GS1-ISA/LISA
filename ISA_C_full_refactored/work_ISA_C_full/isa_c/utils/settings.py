@@ -1,8 +1,10 @@
 from __future__ import annotations
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
-from pathlib import Path
+
 import os
+from pathlib import Path
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):

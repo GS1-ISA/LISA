@@ -1,8 +1,8 @@
-from typing import Dict, Any
+from typing import Any
 
 
 class Critic:
     """Produces structured critiques (skeleton)."""
 
-    def review(self, result: Dict[str, Any]) -> Dict[str, Any]:
+    def review(self, result: dict[str, Any]) -> dict[str, Any]:
         return {"summary": "Looks good", "actions": []}

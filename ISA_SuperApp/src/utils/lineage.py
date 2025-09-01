@@ -5,9 +5,10 @@ import json
 import os
 import time
 import uuid
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional
+from typing import Any
 
 
 def sha256_file(path: str | Path) -> str:
@@ -36,8 +37,8 @@ def record_lineage(
     inputs: Mapping[str, str],
     outputs: Mapping[str, str],
     *,
-    run_id: Optional[str] = None,
-    context: Optional[Mapping[str, Any]] = None,
+    run_id: str | None = None,
+    context: Mapping[str, Any] | None = None,
     log_path: str | Path = ".lineage/log.jsonl",
 ) -> str:
     """Append a lineage record to JSONL.

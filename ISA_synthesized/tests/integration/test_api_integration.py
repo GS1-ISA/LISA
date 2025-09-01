@@ -2,6 +2,7 @@ import os
 
 os.environ["ISA_TEST_MODE"] = "1"
 from fastapi.testclient import TestClient
+
 from src.api_server import app
 
 

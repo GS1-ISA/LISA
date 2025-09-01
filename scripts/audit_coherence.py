@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Dict, List
-
 
 ROOT = Path.cwd()
 
@@ -22,7 +20,7 @@ def path_exists(rel: str) -> bool:
     return p.exists()
 
 
-def workflow_script_refs() -> List[Dict[str, str]]:
+def workflow_script_refs() -> list[dict[str, str]]:
     issues = []
     for wf in (ROOT / ".github" / "workflows").glob("*.yml"):
         txt = load_text(wf)
@@ -40,7 +38,7 @@ def workflow_script_refs() -> List[Dict[str, str]]:
     return issues
 
 
-def dockerfile_copy_refs() -> List[Dict[str, str]]:
+def dockerfile_copy_refs() -> list[dict[str, str]]:
     issues = []
     for df in ROOT.rglob("Dockerfile"):
         txt = load_text(df)
@@ -62,7 +60,7 @@ def dockerfile_copy_refs() -> List[Dict[str, str]]:
     return issues
 
 
-def python_import_refs() -> List[Dict[str, str]]:
+def python_import_refs() -> list[dict[str, str]]:
     issues = []
     for py in (ROOT / "ISA_SuperApp" / "src").rglob("*.py"):
         txt = load_text(py)
@@ -86,7 +84,7 @@ def python_import_refs() -> List[Dict[str, str]]:
 
 
 def main() -> int:
-    issues: List[Dict[str, str]] = []
+    issues: list[dict[str, str]] = []
     issues += workflow_script_refs()
     issues += dockerfile_copy_refs()
     issues += python_import_refs()

@@ -1,4 +1,6 @@
-import requests, sys
+import sys
+
+import requests
 
 
 def main():

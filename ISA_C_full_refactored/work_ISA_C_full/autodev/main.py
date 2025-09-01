@@ -1,5 +1,9 @@
 from __future__ import annotations
-import time, argparse, json
+
+import argparse
+import json
+import time
+
 from .agent import run_once
 
 

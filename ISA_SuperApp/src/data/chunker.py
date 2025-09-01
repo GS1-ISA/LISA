@@ -1,4 +1,8 @@
-import os, json, yaml, re, hashlib, pathlib
+import hashlib
+import json
+import os
+
+import yaml
 
 RAW = "data/raw"
 OUT = "data/silver"
@@ -7,7 +11,7 @@ os.makedirs(OUT, exist_ok=True)
 
 def read_txt(fp):
     try:
-        with open(fp, "r", encoding="utf-8", errors="ignore") as f:
+        with open(fp, encoding="utf-8", errors="ignore") as f:
             return f.read()
     except:
         return ""

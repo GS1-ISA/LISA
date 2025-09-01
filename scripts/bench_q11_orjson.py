@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json
 import os
 import time
-from statistics import mean
 
 from ISA_SuperApp.src.utils.json_canonical import canonical_dumps
 

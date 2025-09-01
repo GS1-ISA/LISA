@@ -1,6 +1,10 @@
-import os, logging, time
+import logging
+import os
+import time
+from typing import Any, Dict, List
+
 import openai
-from typing import List, Dict, Any
+
 from .logging_conf import setup_logging
 
 setup_logging()

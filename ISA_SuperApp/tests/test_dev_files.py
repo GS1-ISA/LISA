@@ -12,6 +12,6 @@ def test_dev_artifacts_exist():
 def test_readme_mentions_dev_setup():
     root = os.path.dirname(os.path.dirname(__file__))
     readme = os.path.join(root, "README.md")
-    with open(readme, "r", encoding="utf-8") as f:
+    with open(readme, encoding="utf-8") as f:
         txt = f.read()
     assert "DEV_SETUP.md" in txt, "README.md should reference DEV_SETUP.md"

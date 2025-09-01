@@ -1,7 +1,11 @@
 from __future__ import annotations
-import importlib, logging, os
+
+import importlib
+import logging
+import os
 from datetime import datetime
 from pathlib import Path
+
 from isa_c.utils.settings import SETTINGS
 
 log = logging.getLogger("isa_c.runner")
@@ -32,6 +36,6 @@ def run_pipeline(modules: list[str], since: datetime) -> None:
     for m in modules:
         try:
             run_module(m, since)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             log.exception("module failed", extra={"module": m, "error": str(e)})
     log.info("pipeline complete")

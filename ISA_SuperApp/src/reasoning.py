@@ -1,9 +1,10 @@
 import logging
 from typing import List
-from .logging_conf import setup_logging
-from .utils.types import Thought, ReasoningResult
+
 from .llm_client import LLMClient
+from .logging_conf import setup_logging
 from .utils.routing import choose_model
+from .utils.types import ReasoningResult, Thought
 
 setup_logging()
 log = logging.getLogger("reasoning")

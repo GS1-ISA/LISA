@@ -1,11 +1,15 @@
-import os, math, json, logging, re
-from typing import List, Dict, Tuple, Optional
+import json
+import logging
+import math
+import os
+import re
 from collections import Counter
+from typing import Optional
 
 log = logging.getLogger("retrieval")
 
 
-def _tokenize(text: str) -> List[str]:
+def _tokenize(text: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", text.lower())
 
 
@@ -23,7 +27,7 @@ class EmbeddingClient:
                 log.warning("sentence-transformers not available: %s; falling back to lexical", e)
                 self.backend = "lexical"
 
-    def embed(self, texts: List[str]) -> Optional[List[List[float]]]:
+    def embed(self, texts: list[str]) -> Optional[list[list[float]]]:
         if self.backend == "sentence" and self._sentence_model:
             try:
                 vecs = self._sentence_model.encode(texts, normalize_embeddings=True)
@@ -34,7 +38,7 @@ class EmbeddingClient:
         return None  # lexical only
 
 
-def _cosine(a: List[float], b: List[float]) -> float:
+def _cosine(a: list[float], b: list[float]) -> float:
     num = sum(x * y for x, y in zip(a, b))
     da = math.sqrt(sum(x * x for x in a)) or 1e-9
     db = math.sqrt(sum(y * y for y in b)) or 1e-9
@@ -49,8 +53,8 @@ class VectorIndex:
     ):
         self.storage_path = storage_path
         self.embedding_client = embedding_client or EmbeddingClient()
-        self.docs: List[Dict] = []
-        self.vecs: Optional[List[List[float]]] = None
+        self.docs: list[dict] = []
+        self.vecs: Optional[list[list[float]]] = None
         self.lex_df = Counter()
         self.lex_vocab_docs = 0
         self._load()
@@ -58,7 +62,7 @@ class VectorIndex:
     def _load(self):
         if os.path.exists(self.storage_path):
             try:
-                with open(self.storage_path, "r", encoding="utf-8") as f:
+                with open(self.storage_path, encoding="utf-8") as f:
                     data = json.load(f)
                 self.docs = data.get("docs", [])
                 self.vecs = data.get("vecs")
@@ -80,7 +84,7 @@ class VectorIndex:
         with open(self.storage_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-    def rebuild(self, docs: List[Tuple[str, str, Dict]]):
+    def rebuild(self, docs: list[tuple[str, str, dict]]):
         self.docs = [{"id": d, "text": t, "meta": m} for d, t, m in docs]
         texts = [d["text"] for d in self.docs]
         vecs = self.embedding_client.embed(texts)
@@ -119,7 +123,7 @@ class VectorIndex:
         dd = math.sqrt(sum(b * b for b in vd)) or 1e-9
         return num / (dq * dd)
 
-    def search(self, query: str, k: int = 5) -> List[Dict]:
+    def search(self, query: str, k: int = 5) -> list[dict]:
         scores = []
         if self.vecs:
             qv = self.embedding_client.embed([query])

@@ -1,8 +1,10 @@
 from __future__ import annotations
-import asyncio, logging
+
+import logging
 from datetime import datetime
-from isa_c.app.runner import get_default_modules
 from importlib import import_module
+
+from isa_c.app.runner import get_default_modules
 
 log = logging.getLogger("isa_c.flow")
 
@@ -10,7 +12,7 @@ log = logging.getLogger("isa_c.flow")
 def run_flow() -> None:
     try:
         from prefect import flow, task  # type: ignore
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         log.error("Prefect not installed, cannot run flow", extra={"err": str(e)})
         return
 
@@ -19,7 +21,6 @@ def run_flow() -> None:
         m = import_module(f"isa_c.adapters.{mod}_adapter")
         df = m.run(datetime.fromisoformat(since))
         p = f"data/raw/{mod}/latest.csv"
-        import os
         from pathlib import Path
 
         Path(f"data/raw/{mod}").mkdir(parents=True, exist_ok=True)

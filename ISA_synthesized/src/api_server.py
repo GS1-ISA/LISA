@@ -1,14 +1,15 @@
-import subprocess
 import atexit
-from fastapi import FastAPI, Request, Form
+import subprocess
+
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from .logging_conf import setup_logging
+from fastapi.templating import Jinja2Templates
+
 from .assistant import AssistantOrchestrator
+from .logging_conf import setup_logging
 
 # from .memory import ChatHistory # Removed as ChatHistory is not defined in src/memory.py
-from .utils.path_utils import find_project_root
 
 # Configure logging
 setup_logging()

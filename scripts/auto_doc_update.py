@@ -10,9 +10,7 @@ Designed to be run in CI to create an automated PR with doc updates.
 from __future__ import annotations
 
 import datetime as dt
-import re
 from pathlib import Path
-
 
 EXCLUDE_DIRS = {
     ".git",

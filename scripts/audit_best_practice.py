@@ -4,7 +4,6 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-
 STD_MAP = {
     "Security": ["OWASP ASVS", "OpenSSF Scorecard", "SLSA"],
     "CI/CD": ["12-Factor: Build/Release/Run", "DORA Metrics"],

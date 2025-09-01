@@ -1,12 +1,14 @@
 from __future__ import annotations
-import os, json
-from typing import Dict, Any
+
+import json
+import os
+from typing import Any
 
 
 class LLMResult(dict): ...
 
 
-def _coerce_json(text: str) -> Dict[str, Any]:
+def _coerce_json(text: str) -> dict[str, Any]:
     try:
         return json.loads(text)
     except Exception:

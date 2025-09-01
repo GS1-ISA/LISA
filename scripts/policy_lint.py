@@ -3,10 +3,9 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml  # type: ignore
-
 
 POLICY = Path(".agent/policy.yaml")
 
@@ -33,7 +32,7 @@ def main() -> int:
     ok = True
     meta = data.get("meta", {})
     gates = data.get("gates", {})
-    jobs: List[Dict[str, Any]] = data.get("jobs", []) or []
+    jobs: list[dict[str, Any]] = data.get("jobs", []) or []
 
     if not isinstance(meta, dict) or "version" not in meta:
         error("meta.version missing")

@@ -1,15 +1,16 @@
-import subprocess
 import atexit
 import logging
+import subprocess
 from dataclasses import asdict
-from fastapi import FastAPI, Request, Form
+
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.templating import Jinja2Templates
 from starlette.responses import Response
-from .logging_conf import setup_logging
+
 from .assistant import AssistantOrchestrator
+from .logging_conf import setup_logging
 
 # from .memory import ChatHistory # Removed as ChatHistory is not defined in src/memory.py
 # from .utils.path_utils import find_project_root  # unused; removed to avoid import error
@@ -82,9 +83,10 @@ async def validate(record: dict):
 
 
 # --- Observability: Metrics & Correlation IDs ---
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 import time
 import uuid
+
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 REQUEST_COUNT = Counter(
     "http_requests_total",

@@ -1,10 +1,10 @@
-from typing import Any, Dict
+from typing import Any
+
 import pytest
 
 from src.utils.jsonschema_validate import compile_schema
 
-
-SCHEMA: Dict[str, Any] = {
+SCHEMA: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {

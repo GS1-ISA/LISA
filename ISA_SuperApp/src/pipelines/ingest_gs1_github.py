@@ -1,4 +1,7 @@
-import os, requests
+import os
+
+import requests
+
 from ..memory import KnowledgeGraphMemory
 
 GITHUB_API = "https://api.github.com"

@@ -4,7 +4,6 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-
 ROOT = Path.cwd()
 CATALOG = ROOT / "docs" / "audit" / "rule_catalog.csv"
 

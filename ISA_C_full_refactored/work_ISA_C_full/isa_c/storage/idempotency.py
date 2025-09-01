@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 import os
 from datetime import datetime, timedelta
-from typing import Optional
 
 try:
     import duckdb  # type: ignore
-except Exception:  # noqa: BLE001
+except Exception:
     duckdb = None  # type: ignore
 
 
@@ -39,7 +39,7 @@ class IdempotencyStore:
         ).fetchone()
         return row is not None
 
-    def mark_processed(self, job_id: str, ttl_hours: Optional[int] = 24) -> None:
+    def mark_processed(self, job_id: str, ttl_hours: int | None = 24) -> None:
         if self._conn is None:
             return
         expires_at = None

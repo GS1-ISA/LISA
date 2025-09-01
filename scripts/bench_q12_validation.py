@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json
 import time
-from statistics import mean
-from typing import Any, Dict
+from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -21,7 +19,7 @@ class Item(BaseModel):
     tags: list[str] = []
 
 
-SCHEMA: Dict[str, Any] = {
+SCHEMA: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {

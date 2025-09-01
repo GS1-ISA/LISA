@@ -2,20 +2,15 @@
 from __future__ import annotations
 
 import csv
-import json
 from pathlib import Path
-from typing import Dict, Tuple
-
-import yaml  # type: ignore
-
 
 ROOT = Path.cwd()
 AUDIT = ROOT / "docs" / "audit"
 
 
-def load_traceability() -> Dict[str, str]:
+def load_traceability() -> dict[str, str]:
     path = AUDIT / "traceability_matrix.csv"
-    status: Dict[str, str] = {}
+    status: dict[str, str] = {}
     with path.open("r", encoding="utf-8") as f:
         r = csv.DictReader(f)
         for row in r:
@@ -31,7 +26,7 @@ def score_status(s: str) -> int:
     return 0
 
 
-def write_rule_confidence(status: Dict[str, str]) -> Tuple[int, int, int, float]:
+def write_rule_confidence(status: dict[str, str]) -> tuple[int, int, int, float]:
     path = AUDIT / "rule_confidence.csv"
     passes = warns = fails = 0
     total_score = 0
@@ -52,7 +47,7 @@ def write_rule_confidence(status: Dict[str, str]) -> Tuple[int, int, int, float]
     return passes, warns, fails, overall
 
 
-def load_gates_summary() -> Tuple[int, int, int]:
+def load_gates_summary() -> tuple[int, int, int]:
     path = AUDIT / "gates_status.csv"
     present = enforced = advisory = 0
     if not path.exists():
@@ -70,7 +65,7 @@ def load_gates_summary() -> Tuple[int, int, int]:
     return present, enforced, advisory
 
 
-def load_counts() -> Tuple[int, int]:
+def load_counts() -> tuple[int, int]:
     inv = AUDIT / "inventory.csv"
     rules = AUDIT / "rule_catalog.csv"
     inv_count = sum(1 for _ in inv.open("r", encoding="utf-8")) - 1 if inv.exists() else 0

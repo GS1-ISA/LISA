@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+import re
 import sys
 from pathlib import Path
-import re
 
 
 def fix_path_line(line):

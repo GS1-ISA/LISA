@@ -1,9 +1,10 @@
 from __future__ import annotations
-import hashlib, os
+
+import hashlib
 
 try:
     from diskcache import Cache  # type: ignore
-except Exception:  # noqa: BLE001
+except Exception:
     Cache = None  # type: ignore
 
 

@@ -8,10 +8,9 @@ Normalize PATH assignments across specified shell init files:
 - Write .fixed files and leave backups of originals as .bak_TIMESTAMP
 """
 
-import sys
-from pathlib import Path
 import re
 import time
+from pathlib import Path
 
 FILES = [Path.home() / ".zprofile", Path.home() / ".zshrc"]
 

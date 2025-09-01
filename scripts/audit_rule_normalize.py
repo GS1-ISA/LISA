@@ -61,7 +61,7 @@ def main() -> int:
             line = int(row["line"]) if row["line"].isdigit() else row["line"]
             text = row["text"].strip()
             # Deterministic RuleID: R-<short hash of source:line:text>
-            h = hashlib.sha256(f"{source}:{line}:{text}".encode("utf-8")).hexdigest()[:12]
+            h = hashlib.sha256(f"{source}:{line}:{text}".encode()).hexdigest()[:12]
             rule_id = f"R-{h}"
             title = text[:80]
             sev, cat = classify(text, source)

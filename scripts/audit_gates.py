@@ -4,8 +4,6 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
-
 
 CI_FILE = Path(".github/workflows/ci.yml")
 NIGHTLY_FILE = Path(".github/workflows/nightly.yml")
@@ -17,7 +15,7 @@ class Gate:
     name: str
     pattern: str
     file: Path
-    enforced: Optional[bool] = None
+    enforced: bool | None = None
     present: bool = False
     line: int = 0
     snippet: str = ""
@@ -37,7 +35,7 @@ def find_in_file(file: Path, substr: str) -> tuple[bool, int, str]:
     return False, 0, ""
 
 
-def detect_enforced(file: Path, line_no: int) -> Optional[bool]:
+def detect_enforced(file: Path, line_no: int) -> bool | None:
     """Heuristic: if a nearby step has continue-on-error: true then not enforced."""
     if not file.exists() or line_no <= 0:
         return None
@@ -49,8 +47,8 @@ def detect_enforced(file: Path, line_no: int) -> Optional[bool]:
     return True
 
 
-def collect_gates() -> List[Gate]:
-    gates: List[Gate] = []
+def collect_gates() -> list[Gate]:
+    gates: list[Gate] = []
     gates.append(Gate("Lint (ruff)", "ruff check", CI_FILE))
     gates.append(Gate("Format (ruff)", "ruff format --check", CI_FILE))
     gates.append(Gate("Typecheck (mypy)", "mypy ", CI_FILE))

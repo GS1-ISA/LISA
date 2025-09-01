@@ -1,4 +1,5 @@
-import os, unittest
+import os
+import unittest
 
 os.environ["ISA_TEST_MODE"] = "1"
 from src.memory import KnowledgeGraphMemory

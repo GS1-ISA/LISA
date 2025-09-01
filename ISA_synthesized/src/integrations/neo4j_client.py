@@ -1,4 +1,5 @@
-import os, logging
+import logging
+import os
 from typing import Tuple
 
 log = logging.getLogger("neo4j_client")

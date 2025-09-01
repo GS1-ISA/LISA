@@ -1,7 +1,7 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
-from src.utils.lineage import sha256_bytes, record_lineage
+from src.utils.lineage import record_lineage, sha256_bytes
 
 
 def test_sha256_and_record_lineage(tmp_path: Path):

@@ -1,4 +1,7 @@
-import logging, requests
+import logging
+
+import requests
+
 from ..memory import KnowledgeGraphMemory
 
 log = logging.getLogger("ingest_gs1_log")

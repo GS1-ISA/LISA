@@ -1,7 +1,11 @@
 from __future__ import annotations
-import argparse, os, sys
+
+import argparse
+import os
+import sys
 from datetime import datetime
-from isa_c.app.runner import run_pipeline, get_default_modules
+
+from isa_c.app.runner import get_default_modules, run_pipeline
 from isa_c.utils.log import setup_logging
 
 
@@ -16,7 +20,7 @@ def main() -> int:
     if args.flow or os.getenv("USE_PREFECT") == "1":
         try:
             from isa_c.app.flow_prefect import run_flow
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             print(f"Falling back to runner; Prefect not available: {e}", file=sys.stderr)
         else:
             run_flow()

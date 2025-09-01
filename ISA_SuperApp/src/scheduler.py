@@ -1,9 +1,12 @@
-import os, time, logging, argparse
+import argparse
+import logging
+import time
+
 import schedule
+
 from .assistant import AssistantOrchestrator
-from .pipelines.ingest_gs1_github import ingest_markdowns_to_memory as ingest_gs1
-from .pipelines.ingest_eur_lex import ingest_eurlex_esg
 from .pipelines.ingest_efrag import ingest_efrag_news
+from .pipelines.ingest_eur_lex import ingest_eurlex_esg
 from .pipelines.ingest_gs1_standards_log import ingest_gs1_standards_log
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")

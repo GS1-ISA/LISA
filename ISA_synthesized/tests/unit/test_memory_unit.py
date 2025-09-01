@@ -1,4 +1,4 @@
-import os, pathlib
+import os
 
 os.environ["ISA_TEST_MODE"] = "1"
 from src.memory import KnowledgeGraphMemory

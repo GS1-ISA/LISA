@@ -1,4 +1,7 @@
-import json, sys, argparse, pathlib
+import argparse
+import json
+import pathlib
+
 from .mapping import to_isa_c
 
 

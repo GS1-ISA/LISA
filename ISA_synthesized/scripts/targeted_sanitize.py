@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+import re
 import sys
 from pathlib import Path
-import re
 
 # Targeted sanitizer to remove stray single quotes inside PATH exports
 # and normalize common 'Application' Support' fragments that break evals.

@@ -1,4 +1,5 @@
 import logging
+
 from .logging_conf import setup_logging
 from .memory import KnowledgeGraphMemory
 from .reasoning import SequentialReasoner

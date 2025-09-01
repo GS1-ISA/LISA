@@ -1,7 +1,11 @@
 from __future__ import annotations
+
+import os
 from datetime import datetime
-import os, pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
 from isa_c.adapters.base import BaseAdapter
 
 

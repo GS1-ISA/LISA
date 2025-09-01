@@ -39,6 +39,10 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+fix = true
+extend-exclude = ["__MACOSX", "._*"]
+
+[tool.ruff.lint]
 select = ["E","F","W","I","B","C90","UP","TRY","PL","RUF"]
 ignore = ["E501"]
 
