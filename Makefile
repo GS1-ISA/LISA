@@ -55,3 +55,20 @@ bench-q11:
 
 bench-q12:
 	python3 scripts/bench_q12_validation.py | tee docs/research/q12_compiled_validators/results.md
+
+.PHONY: api otel-up otel-down
+api:
+	cd ISA_SuperApp && python -m uvicorn src.api_server:app --host 127.0.0.1 --port 8787 --reload
+
+otel-up:
+	docker compose -f infra/otel/docker-compose.yml up -d
+
+otel-down:
+	docker compose -f infra/otel/docker-compose.yml down
+
+.PHONY: prom-up prom-down
+prom-up:
+	docker compose -f infra/monitoring/docker-compose.yml up -d
+
+prom-down:
+	docker compose -f infra/monitoring/docker-compose.yml down
