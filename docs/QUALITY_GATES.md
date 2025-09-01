@@ -51,3 +51,8 @@ Additional PR Gates (Advisory → Enforced)
 - Determinism snapshots: run snapshot tests for canonical JSON; flip to enforced after 7 green days.
 - Docs build: build MkDocs site (if present); start advisory, then enforce.
 - Container smoke: on significant changes, build Docker image and curl `/metrics`; enforce after stability.
+ 
+Determinism Policy
+- Canonical JSON writer follows ADR‑0003: stdlib json as default, optional orjson via `CANONICAL_USE_ORJSON=1`.
+- Snapshot tests validate stable ordering, UTF‑8 encoding, and newline policy across environments.
+- Promotion: orjson default may be considered only after cross‑OS parity and 7 consecutive green nightly runs.

@@ -35,4 +35,11 @@ clean:
 
 .PHONY: index
 index:
-	python scripts/index_repo.py
+	python3 scripts/index_repo.py || python scripts/index_repo.py
+
+.PHONY: bench-q11 bench-q12
+bench-q11:
+	python3 scripts/bench_q11_orjson.py | tee docs/research/q11_orjson_determinism/results.md
+
+bench-q12:
+	python3 scripts/bench_q12_validation.py | tee docs/research/q12_compiled_validators/results.md
