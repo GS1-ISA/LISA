@@ -36,3 +36,12 @@ Current thresholds and critical paths (tunable)
 
 Gating Schedule
 - Start permissive (advisory) to avoid blocking; flip to gating per plan acceptance when green.
+
+Automation — Git & PR Management
+- Auto PR on push (auto_pr.yml): opens a PR to `main` for any branch push; adds `autoupdate` label.
+- PR Labeler (labeler.yml): applies labels by path; adds `autoupdate` to all PRs.
+- Auto update PR branch (auto_update.yml): rebases/merges `main` into PRs labeled `autoupdate`.
+- Auto format (format_autocommit.yml): applies `ruff format` and commits back to same-repo PR branches.
+- Commit message lint (commitlint.yml): enforces Conventional Commits on PRs.
+- Auto-merge (automerge.yml): when `automerge` label present and checks pass, enables squash auto-merge.
+- Releases (release-please.yml): drafts release PRs and tags based on commit history.

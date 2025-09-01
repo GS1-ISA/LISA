@@ -1,0 +1,17 @@
+autoupdate:
+  - '**'
+
+documentation:
+  - 'docs/**'
+  - 'ISA_SuperApp/docs/**'
+
+ci:
+  - '.github/**'
+  - 'scripts/**'
+
+infra:
+  - 'infra/**'
+
+python:
+  - '**/*.py'
+
