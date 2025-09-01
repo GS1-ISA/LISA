@@ -37,7 +37,7 @@ Track D — Agentic System
 - Phase 1: Roles, safety policies, dry-run job.
 - Phase 2–3: Reward logs, bandit strategies; eval suite; Tier‑1 autonomy.
 - Phase 4–5: SLOs, alerting; guarded Tier‑2 for low-risk edits.
-Refs: docs/AGENTIC_ARCHITECTURE.md; docs/TODO.md
+Refs: docs/AGENTIC_ARCHITECTURE.md; docs/AGENTIC_GOALS.md; docs/TODO.md
 
 Track E — Architecture & Platform
 - Outcomes: Clean monorepo, packages, infra, hermetic builds.
