@@ -11,8 +11,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install commitlint config
+        run: |
+          npm install --no-save @commitlint/config-conventional@latest
       - name: Lint commits
         uses: wagoid/commitlint-github-action@v6
         with:
           configFile: .commitlintrc.yml
-

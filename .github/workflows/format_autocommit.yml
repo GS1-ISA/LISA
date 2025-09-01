@@ -12,6 +12,7 @@ jobs:
     # Only attempt to push formatting commits for PRs from same repository
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,4 +32,3 @@ jobs:
         with:
           commit_message: "style(fmt): apply ruff format"
           branch: ${{ github.head_ref }}
-

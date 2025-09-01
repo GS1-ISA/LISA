@@ -14,6 +14,25 @@ jobs:
   open-pr:
     runs-on: ubuntu-latest
     steps:
+      - name: Ensure labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const wanted = [
+              { name: 'autoupdate', color: '1D76DB', description: 'Auto update PRs from base' },
+              { name: 'automerge', color: '0E8A16', description: 'Merge automatically when checks pass' },
+            ];
+            const { data: existing } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const names = new Set(existing.map(l => l.name));
+            for (const l of wanted) {
+              if (!names.has(l.name)) {
+                try { await github.rest.issues.createLabel({ owner: context.repo.owner, repo: context.repo.repo, ...l }); } catch {}
+              }
+            }
       - name: Create or reuse PR to main
         id: pr
         uses: actions/github-script@v7
@@ -63,4 +82,3 @@ jobs:
               issue_number: Number('${{ steps.pr.outputs.number }}'),
               body: 'PR created automatically from branch push. Labelled with `autoupdate`.\n\nAdd `automerge` to enable label-driven auto-merge.'
             });
-
