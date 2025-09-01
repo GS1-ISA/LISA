@@ -9,6 +9,7 @@ Roles
 - Critic: Reviews diffs/outcomes; emits structured feedback and follow-ups.
 - Reward Aggregator: Scores outcomes: tests, coverage, perf, reverts, approvals.
 - Meta-Learner: Bayesian bandit over strategies (test-first, scaffold+fix, refactor-first). Updates from rewards.
+ - Council Simulations: Internal advisors (Architect, Tester, Security, Performance, User) on high-impact changes.
 
 Safety Policies
 - Allowlist tools/actions; file/path guards; rate limits; network off by default.
@@ -19,6 +20,7 @@ Safety Policies
 Memory & Tracing
 - Append-only JSONL for events (plan, action, result, reward). Schemas validated in CI.
 - Summaries for retrieval; link traces to commits and CI runs.
+ - Project memory sources: docs index (docs/audit/search_index.jsonl), audit reports, ADRs, outcomes logs.
 
 Autonomy Tiers
 - T0: Read-only advice (default).
@@ -37,6 +39,7 @@ Reward Model (Initial)
 
 Evaluation Targets
 - Win-rate ≥70% (T1); ≥85% for T2 low-risk set; reverts <1%.
+ - Coverage ≥90% core; type errors 0 on target modules; determinism enforced.
 
 Operational Loop (Agent ↔ CI)
 - Planner proposes plan + diff; posts structured PR comment (plan, rationale, risk, test plan).
@@ -48,3 +51,7 @@ Operational Loop (Agent ↔ CI)
 Kill-Switch & Rollback Triggers
 - Kill-switch: disable agent writes via ENV `AGENT_WRITE=0` and repo label `agent-blocked`.
 - Auto-rollback triggers: revert rate >1% rolling, anomaly spikes in CI failures, or policy violations; agent auto-creates a revert PR with repro pack.
+
+See Also
+- docs/agents/CODEGENESIS.md — operating manual (identity, behaviors, procedures)
+- docs/AGENTIC_GOALS.md — long-term goals and phased plan
