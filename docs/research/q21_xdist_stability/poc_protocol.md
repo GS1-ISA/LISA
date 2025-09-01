@@ -1,4 +1,5 @@
 Title: Micro‑POC Protocol — Q21 xdist Stability
+Last updated: 2025-09-02
 
 Question/Hypothesis: xdist reduces wall time without increasing flake rate; quarantine stabilizes PR CI.
 Success Metrics: CI duration ↓; flake rate <1%; no new flakes

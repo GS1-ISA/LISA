@@ -1,3 +1,4 @@
+Last updated: 2025-09-02
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 

@@ -1,4 +1,5 @@
 # Architecture
+Last updated: 2025-09-02
 
 - **FastAPI** backend (`src/`): orchestrator, memory, retrieval, reasoning.
 - **Static web UI** (`webui/`): HTML/CSS/JS, streaming chat.

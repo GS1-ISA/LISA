@@ -1,4 +1,5 @@
 Title: ADR 0004 — JSON Schema Validation via fastjsonschema
+Last updated: 2025-09-02
 
 Context
 - Pydantic v2 provides rich model validation and typed APIs. For pure JSON Schema validation at high throughput, a compiled validator like fastjsonschema can be faster.

@@ -1,4 +1,5 @@
 # ISA_C — ESG Data Pipeline
+Last updated: 2025-09-02
 
 This repository contains the *full, production-ready* baseline for ISA_C, including adapters,
 optional layers (Prefect, DuckDB Delta/Idempotency, OpenTelemetry, Feast), tests, docs, and CI.

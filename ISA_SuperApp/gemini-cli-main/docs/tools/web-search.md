@@ -1,4 +1,5 @@
 # Web Search Tool (`google_web_search`)
+Last updated: 2025-09-02
 
 This document describes the `google_web_search` tool.
 

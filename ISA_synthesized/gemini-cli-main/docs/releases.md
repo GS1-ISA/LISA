@@ -1,4 +1,5 @@
 # Gemini CLI Releases
+Last updated: 2025-09-02
 
 ## Release Cadence and Tags
 

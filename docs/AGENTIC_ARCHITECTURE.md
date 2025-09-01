@@ -1,4 +1,5 @@
 Title: Agentic Architecture — Roles, Loops, Safety, Rewards
+Last updated: 2025-09-02
 
 Overview: The system operates as a continuous feedback loop. Agents plan, act, observe, critique, and learn, with strict safety and quality gates.
 

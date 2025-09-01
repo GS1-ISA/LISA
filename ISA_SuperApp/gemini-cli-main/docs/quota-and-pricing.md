@@ -1,4 +1,5 @@
 # Gemini CLI: Quotas and Pricing
+Last updated: 2025-09-02
 
 Gemini CLI offers a generous free tier that covers the use cases for many individual developers. For enterprise / professional usage, or if you need higher limits, there are multiple possible avenues depending on what type of account you use to authenticate.
 

@@ -1,4 +1,5 @@
 # How to Contribute
+Last updated: 2025-09-02
 
 We would love to accept your patches and contributions to this project.
 

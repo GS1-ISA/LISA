@@ -1,4 +1,5 @@
 # Gemini CLI Architecture Overview
+Last updated: 2025-09-02
 
 This document provides a high-level overview of the Gemini CLI's architecture.
 

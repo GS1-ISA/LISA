@@ -1,4 +1,5 @@
 # Gemini CLI file system tools
+Last updated: 2025-09-02
 
 The Gemini CLI provides a comprehensive suite of tools for interacting with the local file system. These tools allow the Gemini model to read from, write to, list, search, and modify files and directories, all under your control and typically with confirmation for sensitive operations.
 

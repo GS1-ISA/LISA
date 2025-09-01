@@ -1,4 +1,5 @@
 Title: Agentic Goals, Behaviors, and Strategy — 12–18 Month Plan
+Last updated: 2025-09-02
 
 Purpose: Set outcome-driven long-term goals and the agentic behaviors, techniques, and metrics needed to reach them. This complements docs/ROADMAP.md (tracks/gates) and docs/AGENTIC_ARCHITECTURE.md (roles/loops/safety).
 

@@ -1,4 +1,5 @@
 # Themes
+Last updated: 2025-09-02
 
 Gemini CLI supports a variety of themes to customize its color scheme and appearance. You can change the theme to suit your preferences via the `/theme` command or `"theme":` configuration setting.
 

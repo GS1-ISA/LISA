@@ -1,4 +1,5 @@
 # Project Roadmap & Future Plans
+Last updated: 2025-09-02
 
 This document outlines future improvements and tasks identified during project audits and development.
 

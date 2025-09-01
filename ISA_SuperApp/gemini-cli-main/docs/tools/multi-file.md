@@ -1,4 +1,5 @@
 # Multi File Read Tool (`read_many_files`)
+Last updated: 2025-09-02
 
 This document describes the `read_many_files` tool for the Gemini CLI.
 

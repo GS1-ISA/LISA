@@ -1,4 +1,5 @@
 # Reporting Security Issues
+Last updated: 2025-09-02
 
 To report a security issue, please use [https://g.co/vulnz](https://g.co/vulnz).
 We use g.co/vulnz for our intake, and do coordination and disclosure here on

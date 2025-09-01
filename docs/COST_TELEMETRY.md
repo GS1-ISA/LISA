@@ -1,4 +1,5 @@
 Title: Cost Telemetry & Budgets (FinOps)
+Last updated: 2025-09-02
 
 Goal: Track and reduce spend for APIs/LLMs/storage/compute with minimal overhead.
 

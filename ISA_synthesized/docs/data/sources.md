@@ -1,4 +1,5 @@
 # Data Sources
+Last updated: 2025-09-02
 
 - GS1: https://www.gs1.org/standards/log
 - EFRAG: news (placeholder in offline mode)

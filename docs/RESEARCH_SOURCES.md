@@ -1,4 +1,5 @@
 Title: High-Quality Sources — Research & Implementation
+Last updated: 2025-09-02
 
 Standards & Policy
 - GS1 GDSN and sector docs (official GS1)

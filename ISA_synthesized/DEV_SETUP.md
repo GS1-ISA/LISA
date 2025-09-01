@@ -1,3 +1,4 @@
+Last updated: 2025-09-02
 macOS Developer Quick Setup
 
 This file lists the exact steps to prepare a macOS development environment for the

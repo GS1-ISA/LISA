@@ -1,4 +1,5 @@
 Title: Power Analysis (Template)
+Last updated: 2025-09-02
 
 Question/Hypothesis:
 Effect Size Target (delta):

@@ -1,4 +1,5 @@
 Title: Search Ledger — Q13 Polars vs pandas
+Last updated: 2025-09-02
 
 Question: Q13 — Dataframes: performance and rewrite cost for our transforms
 Date Range:

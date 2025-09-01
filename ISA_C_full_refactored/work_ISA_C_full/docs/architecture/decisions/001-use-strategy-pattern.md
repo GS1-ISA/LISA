@@ -1,4 +1,5 @@
 # ADR-001: Use Strategy Pattern for Data Adapters
+Last updated: 2025-09-02
 
 **Status**: Accepted
 

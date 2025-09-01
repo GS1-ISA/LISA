@@ -1,4 +1,5 @@
 # GEMINI CLI — Agent Instructions
+Last updated: 2025-09-02
 
 Objectives:
 - Keep documentation accurate and navigable.

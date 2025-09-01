@@ -1,4 +1,5 @@
 # IDE Integration
+Last updated: 2025-09-02
 
 Gemini CLI can integrate with your IDE to provide a more seamless and context-aware experience. This integration allows the CLI to understand your workspace better and enables powerful features like native in-editor diffing.
 

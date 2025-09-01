@@ -1,4 +1,5 @@
 # Project Memory (Curated)
+Last updated: 2025-09-02
 
 ## Vision (Long-term)
 - ISA as autonomous, standards-aware assistant for GS1 NL.

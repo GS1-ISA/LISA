@@ -1,4 +1,5 @@
 # Workflows
+Last updated: 2025-09-02
 
 - **Ingest**: Admin -> Run Ingest -> Reindex -> Verify search results.
 - **Document Drafting**: Provide title+outline -> refine -> download.

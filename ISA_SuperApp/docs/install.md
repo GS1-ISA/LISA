@@ -1,4 +1,5 @@
 # Installation (macOS)
+Last updated: 2025-09-02
 
 ## Prereqs
 - macOS 14+ (Apple Silicon)

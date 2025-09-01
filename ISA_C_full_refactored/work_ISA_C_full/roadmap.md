@@ -1,5 +1,6 @@
 
 # Roadmap
+Last updated: 2025-09-02
 ## Tasks
 - [ ] Implement Markdown task parser
 - [ ] Build prompt synthesis from Gemini.md + context

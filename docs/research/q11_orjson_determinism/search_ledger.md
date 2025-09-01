@@ -1,4 +1,5 @@
 Title: Search Ledger — Q11 Determinism (orjson vs stdlib)
+Last updated: 2025-09-02
 
 Question: Q11 — Determinism: Canonical JSON policy across OS/Python
 Date Range: 

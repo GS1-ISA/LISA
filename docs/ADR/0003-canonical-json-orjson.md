@@ -1,4 +1,5 @@
 Title: ADR 0003 — Canonical JSON with Optional orjson
+Last updated: 2025-09-02
 
 Context
 - We require deterministic JSON for snapshots and reproducible artifacts.

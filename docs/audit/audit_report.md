@@ -1,3 +1,4 @@
+Last updated: 2025-09-02
 ## Audit Report — Executive Summary
 
 - Rules: 1410 | PASS: 138 ✅ | WARN: 10 ⚠️ | FAIL: 1262 ❌

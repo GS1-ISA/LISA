@@ -1,4 +1,5 @@
 # Gemini CLI Extensions
+Last updated: 2025-09-02
 
 Gemini CLI supports extensions that can be used to configure and extend its functionality.
 

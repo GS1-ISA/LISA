@@ -1,3 +1,4 @@
+Last updated: 2025-09-02
 Development Practices
 
 Keep the repository clean and reproducible. Follow these rules:

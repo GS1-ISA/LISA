@@ -1,4 +1,5 @@
 # MCP servers with the Gemini CLI
+Last updated: 2025-09-02
 
 This document provides a guide to configuring and using Model Context Protocol (MCP) servers with the Gemini CLI.
 

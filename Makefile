@@ -37,6 +37,16 @@ clean:
 index:
 	python3 scripts/index_repo.py || python scripts/index_repo.py
 
+.PHONY: outcomes-summary docs-lint pr-notes
+outcomes-summary:
+	python3 scripts/outcomes_summary.py || python scripts/outcomes_summary.py
+
+docs-lint:
+	python3 scripts/docs_ref_lint.py || python scripts/docs_ref_lint.py
+
+pr-notes:
+	python3 scripts/prepare_pr_notes.py || python scripts/prepare_pr_notes.py
+
 .PHONY: bench-q11 bench-q12
 bench-q11:
 	python3 scripts/bench_q11_orjson.py | tee docs/research/q11_orjson_determinism/results.md

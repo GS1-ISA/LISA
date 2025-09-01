@@ -1,4 +1,5 @@
 # **System Prompts and Models of AI Tools**  
+Last updated: 2025-09-02
 
 ---
 <a href="https://discord.gg/NwzrWErdMU" target="_blank">

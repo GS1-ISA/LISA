@@ -1,4 +1,5 @@
 # API
+Last updated: 2025-09-02
 
 ## Endpoints
 - `POST /ask` — {question, explain?} → {answer, trace?, importance?}

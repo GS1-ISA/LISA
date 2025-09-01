@@ -1,4 +1,5 @@
 # Gemini CLI Execution and Deployment
+Last updated: 2025-09-02
 
 This document describes how to run Gemini CLI and explains the deployment architecture that Gemini CLI uses.
 

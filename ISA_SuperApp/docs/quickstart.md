@@ -1,4 +1,5 @@
 # Quickstart
+Last updated: 2025-09-02
 
 ```bash
 git clone <repo>

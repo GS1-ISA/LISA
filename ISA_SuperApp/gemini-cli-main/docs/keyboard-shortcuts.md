@@ -1,4 +1,5 @@
 # Gemini CLI Keyboard Shortcuts
+Last updated: 2025-09-02
 
 This document lists the available keyboard shortcuts in the Gemini CLI.
 

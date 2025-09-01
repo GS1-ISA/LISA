@@ -1,4 +1,5 @@
 # Sandboxing in the Gemini CLI
+Last updated: 2025-09-02
 
 This document provides a guide to sandboxing in the Gemini CLI, including prerequisites, quickstart, and configuration.
 

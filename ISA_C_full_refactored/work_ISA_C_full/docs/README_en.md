@@ -1,4 +1,5 @@
 # ISA_C — Integrated ESG Data Pipeline (English)
+Last updated: 2025-09-02
 
 ## Overview
 ISA_C provides a clean, extensible baseline to ingest ESG-related sources (EU Cellar, EFRAG,

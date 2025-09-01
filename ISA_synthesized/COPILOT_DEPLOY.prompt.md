@@ -1,4 +1,5 @@
 # AI Agent Workspace Setup Guide
+Last updated: 2025-09-02
 
 You are an AI assistant (GitHub Copilot, Gemini, etc.) in VS Code. Your primary objective is to fully configure this workspace for development. Follow the steps below precisely. After each major step, provide a ✅ status update.
 

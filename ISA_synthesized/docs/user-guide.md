@@ -1,4 +1,5 @@
 # Using the Web UI
+Last updated: 2025-09-02
 
 - **Chat**: Ask questions; use streaming for long answers.
 - **Document Generator**: Draft ESG and standards documents; download markdown.

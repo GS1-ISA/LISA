@@ -1,4 +1,5 @@
 # ISA-C Mapping (Minimal CLI)
+Last updated: 2025-09-02
 
 Purpose: map a GS1-like product JSON (see `artifacts/gs1_product_with_sustainability_data.json`) to a normalized ISA_C JSON.
 

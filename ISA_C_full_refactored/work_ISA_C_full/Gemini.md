@@ -1,5 +1,6 @@
 
 # Gemini Contract
+Last updated: 2025-09-02
 ## Purpose
 Execute small autonomous development steps based on roadmap.md.
 ## Context

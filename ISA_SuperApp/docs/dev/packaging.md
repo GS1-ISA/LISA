@@ -1,4 +1,5 @@
 # Packaging (Desktop)
+Last updated: 2025-09-02
 
 Electron Builder targets:
 - macOS: DMG

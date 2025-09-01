@@ -1,4 +1,5 @@
 # AGENTS — Automation & Copilots
+Last updated: 2025-09-02
 
 Guardrails:
 - Keep `mkdocs.yml` nav synchronized with `docs/`.

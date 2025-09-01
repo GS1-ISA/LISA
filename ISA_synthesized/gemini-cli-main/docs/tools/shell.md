@@ -1,4 +1,5 @@
 # Shell Tool (`run_shell_command`)
+Last updated: 2025-09-02
 
 This document describes the `run_shell_command` tool for the Gemini CLI.
 

@@ -1,8 +1,9 @@
 Title: Master TODO — Agentic Monorepo Program (All Plans)
+Last updated: 2025-09-02
 
 Status Legend: [ ] pending  [~] in-progress  [x] done  [!] blocked
 
-See also: docs/ULTIMATE_PLAN.md, docs/AGENTIC_ARCHITECTURE.md, docs/QUALITY_GATES.md, docs/TODO_NeSy.md
+See also: docs/ULTIMATE_PLAN.md, docs/AGENTIC_ARCHITECTURE.md, docs/AGENTIC_GOALS.md, docs/ADOPTION_PLAN.md, docs/QUALITY_GATES.md, docs/TODO_NeSy.md
 
 00) Knowledge Gaps Research (Phase 0.5)
 - [ ] Create docs/RESEARCH_KNOWLEDGE_GAPS.md scaffold with 30 research questions (agentic loops, NeSy, LLMOps, data quality/governance, security/privacy, observability/SRE, performance, UX, CI/CD, DevEx)
@@ -178,7 +179,7 @@ Acceptance: Green CI; release produces wheels/images and notes.
 
 14) Developer Experience
 - [x] Makefile tasks (setup, lint, fix, typecheck, test)
-- [ ] Devcontainer + VS Code tasks
+- [x] Devcontainer + VS Code tasks (added)
 - [ ] 5‑minute onboarding guide and one-command demo
 Acceptance: New dev completes demo in ≤5 minutes locally.
 
@@ -201,6 +202,14 @@ Acceptance: ≥99% pass on critical expectations; failures block merges.
 - [ ] Health/readiness probes and graceful shutdown; config centralized (pydantic-settings)
 - [ ] Static/assets served via ASGI static middleware; add CSP header checks in tests
 Acceptance: Behavior identical under guard tests; cold start and latency unchanged or improved; clean shutdown verified.
+
+17a) Agentic Practices & Automation (New)
+- [x] Lead Developer Autonomy policy documented (act without asking; research-first; escalation triggers)
+- [x] Outcomes logging + weekly summary reports (local-first)
+- [x] Docs reference linter and index (search_index) for cross-link integrity
+- [x] PR Notes generator (Plan/Diff/Evidence) for branch updates
+- [~] Strategy router skeleton (epsilon-greedy) with reward updates from outcomes
+Acceptance: Artifacts present under agent/outcomes and docs/audit; strategy selection logged; promotion to CI when GH is stable.
 
 17) Agentic Architecture & Safety
 - Blocked by: 1, 2

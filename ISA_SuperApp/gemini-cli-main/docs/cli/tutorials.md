@@ -1,4 +1,5 @@
 # Tutorials
+Last updated: 2025-09-02
 
 This page contains tutorials for interacting with Gemini CLI.
 

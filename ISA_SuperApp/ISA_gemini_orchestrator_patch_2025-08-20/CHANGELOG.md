@@ -1,4 +1,5 @@
 # Changelog
+Last updated: 2025-09-02
 All notable changes to this project will be documented here.
 
 ## [Unreleased]

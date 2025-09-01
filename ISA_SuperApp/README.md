@@ -1,4 +1,5 @@
 # ISA SuperDesign  Full Package (2025-08-17)
+Last updated: 2025-09-02
 
 See `DEV_SETUP.md` for a concise macOS developer quick setup.
 
@@ -32,3 +33,17 @@ See `docs/ci_secrets.md` for more details and example workflow snippets.
 
 ## Quickstart
 See `docs/install.md` and `docs/quickstart.md`.
+
+## Agentic Practices
+- Operating Manual: `docs/agents/CODEGENESIS.md`
+- Architecture & Safety: `docs/AGENTIC_ARCHITECTURE.md`
+- Goals & Metrics: `docs/AGENTIC_GOALS.md`
+- Adoption Plan: `docs/ADOPTION_PLAN.md`
+- Quality Gates: `docs/QUALITY_GATES.md`
+
+### Local Agentic Utilities
+- Update doc timestamps: `python3 scripts/auto_doc_update.py`
+- Index + search docs: `make index` then `python3 scripts/query_index.py --md "<term>"`
+- Lint doc links/Refs: `make docs-lint` (writes `docs/audit/docs_ref_report.md`)
+- Prepare PR notes: `make pr-notes` → `agent/outcomes/PR_NOTES.md`
+- Log outcomes + summary: `python3 scripts/agent_outcomes.py ...` then `make outcomes-summary`

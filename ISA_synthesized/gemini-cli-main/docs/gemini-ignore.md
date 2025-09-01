@@ -1,4 +1,5 @@
 # Ignoring Files
+Last updated: 2025-09-02
 
 This document provides an overview of the Gemini Ignore (`.geminiignore`) feature of the Gemini CLI.
 

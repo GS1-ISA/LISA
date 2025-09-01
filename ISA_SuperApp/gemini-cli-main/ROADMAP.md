@@ -1,4 +1,5 @@
 # Gemini CLI Roadmap
+Last updated: 2025-09-02
 
 The [Official Gemini CLI Roadmap](https://github.com/orgs/google-gemini/projects/11/)
 

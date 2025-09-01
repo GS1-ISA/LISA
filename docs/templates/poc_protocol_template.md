@@ -1,4 +1,5 @@
 Title: Micro‑POC Protocol (Template)
+Last updated: 2025-09-02
 
 Question/Hypothesis:
 Success Metrics (w/ thresholds):

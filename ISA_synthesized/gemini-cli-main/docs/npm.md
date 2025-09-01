@@ -1,4 +1,5 @@
 # Package Overview
+Last updated: 2025-09-02
 
 This monorepo contains two main packages: `@google/gemini-cli` and `@google/gemini-cli-core`.
 

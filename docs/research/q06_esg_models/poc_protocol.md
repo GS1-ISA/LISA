@@ -1,4 +1,5 @@
 Title: Micro‑POC Protocol — Q6 ESG Models
+Last updated: 2025-09-02
 
 Question/Hypothesis: ESG‑BERT or ESGSenticNet outperforms heuristics on gap detection F1 with acceptable cost/latency.
 Success Metrics: F1 lift ≥10%; P95 latency within budget; explanation acceptance ≥80%

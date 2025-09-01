@@ -1,4 +1,5 @@
 Title: Quality Gates and Acceptance Thresholds
+Last updated: 2025-09-02
 
 Gating Levels
 - Advisory: job runs, failures do not block merges.

@@ -1,3 +1,4 @@
+Last updated: 2025-09-02
 CI Secrets & macOS signing (GitHub Actions)
 
 This file lists the exact environment variable / secret names expected by the

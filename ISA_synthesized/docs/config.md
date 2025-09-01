@@ -1,4 +1,5 @@
 # Configuration
+Last updated: 2025-09-02
 
 Settings are provided via `.env` (copy from `.env.example`). Never commit secrets.
 Key variables:

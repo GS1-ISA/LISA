@@ -1,4 +1,5 @@
-macOS Developer Quick Setup
+Last updated: 2025-09-02
+macOS Developer Quick Setup (M1 optimized)
 
 This file lists the exact steps to prepare a macOS development environment for the
 ISA SuperDesign project.
@@ -9,7 +10,11 @@ Prerequisites
 - Node.js 18+ or Node 24+ (project tested with Node v24.5.0)
 - Homebrew (optional, recommended)
 
-Steps
+Quickstart (Devcontainer)
+
+If you use VS Code, open the repo and choose “Reopen in Container”. The devcontainer installs Python 3.11, ruff/mypy/pytest, gh, and pre-commit hooks.
+
+Local Steps
 
 1) Create and activate a virtual environment
 
@@ -111,4 +116,12 @@ CI notes
 
 ```bash
 ./scripts/cleanup_logs_and_builds.sh
+
+Agentic utilities (local-first)
+
+- Update docs timestamps: `python3 scripts/auto_doc_update.py`
+- Index/search docs: `make index`, then `python3 scripts/query_index.py --md "determinism"`
+- Lint docs links/Refs: `make docs-lint` (writes `docs/audit/docs_ref_report.md`)
+- Prepare PR notes (Plan/Diff/Evidence): `make pr-notes` (writes `agent/outcomes/PR_NOTES.md`)
+- Log outcomes and summarize: `python3 scripts/agent_outcomes.py --task "X" --strategy scaffold_repair --status success`, then `make outcomes-summary`
 ```

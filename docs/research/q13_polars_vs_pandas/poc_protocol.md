@@ -1,4 +1,5 @@
 Title: Micro‑POC Protocol — Q13 Polars vs pandas
+Last updated: 2025-09-02
 
 Question/Hypothesis: Polars (or hybrid) reduces runtime and memory for heavy joins/aggregations by ≥30%.
 Success Metrics: ≥30% speedup; reduced peak RSS; acceptable rewrite cost

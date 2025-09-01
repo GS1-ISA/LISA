@@ -1,4 +1,5 @@
 # Directory Structure
+Last updated: 2025-09-02
 
 Ownership boundaries:
 - `src/` — API and logic — stable contracts; changes require tests.

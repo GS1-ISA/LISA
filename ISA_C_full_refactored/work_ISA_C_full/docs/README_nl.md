@@ -1,4 +1,5 @@
 # ISA_C — Geïntegreerde ESG Datapijplijn (Nederlands)
+Last updated: 2025-09-02
 
 ## Overzicht
 ISA_C levert een schone, uitbreidbare basis om ESG-bronnen in te lezen (EU Cellar, EFRAG,

@@ -1,4 +1,5 @@
 Title: CI Workflows Overview — PR, Nightly, Weekly
+Last updated: 2025-09-02
 
 PR (ci.yml)
 - Lint/format (ruff): gate.
@@ -47,3 +48,8 @@ Automation — Git & PR Management
 - Releases (release-please.yml): drafts release PRs and tags based on commit history.
 - Docs auto-sync (docs_auto_sync.yml): updates “Last updated” lines in docs and opens a PR.
 - Research benches (poc_bench.yml): runs Q11/Q12 micro-benches and opens a PR with results.
+
+Local-First Utilities (make)
+- `make docs-lint`: Lint markdown titles, links, and Refs; report to `docs/audit/docs_ref_report.md`.
+- `make pr-notes`: Generate `agent/outcomes/PR_NOTES.md` with Plan/Diff/Evidence ready for PRs.
+- `make outcomes-summary`: Summarize agent outcomes to `docs/audit/agent_outcomes_summary.md`.

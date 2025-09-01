@@ -1,4 +1,5 @@
 # Memory Import Processor
+Last updated: 2025-09-02
 
 The Memory Import Processor is a feature that allows you to modularize your GEMINI.md files by importing content from other files using the `@file.md` syntax.
 

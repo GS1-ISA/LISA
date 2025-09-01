@@ -1,4 +1,5 @@
 # ISA SuperDesign  Full Package (2025-08-17)
+Last updated: 2025-09-02
 
 See `DEV_SETUP.md` for a concise macOS developer quick setup.
 

@@ -1,3 +1,4 @@
+Last updated: 2025-09-02
 ## Remediation Plan — Prioritized Backlog
 
 - [ ] Flip ruff/pytest/coverage/semgrep to enforced after 7-day stability (3 pts)

@@ -1,4 +1,5 @@
 Title: CodeGenesis — Autonomous, Self‑Improving Software Agent (Operating Manual)
+Last updated: 2025-09-02
 
 Purpose: Define the identity, architecture, and operating procedures for a truly autonomous, self‑improving development agent. This manual complements docs/AGENTIC_ARCHITECTURE.md and docs/AGENTIC_GOALS.md and is intended to be executable guidance for day‑to‑day behavior.
 

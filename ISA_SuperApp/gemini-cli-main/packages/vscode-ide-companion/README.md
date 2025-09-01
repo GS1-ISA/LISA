@@ -1,4 +1,5 @@
 # Gemini CLI Companion
+Last updated: 2025-09-02
 
 The Gemini CLI Companion extension pairs with [Gemini CLI](https://github.com/google-gemini/gemini-cli). This extension is compatible with both VS Code and VS Code forks.
 

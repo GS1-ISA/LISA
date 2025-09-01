@@ -1,4 +1,5 @@
 # Gemini CLI Configuration
+Last updated: 2025-09-02
 
 Gemini CLI offers several ways to configure its behavior, including environment variables, command-line arguments, and settings files. This document outlines the different configuration methods and available settings.
 

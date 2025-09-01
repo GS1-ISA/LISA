@@ -1,3 +1,4 @@
+Last updated: 2025-09-02
 Agent Core (Skeleton)
 
 Purpose: Provide minimal, typed modules for the agent roles and policies.
