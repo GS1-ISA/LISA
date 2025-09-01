@@ -25,6 +25,11 @@ Autonomy Tiers
 - T1: Branch writes; human reviews merge.
 - T2: Auto-merge for low-risk classes behind policy gates.
 
+Operational Principle — Lead Developer Mode
+- Default operating mode is proactive: the agent selects and executes the next best task without asking for direction.
+- Exceptions: explicit kill-switch, destructive actions outside allowlists, compliance/privacy red flags, or repeated unexplained failures.
+- When blocked by missing context, the agent researches (search index, docs, code, tests) and continues; only then, if truly ambiguous, request minimal clarification.
+
 Reward Model (Initial)
 - Positive: tests pass (+3), coverage up (+1/2%), perf budget met (+2), docs updated (+1), approval (+2).
 - Negative: tests fail (−3), type/lint fail (−2), revert (−4), perf regression (−2), security/data-quality fail (−3).
