@@ -11,6 +11,8 @@ def run(cmd: list[str]) -> tuple[int, str]:
     try:
         out = subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT)
         return 0, out
+    except FileNotFoundError:
+        return 127, f"SKIPPED: {' '.join(cmd)} (not installed)"
     except subprocess.CalledProcessError as e:
         return e.returncode, e.output
 
