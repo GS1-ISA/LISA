@@ -14,6 +14,12 @@ Describe the change, motivation, and scope.
 - [ ] Rollback plan noted
 - [ ] Adapters/feature flags for new integrations (default OFF)
 
+## Local Checks (run before submit)
+
+- [ ] `make docs-lint` (fix any broken refs; see `docs/audit/docs_ref_report.md`)
+- [ ] `make healthcheck` (review `docs/audit/healthcheck.md` and attach key excerpts)
+- [ ] `make pr-notes` (attach `agent/outcomes/PR_NOTES.md` Plan/Diff/Evidence)
+
 ## Risk & Impact
 
 - Risk level: Low / Medium / High
