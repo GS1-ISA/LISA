@@ -76,3 +76,8 @@ prom-down:
 .PHONY: healthcheck
 healthcheck:
 	python3 scripts/healthcheck.py
+
+
+.PHONY: size-budget
+size-budget:
+	python3 scripts/size_budget.py || python scripts/size_budget.py
