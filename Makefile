@@ -81,3 +81,11 @@ healthcheck:
 .PHONY: size-budget
 size-budget:
 	python3 scripts/size_budget.py || python scripts/size_budget.py
+
+
+.PHONY: save-baselines data-quality
+save-baselines:
+	python3 scripts/save_baselines.py || python scripts/save_baselines.py
+
+data-quality:
+	python3 scripts/data_quality_run.py || python scripts/data_quality_run.py
