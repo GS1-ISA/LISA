@@ -1,5 +1,5 @@
 path,sha256,last_modified_iso,size_bytes
-/Users/frisowempe/ISA_D/.DS_Store,eee93813d63375be8af031cb6e2f158c15357fdca4a9ff0d6e511a31deb64809,2025-09-02T00:06:13.081699+00:00,12292
+/Users/frisowempe/ISA_D/.DS_Store,0d9526f57c741fd07f7347d93d51e01e22c851f4d8a51c52f80e3867dbb757ed,2025-09-02T00:08:57.064219+00:00,12292
 /Users/frisowempe/ISA_D/.agent/policy.yaml,d4aaa144d9c6649106414486f5d1734a358476387abfab6796715e37c1b27143,2025-09-01T17:41:44.518398+00:00,921
 /Users/frisowempe/ISA_D/.commitlintrc.yml,a9aa2b12b2a6574f21e3794a62ed012496f6cb712122998688c9afe52d5c8ed6,2025-09-01T19:35:06.024103+00:00,140
 /Users/frisowempe/ISA_D/.devcontainer/devcontainer.json,d8a776b7c714619dafd5cddcc812a9e712584765d4f2c90f70dccce898df2518,2025-09-01T21:56:14.353425+00:00,701
@@ -2348,7 +2348,7 @@ path,sha256,last_modified_iso,size_bytes
 /Users/frisowempe/ISA_D/diff_clean_vs_online.txt,054ffd77295c86c2ae68791d34bd67fe5cbe3659afe28ca859d0e483a5a26f10,2025-08-31T16:29:20.565867+00:00,2819
 /Users/frisowempe/ISA_D/diff_clean_vs_patched.txt,807f99b395fa62381414b26cba48fa0337e4aeb0553d27e9d6cf209abcebb6b3,2025-08-31T16:29:20.565867+00:00,2766
 /Users/frisowempe/ISA_D/diff_online_vs_patched.txt,a80888425bc06acf4ce18fba997e35fced85b3cc3e8c07d54c05a9b93a2cad75,2025-08-31T16:29:20.566054+00:00,504
-/Users/frisowempe/ISA_D/docs/.DS_Store,b049d8ee81fe607d4d2a0521665368e03072e2c1a1f64bb230cbc11fab6e552b,2025-09-02T00:06:13.080320+00:00,6148
+/Users/frisowempe/ISA_D/docs/.DS_Store,e592124008bb5d77250ea155e1738d0a93d80cd007d98e5746b8da2cde43596c,2025-09-02T00:08:57.063209+00:00,6148
 /Users/frisowempe/ISA_D/docs/ADOPTION_PLAN.md,b8b8570d165133b43755946b9588669dd433d83782648def829efc95ff53bce5,2025-09-01T23:11:33.783608+00:00,3194
 /Users/frisowempe/ISA_D/docs/ADR/0001-tooling-choice.md,29e560edf4497378fdc1db1c03f3c50b227c254dd647078eecf258a0580f5d02,2025-09-01T23:11:34.120953+00:00,790
 /Users/frisowempe/ISA_D/docs/ADR/0002-agent-safety-and-autonomy.md,00e5953c5f8d50c209f3d516ffe7ba2b36ba0ae0fc29d76cecde42abb207c8dc,2025-09-01T23:11:34.121609+00:00,1315
@@ -2360,7 +2360,7 @@ path,sha256,last_modified_iso,size_bytes
 /Users/frisowempe/ISA_D/docs/CI_WORKFLOWS.md,239eaded64f6e8914c899664b8e28e1ff04028ccf9319fb2997723cf18b56e72,2025-09-02T00:05:26.009924+00:00,3337
 /Users/frisowempe/ISA_D/docs/COST_TELEMETRY.md,b906d2ca8749b46161f8245e71c1b722713fc7b2e1c9bb44ca6ce49870876189,2025-09-01T23:11:33.783187+00:00,922
 /Users/frisowempe/ISA_D/docs/DEFINITION_OF_DONE.md,0d800f2f22dbbe1be38f767da634d2b2f0857b3b625ec67cdfa9e076cad3371c,2025-09-01T23:11:33.782444+00:00,2194
-/Users/frisowempe/ISA_D/docs/INDEX.md,afa056212dc5f258c3c119874525637b99d1595456e873c4acf7f3d51bdaa995,2025-09-02T00:06:12.069822+00:00,643
+/Users/frisowempe/ISA_D/docs/INDEX.md,b9acb2b7d10f3a408d27fc9a4df77a9fb0af27fd4186e47ba89642e673d0cd4c,2025-09-02T00:08:55.783996+00:00,4182
 /Users/frisowempe/ISA_D/docs/QUALITY_GATES.md,8794e0fb369c08a379d16fd4090c0899b9c7f33f82d29cbd86ddf0a2bbaf7ed6,2025-09-01T23:11:33.783044+00:00,3570
 /Users/frisowempe/ISA_D/docs/README.md,70eb812dd304afe16aec354bf66087a69615fb7b9e1d3a43477ec3aa4c4ba204,2025-09-02T00:06:12.069238+00:00,811
 /Users/frisowempe/ISA_D/docs/RESEARCH_KNOWLEDGE_GAPS.md,5c983fe00665240a7cbfc657ca6aef2f137d6e08d4fed62351ac287ea0155b4c,2025-09-01T23:11:33.780276+00:00,13125
@@ -2379,16 +2379,16 @@ path,sha256,last_modified_iso,size_bytes
 /Users/frisowempe/ISA_D/docs/audit/audit_report.md,d404dc2be45e23ed1e6f965788232d2b2eb984d54c2a6bf72eca3d7436a0a15b,2025-09-01T23:11:34.122319+00:00,985
 /Users/frisowempe/ISA_D/docs/audit/coherence_issues.json,4b154655c5eb6531eb9afb99542a996097cb0601246de077ca329b9db09fd332,2025-09-01T13:35:48.087914+00:00,18
 /Users/frisowempe/ISA_D/docs/audit/completeness_gap.yaml,3c29484c2082a23207b75a73a620b621bdc313f8e6b563b1258135590c6f6e53,2025-09-01T18:01:22.519954+00:00,474571
-/Users/frisowempe/ISA_D/docs/audit/docs_ref_report.md,1afe0d45b5544840a93c6730f4f5b85c9f67859bd2018e72197f57dbf1091f30,2025-09-02T00:06:12.420856+00:00,718
+/Users/frisowempe/ISA_D/docs/audit/docs_ref_report.md,e51a812eaab8a6a0fea2a5faa46440179043874427473765d6cc0304efa7c164,2025-09-02T00:08:56.128698+00:00,3851
 /Users/frisowempe/ISA_D/docs/audit/gates_status.csv,8f232a5be934a156814b723357874c19d012990e767e033b65c6578e2c6ebd77,2025-09-01T14:57:42.271609+00:00,1696
-/Users/frisowempe/ISA_D/docs/audit/inventory.csv,2c459ba080293ca3ffcb9908160b3c75f1de175dcdff4511ef57e89c6ea097c5,2025-09-02T00:06:14.887429+00:00,464362
+/Users/frisowempe/ISA_D/docs/audit/inventory.csv,b1e6cdb77fd4e42eadfeb89cfd9280386dcbe25ad308f86f3210964538167342,2025-09-02T00:08:58.275661+00:00,464363
 /Users/frisowempe/ISA_D/docs/audit/inverse_index.csv,ed3d38dcf2b9167cf0a7d81b8c5762bba9a001ce4b3e6c5f9dbc9588be022f69,2025-09-01T18:01:22.285605+00:00,193934
 /Users/frisowempe/ISA_D/docs/audit/remediation_plan.md,b595fc472a487cbc5cd897dee7416850d90289fd99b07a757b06d40860d9de8b,2025-09-01T23:11:34.122188+00:00,691
 /Users/frisowempe/ISA_D/docs/audit/rule_catalog.csv,81ecacafefb4736d36584b2a232fadc58b82cad3c0c30ee00a530ebd0ab5f23f,2025-09-01T18:01:21.503464+00:00,259047
 /Users/frisowempe/ISA_D/docs/audit/rule_confidence.csv,215cc4081af566c8a1742f65a005f59430a643f0116de80ee099b537bd224968,2025-09-01T21:31:29.566606+00:00,32742
 /Users/frisowempe/ISA_D/docs/audit/rules_extracted.csv,e71699a16c4f75a4fe2ad3930b4380846dd30bd60c785aab44ae7b7edd917441,2025-09-01T18:01:21.435249+00:00,312113
 /Users/frisowempe/ISA_D/docs/audit/scenario_simulation.md,267845022c1fda4eab158ffa5a7175c832636e69ce85adad17161c498c3e8353,2025-09-01T23:11:34.122471+00:00,3073
-/Users/frisowempe/ISA_D/docs/audit/search_index.jsonl,18bd92b12d16927710f74fb4cc3c150f55df45eaa9cf4ecd497ad66d3dd7ade7,2025-09-01T23:08:26.314667+00:00,1089306
+/Users/frisowempe/ISA_D/docs/audit/search_index.jsonl,0e8ca82f4cd572e976a1f51c20ea43d515c686f622e54461bfacca26ed816016,2025-09-02T00:06:15.300987+00:00,1208214
 /Users/frisowempe/ISA_D/docs/audit/standards_alignment.csv,e80fe543ce78fc505703c749c5cc8e7b6fd466c1b8a6f71dc004e96595235126,2025-09-01T14:04:57.473668+00:00,304834
 /Users/frisowempe/ISA_D/docs/audit/traceability_matrix.csv,8d666301ae39e2ebafde1642f020b4cc224fd7cb051d3c4e8d28e3bf1e2bed46,2025-09-01T18:01:21.578210+00:00,170973
 /Users/frisowempe/ISA_D/docs/research/.DS_Store,082c2cd8ce6819109e9699871b1448a8b2c945e701e49f4a64f9ef3d5b017945,2025-09-01T23:12:08.176414+00:00,8196
