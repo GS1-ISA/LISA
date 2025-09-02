@@ -20,3 +20,9 @@ Maintainers
 - Build index: `make index && python3 scripts/gen_docs_index.py`
 - Lint references: `make docs-lint` (see `docs/audit/docs_ref_report.md`)
 - Healthcheck: `make healthcheck` (see `docs/audit/healthcheck.md`)
+
+
+Additional Ops Docs
+- TECH_DEBT: docs/TECH_DEBT.md
+- Migration Map: docs/MONOREPO_MIGRATION_MAP.csv
+- Data Quality Plan: docs/data_quality/EXPECTATIONS_PLAN.md
