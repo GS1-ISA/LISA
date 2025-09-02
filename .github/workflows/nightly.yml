@@ -2,6 +2,8 @@ name: Deep Checks (On-Demand)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
 
 jobs:
   mutation-fuzz-bench:

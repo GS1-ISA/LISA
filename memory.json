@@ -1,0 +1,26 @@
+{
+  "entities": {
+    "ESG regulation": {
+      "type": "topic",
+      "observations": [
+        "seed:ESG regulation",
+        "auto-ingested for tests"
+      ]
+    },
+    "CSRD directive": {
+      "type": "topic",
+      "observations": [
+        "seed:CSRD directive",
+        "auto-ingested for tests"
+      ]
+    },
+    "OpenTelemetry tracing": {
+      "type": "topic",
+      "observations": [
+        "seed:OpenTelemetry tracing",
+        "auto-ingested for tests"
+      ]
+    }
+  },
+  "relations": []
+}

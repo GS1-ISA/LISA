@@ -95,6 +95,63 @@ jobs:
         with:
           name: coverage_${{ matrix.python-version }}
           path: ISA_SuperApp/coverage.xml
+      - name: Combined coverage (advisory)
+        continue-on-error: true
+        run: |
+          rm -f .coverage coverage-total.xml || true
+          # Run coverage across app and packages, appending results
+          (cd ISA_SuperApp && pytest -q --cov=src --cov-report= --maxfail=1 tests) || true
+          (cd packages/orchestrator && pytest -q --cov=src --cov-report= --cov-append tests) || true
+          (cd packages/llm && pytest -q --cov=src --cov-report= --cov-append tests) || true
+          (cd packages/dspy && pytest -q --cov=src --cov-report= --cov-append tests) || true
+          pytest -q --cov=infra/rag --cov-report= --cov-append infra/rag/tests || true
+          coverage xml -o coverage-total.xml || true
+      - name: Upload combined coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined_coverage_${{ matrix.python-version }}
+          path: coverage-total.xml
+      - name: Coverage no-regression (combined, advisory)
+        continue-on-error: true
+        run: |
+          python scripts/check_coverage_delta.py --xml coverage-total.xml || true
+      - name: Orchestrator package tests (advisory)
+        continue-on-error: true
+        run: |
+          cd packages/orchestrator && pytest -q || true
+      - name: LLM runtime package tests (advisory)
+        continue-on-error: true
+        run: |
+          cd packages/llm && pytest -q || true
+      - name: DSPy modules package tests (advisory)
+        continue-on-error: true
+        run: |
+          cd packages/dspy && pytest -q || true
+      - name: RAG splitter tests (advisory)
+        continue-on-error: true
+        run: |
+          pytest -q infra/rag/tests || true
+      - name: Research offline tests (advisory)
+        continue-on-error: true
+        run: |
+          pytest -q scripts/research/tests || true
+      - name: Build wheels (advisory)
+        continue-on-error: true
+        run: |
+          python -m pip install --upgrade build
+          python -m build packages/orchestrator || true
+          python -m build packages/llm || true
+          python -m build packages/dspy || true
+      - name: Upload wheels
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels_${{ matrix.python-version }}
+          path: |
+            packages/orchestrator/dist
+            packages/llm/dist
+            packages/dspy/dist
       - name: Coverage no-regression (advisory)
         continue-on-error: true
         run: |
@@ -103,10 +160,55 @@ jobs:
         continue-on-error: true
         run: |
           python scripts/size_budget.py || true
+      - name: Bloat Check (advisory)
+        continue-on-error: true
+        run: |
+          python3 scripts/prune_bloat.py --min-mb 25 > bloat_candidates.txt || true
+          echo "Bloat candidates written to bloat_candidates.txt"
+      - name: Upload bloat candidates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bloat_candidates_${{ matrix.python-version }}
+          path: bloat_candidates.txt
       - name: Determinism snapshots (advisory)
         continue-on-error: true
         run: |
           cd ISA_SuperApp && pytest -q tests/unit/test_snapshot_canonical_sample.py || true
+      - name: Coherence audit (advisory)
+        continue-on-error: true
+        run: |
+          python3 scripts/coherence_audit.py || true
+      - name: Upload coherence audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coherence_audit_${{ matrix.python-version }}
+          path: |
+            coherence_graph.json
+            orphans_and_dead_ends.md
+            TERMS.md
+            traceability_matrix.csv
+            COHERENCE_SCORECARD.md
+            contradiction_report.md
+      - name: Memory coherence gate (enforced)
+        run: |
+          python scripts/memory_coherence_gate.py
+      - name: Snapshot memory logs (artifact)
+        continue-on-error: true
+        run: |
+          python - << 'PY'
+          from ISA_SuperApp.src.memory.logs import MemoryEventLogger
+          logger = MemoryEventLogger()
+          n = logger.snapshot_to('docs/audit/memory_logs_snapshot.jsonl')
+          print(f'snapshotted {n} memory events')
+          PY
+      - name: Upload memory logs snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory_logs
+          path: docs/audit/memory_logs_snapshot.jsonl
       - name: Security — Bandit (advisory)
         continue-on-error: true
         run: |
@@ -135,6 +237,16 @@ jobs:
         continue-on-error: true
         run: |
           if [ -f ISA_SuperApp/mkdocs.yml ]; then cd ISA_SuperApp && mkdocs build -q || true; fi
+      - name: Healthcheck (advisory)
+        continue-on-error: true
+        run: |
+          make healthcheck || true
+      - name: Upload healthcheck
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: healthcheck_${{ matrix.python-version }}
+          path: docs/audit/healthcheck.md
       - name: Container build + smoke (advisory, significance)
         if: steps.sig.outputs.significant == 'true'
         continue-on-error: true
@@ -167,6 +279,18 @@ jobs:
         continue-on-error: true
         run: |
           python scripts/save_baselines.py || true
+          # Also store combined coverage baseline
+          if [ -f coverage-total.xml ]; then python - << 'PY'
+          import json, xml.etree.ElementTree as ET
+          from pathlib import Path
+          root = ET.parse('coverage-total.xml').getroot()
+          valid=float(root.attrib.get('lines-valid',0)); covered=float(root.attrib.get('lines-covered',0))
+          pct=(covered/valid*100.0) if valid else 0.0
+          p=Path('docs/audit/coverage_baseline.json'); p.parent.mkdir(parents=True, exist_ok=True)
+          p.write_text(json.dumps({'coverage_pct':pct}, indent=2), encoding='utf-8')
+          print('combined coverage baseline ->', p, f'({pct:.2f}%)')
+          PY
+          fi
       - name: Upload audit artifacts
         if: always()
         uses: actions/upload-artifact@v4

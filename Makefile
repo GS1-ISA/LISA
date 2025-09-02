@@ -1,8 +1,8 @@
 .PHONY: setup lint fix typecheck test ci
 
 setup:
-	python -m pip install --upgrade pip
-	pip install ruff mypy pytest pytest-cov bandit pip-audit radon
+	python3 -m pip install --upgrade pip
+	pip3 install ruff mypy pytest pytest-cov bandit pip-audit radon
 
 lint:
 	ruff format --check .
@@ -13,16 +13,24 @@ fix:
 	ruff check --fix .
 
 typecheck:
-	mypy ISA_SuperApp/src
+	python3 -m mypy ISA_SuperApp/src
 
 test:
-	pytest -q
+	cd ISA_SuperApp && python3 -m pytest -q
 
 ci: lint typecheck test
 
+.PHONY: test-cov
+test-cov:
+	cd ISA_SuperApp && python3 -m pytest -q --cov=src --cov-report=xml
+
+.PHONY: coherence-audit
+coherence-audit:
+	python3 scripts/coherence_audit.py || python scripts/coherence_audit.py
+
 .PHONY: api
 api:
-	cd ISA_SuperApp && python -m uvicorn src.api_server:app --host 127.0.0.1 --port 8787 --reload
+	cd ISA_SuperApp && python3 -m uvicorn src.api_server:app --host 127.0.0.1 --port 8787 --reload
 
 .PHONY: clean
 clean:
@@ -58,7 +66,7 @@ bench-q12:
 
 .PHONY: api otel-up otel-down
 api:
-	cd ISA_SuperApp && python -m uvicorn src.api_server:app --host 127.0.0.1 --port 8787 --reload
+	cd ISA_SuperApp && python3 -m uvicorn src.api_server:app --host 127.0.0.1 --port 8787 --reload
 
 otel-up:
 	docker compose -f infra/otel/docker-compose.yml up -d
@@ -89,3 +97,7 @@ save-baselines:
 
 data-quality:
 	python3 scripts/data_quality_run.py || python scripts/data_quality_run.py
+
+.PHONY: prune-bloat
+prune-bloat:
+	python3 scripts/prune_bloat.py --apply || python scripts/prune_bloat.py --apply

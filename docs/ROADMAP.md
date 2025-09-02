@@ -33,12 +33,41 @@ Track C — NeSy & Reasoning
 - Phase 4–5: DeepProbLog pilot; research (NeurASP, DON) offline.
 Refs: docs/TODO_NeSy.md
 
+Track MC — Memory & Context
+- Outcomes: Durable, auditable memory across short/long/structured contexts; adapters behind flags; coherent recall.
+- Phase 1: Memory router + event logs; vector/KG retrieval enrichment; advisory coherence gate in CI.
+- Phase 2: Adapters for Zep temporal KG, MemEngine, A‑MEM, AWS patterns (behind flags); privacy deletion audits; MCP protocol exploration.
+- Phase 3: Nap‑time learning promotion; memory drift thresholds tuned; flip coherence gate to enforced after 7 green days.
+- Phase 4–5: Cost/latency budgets for memory ops; retention policy + DPIA alignment; unified memory dashboards.
+Refs: docs/agents/MEMORY_ARCHITECTURE.md; docs/QUALITY_GATES.md
+
 Track D — Agentic System
 - Outcomes: Planner/Builder/Verifier/Critic with safety and rewards.
 - Phase 1: Roles, safety policies, dry-run job.
 - Phase 2–3: Reward logs, bandit strategies; eval suite; Tier‑1 autonomy.
 - Phase 4–5: SLOs, alerting; guarded Tier‑2 for low-risk edits.
 Refs: docs/AGENTIC_ARCHITECTURE.md; docs/AGENTIC_GOALS.md; docs/TODO.md
+
+Track OI — Orchestration & Interop (LangGraph, AutoGen, Runtimes, MCP)
+- Outcomes: State‑of‑the‑art orchestrator with portable runtimes and standardized tool access.
+- Phase 1: packages/orchestrator LangGraph graphs (minimal graph runner complete); feature‑flagged SuperApp /ask path invoking orchestrator; packages/llm runtime layer; CI stubs.
+- Phase 2–3: MCP client/servers (FS/Git/Build/GS1); parity tests OpenAI Responses vs Bedrock Agents; AutoGen → LangGraph promotion.
+- Phase 4–5: CI gates for orchestrator; no direct LLM calls in app; traces + evidence attached to PRs.
+Refs: docs/agents/ORCHESTRATION_ARCHITECTURE.md; docs/interop/MCP.md; docs/llm/RUNTIME_LAYER.md
+
+Track DG — Diplomacy Guild (Regulatory Intelligence)
+- Outcomes: Proactive regulatory foresight; data‑backed advocacy; Intelligence‑as‑a‑Service for members.
+- Phase 1: Automated monitoring (multilingual), role dashboards, alerting.
+- Phase 2: NLP summaries; horizon scanning; stakeholder graph; RI→SG integration.
+- Phase 3: Member portal rollout; sector packs; revenue model and support ops.
+Refs: docs/guilds/DIPLOMACY_STANDARDS_GUILDS.md
+
+Track SG — Standards Guild (Automated GSMP)
+- Outcomes: AI‑augmented lifecycle; faster time‑to‑market; higher quality and transparency.
+- Phase 1: Workshop (co‑authoring) + Forum (digital balloting) MVPs.
+- Phase 2: Opportunity Engine + Copilot; automated validation/publisher; SG↔RI loop.
+- Phase 3: Publication pipeline hardening; contributor UX; analytics & dashboards.
+Refs: docs/guilds/DIPLOMACY_STANDARDS_GUILDS.md
 
 Track E — Architecture & Platform
 - Outcomes: Clean monorepo, packages, infra, hermetic builds.
@@ -147,6 +176,10 @@ Milestone Gates (Examples)
 - Gate B: coverage ≥90% (core), mypy enforced, mapping matrix complete.
 - Gate C: ≥30% perf gain; LNN validator promoted to PR CI.
 - Gate D: security zero high/critical; SBOM and Trivy weekly green.
+- Gate M: memory coherence gate stable 7 days; nap‑time summarization active; privacy deletion audit passing.
+- Gate OI: runtime parity ≥95% on eval tasks; MCP smoke green 7 days; orchestrator-only call policy enforced; AutoGen flows promoted to LangGraph.
+- Gate DG: RI coverage/time‑to‑alert thresholds met for 7 consecutive days; horizon scanning “wins” logged; member pilot NPS ≥ target.
+- Gate SG: P50 cycle‑time ↓ ≥50% on pilot set; dissent resolution SLA met; zero critical validation defects across 7 consecutive runs.
 - Gate E: GA readiness — SLOs, privacy DPIA, release automation completed.
 
 Critical Path & Gate-Flip Conditions

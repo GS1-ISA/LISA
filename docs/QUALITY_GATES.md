@@ -15,6 +15,7 @@ Initial PR CI (advisory → enforced when stable)
 Nightly
 - Mutation (mutmut) target ≥70% score.
 - Perf budgets: fail job if >10% regression in P95 runtime.
+- Memory coherence: enforced drift gate (threshold tuned); report includes coherence scorecard.
 
 Weekly
 - CrossHair: advisory report; human triage.
@@ -48,8 +49,10 @@ Waiver Policy
 - CI posts a reminder when a waiver is within 7 days of expiry; expired waivers fail merges until renewed or resolved.
 
 
-Additional PR Gates (Advisory → Enforced)
-- Determinism snapshots: run snapshot tests for canonical JSON; flip to enforced after 7 green days.
+Additional PR Gates (Promoted)
+- Determinism snapshots: run snapshot tests for canonical JSON; promotion pending on stability window.
+- Memory coherence: gate promoted to enforced after 7 consecutive green PRs (now enforced by default).
+- Memory logs snapshot: upload JSONL memory log artifact.
 - Docs build: build MkDocs site (if present); start advisory, then enforce.
 - Container smoke: on significant changes, build Docker image and curl `/metrics`; enforce after stability.
  

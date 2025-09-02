@@ -1,0 +1,25 @@
+{
+  "docs": [
+    {
+      "id": "doc1",
+      "text": "ESG regulation impacts reporting.",
+      "meta": {}
+    },
+    {
+      "id": "doc2",
+      "text": "Tracing uses OpenTelemetry.",
+      "meta": {}
+    }
+  ],
+  "vecs": null,
+  "lex_df": {
+    "esg": 1,
+    "impacts": 1,
+    "reporting": 1,
+    "regulation": 1,
+    "uses": 1,
+    "tracing": 1,
+    "opentelemetry": 1
+  },
+  "lex_vocab_docs": 2
+}

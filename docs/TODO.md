@@ -97,6 +97,13 @@ Acceptance: mypy green; type coverage threshold recorded and tracked.
 - [ ] Nightly: mutation (mutmut), fuzz (atheris), perf benchmarks
 Acceptance: PR gate at ≥90% core; nightly mutation score ≥70% reported.
 
+6a) Memory Coherence & Audits (New)
+- [x] Add MemoryEventLogger and JSONL log; snapshot log as CI artifact
+- [x] Advisory memory coherence gate (drift check) in PR CI
+- [ ] Privacy: add deletion events and audit test (expected counts, reasons)
+- [ ] Stability: promote coherence gate to enforced after 7 green days
+Acceptance: Memory logs present on PRs; drift within threshold; deletions audited; gate promotion criteria documented.
+
 7) Mapping Correctness Matrix
 - [CP] Critical Path (to Gate B)
 - Blocked by: 6
@@ -149,6 +156,11 @@ Acceptance: Cache hits reduce repeat runtime; correctness unchanged.
  - [ ] Optional OpenTelemetry spans on pipelines
  Acceptance: Golden signals visible; trace-log correlation works.
 
+11b) Memory Observability (New)
+- [x] Memory logs snapshot artifact
+- [ ] Dashboard panel for memory events rate and drift (Grafana)
+Acceptance: Memory event rate visible; spikes investigated; drift alerts advisory.
+
 11a) Observability Enhancements
 - [ ] Low-overhead structured logging via orjson; add sampling for noisy categories
 - [ ] Standardize metrics types: counters and histograms (latency P50/P95/P99) with exemplars
@@ -172,10 +184,22 @@ Acceptance: Zero high/critical on main; SBOM attached to releases.
 - [x] Nightly and weekly workflows in place
 - [ ] Release workflow (semver, changelog, signed artifacts)
  - [x] Significance-triggered deep checks wired in CI (Semgrep, extended tests)
-- [x] Agent Check workflow (on-demand) added
-- [~] Docs build gate (advisory)
-- [~] Container build + /metrics smoke (advisory, significance)
+ - [x] Memory coherence gate enforced + memory logs snapshot uploaded
+ - [x] Combined coverage across app + packages (advisory) and baseline on main
+ - [x] Agent Check workflow (on-demand) added
+ - [~] Docs build gate (advisory)
+ - [~] Container build + /metrics smoke (advisory, significance)
 Acceptance: Green CI; release produces wheels/images and notes.
+
+14) Orchestration & Interop (LangGraph, AutoGen, Runtimes, MCP)
+- [ ] packages/orchestrator: LangGraph graphs (plan→tool→reflect; long jobs)
+- [ ] packages/agents/autogen: AutoGen teams + Studio configs; promotion pipeline to LangGraph
+- [ ] packages/llm: runtime layer (OpenAI Responses, Bedrock Agents) with one interface + parity tests
+- [ ] packages/dspy: DSPy modules for top tasks; training/compile scripts + artifacts
+- [ ] infra/rag: Pinecone ingestion/embeddings/indexers/retrievers; eval notebooks; golden datasets
+- [ ] infra/mcp: MCP client + servers (FS, Git, Build, GS1); secure defaults; smoke tests in CI
+- [x] SuperApp policy: forbid direct LLM calls (guard flag) + minimal orchestrator facade behind flag with unit test
+Acceptance: Runtime parity ≥95% on evals; MCP smoke green 7 days; PRs include traces/evidence; orchestrator-only policy verified by tests.
 
 14) Developer Experience
 - [x] Makefile tasks (setup, lint, fix, typecheck, test)
@@ -256,6 +280,33 @@ Acceptance: No regression in eval win-rate; latency/cost tracked.
 - [ ] Research: NeurASP, DON
 Acceptance: Each adapter promoted only after meeting metrics for 7 consecutive days.
 
+32) Memory Ecosystem (Adapters & Flags)
+- [x] Router + logs + tests
+- [ ] Zep adapter behind flag (temporal KG)
+- [ ] MemEngine adapter behind flag
+- [ ] A‑MEM adapter behind flag
+- [ ] AWS memory‑augmented patterns (S3/Dynamo) behind flag
+- [ ] MCP protocol for tool/context access (explore)
+- [ ] LangChain memory modules (buffer/summary/vector) parity tests
+Acceptance: Each adapter ships with parity tests, audit logs, and CI stability prior to enabling in PR path.
+
+33) Diplomacy Guild (Regulatory Intelligence)
+- [ ] Source registry and ingestion (official portals, regulators, legislative DBs) with multilingual coverage
+- [ ] NLP summaries and requirement extraction; accuracy sampling process
+- [ ] Horizon scanning models + evidence logging (predictions → outcomes)
+- [ ] Stakeholder/engagement graph; link to advocacy playbooks
+- [ ] Role dashboards + alerts; sector briefs; portal widgets for members
+- [ ] Intelligence‑as‑a‑Service packaging (tiers, SLAs, pricing); billing integration stub
+Acceptance: Coverage/time‑to‑alert meets thresholds; prediction wins logged; member pilot NPS ≥ target; audit trails present.
+
+34) Standards Guild (Automated GSMP)
+- [ ] Workshop: secure co‑authoring with version history and threaded comments
+- [ ] Forum: AI comment triage; structured dissent resolution; digital balloting
+- [ ] Opportunity Engine: proactive work item detection from RI + market/tech signals
+- [ ] Publisher: automated validation/linting; multi‑format outputs; cross‑standard checks
+- [ ] Contributor analytics; publication latency dashboard; UX hardening
+Acceptance: P50 lifecycle time ↓ ≥50% on pilot; dissent resolution SLA met; zero critical validation defects across 7 consecutive runs.
+
 23) Quality Gates Promotion
 - [ ] Flip mypy/tests/security to enforced after stability window
 - [ ] Set coverage/type thresholds in CI and document waivers
@@ -308,3 +359,46 @@ Acceptance: Integrations behind adapters; parity tests; licensing documented.
 - [ ] Onboarding: 5-minute quickstart, one-command demo
 - [ ] Architecture diagrams (current/target) updated per milestone
 Acceptance: Docs CI builds; new engineer completes onboarding in ≤5 minutes.
+
+35) Governance & Hygiene (New)
+- [x] CODEOWNERS added (granular)
+- [x] Issue templates (bug/feature) added
+- [x] SECURITY.md policy present
+- [x] Dependabot for pip (app) and GitHub Actions
+Acceptance: Automated hygiene PRs land weekly; ownership clear in PRs; security report path documented.
+
+36) Coverage & Reporting (New)
+- [x] .coveragerc added to omit tests and stdlib; branch coverage enabled
+- [x] Combined coverage across app + packages (XML) uploaded per PR
+- [x] Combined coverage baseline saved on main; advisory no-regression check
+Acceptance: Coverage trends meaningful; ready to promote to enforced gate once stable.
+
+37) Research & Web Data (Online Research / Scraping) (New)
+- [ ] Add research toolkit: `httpx`/`requests` with retry/backoff, timeout, structured logging
+- [ ] Robots/Politeness: parse robots.txt, set `User-Agent`, enforce crawl-delay, rate-limit + concurrency guard
+- [ ] Extractors: `beautifulsoup4`/`lxml` content extraction (readability-like), boilerplate removal, encoding normalization (UTF‑8)
+- [ ] Dynamic sites (optional): Playwright-driven fetch behind a feature flag; default OFF in CI and PRs
+- [ ] Compliance: capture Terms/robots snapshot; do‑not‑scrape allow/deny lists; audit log (URL, ts, status, bytes, reason)
+- [ ] Caching & Repro: on-disk cache keyed by URL+headers; content hash (SHA‑256); offline replay fixtures for tests
+- [ ] Storage & Schema: content-addressable store for HTML/text; metadata schema (url, fetched_at, mime, size, sha256, robots_rules)
+- [ ] Indexing & Memory: summarize + embed harvested docs; add to VectorIndex + KG with provenance
+- [ ] R2P Integration: auto-populate Search Ledger entries from research sessions (queries, sources, grades)
+- [ ] CI: offline tests using recorded fixtures; no live network on PR; nightly job allowed for approved seed domains
+Acceptance: Deterministic offline replay of harvested pages with ≥95% extraction success on a seed set; robots/terms respected; per-request audit logs present; summaries/index entries linked with provenance.
+
+38) Web Research Tooling & Benchmarks (New)
+- [ ] Sourcegraph/Cody integration (or local sg/rg fallback) for semantic/code example search; document privacy & rate limits
+- [ ] Example-centric search (Blueprint/Codota patterns) — process doc with prompt templates; store results as research ledgers with citations
+- [ ] Agent tool benchmarks: evaluate Cursor/Copilot Agent/Claude Code on curated PR set; log productivity metrics
+- [ ] Evaluation frameworks: adopt a small SWE‑bench/DevBench subset in nightly with fixtures; publish pass/fail and failure classes
+- [ ] Static/code health: expand Semgrep rulesets; optionally add CodeScene advisory reports
+- [ ] Onboarding assistants: VS Code explainers (GPTutor‑style) added to onboarding docs; measure time‑to‑ramp
+Acceptance: Evidence artifacts per run (summaries, ledgers, benchmark results) uploaded in CI; decisions recorded (Adopt/Hold/Reject) with ADRs for adopted tooling.
+
+Next 3 PRs (Focused)
+- PR1 — Research Connector 2 (Federal Register):
+  - Normalize fixture JSON; index into VectorIndex and KG with provenance; add offline tests; prepare nightly allowlist for API.
+- PR2 — Orchestrator App Flow (Flagged):
+  - Feature‑flagged /ask flow via GraphRunner; add explicit integration test; keep default OFF on PR CI.
+- PR3 — RAG Eval v1:
+  - Curated 3–5 queries; run offline over research_index.json; produce artifact with top hit IDs; define promotion metrics (accuracy lift, latency).

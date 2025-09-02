@@ -25,7 +25,7 @@ def canonical_dumps(obj: Any, *, use_orjson: bool | None = None) -> str:
         use_orjson = os.getenv("CANONICAL_USE_ORJSON", "0") == "1"
     if use_orjson:
         try:
-            import orjson  # type: ignore
+            import orjson
 
             # orjson.dumps returns bytes
             return orjson.dumps(

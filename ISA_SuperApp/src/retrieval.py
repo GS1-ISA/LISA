@@ -55,7 +55,7 @@ class VectorIndex:
         self.embedding_client = embedding_client or EmbeddingClient()
         self.docs: list[dict] = []
         self.vecs: Optional[list[list[float]]] = None
-        self.lex_df = Counter()
+        self.lex_df: Counter[str] = Counter()
         self.lex_vocab_docs = 0
         self._load()
 

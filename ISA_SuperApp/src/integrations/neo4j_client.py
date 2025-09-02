@@ -23,6 +23,11 @@ def verify_connection() -> Tuple[bool, str]:
         driver = GraphDatabase.driver(uri, auth=(u, p))
         with driver.session() as s:
             rec = s.run("RETURN 1 AS ok").single()
-            return (rec and rec["ok"] == 1), f"Connected to {uri}"
+            ok = False
+            try:
+                ok = bool(rec is not None and rec["ok"] == 1)
+            except Exception:
+                ok = False
+            return ok, f"Connected to {uri}"
     except Exception as e:
         return False, f"Connection error: {e}"

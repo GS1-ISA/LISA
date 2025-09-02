@@ -1,4 +1,5 @@
 Title: Technical Debt Register — Format and Cadence
+Last updated: 2025-09-02
 
 How to Use
 - Log known shortcuts, waivers, and their impact.

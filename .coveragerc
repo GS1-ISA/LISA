@@ -1,0 +1,24 @@
+[run]
+branch = True
+parallel = True
+source = 
+    ISA_SuperApp/src
+    packages/orchestrator/src
+    packages/llm/src
+    packages/dspy/src
+    infra
+omit = 
+    */tests/*
+    */__init__.py
+    */site-packages/*
+    setup.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    @dataclass
+    @overload
+    pass
+show_missing = True
+

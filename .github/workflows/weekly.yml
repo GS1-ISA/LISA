@@ -2,6 +2,8 @@ name: Formal & Supply Chain (On-Demand)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * MON'
 
 jobs:
   formal-and-sbom:

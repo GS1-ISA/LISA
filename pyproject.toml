@@ -16,3 +16,13 @@ warn_redundant_casts = true
 no_implicit_optional = true
 namespace_packages = true
 mypy_path = ["ISA_SuperApp/src"]
+
+[[tool.mypy.overrides]]
+module = [
+  "fastjsonschema",
+  "sentence_transformers",
+  "opentelemetry.*",
+  "yaml",
+  "langchain",
+]
+ignore_missing_imports = true

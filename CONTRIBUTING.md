@@ -1,4 +1,5 @@
 Title: Contributing Guide — Local Checks and Workflow
+Last updated: 2025-09-02
 
 Thanks for contributing! Please follow these steps to keep quality high and docs coherent.
 

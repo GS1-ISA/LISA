@@ -126,6 +126,13 @@ class OpenAIClient:
 
 
 def LLMClient():
+    """Factory for LLM clients.
+
+    If ISA_FORBID_DIRECT_LLM=1 is set, refuse to provide a client to enforce
+    orchestrator-only policy in environments where direct calls are disallowed.
+    """
+    if os.getenv("ISA_FORBID_DIRECT_LLM", "0") == "1":
+        raise RuntimeError("Direct LLM calls are forbidden by policy (ISA_FORBID_DIRECT_LLM=1)")
     provider = os.getenv("ISA_LLM_PROVIDER", "openrouter")
     if provider == "openai":
         return OpenAIClient()

@@ -25,6 +25,7 @@ nav:
   - Developer Guide:
       - Architecture: dev/architecture.md
       - Directory Structure: dev/structure.md
+      - Memory & Context: dev/memory.md
       - API: dev/api.md
       - Testing: dev/testing.md
       - Packaging (Desktop): dev/packaging.md
@@ -38,6 +39,7 @@ nav:
   - Agents:
       - Overview: agents/AGENTS.md
       - Gemini CLI: agents/GEMINI.md
+      - Memory Architecture: agents/MEMORY_ARCHITECTURE.md
       - Maintenance Playbook: agents/maintenance_playbook.md
   - Ops:
       - Security Notes: ops/security.md

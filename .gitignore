@@ -4,6 +4,7 @@ Thumbs.db
 *.swp
 .vscode/*
 !.vscode/tasks.json
+**/.vscode/
 
 # Python caches
 __pycache__/
@@ -21,6 +22,7 @@ semgrep.json
 build/
 dist/
 *.egg-info/
+packages/**/dist/
 
 # Local agent + lineage outputs
 agent/outcomes/
@@ -41,3 +43,6 @@ isa-c-mapping_fixed_ready/isa-c-mapping/_tmpvenv/
 # macOS artifacts (avoid parsing/formatting failures)
 __MACOSX/
 ._*
+agents-towards-production-main/
+*.zip
+coverage-total.xml

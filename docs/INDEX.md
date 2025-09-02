@@ -1,4 +1,5 @@
 # Documentation Index
+Last updated: 2025-09-02
 
 This index is generated from the docs audit search index. Use it to quickly find key documents.
 
@@ -10,6 +11,17 @@ This index is generated from the docs audit search index. Use it to quickly find
 - [Agent Operating Guide (System Prompt & Policies)](agents/AGENTS.md)
 - [Agent Outcomes Summary](audit/agent_outcomes_summary.md)
 - [Agentic Architecture — Roles, Loops, Safety, Rewards](AGENTIC_ARCHITECTURE.md)
+- [Orchestration & Interop — LangGraph, AutoGen, Runtimes, MCP](agents/ORCHESTRATION_ARCHITECTURE.md)
+- [Memory Architecture — Modular Backends, Router, Coherence Gate](agents/MEMORY_ARCHITECTURE.md)
+- [Diplomacy & Standards Guilds — Intelligence‑Driven Future](guilds/DIPLOMACY_STANDARDS_GUILDS.md)
+- [Quality Methods & Consistency Charter](QUALITY_METHODS.md)
+- [Ops Runbook — Memory Privacy DSR](ops/memory_privacy_dsr.md)
+- [Integration Prompts — Orchestrator, RAG, Interop](agents/INTEGRATION_PROMPTS.md)
+- [RAG Stack — Pinecone](rag/PINECONE_RAG.md)
+- [MCP Protocol — Client/Servers](interop/MCP.md)
+- [LLM Runtime Layer — OpenAI Responses & Bedrock Agents](llm/RUNTIME_LAYER.md)
+- [DSPy — Programmatic Prompts](dspy/PROGRAMMATIC_PROMPTS.md)
+- [Research Capabilities — Acquisition, Extraction, Provenance](RESEARCH_CAPABILITIES.md)
 - [Agentic Goals, Behaviors, and Strategy — 12–18 Month Plan](AGENTIC_GOALS.md)
 - [Agentic Scorecard — Dimensions, Rubric, and Status](AGENTIC_SCORECARD.md)
 - [CI Workflows Overview — PR, Nightly, Weekly](CI_WORKFLOWS.md)
@@ -31,8 +43,10 @@ This index is generated from the docs audit search index. Use it to quickly find
 - [Micro‑POC Protocol — Q6 ESG Models](research/q06_esg_models/poc_protocol.md)
 - [NeSy (NeuroSymbolic) Roadmap — TODOs and Acceptance Criteria](TODO_NeSy.md)
 - [Power Analysis (Template)](templates/power_analysis_template.md)
+- [Project Healthcheck](audit/healthcheck.md)
 - [Program Roadmap — Tracks, Phases, and Gates](ROADMAP.md)
 - [Quality Gates and Acceptance Thresholds](QUALITY_GATES.md)
+- [Quality Methods & Consistency Charter](QUALITY_METHODS.md)
 - [Research Operations — From Learning to Adoption (R2P)](RESEARCH_OPERATIONS.md)
 - [Research Search Ledger (Template)](templates/search_ledger_template.md)
 - [Retrospective (Template)](templates/retrospective_template.md)

@@ -7,6 +7,12 @@ PR (ci.yml)
 - Tests (pytest+coverage): advisory until thresholds met; then gate.
 - Security (bandit, pip-audit, gitleaks): advisory → gate.
 - Artifacts: coverage.xml if present; logs.
+ - Combined Coverage: runs app + packages + infra tests with coverage and uploads `coverage-total.xml`; advisory no-regression check against baseline.
+ - Memory coherence: enforced drift gate; uploads memory logs snapshot.
+ - Coherence Audit: generates repo graph and KPIs; uploads scorecard and lists.
+ - Package Wheels: builds stub package wheels (advisory) and uploads artifacts.
+  - Bloat Check: runs prune_bloat.py (dry-run) and uploads `bloat_candidates.txt` as an artifact.
+ - Memory: advisory coherence gate; snapshot of JSONL memory logs uploaded as artifact.
 
 Deep Checks (on-demand, nightly.yml via workflow_dispatch)
 - Mutation tests (mutmut) on mapping logic.
@@ -37,6 +43,25 @@ Current thresholds and critical paths (tunable)
 
 Gating Schedule
 - Start permissive (advisory) to avoid blocking; flip to gating per plan acceptance when green.
+
+Coverage Details
+- `.coveragerc` omits tests and stdlib and enables branch coverage; sources include app, packages, and infra where relevant.
+
+Bloat & LFS
+- `scripts/prune_bloat.py` identifies OS cruft, archives, and temp folders. CI uploads candidates (advisory) to keep clutter from creeping back.
+- Large/binary files should be tracked via LFS where retention is required (see `docs/ops/LFS_POLICY.md`).
+
+Promotion Criteria — Memory Coherence Gate
+- Stability: 7 consecutive PR runs with drift <= configured threshold (default 0.9) and no gate warnings.
+- Coverage: memory unit tests green (`test_memory_router.py`, `test_memory_drift.py`) across supported Python versions.
+- Artifacts: memory logs snapshot uploaded on each PR; artifact present for last 7 runs.
+- Privacy/Audit: deletion events (when present) are logged with reasons; audit test passes.
+- Flakiness: no intermittent failures attributed to memory gate during the stability window.
+Once these conditions are met, flip the memory coherence gate from advisory to enforced and document the change in `docs/QUALITY_GATES.md` and the release notes.
+
+Planned CI (Guilds)
+- Diplomacy Guild: ingestion coverage checks, summary sampling accuracy, horizon‑scanning evidence logging.
+- Standards Guild: co‑authoring/publisher lint jobs, digital balloting smoke, dissent resolution workflow tests.
 
 Automation — Git & PR Management
 - Auto PR on push (auto_pr.yml): opens a PR to `main` for any branch push; adds `autoupdate` label.

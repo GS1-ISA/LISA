@@ -9,6 +9,8 @@ Describe the change, motivation, and scope.
 - [ ] Typecheck clean (mypy) or waivers documented
 - [ ] Tests updated/added and green (advisory until gates flip)
 - [ ] Determinism preserved (snapshots/canonical outputs where applicable)
+- [ ] Memory coherence reviewed (gate output and memory logs snapshot in CI artifacts)
+- [ ] Coherence audit reviewed (coherence scorecard and orphans list in CI artifacts)
 - [ ] Security reviewed (Bandit/pip-audit output); no secrets committed
 - [ ] Docs updated (README/CHANGELOG/runbooks as needed)
 - [ ] Rollback plan noted
@@ -39,4 +41,3 @@ Describe the change, motivation, and scope.
 - POC protocol link: 
 - Replication notes: 
 - Decision (Adopt/Hold/Reject): 
-

@@ -10,21 +10,21 @@ def _install_trace_log_factory() -> None:
     include them without KeyError.
     """
     try:
-        from opentelemetry.trace import get_current_span  # type: ignore
+        from opentelemetry.trace import get_current_span
     except Exception:
         # Install a factory that still provides empty fields
-        def factory(record: logging.LogRecord) -> logging.LogRecord:  # type: ignore[override]
+        def factory(record: logging.LogRecord) -> logging.LogRecord:
             record.trace_id = ""
             record.span_id = ""
             return record
 
-        logging.setLogRecordFactory(factory)  # type: ignore[arg-type]
+        logging.setLogRecordFactory(factory)
         return
 
     old_factory = logging.getLogRecordFactory()
 
-    def factory(*args, **kwargs):  # type: ignore[override]
-        record = old_factory(*args, **kwargs)  # type: ignore[misc]
+    def factory_with_trace(*args, **kwargs):
+        record = old_factory(*args, **kwargs)
         try:
             span = get_current_span()
             ctx = span.get_span_context() if span is not None else None
@@ -39,7 +39,7 @@ def _install_trace_log_factory() -> None:
             record.span_id = ""
         return record
 
-    logging.setLogRecordFactory(factory)  # type: ignore[arg-type]
+    logging.setLogRecordFactory(factory_with_trace)
 
 
 def setup_logging():

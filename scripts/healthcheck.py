@@ -42,6 +42,15 @@ def main() -> int:
     rc, out = run(["python3", "scripts/docs_ref_lint.py"])
     md.append(section("docs-ref-lint", out))
 
+    # Coherence audit
+    rc, out = run(["python3", "scripts/coherence_audit.py"])
+    md.append(section("coherence-audit", out))
+    try:
+        score = (ROOT / "COHERENCE_SCORECARD.md").read_text(encoding="utf-8")
+        md.append(section("coherence-scorecard", score))
+    except Exception:
+        md.append(section("coherence-scorecard", "No scorecard found."))
+
     REPORT.write_text("\n".join(md), encoding="utf-8")
     print(f"wrote {REPORT}")
     return 0
