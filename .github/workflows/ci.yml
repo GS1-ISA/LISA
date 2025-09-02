@@ -99,6 +99,10 @@ jobs:
         continue-on-error: true
         run: |
           python scripts/check_coverage_delta.py || true
+      - name: Repo size budget (advisory)
+        continue-on-error: true
+        run: |
+          python scripts/size_budget.py || true
       - name: Determinism snapshots (advisory)
         continue-on-error: true
         run: |
@@ -158,6 +162,20 @@ jobs:
         continue-on-error: true
         run: |
           cd ISA_SuperApp && pytest -q --maxfail=1 --durations=10 || true
+      - name: Save baselines on main
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          python scripts/save_baselines.py || true
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit_artifacts_${{ matrix.python-version }}
+          path: |
+            docs/audit/coverage_baseline.json
+            docs/audit/size_baseline.json
+            docs/audit/docs_ref_report.md
   secrets:
     runs-on: ubuntu-latest
     steps:
