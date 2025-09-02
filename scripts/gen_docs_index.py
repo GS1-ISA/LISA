@@ -34,8 +34,10 @@ def main() -> int:
     lines.append("")
     for r in rows:
         rel = r.get("rel", "")
-        title = r.get("title") or rel
-        lines.append(f"- [{title}]({rel})")
+        # links should be relative to docs/, so strip leading 'docs/' if present
+        link = rel[5:] if rel.startswith("docs/") else rel
+        title = r.get("title") or link
+        lines.append(f"- [{title}]({link})")
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"wrote {OUT}")
     return 0

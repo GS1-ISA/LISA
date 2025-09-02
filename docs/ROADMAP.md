@@ -54,7 +54,7 @@ Track R — Knowledge Gaps & Ecosystem Research
 - Phase 0.5: Produce 30 research questions (agentic loops, NeSy, LLMOps, data quality/governance, privacy/security, observability/SRE, performance, UX, CI/CD); build evaluation rubric (Impact, Ease, Maturity, Alignment, Cost); shortlist tools/services/frameworks/repos; run 3–5 micro‑POCs.
 - Phase 2–3: Adopt and integrate the best candidates behind adapters/feature flags; write ADRs; retire lower‑value options.
 - Phase 4–5: Continuous scanning with quarterly reviews; ensure parity tests and vendor lock‑in protections.
-Refs: docs/TODO.md (Knowledge Gaps Research); docs/RESEARCH_KNOWLEDGE_GAPS.md
+Refs: docs/RESEARCH_KNOWLEDGE_GAPS.md
 
 Track F — Quality Engineering
 - Outcomes: Style/lint/type gates, high coverage, mutation/fuzz in nightly.
@@ -106,7 +106,7 @@ Track K — CI/CD & Release Engineering
 - Phase 1: PR CI + scheduled jobs.
 - Phase 3–4: Release automation (semver/changelog); signed artifacts roadmap.
 - Phase 5: Preview envs per PR; SLSA controls.
-Refs: .github/workflows/*; docs/CI_WORKFLOWS.md; docs/TODO.md
+Refs: docs/CI_WORKFLOWS.md
 
 Track L — DevEx & Tooling
 - Outcomes: 5‑minute onboarding, smooth local dev.
@@ -140,7 +140,7 @@ Track P — Risk, Governance & Legal
 - Phase 1: ADRs, CODEOWNERS, TECH_DEBT.md; license scan.
 - Phase 3–4: DPIA/DSR alignment; legal review of third‑party terms.
 - Phase 5: Periodic audits; policy automation.
-Refs: docs/ADR/*; docs/TODO.md
+Refs: docs/ADR
 
 Milestone Gates (Examples)
 - Gate A: ruff enforced; PR CI green; monorepo ready.

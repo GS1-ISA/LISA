@@ -1,3 +1,4 @@
+Title: Phase 9 — Scenario Simulation
 Last updated: 2025-09-02
 ## Phase 9 — Scenario Simulation
 

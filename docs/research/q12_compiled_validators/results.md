@@ -1,3 +1,4 @@
+Title: POC Q12 — Validation Performance
 Last updated: 2025-09-02
 
 POC Q12 — Validation Performance (Pydantic v2 vs fastjsonschema)
