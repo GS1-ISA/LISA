@@ -4,6 +4,7 @@ import subprocess
 from dataclasses import asdict
 
 from fastapi import FastAPI, Form, Request
+from pydantic import BaseModel
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -74,6 +75,23 @@ async def admin_interface(request: Request):
 async def chat(request: Request, user_input: str = Form(...), session_id: str = Form(...)):
     response = orchestrator.process_user_input(user_input, session_id)
     return {"response": response}
+
+
+class AskPayload(BaseModel):
+    question: str
+    explain: bool | None = False
+
+
+@app.post("/ask")
+async def ask(payload: AskPayload):
+    """Compatibility endpoint used by integration tests.
+
+    Accepts a JSON body with {question, explain} and returns an answer (and optionally explanation).
+    """
+    if payload.explain:
+        answer, meta = orchestrator.ask(payload.question, explain=True)
+        return {"answer": answer, "meta": meta}
+    return {"answer": orchestrator.ask(payload.question, explain=False)}
 
 
 @app.post("/validate")

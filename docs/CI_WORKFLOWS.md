@@ -53,3 +53,4 @@ Local-First Utilities (make)
 - `make docs-lint`: Lint markdown titles, links, and Refs; report to `docs/audit/docs_ref_report.md`.
 - `make pr-notes`: Generate `agent/outcomes/PR_NOTES.md` with Plan/Diff/Evidence ready for PRs.
 - `make outcomes-summary`: Summarize agent outcomes to `docs/audit/agent_outcomes_summary.md`.
+- `make healthcheck`: Run lint, types (advisory), determinism snapshot, security scans, and docs lint; report to `docs/audit/healthcheck.md`.
