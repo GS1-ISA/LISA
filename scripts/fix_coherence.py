@@ -36,10 +36,14 @@ def main() -> int:
 
     # Example: ensure core docs cross-link
     repo = Path(__file__).resolve().parents[1]
-    insert_link(repo / "docs/AGENTIC_ARCHITECTURE.md", "agents/ORCHESTRATION_ARCHITECTURE.md", "Orchestration & Interop", dry_run=ns.dry_run)
+    insert_link(
+        repo / "docs/AGENTIC_ARCHITECTURE.md",
+        "agents/ORCHESTRATION_ARCHITECTURE.md",
+        "Orchestration & Interop",
+        dry_run=ns.dry_run,
+    )
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

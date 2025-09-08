@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-
 ROOT = Path.cwd()
 DOCS = ROOT / "docs"
 REPORT = DOCS / "audit" / "docs_ref_report.md"
@@ -38,7 +37,15 @@ def check_title(path: Path) -> list[Finding]:
         if s.startswith("Title:") or s.startswith("# "):
             ok = True
             break
-    return [] if ok else [Finding(path, "title", "missing Title: or top-level heading in first 5 lines")]
+    return (
+        []
+        if ok
+        else [
+            Finding(
+                path, "title", "missing Title: or top-level heading in first 5 lines"
+            )
+        ]
+    )
 
 
 def check_links(path: Path) -> list[Finding]:
@@ -93,4 +100,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

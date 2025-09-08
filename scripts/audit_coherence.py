@@ -47,7 +47,11 @@ def dockerfile_copy_refs() -> list[dict[str, str]]:
             # ignore wildcard/globs
             if "*" in src:
                 continue
-            rel = str((df.parent / src).relative_to(ROOT)) if not src.startswith("/") else src[1:]
+            rel = (
+                str((df.parent / src).relative_to(ROOT))
+                if not src.startswith("/")
+                else src[1:]
+            )
             if not path_exists(rel):
                 issues.append(
                     {
@@ -91,7 +95,9 @@ def main() -> int:
 
     out = ROOT / "docs" / "audit" / "coherence_issues.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"issues": issues}, ensure_ascii=False, indent=2), encoding="utf-8")
+    out.write_text(
+        json.dumps({"issues": issues}, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(f"Wrote {out} (issues={len(issues)})")
     return 0
 

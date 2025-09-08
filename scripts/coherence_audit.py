@@ -19,7 +19,15 @@ OUT_COHE = ROOT / "COHERENCE_SCORECARD.md"
 OUT_CONTRA = ROOT / "contradiction_report.md"
 
 
-IGNORE_DIRS = {".git", ".venv", "__pycache__", ".ruff_cache", "temp_unzip", "__MACOSX"}
+IGNORE_DIRS = {
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".ruff_cache",
+    "temp_unzip",
+    "__MACOSX",
+    "_archive",
+}
 
 
 def walk_files(base: Path) -> Iterable[Path]:
@@ -101,6 +109,7 @@ def main() -> int:
     term_freq: Dict[str, int] = defaultdict(int)
 
     files = list(walk_files(ROOT))
+
     # Helper to resolve import/module names to file paths best-effort
     def resolve_module_to_path(mod: str) -> str | None:
         # heuristic: 'src.foo.bar' -> 'ISA_SuperApp/src/foo/bar.py'
@@ -142,10 +151,13 @@ def main() -> int:
 
     # Write graph
     OUT_GRAPH.write_text(
-        json.dumps({
-            "nodes": [asdict(n) for n in nodes.values()],
-            "edges": [asdict(e) for e in edges],
-        }, indent=2),
+        json.dumps(
+            {
+                "nodes": [asdict(n) for n in nodes.values()],
+                "edges": [asdict(e) for e in edges],
+            },
+            indent=2,
+        ),
         encoding="utf-8",
     )
 
@@ -157,7 +169,12 @@ def main() -> int:
         indeg[e.dst] += 1
     orphans = [n for n in nodes if indeg[n] == 0]
     deadends = [n for n in nodes if outdeg[n] == 0]
-    md = ["# Orphans and Dead-Ends", "", f"Total nodes: {len(nodes)} | edges: {len(edges)}", ""]
+    md = [
+        "# Orphans and Dead-Ends",
+        "",
+        f"Total nodes: {len(nodes)} | edges: {len(edges)}",
+        "",
+    ]
     md.append("## Orphans (no incoming references)")
     md += [f"- {n}" for n in sorted(orphans)[:200]]
     md.append("")
@@ -168,7 +185,11 @@ def main() -> int:
     # Terms
     terms_sorted = sorted(term_freq.items(), key=lambda x: (-x[1], x[0]))
     OUT_TERMS.write_text(
-        "\n".join(["# TERMS", "", "Env/Identifiers (frequency)"] + [f"- {k}: {v}" for k, v in terms_sorted[:500]]) + "\n",
+        "\n".join(
+            ["# TERMS", "", "Env/Identifiers (frequency)"]
+            + [f"- {k}: {v}" for k, v in terms_sorted[:500]]
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -190,11 +211,15 @@ def main() -> int:
     OUT_TRACE.write_text("\n".join(trace_lines) + "\n", encoding="utf-8")
 
     # Contradiction report placeholder
-    OUT_CONTRA.write_text("# Contradiction Report\n\nNo contradictions automatically detected in this pass.\n", encoding="utf-8")
+    OUT_CONTRA.write_text(
+        "# Contradiction Report\n\nNo contradictions automatically detected in this pass.\n",
+        encoding="utf-8",
+    )
 
     # Coherence KPIs
-    ref_density = (len(edges) / max(1, len(nodes)))
-    orphan_ratio = (len(orphans) / max(1, len(nodes)))
+    ref_density = len(edges) / max(1, len(nodes))
+    orphan_ratio = len(orphans) / max(1, len(nodes))
+
     # Simple scoring
     def to_score_refdensity(x: float) -> int:
         # Heuristic: 0.5 edges/node -> 80; 1.0 -> 100

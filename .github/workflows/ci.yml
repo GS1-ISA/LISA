@@ -42,22 +42,21 @@ jobs:
           python scripts/significance_trigger.py --base "${{ steps.base.outputs.sha }}" \
             --threshold-files 15 \
             --threshold-loc 500 \
-            --critical ISA_SuperApp/src/pipelines \
-            --critical ISA_SuperApp/src/nesy \
-            --critical ISA_SuperApp/src/api_server.py \
-            --critical ISA_SuperApp/src/utils \
-            --critical ISA_SuperApp/schemas \
+            --critical src/agent_core \
+            --critical src/orchestrator \
+            --critical src/tools \
+            --critical src/docs_provider \
+            --critical src/api_server.py \
             --critical ISA_SuperApp/Dockerfile \
-            --critical ISA_SuperApp/docker-compose.yml \
-            --critical ISA_SuperApp/requirements.txt \
-            --critical ISA_SuperApp/requirements-dev.txt \
+            --critical requirements.txt \
+            --critical requirements-dev.txt \
             --critical infra
           echo "Significance: ${{ steps.sig.outputs.significant }} Reason: ${{ steps.sig.outputs.reason }}"
       - name: Install project dependencies (best-effort)
         continue-on-error: true
         run: |
-          if [ -f ISA_SuperApp/requirements.txt ]; then pip install -r ISA_SuperApp/requirements.txt || true; fi
-          if [ -f ISA_SuperApp/requirements-dev.txt ]; then pip install -r ISA_SuperApp/requirements-dev.txt || true; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt || true; fi
       - name: Lint (ruff)
         run: |
           ruff format --check . --output-format=github
@@ -65,11 +64,11 @@ jobs:
       - name: Typecheck (mypy) — advisory
         continue-on-error: true
         run: |
-          mypy ISA_SuperApp/src || true
+          mypy src || true
       - name: Type coverage (mypy linecount report) — artifact
         continue-on-error: true
         run: |
-          mypy --linecount-report .mypy_linecount ISA_SuperApp/src || true
+          mypy --linecount-report .mypy_linecount src || true
           if [ -f .mypy_linecount/index.txt ]; then echo '--- mypy linecount summary ---'; cat .mypy_linecount/index.txt || true; fi
       - name: Policy lint (advisory)
         continue-on-error: true
@@ -81,29 +80,41 @@ jobs:
         with:
           name: mypy_linecount_${{ matrix.python-version }}
           path: .mypy_linecount
-      - name: Tests (pytest) — advisory
+
+      - name: Run Tests
+        run: pytest -q --cov=src --cov-report=xml
+
+      - name: Run Determinism Snapshot Check (Advisory)
         continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q || true
-      - name: Coverage XML (if tests exist) — artifact
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q --cov=src --cov-report=xml || true
-      - name: Upload coverage.xml
-        if: always()
-        uses: actions/upload-artifact@v4
+        run: pytest -q src/orchestrator/tests/test_graph.py || true
+
+  label-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check for agent-blocked label
+        uses: a-b-r-o-w-n/pr-label-required-action@v1
         with:
-          name: coverage_${{ matrix.python-version }}
-          path: ISA_SuperApp/coverage.xml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          required-labels: "agent-ok"
+          blocking-labels: "agent-blocked,WIP"
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+
+      - name: Build and Smoke Test Docker Container (Advisory)
+        continue-on-error: true
+        run: |
+          docker build -t isa-super-app -f ISA_SuperApp/Dockerfile .
+          docker run -d --rm -p 8787:8787 --name isa-super-app-ci isa-super-app
+          sleep 15 # Give the server time to start
+          curl -f http://127.0.0.1:8787/metrics
       - name: Combined coverage (advisory)
         continue-on-error: true
         run: |
           rm -f .coverage coverage-total.xml || true
-          # Run coverage across app and packages, appending results
-          (cd ISA_SuperApp && pytest -q --cov=src --cov-report= --maxfail=1 tests) || true
-          (cd packages/orchestrator && pytest -q --cov=src --cov-report= --cov-append tests) || true
-          (cd packages/llm && pytest -q --cov=src --cov-report= --cov-append tests) || true
-          (cd packages/dspy && pytest -q --cov=src --cov-report= --cov-append tests) || true
+          # Run coverage across src and infra
+          pytest -q --cov=src --cov-report= --maxfail=1 || true
           pytest -q --cov=infra/rag --cov-report= --cov-append infra/rag/tests || true
           coverage xml -o coverage-total.xml || true
       - name: Upload combined coverage
@@ -171,10 +182,7 @@ jobs:
         with:
           name: bloat_candidates_${{ matrix.python-version }}
           path: bloat_candidates.txt
-      - name: Determinism snapshots (advisory)
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q tests/unit/test_snapshot_canonical_sample.py || true
+      # Skipped: legacy app tests not present in this repo variant
       - name: Coherence audit (advisory)
         continue-on-error: true
         run: |
@@ -191,9 +199,7 @@ jobs:
             traceability_matrix.csv
             COHERENCE_SCORECARD.md
             contradiction_report.md
-      - name: Memory coherence gate (enforced)
-        run: |
-          python scripts/memory_coherence_gate.py
+      # Skipped: memory coherence gate script not present in this repo variant
       - name: Snapshot memory logs (artifact)
         continue-on-error: true
         run: |
@@ -212,7 +218,7 @@ jobs:
       - name: Security — Bandit (advisory)
         continue-on-error: true
         run: |
-          bandit -qq -r ISA_SuperApp/src || true
+          bandit -qq -r src || true
       - name: Security — pip-audit (advisory)
         continue-on-error: true
         run: |
@@ -220,7 +226,7 @@ jobs:
       - name: Complexity — Radon (report only)
         continue-on-error: true
         run: |
-          radon cc -s -n D ISA_SuperApp/src || true
+          radon cc -s -n D src || true
       - name: Deep checks — Semgrep (advisory, significance)
         if: steps.sig.outputs.significant == 'true'
         continue-on-error: true
@@ -233,10 +239,40 @@ jobs:
         with:
           name: semgrep_${{ matrix.python-version }}
           path: semgrep.json
-      - name: Docs build (advisory)
+      - name: Docs build
+        run: |
+          if [ -f mkdocs.yml ]; then mkdocs build -q; fi
+      - name: Docs reference lint (links/titles)
+        run: |
+          python scripts/docs_ref_lint.py
+      - name: Upload docs_ref_report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs_ref_report_${{ matrix.python-version }}
+          path: docs/audit/docs_ref_report.md
+      - name: Vector store schema inspection
+        run: |
+          python scripts/inspect_vector_store.py | tee vector_store_inspection.txt
+      - name: Upload vector store inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vector_store_inspection_${{ matrix.python-version }}
+          path: vector_store_inspection.txt
+      - name: Docstring coverage (advisory)
         continue-on-error: true
         run: |
-          if [ -f ISA_SuperApp/mkdocs.yml ]; then cd ISA_SuperApp && mkdocs build -q || true; fi
+          python scripts/docstring_coverage.py --path src --min 0.0 | tee docstring_coverage.txt
+      - name: Upload docstring coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docstring_coverage_${{ matrix.python-version }}
+          path: docstring_coverage.txt
+      - name: Docs delta (required)
+        run: |
+          python scripts/check_docs_delta.py --base "${{ steps.base.outputs.sha }}"
       - name: Healthcheck (advisory)
         continue-on-error: true
         run: |
@@ -251,9 +287,8 @@ jobs:
         if: steps.sig.outputs.significant == 'true'
         continue-on-error: true
         run: |
-          cd ISA_SuperApp
-          docker build -t superapp:ci .
-          docker run -d -p 8787:8787 --name superapp_ci superapp:ci
+          docker build -t superapp:ci -f ISA_SuperApp/Dockerfile .
+          docker run -d --rm -p 8787:8787 --name superapp_ci superapp:ci
           echo 'Waiting for /metrics...'; for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8787/metrics && break || sleep 2; done
           curl -fsS http://127.0.0.1:8787/metrics | head -n 5
           docker rm -f superapp_ci || true

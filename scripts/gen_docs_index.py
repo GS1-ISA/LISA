@@ -30,7 +30,9 @@ def main() -> int:
     lines: list[str] = []
     lines.append("# Documentation Index")
     lines.append("")
-    lines.append("This index is generated from the docs audit search index. Use it to quickly find key documents.")
+    lines.append(
+        "This index is generated from the docs audit search index. Use it to quickly find key documents."
+    )
     lines.append("")
     for r in rows:
         rel = r.get("rel", "")
@@ -45,4 +47,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

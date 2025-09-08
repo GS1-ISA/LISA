@@ -12,4 +12,3 @@ def test_index_tr_fixture_builds_vector_index(tmp_path: Path):
     # Sanity load of the storage to ensure JSON structure is present
     data = storage.read_text(encoding="utf-8")
     assert '"docs"' in data
-

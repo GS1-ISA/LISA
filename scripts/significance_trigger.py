@@ -46,10 +46,14 @@ def touched_critical(changed: list[str], critical: list[str]) -> tuple[bool, str
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", required=True, help="Base commit/branch/sha to diff against")
+    ap.add_argument(
+        "--base", required=True, help="Base commit/branch/sha to diff against"
+    )
     ap.add_argument("--threshold-files", type=int, default=25)
     ap.add_argument("--threshold-loc", type=int, default=800)
-    ap.add_argument("--critical", action="append", default=[], help="Critical prefixes to watch")
+    ap.add_argument(
+        "--critical", action="append", default=[], help="Critical prefixes to watch"
+    )
     args = ap.parse_args()
 
     files = diff_files(args.base)

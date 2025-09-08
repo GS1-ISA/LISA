@@ -12,6 +12,26 @@ Initial PR CI (advisory → enforced when stable)
 - Security (bandit, pip-audit, gitleaks): advisory → enforced once baseline issues triaged.
 - Complexity (radon): advisory with budget (most functions < 10).
 
+### Source Code Governance
+
+All Python source files (`**/*.py`) within the `src/`, `scripts/`, and `agent/` directories are governed by the following standard quality gates as defined in the `ci.yml` workflow:
+
+- **Linting**: Must pass `ruff check`.
+- **Formatting**: Must pass `ruff format --check`.
+- **Type Checking**: Must pass `mypy` with no errors (once the gate is enforced).
+- **Testing**: Must be covered by `pytest` unit or integration tests where applicable. Core logic should strive for >90% coverage.
+- **Security**: Must pass `bandit` and `pip-audit` scans with no high/critical vulnerabilities.
+
+### Test File Governance
+
+All test files (`**/tests/**/*.py`) are considered part of the project's quality assurance framework. They are executed via `pytest` in the CI pipeline and must adhere to the same linting and formatting standards as source code.
+
+### Configuration and Artifact Governance
+
+Project configuration files (`.yml`, `.toml`, `.yaml`, `Dockerfile`, etc.) are governed by the principle of "working as configured." They must be parsable and are validated by the CI jobs that consume them (e.g., the `docker build` and `commitlint` jobs).
+
+All GitHub workflow files (`.github/workflows/*.yml`) are governed by the `CI_WORKFLOWS.md` document.
+
 Nightly
 - Mutation (mutmut) target ≥70% score.
 - Perf budgets: fail job if >10% regression in P95 runtime.
@@ -22,7 +42,7 @@ Weekly
 - SBOM + Trivy: zero high/critical; treat as break-glass gate.
 
 Dependencies & Audit Policy
-- Dependency manifests: `ISA_SuperApp/requirements.txt`, `ISA_SuperApp/requirements-dev.txt`, root `pyproject.toml`, and package-level `requirements*.txt`.
+- Dependency manifests: `requirements.txt`, `requirements-dev.txt`, and any `pyproject.toml` files.
 - pip-audit runs in PR CI (advisory → enforced) against these manifests; remediation is required for high/critical.
 - SBOM (syft) generated weekly; Trivy scans track CVEs; zero high/critical on `main` is the promotion condition for security gates.
 

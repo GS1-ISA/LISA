@@ -35,6 +35,7 @@ def normalize_fr_entries(data: dict) -> List[FRDoc]:
             pub = datetime.fromisoformat(pub).date().isoformat()
         except Exception:
             pass
-        docs.append(FRDoc(title=title, html_url=url, publication_date=pub, doc_type=doc_type))
+        docs.append(
+            FRDoc(title=title, html_url=url, publication_date=pub, doc_type=doc_type)
+        )
     return docs
-

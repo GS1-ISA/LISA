@@ -1,7 +1,0 @@
-{
-  "name": "isa-superapp-desktop",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Minimal Electron scaffold placeholder for tests",
-  "main": "main.js"
-}

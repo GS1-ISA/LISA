@@ -36,10 +36,12 @@ Agent Check (on-demand, agent_check.yml)
 
 Current thresholds and critical paths (tunable)
 - Thresholds: files changed > 15 OR total LOC delta (adds+deletes) > 500
-- Critical paths (any touch triggers deep checks):
-  - `ISA_SuperApp/src/pipelines`, `ISA_SuperApp/src/nesy`, `ISA_SuperApp/src/utils`, `ISA_SuperApp/src/api_server.py`
-  - `ISA_SuperApp/schemas`, `ISA_SuperApp/Dockerfile`, `ISA_SuperApp/docker-compose.yml`
-  - `ISA_SuperApp/requirements.txt`, `ISA_SuperApp/requirements-dev.txt`, `infra/`
+- Critical paths (any touch triggers deep checks) — this repository variant:
+  - Core agents/orchestrator: `src/agent_core/**`, `src/orchestrator/**`
+  - Research tooling and memory: `src/tools/**`, `src/docs_provider/**`, `infra/rag/**`
+  - CI/Infra and dependency surfaces: `.github/workflows/**`, `infra/**`, `requirements*.txt`, `pyproject.toml`, `Makefile`
+  
+  Historical paths referencing `ISA_SuperApp/**` apply to the API‑first variant and are not active here.
 
 Gating Schedule
 - Start permissive (advisory) to avoid blocking; flip to gating per plan acceptance when green.
@@ -64,15 +66,21 @@ Planned CI (Guilds)
 - Standards Guild: co‑authoring/publisher lint jobs, digital balloting smoke, dissent resolution workflow tests.
 
 Automation — Git & PR Management
-- Auto PR on push (auto_pr.yml): opens a PR to `main` for any branch push; adds `autoupdate` label.
-- PR Labeler (labeler.yml): applies labels by path; adds `autoupdate` to all PRs.
-- Auto update PR branch (auto_update.yml): rebases/merges `main` into PRs labeled `autoupdate`.
-- Auto format (format_autocommit.yml): applies `ruff format` and commits back to same-repo PR branches.
-- Commit message lint (commitlint.yml): enforces Conventional Commits on PRs.
-- Auto-merge (automerge.yml): when `automerge` label present and checks pass, enables squash auto-merge.
-- Releases (release-please.yml): drafts release PRs and tags based on commit history.
-- Docs auto-sync (docs_auto_sync.yml): updates “Last updated” lines in docs and opens a PR.
-- Research benches (poc_bench.yml): runs Q11/Q12 micro-benches and opens a PR with results.
+- Auto PR on push (`auto_pr.yml`): opens a PR to `main` for any branch push; adds `autoupdate` label.
+- PR Labeler (`labeler.yml`): applies labels by path; adds `autoupdate` to all PRs.
+- Auto update PR branch (`auto_update.yml`): rebases/merges `main` into PRs labeled `autoupdate`.
+- Auto format (`format_autocommit.yml`): applies `ruff format` and commits back to same-repo PR branches.
+- Commit message lint (`commitlint.yml`): enforces Conventional Commits on PRs.
+- Auto-merge (`automerge.yml`): when `automerge` label present and checks pass, enables squash auto-merge.
+- Releases (`release-please.yml`): drafts release PRs and tags based on commit history.
+- Docs auto-sync (`docs_auto_sync.yml`): updates “Last updated” lines in docs and opens a PR.
+- Research benches (`poc_bench.yml`): runs Q11/Q12 micro-benches and opens a PR with results.
+- Context7 Parity (`context7.yml`): runs documentation parity checks against the live provider (requires secrets).
+- Repository Index (`repo_index.yml`): Periodically runs the `make index` command.
+- Tidy (`tidy.yml`): A workflow for general repository maintenance tasks.
+
+Container Smoke Tests
+- Some CI jobs reference building and curling an API container (`uvicorn src.api_server:app ...`). This repository does not include `src/api_server.py`; those steps are advisory/no‑op unless you add a minimal FastAPI app.
 
 Local-First Utilities (make)
 - `make docs-lint`: Lint markdown titles, links, and Refs; report to `docs/audit/docs_ref_report.md`.

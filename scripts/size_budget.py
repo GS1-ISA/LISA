@@ -7,6 +7,7 @@ from pathlib import Path
 
 BASELINE = Path("docs/audit/size_baseline.json")
 
+
 def repo_disk_usage() -> int:
     # approximate: sum of file sizes under git ls-files
     total = 0
@@ -56,6 +57,7 @@ def main() -> int:
     if baseline.get("files", 0) > 0 and pct(files_delta, baseline["files"]) > 10.0:
         print("WARNING: file count increased >10% since baseline")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

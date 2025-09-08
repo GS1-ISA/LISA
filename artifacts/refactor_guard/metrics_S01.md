@@ -1,0 +1,1 @@
+# Canary Dashboard (local stub)

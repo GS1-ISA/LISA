@@ -92,7 +92,9 @@ def main() -> int:
         w = csv.writer(f)
         w.writerow(["Gate", "File", "Present", "Enforced", "Line", "Evidence", "Notes"])
         for g in rows:
-            w.writerow([g.name, str(g.file), g.present, g.enforced, g.line, g.snippet, g.notes])
+            w.writerow(
+                [g.name, str(g.file), g.present, g.enforced, g.line, g.snippet, g.notes]
+            )
     print(f"Wrote {out_csv}")
     return 0
 

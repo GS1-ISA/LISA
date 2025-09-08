@@ -2,14 +2,13 @@
 from __future__ import annotations
 
 import csv
+import datetime as dt
 import hashlib
 import json
 import os
 import sys
-import datetime as dt
 from pathlib import Path
 from typing import Iterable
-
 
 ROOT = Path.cwd()
 AUDIT_DIR = ROOT / "docs" / "audit"
@@ -73,7 +72,7 @@ def top_md_title(lines: list[str]) -> str:
     for i, line in enumerate(lines[:10]):
         s = line.strip()
         if s.startswith("Title:"):
-            return s[len("Title:"):].strip()
+            return s[len("Title:") :].strip()
         if s.startswith("# "):
             return s[2:].strip()
     return ""
@@ -99,7 +98,9 @@ def write_inventory(files: list[Path]) -> None:
             try:
                 st = p.stat()
                 sha = sha256_file(p)
-                mtime = dt.datetime.fromtimestamp(st.st_mtime, tz=dt.timezone.utc).isoformat()
+                mtime = dt.datetime.fromtimestamp(
+                    st.st_mtime, tz=dt.timezone.utc
+                ).isoformat()
                 w.writerow([str(p.resolve()), sha, mtime, st.st_size])
             except Exception:
                 continue
@@ -116,7 +117,9 @@ def write_search_index(files: list[Path]) -> None:
                     "rel": str(p.relative_to(ROOT)),
                     "ext": p.suffix.lower(),
                     "size": st.st_size,
-                    "mtime": dt.datetime.fromtimestamp(st.st_mtime, tz=dt.timezone.utc).isoformat(),
+                    "mtime": dt.datetime.fromtimestamp(
+                        st.st_mtime, tz=dt.timezone.utc
+                    ).isoformat(),
                 }
                 if p.suffix.lower() == ".md":
                     text = p.read_text(encoding="utf-8", errors="ignore")
@@ -133,10 +136,11 @@ def main() -> int:
     files = sorted(iter_files(ROOT))
     write_inventory(files)
     write_search_index(files)
-    print(f"Indexed {len(files)} files → docs/audit/inventory.csv, docs/audit/search_index.jsonl")
+    print(
+        f"Indexed {len(files)} files → docs/audit/inventory.csv, docs/audit/search_index.jsonl"
+    )
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

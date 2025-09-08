@@ -15,4 +15,3 @@ def html_to_text(html: str) -> str:
     # Normalize whitespace
     text = " ".join(text.split())
     return text.strip()
-

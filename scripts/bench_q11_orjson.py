@@ -28,7 +28,9 @@ def bench(label: str, use_orjson: bool, iters: int = 20000) -> float:
         canonical_dumps(obj)
     t1 = time.perf_counter()
     dur = t1 - t0
-    print(f"{label}: {iters / dur:.1f} ops/s, {dur * 1000 / iters:.3f} ms/op over {iters} iters")
+    print(
+        f"{label}: {iters / dur:.1f} ops/s, {dur * 1000 / iters:.3f} ms/op over {iters} iters"
+    )
     return iters / dur
 
 

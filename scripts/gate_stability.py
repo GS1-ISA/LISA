@@ -7,6 +7,7 @@ from pathlib import Path
 
 STATE = Path("docs/audit/gate_stability.json")
 
+
 def load() -> dict:
     if STATE.exists():
         try:
@@ -15,13 +16,19 @@ def load() -> dict:
             return {}
     return {}
 
+
 def save(data: dict) -> None:
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Update gate stability counters")
-    ap.add_argument("--gate", required=True, help="gate id, e.g., tests, coverage, mypy, semgrep, determinism")
+    ap.add_argument(
+        "--gate",
+        required=True,
+        help="gate id, e.g., tests, coverage, mypy, semgrep, determinism",
+    )
     ap.add_argument("--status", required=True, choices=["green", "red"])
     ap.add_argument("--window", type=int, default=7, help="days required for promotion")
     ns = ap.parse_args()
@@ -39,6 +46,7 @@ def main() -> int:
     save(data)
     print(json.dumps({ns.gate: g}, indent=2))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

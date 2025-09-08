@@ -1,0 +1,65 @@
+# ISA SuperApp Core Requirements
+# This file contains the core dependencies required for the ISA SuperApp
+
+# Core dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+click>=8.1.0
+python-multipart>=0.0.6
+
+# Vector store and embeddings
+chromadb>=0.4.18
+sentence-transformers>=2.2.2
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# LLM and AI
+openai>=1.3.0
+anthropic>=0.7.0
+transformers>=4.35.0
+torch>=2.1.0
+tiktoken>=0.5.0
+
+# Data processing
+pandas>=2.1.0
+pyyaml>=6.0.1
+jsonschema>=4.20.0
+python-dateutil>=2.8.2
+
+# HTTP and networking
+httpx>=0.25.0
+aiohttp>=3.9.0
+websockets>=12.0
+
+# Database and storage
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+redis>=5.0.0
+aioredis>=2.0.1
+
+# Logging and monitoring
+structlog>=23.2.0
+prometheus-client>=0.19.0
+
+# Utilities
+python-dotenv>=1.0.0
+jinja2>=3.1.2
+tenacity>=8.2.0
+asyncio-mqtt>=0.16.0
+
+# Development and testing (optional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-html>=3.2.0
+pytest-xdist>=3.3.0
+pytest-timeout>=2.1.0
+pytest-mock>=3.11.0
+black>=23.11.0
+isort>=5.12.0
+mypy>=1.7.0
+flake8>=6.0.0
+bandit>=1.7.0
+safety>=2.3.0

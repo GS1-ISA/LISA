@@ -9,6 +9,7 @@ from pathlib import Path
 
 BASELINE = Path("docs/audit/coverage_baseline.json")
 
+
 def parse_coverage(path: Path) -> float:
     tree = ET.parse(path)
     root = tree.getroot()
@@ -20,9 +21,16 @@ def parse_coverage(path: Path) -> float:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Check coverage delta vs baseline (advisory)")
+    ap = argparse.ArgumentParser(
+        description="Check coverage delta vs baseline (advisory)"
+    )
     ap.add_argument("--xml", default="ISA_SuperApp/coverage.xml")
-    ap.add_argument("--threshold", type=float, default=0.5, help="max allowed drop in percentage points")
+    ap.add_argument(
+        "--threshold",
+        type=float,
+        default=0.5,
+        help="max allowed drop in percentage points",
+    )
     ns = ap.parse_args()
 
     xml_path = Path(ns.xml)
@@ -33,7 +41,9 @@ def main() -> int:
     baseline_val = 0.0
     if BASELINE.exists():
         try:
-            baseline_val = float(json.loads(BASELINE.read_text()).get("coverage_pct", 0.0))
+            baseline_val = float(
+                json.loads(BASELINE.read_text()).get("coverage_pct", 0.0)
+            )
         except Exception:
             baseline_val = 0.0
     delta = current - baseline_val
@@ -41,6 +51,7 @@ def main() -> int:
     if baseline_val and delta < -ns.threshold:
         print(f"WARNING: coverage decreased more than {ns.threshold:.2f} pp")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,0 +1,6 @@
+{
+  "threshold": 70.0,
+  "description": "Minimum audit score threshold for pre-commit hooks",
+  "auto_update": true,
+  "update_on_improvement": true
+}

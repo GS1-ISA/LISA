@@ -6,7 +6,6 @@ import os
 import subprocess
 from pathlib import Path
 
-
 OUT = Path("agent/outcomes/PR_NOTES.md")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
@@ -20,24 +19,40 @@ def diff_stats(base: str | None) -> tuple[int, int, list[str]]:
     adds = dels = 0
     if base:
         try:
-            files = [l for l in run(["git", "diff", "--name-only", f"{base}...HEAD"]).splitlines() if l]
-            for line in run(["git", "diff", "--numstat", f"{base}...HEAD"]).splitlines():
+            files = [
+                l
+                for l in run(
+                    ["git", "diff", "--name-only", f"{base}...HEAD"]
+                ).splitlines()
+                if l
+            ]
+            for line in run(
+                ["git", "diff", "--numstat", f"{base}...HEAD"]
+            ).splitlines():
                 parts = line.split("\t")
                 if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
-                    adds += int(parts[0]); dels += int(parts[1])
+                    adds += int(parts[0])
+                    dels += int(parts[1])
         except Exception:
             files = []
     if not files:
-        files = [l for l in run(["git", "diff", "--name-only", "HEAD~1..HEAD"]).splitlines() if l]
+        files = [
+            l
+            for l in run(["git", "diff", "--name-only", "HEAD~1..HEAD"]).splitlines()
+            if l
+        ]
         for line in run(["git", "diff", "--numstat", "HEAD~1..HEAD"]).splitlines():
             parts = line.split("\t")
             if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
-                adds += int(parts[0]); dels += int(parts[1])
+                adds += int(parts[0])
+                dels += int(parts[1])
     return adds, dels, files
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Prepare local PR notes (plan/diff/evidence)")
+    ap = argparse.ArgumentParser(
+        description="Prepare local PR notes (plan/diff/evidence)"
+    )
     ap.add_argument("--plan", default="")
     ap.add_argument("--base", default=os.environ.get("BASE_SHA", ""))
     ap.add_argument("--coverage", default="")
@@ -50,7 +65,10 @@ def main() -> int:
     lines.append("# PR Notes — Plan / Diff / Evidence")
     lines.append("")
     lines.append("## Plan")
-    lines.append(ns.plan or "- Small, reversible changes; update docs and scripts; add Make targets.")
+    lines.append(
+        ns.plan
+        or "- Small, reversible changes; update docs and scripts; add Make targets."
+    )
     lines.append("")
     lines.append("## Diff Summary")
     lines.append(f"- Files changed: {len(files)} | +{adds} / -{dels} LOC")
@@ -78,4 +96,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

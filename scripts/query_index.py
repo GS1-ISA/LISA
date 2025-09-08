@@ -9,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
-
 INDEX_PATH = Path("docs/audit/search_index.jsonl")
 
 
@@ -27,7 +26,9 @@ class Record:
 
 def load_index(index_path: Path) -> Iterable[Record]:
     if not index_path.exists():
-        print(f"Index not found: {index_path}. Run `make index` first.", file=sys.stderr)
+        print(
+            f"Index not found: {index_path}. Run `make index` first.", file=sys.stderr
+        )
         sys.exit(2)
     with index_path.open("r", encoding="utf-8") as f:
         for line in f:
@@ -48,16 +49,30 @@ def load_index(index_path: Path) -> Iterable[Record]:
 
 
 def parse_args() -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description="Query the repository search index (JSONL)")
+    ap = argparse.ArgumentParser(
+        description="Query the repository search index (JSONL)"
+    )
     ap.add_argument("query", nargs="?", default="", help="free-text query")
-    ap.add_argument("--index", default=str(INDEX_PATH), help="path to search_index.jsonl")
+    ap.add_argument(
+        "--index", default=str(INDEX_PATH), help="path to search_index.jsonl"
+    )
     ap.add_argument("--md", action="store_true", help="limit to Markdown files")
-    ap.add_argument("--code", action="store_true", help="limit to common code extensions")
-    ap.add_argument("--path-substr", default="", help="substring to match in relative path")
+    ap.add_argument(
+        "--code", action="store_true", help="limit to common code extensions"
+    )
+    ap.add_argument(
+        "--path-substr", default="", help="substring to match in relative path"
+    )
     ap.add_argument("--title", default="", help="substring to match in title")
     ap.add_argument("--heading", default="", help="substring to match in headings")
-    ap.add_argument("--contains", default="", help="substring to match in markdown preview text")
-    ap.add_argument("--since", default="", help="ISO date/time; only show mtime >= this (e.g., 2025-09-01)")
+    ap.add_argument(
+        "--contains", default="", help="substring to match in markdown preview text"
+    )
+    ap.add_argument(
+        "--since",
+        default="",
+        help="ISO date/time; only show mtime >= this (e.g., 2025-09-01)",
+    )
     ap.add_argument("--top", type=int, default=20, help="max results to show")
     return ap.parse_args()
 
@@ -77,7 +92,9 @@ CODE_EXTS = {
 }
 
 
-def score_record(r: Record, q: str, title_q: str, heading_q: str, contains_q: str) -> int:
+def score_record(
+    r: Record, q: str, title_q: str, heading_q: str, contains_q: str
+) -> int:
     ql = q.lower()
     s = 0
     if ql:
@@ -91,7 +108,11 @@ def score_record(r: Record, q: str, title_q: str, heading_q: str, contains_q: st
             s += 3
     if title_q and title_q.lower() in r.title.lower():
         s += 5
-    if heading_q and r.headings and any(heading_q.lower() in h.lower() for h in r.headings):
+    if (
+        heading_q
+        and r.headings
+        and any(heading_q.lower() in h.lower() for h in r.headings)
+    ):
         s += 4
     if contains_q and r.preview and contains_q.lower() in r.preview.lower():
         s += 2
@@ -118,9 +139,16 @@ def main() -> int:
             return False
         if ns.title and ns.title.lower() not in r.title.lower():
             return False
-        if ns.heading and (not r.headings or not any(ns.heading.lower() in h.lower() for h in r.headings)):
+        if ns.heading and (
+            not r.headings
+            or not any(ns.heading.lower() in h.lower() for h in r.headings)
+        ):
             return False
-        if ns.contains and ns.ext == ".md" and ns.contains.lower() not in (r.preview or "").lower():
+        if (
+            ns.contains
+            and ns.ext == ".md"
+            and ns.contains.lower() not in (r.preview or "").lower()
+        ):
             return False
         if since_dt:
             try:
@@ -161,4 +189,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

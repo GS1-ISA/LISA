@@ -2,10 +2,7 @@
 branch = True
 parallel = True
 source = 
-    ISA_SuperApp/src
-    packages/orchestrator/src
-    packages/llm/src
-    packages/dspy/src
+    src
     infra
 omit = 
     */tests/*
@@ -21,4 +18,3 @@ exclude_lines =
     @overload
     pass
 show_missing = True
-

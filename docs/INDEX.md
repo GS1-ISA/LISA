@@ -3,12 +3,18 @@ Last updated: 2025-09-02
 
 This index is generated from the docs audit search index. Use it to quickly find key documents.
 
+Quickstart
+- Run the Research Crew (CLI): see `README.md` and execute `python run_research_crew.py --query "..."`
+
 - [ADR 0001 — Tooling Choices and Consolidation](ADR/0001-tooling-choice.md)
 - [ADR 0002 — Agent Safety, Policies, and Autonomy Tiers](ADR/0002-agent-safety-and-autonomy.md)
 - [ADR 0003 — Canonical JSON with Optional orjson](ADR/0003-canonical-json-orjson.md)
 - [ADR 0004 — JSON Schema Validation via fastjsonschema](ADR/0004-validation-fastjsonschema.md)
 - [Adoption Plan — Agentic Enhancements (Step-by-Step, With Acceptance)](ADOPTION_PLAN.md)
 - [Agent Operating Guide (System Prompt & Policies)](agents/AGENTS.md)
+- [Refactor Guard — Local CLI](agents/REFACTOR_GUARD.md)
+- [Refactor Pack — Ready-to-paste prompts](agents/ISA_D_REFACTOR_PACK.md)
+- [Planning Preferences — Stepwise Plan + Confidence](agents/PLANNING_PREFERENCES.md)
 - [Agent Outcomes Summary](audit/agent_outcomes_summary.md)
 - [Agentic Architecture — Roles, Loops, Safety, Rewards](AGENTIC_ARCHITECTURE.md)
 - [Orchestration & Interop — LangGraph, AutoGen, Runtimes, MCP](agents/ORCHESTRATION_ARCHITECTURE.md)
@@ -32,6 +38,7 @@ This index is generated from the docs audit search index. Use it to quickly find
 - [Docs Reference Report](audit/docs_ref_report.md)
 - [Documentation Index](INDEX.md)
 - [Documentation Overview — Quick Links and Maps](README.md)
+- [Research Data Flow — CLI, Agents, Tools, Memory](DATA_FLOW.md)
 - [High-Quality Sources — Research & Implementation](RESEARCH_SOURCES.md)
 - [Knowledge Gaps Research — 30 Questions, Rubric, and POCs](RESEARCH_KNOWLEDGE_GAPS.md)
 - [Master TODO — Agentic Monorepo Program (All Plans)](TODO.md)
@@ -56,6 +63,7 @@ This index is generated from the docs audit search index. Use it to quickly find
 - [Search Ledger — Q21 CI Gating & xdist Stability](research/q21_xdist_stability/search_ledger.md)
 - [Search Ledger — Q6 Gap Detection Models (ESG‑BERT vs ESGSenticNet vs heuristics)](research/q06_esg_models/search_ledger.md)
 - [Service Level Objectives (Initial)](SLOs.md)
+- [Vector Store Schema](VECTOR_STORE_SCHEMA.md)
 - [Threats to Validity (Template)](templates/threats_to_validity_template.md)
 - [Ultimate Agentic Development Plan — Checklists and Acceptance Criteria](ULTIMATE_PLAN.md)
 - [audit/audit_report.md](audit/audit_report.md)

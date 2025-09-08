@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from scripts.research.fetcher import fetch
 from scripts.research.extract import html_to_text
+from scripts.research.fetcher import fetch
 
 
 def test_fetch_local_file_and_extract(tmp_path: Path):
@@ -15,4 +15,3 @@ def test_fetch_local_file_and_extract(tmp_path: Path):
     assert data is not None and rec.ok and rec.from_cache
     text = html_to_text(data.decode("utf-8"))
     assert text == "T Hello World!"
-

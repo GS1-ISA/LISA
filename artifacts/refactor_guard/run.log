@@ -1,0 +1,55 @@
+[2025-09-06 22:49:13] REFACTOR-GUARD ONLINE
+[2025-09-06 22:49:13] BOARD CREATED: REFACTOR_2025
+[2025-09-06 22:49:20] PRE-CHECK: running test suite 3x
+[2025-09-06 22:49:21] Run 1: rc=2, failed=0
+[2025-09-06 22:49:21] Run 2: rc=2, failed=0
+[2025-09-06 22:49:22] Run 3: rc=2, failed=0
+[2025-09-06 22:49:22] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 07:59:15] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 07:59:17] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 07:59:18] Run 1: rc=1, failed=0
+[2025-09-07 07:59:18] Run 2: rc=1, failed=0
+[2025-09-07 07:59:18] Run 3: rc=1, failed=0
+[2025-09-07 07:59:18] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 08:02:00] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 08:02:02] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 08:02:02] Run 1: rc=1, failed=0
+[2025-09-07 08:02:02] Run 2: rc=1, failed=0
+[2025-09-07 08:02:02] Run 3: rc=1, failed=0
+[2025-09-07 08:02:02] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 08:02:58] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 08:02:58] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 08:02:58] Run 1: rc=127, failed=0
+[2025-09-07 08:02:58] Run 2: rc=127, failed=0
+[2025-09-07 08:02:58] Run 3: rc=127, failed=0
+[2025-09-07 08:02:58] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 08:03:15] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 08:03:50] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 08:03:50] Run 1: rc=127, failed=0
+[2025-09-07 08:03:50] Run 2: rc=127, failed=0
+[2025-09-07 08:03:50] Run 3: rc=127, failed=0
+[2025-09-07 08:03:50] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 08:04:39] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 08:04:41] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 08:04:42] Run 1: rc=1, failed=0
+[2025-09-07 08:04:43] Run 2: rc=1, failed=0
+[2025-09-07 08:04:43] Run 3: rc=1, failed=0
+[2025-09-07 08:04:43] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 08:18:21] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 08:18:24] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 08:18:26] Run 1: rc=1, failed=0
+[2025-09-07 08:18:28] Run 2: rc=1, failed=0
+[2025-09-07 08:18:29] Run 3: rc=1, failed=0
+[2025-09-07 08:18:29] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 08:19:10] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 08:19:12] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 08:19:14] Run 1: rc=1, failed=0
+[2025-09-07 08:19:16] Run 2: rc=1, failed=0
+[2025-09-07 08:19:17] Run 3: rc=1, failed=0
+[2025-09-07 08:19:17] PRE-CHECK RESULT: ❌ | BOARD: artifacts/refactor_guard/board.json
+[2025-09-07 08:19:57] PRE-CHECK: installing deps (best-effort)
+[2025-09-07 08:19:59] PRE-CHECK: running test suite 3x (scoped to src/)
+[2025-09-07 08:20:01] Run 1: rc=0, failed=0
+[2025-09-07 08:20:02] Run 2: rc=0, failed=0
+[2025-09-07 08:20:03] Run 3: rc=0, failed=0
+[2025-09-07 08:20:03] PRE-CHECK RESULT: ✅ | BOARD: artifacts/refactor_guard/board.json

@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
@@ -59,6 +60,7 @@ def main() -> int:
             print("WARN: ", e)
     print("Prune complete")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

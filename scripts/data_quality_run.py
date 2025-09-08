@@ -10,11 +10,13 @@ SAMPLE = Path("docs/data_quality/sample.jsonl")
 REPORT_JSON = Path("docs/audit/data_quality_report.json")
 REPORT_MD = Path("docs/audit/data_quality_report.md")
 
+
 @dataclass
 class Violation:
     row: int
     field: str
     message: str
+
 
 def load_samples() -> list[dict[str, Any]]:
     if not SAMPLE.exists():
@@ -26,6 +28,7 @@ def load_samples() -> list[dict[str, Any]]:
         except Exception:
             rows.append({"__error__": f"invalid json at line {i}"})
     return rows
+
 
 def validate(rows: list[dict[str, Any]]) -> list[Violation]:
     v: list[Violation] = []
@@ -46,6 +49,7 @@ def validate(rows: list[dict[str, Any]]) -> list[Violation]:
             v.append(Violation(idx, "name", "empty or not string"))
     return v
 
+
 def main() -> int:
     rows = load_samples()
     violations = validate(rows)
@@ -62,6 +66,7 @@ def main() -> int:
     REPORT_MD.write_text("\n".join(md) + "\n", encoding="utf-8")
     print(f"wrote {REPORT_JSON} and {REPORT_MD}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

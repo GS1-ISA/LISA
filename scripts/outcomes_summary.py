@@ -6,7 +6,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Iterable
 
-
 OUT_DIR = Path("agent/outcomes")
 REPORT = Path("docs/audit/agent_outcomes_summary.md")
 
@@ -46,7 +45,9 @@ def summarize() -> str:
     lines = []
     lines.append("# Agent Outcomes Summary")
     lines.append("")
-    lines.append(f"Total tasks: {total} | Success: {success} | Win-rate: { (success/total*100 if total else 0):.1f}%")
+    lines.append(
+        f"Total tasks: {total} | Success: {success} | Win-rate: { (success/total*100 if total else 0):.1f}%"
+    )
     lines.append("")
     lines.append("## By Strategy")
     for strat, m in sorted(per_strategy.items()):
@@ -55,7 +56,9 @@ def summarize() -> str:
         wr = (succ / cnt * 100) if cnt else 0
         cov = m.get("coverage_delta_sum", 0.0)
         terr = m.get("type_errors_sum", 0.0)
-        lines.append(f"- {strat}: {cnt} tasks | win-rate {wr:.1f}% | coverage Δ sum {cov:+.2f} | type errors sum {terr:.0f}")
+        lines.append(
+            f"- {strat}: {cnt} tasks | win-rate {wr:.1f}% | coverage Δ sum {cov:+.2f} | type errors sum {terr:.0f}"
+        )
     lines.append("")
     return "\n".join(lines) + "\n"
 
@@ -69,4 +72,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -52,7 +52,9 @@ def main() -> int:
             title = row["Title"]
             stds = ";".join(STD_MAP.get(cat, ["Lean/Agile"]))
             dev, why = infer_deviation(title)
-            w.writerow([rid, cat, stds, dev, why, row["SourceFile"], row["Line"], title])
+            w.writerow(
+                [rid, cat, stds, dev, why, row["SourceFile"], row["Line"], title]
+            )
     print(f"Wrote {out}")
     return 0
 

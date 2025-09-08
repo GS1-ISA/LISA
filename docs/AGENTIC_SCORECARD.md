@@ -32,5 +32,4 @@ Evidence Pointers
 - Architecture: docs/AGENTIC_ARCHITECTURE.md; docs/agents/CODEGENESIS.md; docs/AGENTIC_GOALS.md; docs/ADOPTION_PLAN.md
 - CI & Gates: docs/CI_WORKFLOWS.md; docs/QUALITY_GATES.md
 - Research: docs/research/*; docs/ADR/*
-- Observability: ISA_SuperApp/docs/ops/metrics.md
-
+- Observability: `infra/monitoring/docker-compose.yml`, `infra/otel/docker-compose.yml`

@@ -16,7 +16,9 @@ class FRDoc:
     doc_type: str
 
 
-def fetch_fr_docs(query: str, limit: int = 5, *, allow_network: bool = False, timeout: int = 20) -> List[FRDoc]:
+def fetch_fr_docs(
+    query: str, limit: int = 5, *, allow_network: bool = False, timeout: int = 20
+) -> List[FRDoc]:
     """Fetch Federal Register documents via API (optional; default OFF).
 
     Respects env ALLOW_RESEARCH_LIVE=1 to enable without passing allow_network.
@@ -40,5 +42,12 @@ def fetch_fr_docs(query: str, limit: int = 5, *, allow_network: bool = False, ti
         except Exception:
             pass
         if title:
-            out.append(FRDoc(title=title, html_url=html_url, publication_date=pub, doc_type=doc_type))
+            out.append(
+                FRDoc(
+                    title=title,
+                    html_url=html_url,
+                    publication_date=pub,
+                    doc_type=doc_type,
+                )
+            )
     return out

@@ -35,4 +35,3 @@ def normalize_tr_entries(data: dict) -> List[TRDoc]:
             dt = date
         docs.append(TRDoc(title=title, url=url, date=dt, status=status))
     return docs
-

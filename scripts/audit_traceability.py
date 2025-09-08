@@ -82,8 +82,13 @@ def find_evidence(rule_text: str, source_file: str) -> tuple[str, Evidence | Non
             if ev:
                 return "PASS", ev
     # Security scans: bandit, pip-audit, trivy, gitleaks, sbom
-    if any(k in t for k in ["bandit", "pip-audit", "gitleaks", "trivy", "sbom", "syft", "secrets"]):
-        for p in search_paths([".github/workflows/ci.yml", ".github/workflows/weekly.yml"]):
+    if any(
+        k in t
+        for k in ["bandit", "pip-audit", "gitleaks", "trivy", "sbom", "syft", "secrets"]
+    ):
+        for p in search_paths(
+            [".github/workflows/ci.yml", ".github/workflows/weekly.yml"]
+        ):
             ev = grep_first(p, re.compile(r"bandit|pip-audit|gitleaks|trivy|sbom|syft"))
             if ev:
                 return "PASS", ev
@@ -130,7 +135,16 @@ def main() -> int:
             status, ev = find_evidence(text, source)
             if ev:
                 snippet = ev.text[:200].replace("\n", " ")
-                w.writerow([rule_id, source, line, str(ev.file), status, f"{ev.line}: {snippet}"])
+                w.writerow(
+                    [
+                        rule_id,
+                        source,
+                        line,
+                        str(ev.file),
+                        status,
+                        f"{ev.line}: {snippet}",
+                    ]
+                )
             else:
                 w.writerow([rule_id, source, line, "", status, ""])
     print(f"Wrote {out}")

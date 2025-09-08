@@ -10,4 +10,3 @@ def test_w3c_tr_fixture_normalization():
     assert len(docs) == 2
     assert docs[0].url.startswith("https://www.w3.org/TR/")
     assert docs[0].date.count("-") == 2  # YYYY-MM-DD
-

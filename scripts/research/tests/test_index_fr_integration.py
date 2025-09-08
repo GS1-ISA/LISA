@@ -10,4 +10,3 @@ def test_index_fr_fixture_builds_vector_index(tmp_path: Path):
     assert n >= 1 and storage.exists()
     data = storage.read_text(encoding="utf-8")
     assert '"docs"' in data
-

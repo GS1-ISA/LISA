@@ -14,16 +14,36 @@ COMPONENTS = [
         "packages/agent_core/agent_core/planner.py",
         ["planner", "plan", "operational loop"],
     ),
-    ("Builder", "packages/agent_core/agent_core/builder.py", ["builder", "apply", "diff"]),
+    (
+        "Builder",
+        "packages/agent_core/agent_core/builder.py",
+        ["builder", "apply", "diff"],
+    ),
     (
         "Verifier",
         "packages/agent_core/agent_core/verifier.py",
         ["verifier", "gate", "ci", "lint", "type", "test"],
     ),
-    ("Critic", "packages/agent_core/agent_core/critic.py", ["critic", "reflect", "review"]),
-    ("RewardAggregator", "packages/agent_core/agent_core/reward.py", ["reward", "score"]),
-    ("TraceLogger", "packages/agent_core/agent_core/memory.py", ["trace", "memory", "jsonl"]),
-    ("Policy", "packages/agent_core/agent_core/policy.py", ["policy", "allowlist", "autonomy"]),
+    (
+        "Critic",
+        "packages/agent_core/agent_core/critic.py",
+        ["critic", "reflect", "review"],
+    ),
+    (
+        "RewardAggregator",
+        "packages/agent_core/agent_core/reward.py",
+        ["reward", "score"],
+    ),
+    (
+        "TraceLogger",
+        "packages/agent_core/agent_core/memory.py",
+        ["trace", "memory", "jsonl"],
+    ),
+    (
+        "Policy",
+        "packages/agent_core/agent_core/policy.py",
+        ["policy", "allowlist", "autonomy"],
+    ),
     ("Orchestrator", "ISA_SuperApp/src/assistant.py", ["orchestrator", "assistant"]),
 ]
 

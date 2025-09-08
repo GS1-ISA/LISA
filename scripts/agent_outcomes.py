@@ -7,7 +7,6 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-
 OUT_DIR = Path("agent/outcomes")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -64,4 +63,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -68,8 +68,12 @@ def load_gates_summary() -> tuple[int, int, int]:
 def load_counts() -> tuple[int, int]:
     inv = AUDIT / "inventory.csv"
     rules = AUDIT / "rule_catalog.csv"
-    inv_count = sum(1 for _ in inv.open("r", encoding="utf-8")) - 1 if inv.exists() else 0
-    rule_count = sum(1 for _ in rules.open("r", encoding="utf-8")) - 1 if rules.exists() else 0
+    inv_count = (
+        sum(1 for _ in inv.open("r", encoding="utf-8")) - 1 if inv.exists() else 0
+    )
+    rule_count = (
+        sum(1 for _ in rules.open("r", encoding="utf-8")) - 1 if rules.exists() else 0
+    )
     return inv_count, rule_count
 
 
@@ -100,17 +104,27 @@ def write_audit_report(passes: int, warns: int, fails: int, overall: float) -> N
     md = []
     md.append("## Audit Report — Executive Summary")
     md.append("")
-    md.append(f"- Rules: {rule_count} | PASS: {passes} ✅ | WARN: {warns} ⚠️ | FAIL: {fails} ❌")
+    md.append(
+        f"- Rules: {rule_count} | PASS: {passes} ✅ | WARN: {warns} ⚠️ | FAIL: {fails} ❌"
+    )
     md.append(f"- Overall Rule Confidence: {overall:.1f} %")
-    md.append(f"- CI Gates: Present {present}, Enforced {enforced}, Advisory {advisory}")
+    md.append(
+        f"- CI Gates: Present {present}, Enforced {enforced}, Advisory {advisory}"
+    )
     md.append(f"- Inventory size: {inv_count} files")
     md.append("")
     md.append("### Dashboard")
     md.append("- Lint/Type/Tests/Sec: present (promotion pending for some gates)")
     md.append(
-        "- Observability: /metrics and histograms present (api_server.py sha=" + sha_api + ")"
+        "- Observability: /metrics and histograms present (api_server.py sha="
+        + sha_api
+        + ")"
     )
-    md.append("- Container: non-root + healthcheck present (Dockerfile sha=" + sha_docker + ")")
+    md.append(
+        "- Container: non-root + healthcheck present (Dockerfile sha="
+        + sha_docker
+        + ")"
+    )
     md.append(
         "- Determinism: canonical writer + snapshot present (json_canonical.py sha="
         + sha_canon
@@ -138,12 +152,16 @@ def write_remediation_plan() -> None:
     plan = []
     plan.append("## Remediation Plan — Prioritized Backlog")
     plan.append("")
-    plan.append("- [ ] Flip ruff/pytest/coverage/semgrep to enforced after 7-day stability (3 pts)")
+    plan.append(
+        "- [ ] Flip ruff/pytest/coverage/semgrep to enforced after 7-day stability (3 pts)"
+    )
     plan.append("- [ ] Add determinism snapshot CI job (advisory → enforced) (2 pts)")
     plan.append("- [ ] Add docs build (MkDocs) advisory gate (1 pt)")
     plan.append("- [ ] Add container build + /metrics curl check in CI (2 pts)")
     plan.append("- [ ] Enforce kill-switch/waiver labels in CI (1 pt)")
-    plan.append("- [ ] Link dependency files to pip-audit policy in QUALITY_GATES (1 pt)")
+    plan.append(
+        "- [ ] Link dependency files to pip-audit policy in QUALITY_GATES (1 pt)"
+    )
     plan.append(
         "- [ ] Reference workflows (docs_auto_sync, poc_bench) in CI_WORKFLOWS and QUALITY_GATES (1 pt)"
     )

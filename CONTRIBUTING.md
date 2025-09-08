@@ -4,10 +4,11 @@ Last updated: 2025-09-02
 Thanks for contributing! Please follow these steps to keep quality high and docs coherent.
 
 Local Setup
-- Python 3.11+ recommended. Create a venv at repo root and install deps:
+- Python 3.11+ recommended. Create a venv at repo root and run the setup command:
   - `python3 -m venv .venv && source .venv/bin/activate`
-  - `python -m pip install -U pip wheel`
-  - `pip install -r ISA_SuperApp/requirements.txt -r ISA_SuperApp/requirements-dev.txt`
+  - `make setup`
+
+- For full features, including the Context7 documentation provider, copy `.env.example` to `.env` and fill in the `CONTEXT7_*` variables.
 
 Before You Commit / Open a PR
 - Lint/format: `ruff format . && ruff check --fix .`

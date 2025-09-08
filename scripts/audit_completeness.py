@@ -18,7 +18,7 @@ NORMATIVE_GLOBS = [
     ".github/workflows/*.yml",
 ]
 
-EXCLUDE_DIRS = {".git", "node_modules", ".venv", "__pycache__"}
+EXCLUDE_DIRS = {".git", "node_modules", ".venv", "__pycache__", "context7-master"}
 
 
 def is_normative(path: Path) -> bool:

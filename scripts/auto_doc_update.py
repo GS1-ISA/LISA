@@ -56,7 +56,9 @@ def process_file(path: Path) -> bool:
         changed = True
 
     if changed:
-        path.write_text("\n".join(lines) + ("\n" if text.endswith("\n") else ""), encoding="utf-8")
+        path.write_text(
+            "\n".join(lines) + ("\n" if text.endswith("\n") else ""), encoding="utf-8"
+        )
     return changed
 
 

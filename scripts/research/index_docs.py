@@ -43,7 +43,13 @@ def _normalize_tr_entries(data: dict) -> List[Tuple[str, str, dict]]:
             continue
         doc_id = f"TR:{title}"
         text = f"{title} ({status}) — {url} — {date}"
-        docs.append((doc_id, text, {"source": "w3c_tr", "url": url, "status": status, "date": date}))
+        docs.append(
+            (
+                doc_id,
+                text,
+                {"source": "w3c_tr", "url": url, "status": status, "date": date},
+            )
+        )
     return docs
 
 
@@ -75,7 +81,18 @@ def _normalize_fr_entries(data: dict) -> List[Tuple[str, str, dict]]:
             continue
         doc_id = f"FR:{title}"
         text = f"{title} ({doc_type}) — {url} — {date}"
-        docs.append((doc_id, text, {"source": "federal_register", "url": url, "status": doc_type, "date": date}))
+        docs.append(
+            (
+                doc_id,
+                text,
+                {
+                    "source": "federal_register",
+                    "url": url,
+                    "status": doc_type,
+                    "date": date,
+                },
+            )
+        )
     return docs
 
 
@@ -94,8 +111,7 @@ def index_fr_fixture(fixture_path: str | Path, storage_path: str | Path) -> int:
     return len(docs)
 
 
-
-def kg_from_normalized(docs: list[tuple[str,str,dict]], kg_path: str | Path) -> int:
+def kg_from_normalized(docs: list[tuple[str, str, dict]], kg_path: str | Path) -> int:
     """Write normalized docs as KG entities with provenance.
 
     Each doc becomes an entity with observations containing URL/status/date.
@@ -110,7 +126,11 @@ def kg_from_normalized(docs: list[tuple[str,str,dict]], kg_path: str | Path) -> 
         status = meta.get("status", "")
         date = meta.get("date", "")
         kg.create_entity(doc_id, type=meta.get("source", "research"))
-        obs = [s for s in (f"url:{url}", f"status:{status}", f"date:{date}") if s and not s.endswith(":")]
+        obs = [
+            s
+            for s in (f"url:{url}", f"status:{status}", f"date:{date}")
+            if s and not s.endswith(":")
+        ]
         if obs:
             kg.add_observations(doc_id, obs)
             count += 1

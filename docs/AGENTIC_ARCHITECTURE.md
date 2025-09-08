@@ -1,7 +1,7 @@
 Title: Agentic Architecture — Roles, Loops, Safety, Rewards
 Last updated: 2025-09-02
 
-Overview: The system operates as a continuous feedback loop. Agents plan, act, observe, critique, and learn, with strict safety and quality gates.
+Overview: The agent's behavior is configured by the `.agent/policy.yaml` file. Agents plan, act, observe, critique, and learn, with strict safety and quality gates.
 
 Roles
 - Planner: Builds/updates explicit task plans. Inputs: repo state, memory. Outputs: steps + tools.
@@ -26,8 +26,38 @@ Memory & Tracing
 - Summaries for retrieval; link traces to commits and CI runs.
  - Project memory sources: docs index (docs/audit/search_index.jsonl), audit reports, ADRs, outcomes logs.
 
+Current Implementation Snapshot (this repository)
+- Entry point (CLI): `run_research_crew.py` — wires together the agents, memory, and docs provider; prints a Markdown report.
+- Orchestrator: `src/orchestrator/research_graph.py` — executes Planner → Researcher (loop per task) → Synthesizer.
+- Agents:
+  - Planner: `src/agent_core/agents/planner.py` — decomposes a query; may consult docs via `DocsProvider`.
+  - Researcher: `src/agent_core/agents/researcher.py` — uses `WebResearchTool` and `RAGMemory` to gather evidence.
+  - Synthesizer: `src/agent_core/agents/synthesizer.py` — composes a final Markdown report from memory.
+- Memory: `src/agent_core/memory/rag_store.py` — ChromaDB persistent store under `storage/vector_store/...` using SentenceTransformers embeddings.
+- Tools: `src/tools/web_research.py` — DuckDuckGo search + `httpx` fetch + BeautifulSoup extraction with file cache.
+- Docs Provider: `src/docs_provider/src/docs_provider/context7.py` with `get_provider()` factory. Controlled by env (`CONTEXT7_ENABLED`, `CONTEXT7_*`).
+- Observability: Docker compose files for Prometheus/Grafana and Jaeger live under `infra/monitoring` and `infra/otel`. No FastAPI app is included in this repo variant; container smoke checks are advisory.
+
+How to run
+```bash
+make setup
+python run_research_crew.py --query "your topic here"
+```
+
+Testing scope
+- Tests live under: `src/**/tests`, `infra/rag/tests`, and `scripts/research/tests`.
+- CI runs ruff, mypy (advisory), and pytest across these packages. See `docs/CI_WORKFLOWS.md`.
+
+### Agent State Persistence and Task Management
+
+To ensure continuity and prevent redundant work across agent sessions and different agents, the system formalizes how agents manage and persist their internal state regarding task progress and completion:
+
+- **Task Progress Tracking:** Agents are expected to update `docs/TODO.md` to reflect the current status of assigned tasks (e.g., "in progress," "completed," "blocked"). This document serves as the primary, human-readable source of truth for task completion.
+- **Outcome Logging:** Detailed outcomes of agent actions and completed sub-tasks are logged under `agent/outcomes/`. These logs provide a granular record of work performed, which can be used for auditing, debugging, and informing future agent decisions.
+- **Leveraging Project Memory:** Agents should regularly consult the project's memory sources (including the repository index and outcome logs) to ascertain the current state of the codebase and previously completed work before initiating new actions. This minimizes the risk of duplicating effort.
+
 Observability (Metrics + Tracing)
-- Metrics: Prometheus `/metrics` exposes request counters and latency histograms (ISA_SuperApp/src/api_server.py). One‑command Prometheus+Grafana lives under `infra/monitoring/`.
+- Metrics: Prometheus `/metrics` endpoint is available in the API‑first variant (FastAPI app). In this repository variant, Prometheus+Grafana compose files live under `infra/monitoring/` for local experiments.
 - Tracing (optional): Enable OpenTelemetry with `OTEL_ENABLED=1`. FastAPI and outgoing requests are auto‑instrumented; Jaeger compose under `infra/otel/`. Logs include `trace_id` and `span_id` for correlation.
 - Spans: Assistant flows emit spans for `assistant.rebuild_index`, `assistant.retrieve`, and `assistant.reason` to accelerate debugging and performance tuning.
 
@@ -79,3 +109,30 @@ See Also
  - docs/agents/ORCHESTRATION_ARCHITECTURE.md — orchestrator stack & interop
  - docs/QUALITY_METHODS.md — quality and gate policies (incl. orchestrator-only guard via `ISA_FORBID_DIRECT_LLM`)
 - docs/agents/ORCHESTRATION_ARCHITECTURE.md — end‑to‑end orchestrator stack (LangGraph, AutoGen, RAG, MCP)
+- docs/agents/RESEARCH_AGENT.md — The Autonomous Research Agent implementation.
+
+---
+
+### v2 Architectural Enhancements (Proposed)
+
+To evolve the system into a world-class adaptive engineering partner, the following enhancements are proposed for the next design iteration.
+
+1.  **Tree-of-Thoughts Planning & Execution**:
+    - The `Planner` will be enhanced to propose multiple distinct solution paths (a "thought tree").
+    - The `Builder` will explore these paths in parallel, with the `Verifier` and `Critic` scoring each branch. The highest-scoring, valid solution is selected.
+
+2.  **Dynamic Multi-Agent Collaboration**:
+    - For complex tasks, the primary agent will act as an orchestrator, spawning a temporary team of specialized sub-agents (e.g., `CoderAgent`, `TestAgent`, `DocsAgent`) that collaborate to produce a complete solution.
+
+3.  **Autonomous Tool Creation**:
+    - The agent will be empowered to identify repetitive sub-tasks, write new Python functions as tools, generate tests to validate them, and add them to a dedicated `packages/agent_tools` library for future use.
+
+4.  **FinOps Governor**:
+    - A new component that provides pre-execution cost estimation (tokens, compute) for proposed plans. It enforces budgets defined in `docs/COST_TELEMETRY.md` and prunes overly expensive branches in a Tree-of-Thoughts exploration, making the agent economically aware.
+
+5.  **Cognitive Visualizer**:
+    - For complex tasks, the agent will generate a `reasoning_graph.mermaid` artifact. This graph will visually represent its decision-making process (e.g., the Tree of Thoughts exploration), dramatically improving explainability.
+
+6.  **Formalized TDD & Proactive Refactoring**:
+    - A "Test-First" strategy will be heavily rewarded by the `Meta-Learner`, requiring the agent to generate a failing test before writing implementation code.
+    - The `Critic` will be empowered to identify and proactively refactor complex code to improve long-term maintainability.

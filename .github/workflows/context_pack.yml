@@ -1,0 +1,48 @@
+name: Context Pack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build-context-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install tooling (best-effort)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt || true
+      - name: Generate indices and lint docs
+        run: |
+          python scripts/index_repo.py
+          python scripts/gen_docs_index.py || true
+          python scripts/docs_ref_lint.py
+      - name: Create context pack archive
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/context_pack.tar.gz \
+            coherence_graph.json \
+            docs/INDEX.md \
+            docs/audit/search_index.jsonl \
+            docs/audit/inventory.csv \
+            traceability_matrix.csv \
+            README.md \
+            docs/AGENTIC_ARCHITECTURE.md \
+            docs/CI_WORKFLOWS.md \
+            docs/agents/AGENTS.md \
+            docs/DATA_FLOW.md || true
+      - name: Upload Context Pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: context_pack
+          path: artifacts/context_pack.tar.gz
+

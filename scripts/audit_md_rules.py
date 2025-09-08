@@ -13,7 +13,9 @@ NON_NORMATIVE = [
 
 # Heuristics for extracting explicit rules/checks/behavioural statements
 RULE_PATTERNS = [
-    re.compile(r"\b(must|shall|required|enforced|prohibited|never|only)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(must|shall|required|enforced|prohibited|never|only)\b", re.IGNORECASE
+    ),
     re.compile(r"^\s*- \[(?: |x)\] "),  # checkboxes
     re.compile(r"^\s*Acceptance:\s*$", re.IGNORECASE),
     re.compile(r"^\s*Gate[-\s]Flip|^\s*Kill[-\s]Switch|^\s*Waiver", re.IGNORECASE),

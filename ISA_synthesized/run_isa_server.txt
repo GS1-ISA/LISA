@@ -1,5 +1,0 @@
-cd "/Users/frisowempe/Desktop/ISA_B/2-main/ISA_SuperDesign_VSCode_Copilot_OneShot_2025-08-17"
-
-source .venv/bin/activate
-
- uvicorn src.api_server:app --app-dir "/Users/frisowempe/Desktop/ISA_B/2-main/ISA_SuperDesign_VSCode_Copilot_OneShot_2025-08-17" --reload --port 8787

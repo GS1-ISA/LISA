@@ -12,8 +12,16 @@ def load_last_two_summaries(mem_file: Path) -> tuple[str, str] | None:
     if not mem_file.exists():
         return None
     try:
-        lines = [json.loads(l) for l in mem_file.read_text(encoding="utf-8").splitlines() if l.strip()]
-        summaries = [l for l in lines if l.get("kind") in ("store",) and "Q:" in l.get("content", "")]
+        lines = [
+            json.loads(l)
+            for l in mem_file.read_text(encoding="utf-8").splitlines()
+            if l.strip()
+        ]
+        summaries = [
+            l
+            for l in lines
+            if l.get("kind") in ("store",) and "Q:" in l.get("content", "")
+        ]
         if len(summaries) < 2:
             return None
         return summaries[-2]["content"], summaries[-1]["content"]
@@ -42,4 +50,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

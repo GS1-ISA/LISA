@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Iterable
 
-
 OUT_DIR = Path("agent/outcomes")
 
 
@@ -27,7 +26,9 @@ def iter_records() -> Iterable[dict]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Suggest past fixes from outcomes logs")
-    ap.add_argument("--query", required=True, help="substring to search in task names or notes")
+    ap.add_argument(
+        "--query", required=True, help="substring to search in task names or notes"
+    )
     ap.add_argument("--top", type=int, default=10)
     ns = ap.parse_args()
 
@@ -37,7 +38,10 @@ def main() -> int:
         text = (rec.get("task", "") + " " + rec.get("notes", "")).lower()
         if q in text:
             hits.append(rec)
-    hits.sort(key=lambda r: (r.get("status") == "success", r.get("coverage_delta") or 0.0), reverse=True)
+    hits.sort(
+        key=lambda r: (r.get("status") == "success", r.get("coverage_delta") or 0.0),
+        reverse=True,
+    )
     for r in hits[: ns.top]:
         print(
             f"- {r.get('task')} | strat={r.get('strategy')} | status={r.get('status')} "
@@ -50,4 +54,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

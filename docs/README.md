@@ -4,6 +4,7 @@ Last updated: 2025-09-02
 Quick Links
 - Roadmap: docs/ROADMAP.md
 - Agentic Architecture: docs/AGENTIC_ARCHITECTURE.md
+- CLI Quickstart: README.md (Run the Research Crew)
 - Orchestration & Interop: docs/agents/ORCHESTRATION_ARCHITECTURE.md
 - Memory Architecture: docs/agents/MEMORY_ARCHITECTURE.md
 - Diplomacy & Standards Guilds: docs/guilds/DIPLOMACY_STANDARDS_GUILDS.md
@@ -27,6 +28,9 @@ Maintainers
 - Build index: `make index && python3 scripts/gen_docs_index.py`
 - Lint references: `make docs-lint` (see `docs/audit/docs_ref_report.md`)
 - Healthcheck: `make healthcheck` (see `docs/audit/healthcheck.md`)
+
+Notes
+- This repository variant is CLI‑first; no FastAPI server is included. Container workflows that curl `/metrics` are advisory until an API is added.
 
 
 Additional Ops Docs
