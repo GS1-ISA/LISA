@@ -12,7 +12,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -218,7 +218,7 @@ class AuditRunner:
 
         # Header
         body.append(
-            f"## { 'Score Improvement' if issue_type == 'improvement' else 'Score Decline' } Detected"
+            f"## {'Score Improvement' if issue_type == 'improvement' else 'Score Decline'} Detected"
         )
         body.append("")
 
@@ -281,7 +281,7 @@ class AuditRunner:
         # Audit details
         body.append("### Audit Details")
         body.append(f"- **Timestamp:** {datetime.now().isoformat()}")
-        body.append(f"- **Audit Directory:** docs/audit/")
+        body.append("- **Audit Directory:** docs/audit/")
         body.append("- **Related Files:**")
         body.append("  - [Audit Report](docs/audit/audit_report.md)")
         body.append("  - [Remediation Plan](docs/audit/remediation_plan.md)")

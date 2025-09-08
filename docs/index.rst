@@ -15,4 +15,3 @@ ISA SuperApp Documentation
    agents/*
    model_cards/*
    ADR/*
-

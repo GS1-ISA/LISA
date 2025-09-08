@@ -20,7 +20,6 @@ Phases
 
 - Phase 5 — Scale & Optimize: cost controls, resilience, automation, vendor adapters
 
-
 Immediate Milestones (High Priority)
 
 - Deliver `docs/AI_PROJECT_CHARTER.md` — governance, scope, RACI, responsible-AI summary (owner: eng-lead)
@@ -30,7 +29,6 @@ Immediate Milestones (High Priority)
 - Deliver `docs/model_cards/TEMPLATE.md` + one example model card (owner: data-science)
 
 - Deliver `data/data_catalog.yaml` (lightweight catalog linked to VECTOR_STORE_SCHEMA) (owner: data-engineer)
-
 
 Prioritized Next Steps (30/60/90 days)
 
@@ -61,8 +59,6 @@ Prioritized Next Steps (30/60/90 days)
 - Repo hygiene and CI: run ruff/format and enforce MD lint to reduce churn [owner: eng-lead]
   - Acceptance: reduced MD lint warnings in PRs; pre-commit configured.
 
-
-
 Track A — Product & UX
 
 - Outcomes: Clear value stories, usable flows, accessible UI, measurable user success.
@@ -70,8 +66,6 @@ Track A — Product & UX
 - Phase 2–3: A11y (WCAG 2.1 AA), content style, error messages; telemetry on UX frictions.
 - Phase 4–5: Usability tests; i18n readiness; UX quality gates in PR review.
 Refs: docs/TODO.md
-
-
 Track B — Data & Domain (ISA_C, ESG, GDSN)
 
 - Outcomes: Authoritative schemas, mapping matrix, data quality gates.
@@ -79,8 +73,6 @@ Track B — Data & Domain (ISA_C, ESG, GDSN)
 - Phase 3: Deterministic outputs, snapshot tests; Great Expectations suites.
 - Phase 4–5: Data catalog/lineage, documented ownership and retention.
 Refs: docs/TODO.md; docs/ULTIMATE_PLAN.md
-
-
 Track C — NeSy & Reasoning
 
 - Outcomes: Explainable gap detection and compliance reasoning.
@@ -88,8 +80,6 @@ Track C — NeSy & Reasoning
 - Phase 3: Nightly evals; promote stable gates (LNN) to PR CI.
 - Phase 4–5: DeepProbLog pilot; research (NeurASP, DON) offline.
 Refs: docs/TODO_NeSy.md
-
-
 Track MC — Memory & Context
 
 - Outcomes: Durable, auditable memory across short/long/structured contexts; adapters behind flags; coherent recall.

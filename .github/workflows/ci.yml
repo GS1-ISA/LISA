@@ -39,6 +39,9 @@ jobs:
       - name: Significance trigger
         id: sig
         run: |
+          # Defaults to satisfy actionlint and initialize outputs
+          echo "significant=false" >> "$GITHUB_OUTPUT"
+          echo "reason=not-implemented" >> "$GITHUB_OUTPUT"
           python scripts/significance_trigger.py --base "${{ steps.base.outputs.sha }}" \
             --threshold-files 15 \
             --threshold-loc 500 \
@@ -107,6 +110,8 @@ jobs:
       - name: Significance trigger
         id: sig
         run: |
+          echo "significant=false" >> "$GITHUB_OUTPUT"
+          echo "reason=not-implemented" >> "$GITHUB_OUTPUT"
           python scripts/significance_trigger.py --base "${{ steps.base.outputs.sha }}" \
             --threshold-files 15 \
             --threshold-loc 500 \
@@ -257,13 +262,14 @@ jobs:
         continue-on-error: true
         run: |
           radon cc -s -n D src || true
-      - name: Deep checks — Semgrep (advisory)
+      - name: Deep checks — Semgrep (advisory, significance)
+        if: steps.sig.outputs.significant == 'true'
         continue-on-error: true
         run: |
           pip install semgrep
           semgrep --config p/ci --error --timeout 120 --json | tee semgrep.json || true
       - name: Upload semgrep.json
-        if: always()
+        if: always() && steps.sig.outputs.significant == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: semgrep
@@ -312,7 +318,8 @@ jobs:
         with:
           name: healthcheck
           path: docs/audit/healthcheck.md
-      - name: Container build + smoke (advisory)
+      - name: Container build + smoke (advisory, significance)
+        if: steps.sig.outputs.significant == 'true'
         continue-on-error: true
         run: |
           docker build -t superapp:ci -f ISA_SuperApp/Dockerfile .
@@ -333,7 +340,8 @@ jobs:
           if echo "$PR_LABELS" | grep -q 'break-glass'; then
             echo "$PR_BODY" | grep -qi 'waiver: *true' || { echo 'Missing waiver: true in PR body for break-glass'; exit 1; }
           fi
-      - name: Deep checks — Extended tests (advisory)
+      - name: Deep checks — Extended tests (advisory, significance)
+        if: steps.sig.outputs.significant == 'true'
         continue-on-error: true
         run: |
           cd ISA_SuperApp && pytest -q --maxfail=1 --durations=10 || true

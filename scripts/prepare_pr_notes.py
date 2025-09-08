@@ -20,11 +20,11 @@ def diff_stats(base: str | None) -> tuple[int, int, list[str]]:
     if base:
         try:
             files = [
-                l
-                for l in run(
+                name
+                for name in run(
                     ["git", "diff", "--name-only", f"{base}...HEAD"]
                 ).splitlines()
-                if l
+                if name
             ]
             for line in run(
                 ["git", "diff", "--numstat", f"{base}...HEAD"]
@@ -37,9 +37,9 @@ def diff_stats(base: str | None) -> tuple[int, int, list[str]]:
             files = []
     if not files:
         files = [
-            l
-            for l in run(["git", "diff", "--name-only", "HEAD~1..HEAD"]).splitlines()
-            if l
+            name
+            for name in run(["git", "diff", "--name-only", "HEAD~1..HEAD"]).splitlines()
+            if name
         ]
         for line in run(["git", "diff", "--numstat", "HEAD~1..HEAD"]).splitlines():
             parts = line.split("\t")

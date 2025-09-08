@@ -1,4 +1,4 @@
-Title: Quality Gates and Acceptance Thresholds
+# Quality Gates and Acceptance Thresholds
 Last updated: 2025-09-02
 
 Gating Levels
@@ -12,7 +12,7 @@ Initial PR CI (advisory → enforced when stable)
 - Security (bandit, pip-audit, gitleaks): advisory → enforced once baseline issues triaged.
 - Complexity (radon): advisory with budget (most functions < 10).
 
-### Source Code Governance
+## Source Code Governance
 
 All Python source files (`**/*.py`) within the `src/`, `scripts/`, and `agent/` directories are governed by the following standard quality gates as defined in the `ci.yml` workflow:
 
@@ -22,11 +22,11 @@ All Python source files (`**/*.py`) within the `src/`, `scripts/`, and `agent/` 
 - **Testing**: Must be covered by `pytest` unit or integration tests where applicable. Core logic should strive for >90% coverage.
 - **Security**: Must pass `bandit` and `pip-audit` scans with no high/critical vulnerabilities.
 
-### Test File Governance
+## Test File Governance
 
 All test files (`**/tests/**/*.py`) are considered part of the project's quality assurance framework. They are executed via `pytest` in the CI pipeline and must adhere to the same linting and formatting standards as source code.
 
-### Configuration and Artifact Governance
+## Configuration and Artifact Governance
 
 Project configuration files (`.yml`, `.toml`, `.yaml`, `Dockerfile`, etc.) are governed by the principle of "working as configured." They must be parsable and are validated by the CI jobs that consume them (e.g., the `docker build` and `commitlint` jobs).
 
@@ -67,7 +67,6 @@ Break‑Glass Procedure
 Waiver Policy
 - Waivers must be documented in TECH_DEBT.md with owner, reason, scope, and expiry date (≤30 days by default).
 - CI posts a reminder when a waiver is within 7 days of expiry; expired waivers fail merges until renewed or resolved.
-
 
 Additional PR Gates (Promoted)
 - Determinism snapshots: run snapshot tests for canonical JSON; promotion pending on stability window.

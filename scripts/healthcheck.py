@@ -19,20 +19,20 @@ def run(cmd: list[str]) -> tuple[int, str]:
 
 
 def section(title: str, body: str) -> str:
-    return f"## {title}\n\n````\n{body.strip()}\n````\n\n"
+    return f"## {title}\n\n```\n{body.rstrip()}\n```\n"
 
 
 def main() -> int:
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     md: list[str] = ["# Project Healthcheck", ""]
 
-    rc, out = run(["ruff", "check", "."])
+    _rc, out = run(["ruff", "check", "."])
     md.append(section("ruff (lint)", out))
 
-    rc, out = run(["mypy", "ISA_SuperApp/src"])  # advisory
+    _rc, out = run(["mypy", "ISA_SuperApp/src"])  # advisory
     md.append(section("mypy (types)", out))
 
-    rc, out = run(
+    _rc, out = run(
         [
             "bash",
             "-lc",
@@ -41,18 +41,18 @@ def main() -> int:
     )  # determinism
     md.append(section("pytest (determinism snapshot)", out))
 
-    rc, out = run(["bandit", "-qq", "-r", "ISA_SuperApp/src"])  # advisory
+    _rc, out = run(["bandit", "-qq", "-r", "ISA_SuperApp/src"])  # advisory
     md.append(section("bandit (security)", out))
 
-    rc, out = run(["pip-audit"])  # advisory
+    _rc, out = run(["pip-audit"])  # advisory
     md.append(section("pip-audit (deps)", out))
 
     # Docs refs
-    rc, out = run(["python3", "scripts/docs_ref_lint.py"])
+    _rc, out = run(["python3", "scripts/docs_ref_lint.py"])
     md.append(section("docs-ref-lint", out))
 
     # Coherence audit
-    rc, out = run(["python3", "scripts/coherence_audit.py"])
+    _rc, out = run(["python3", "scripts/coherence_audit.py"])
     md.append(section("coherence-audit", out))
     try:
         score = (ROOT / "COHERENCE_SCORECARD.md").read_text(encoding="utf-8")

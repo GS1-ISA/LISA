@@ -1,4 +1,4 @@
-Title: Agentic Architecture — Roles, Loops, Safety, Rewards
+# Agentic Architecture — Roles, Loops, Safety, Rewards
 Last updated: 2025-09-02
 
 Overview: The agent's behavior is configured by the `.agent/policy.yaml` file. Agents plan, act, observe, critique, and learn, with strict safety and quality gates.
@@ -48,7 +48,7 @@ Testing scope
 - Tests live under: `src/**/tests`, `infra/rag/tests`, and `scripts/research/tests`.
 - CI runs ruff, mypy (advisory), and pytest across these packages. See `docs/CI_WORKFLOWS.md`.
 
-### Agent State Persistence and Task Management
+## Agent State Persistence and Task Management
 
 To ensure continuity and prevent redundant work across agent sessions and different agents, the system formalizes how agents manage and persist their internal state regarding task progress and completion:
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # Compatibility shim to expose base types at src.docs_provider.base
 try:
-    from .src.docs_provider.base import (  # type: ignore
+    from .src.docs_provider.base import (
         DocsProvider,
         DocsSnippet,
         NullProvider,
@@ -14,7 +14,7 @@ except Exception:  # pragma: no cover
     from typing import List, Optional, Protocol
 
     @dataclass(frozen=True)
-    class DocsSnippet:  # type: ignore
+    class DocsSnippet:  # type: ignore[no-redef]
         source: str
         content: str
         version: Optional[str] = None
@@ -22,10 +22,10 @@ except Exception:  # pragma: no cover
         license: Optional[str] = None
 
     @dataclass(frozen=True)
-    class ProviderResult:  # type: ignore
+    class ProviderResult:  # type: ignore[no-redef]
         snippets: List[DocsSnippet]
 
-    class DocsProvider(Protocol):  # type: ignore
+    class DocsProvider(Protocol):  # type: ignore[no-redef]
         def get_docs(
             self,
             query: str,
@@ -37,7 +37,7 @@ except Exception:  # pragma: no cover
         ) -> ProviderResult:
             ...
 
-    class NullProvider(DocsProvider):  # type: ignore
+    class NullProvider(DocsProvider):  # type: ignore[no-redef]
         def get_docs(
             self,
             query: str,
@@ -48,3 +48,11 @@ except Exception:  # pragma: no cover
             section_hints: Optional[List[str]] = None,
         ) -> ProviderResult:
             return ProviderResult(snippets=[])
+
+
+__all__ = [
+    "DocsProvider",
+    "DocsSnippet",
+    "NullProvider",
+    "ProviderResult",
+]

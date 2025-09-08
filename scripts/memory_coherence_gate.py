@@ -13,14 +13,14 @@ def load_last_two_summaries(mem_file: Path) -> tuple[str, str] | None:
         return None
     try:
         lines = [
-            json.loads(l)
-            for l in mem_file.read_text(encoding="utf-8").splitlines()
-            if l.strip()
+            json.loads(line)
+            for line in mem_file.read_text(encoding="utf-8").splitlines()
+            if line.strip()
         ]
         summaries = [
-            l
-            for l in lines
-            if l.get("kind") in ("store",) and "Q:" in l.get("content", "")
+            obj
+            for obj in lines
+            if obj.get("kind") in ("store",) and "Q:" in obj.get("content", "")
         ]
         if len(summaries) < 2:
             return None

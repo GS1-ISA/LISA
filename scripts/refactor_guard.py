@@ -79,7 +79,7 @@ def load_flags() -> Dict[str, Any]:
         except Exception:
             pass
     FLAGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    init = {"flags": {}}  # name -> {"enabled": bool, "traffic": int}
+    init: Dict[str, Any] = {"flags": {}}  # name -> {"enabled": bool, "traffic": int}
     FLAGS_FILE.write_text(json.dumps(init, indent=2), encoding="utf-8")
     return init
 
@@ -295,7 +295,7 @@ def _propose_slices(max_slices: int = 5) -> List[Dict[str, Any]]:
     files = _list_repo_files()
     edges = _load_graph_edges()
     incoming: Dict[str, int] = {f: 0 for f in files}
-    for s, d in edges:
+    for _, d in edges:
         if d in incoming:
             incoming[d] += 1
     # Pick small clusters by directory with no or few incoming edges
@@ -388,7 +388,7 @@ def cmd_next(args: argparse.Namespace) -> None:
         print(
             "BLOCKED:", ", ".join(board.get("block_reasons", [])) or "unknown reasons"
         )
-        print(f"Resolve issues in docs/issues/ then re-run pre-check.")
+        print("Resolve issues in docs/issues/ then re-run pre-check.")
         sys.exit(2)
     # Pick first from TODO by smallest est_loc
     todos = board["columns"]["TODO"]
@@ -396,7 +396,9 @@ def cmd_next(args: argparse.Namespace) -> None:
         print("No TODO slices. Run: slice")
         return
     # Re-order by est_loc
-    todos_sorted = sorted(todos, key=lambda sid: board["slices"][sid]["est_loc"])  # type: ignore[index]
+    todos_sorted = sorted(
+        todos, key=lambda sid: board["slices"][sid]["est_loc"]
+    )  # noqa: E501
     sid = todos_sorted[0]
     s = board["slices"][sid]
     branch = f"refactor/{sid}-{s['domain']}"
@@ -411,7 +413,7 @@ def cmd_next(args: argparse.Namespace) -> None:
         "mypy src || true",
     ]
     for c in cmds:
-        rc, out = run(c)
+        _rc, out = run(c)
         (ARTIFACTS_DIR / f"{sid}_{re.sub('[^a-zA-Z0-9]+','_',c)[:40]}.log").write_text(
             out, encoding="utf-8"
         )

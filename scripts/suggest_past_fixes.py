@@ -45,7 +45,7 @@ def main() -> int:
     for r in hits[: ns.top]:
         print(
             f"- {r.get('task')} | strat={r.get('strategy')} | status={r.get('status')} "
-            f"| covΔ={r.get('coverage_delta')} | type_errs={r.get('type_errors')} | notes={r.get('notes')[:80]}"
+            f"| covΔ={r.get('coverage_delta')} | type_errs={r.get('type_errors')} | notes={str(r.get('notes') or '')[:80]}"
         )
     if not hits:
         print("No suggestions.")

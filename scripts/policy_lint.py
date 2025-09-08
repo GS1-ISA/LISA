@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import yaml  # type: ignore
+import yaml
 
 POLICY = Path(".agent/policy.yaml")
 

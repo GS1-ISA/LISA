@@ -28,7 +28,7 @@ def repo_disk_usage() -> int:
 def repo_file_count() -> int:
     try:
         out = subprocess.check_output(["git", "ls-files"], text=True)
-        return len([l for l in out.splitlines() if l])
+        return len([name for name in out.splitlines() if name])
     except Exception:
         return 0
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import re
 from pathlib import Path
+from typing import Iterable, List, Tuple
 
 EXCLUDE_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
 NON_NORMATIVE = [
@@ -22,7 +23,7 @@ RULE_PATTERNS = [
 ]
 
 
-def iter_md_files(root: Path):
+def iter_md_files(root: Path) -> Iterable[Path]:
     for p in root.rglob("*.md"):
         if any(part in EXCLUDE_DIRS for part in p.parts):
             continue
@@ -37,8 +38,8 @@ def iter_md_files(root: Path):
         yield p
 
 
-def extract_rules(path: Path):
-    rules = []
+def extract_rules(path: Path) -> List[Tuple[Path, int, str]]:
+    rules: List[Tuple[Path, int, str]] = []
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except Exception:

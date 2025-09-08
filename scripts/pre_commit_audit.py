@@ -8,10 +8,9 @@ infrastructure and provides clear failure messages with improvement suggestions.
 """
 
 import json
-import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 # Configuration
 DEFAULT_THRESHOLD = 70.0
@@ -220,7 +219,7 @@ class AuditChecker:
         trend = self._analyze_score_trend()
         print(f"📊 Trend: {trend}")
 
-        print(f"✅ Audit threshold check passed!")
+        print("✅ Audit threshold check passed!")
         return True
 
     def generate_failure_report(self) -> str:

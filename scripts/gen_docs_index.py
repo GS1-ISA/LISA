@@ -26,7 +26,7 @@ def load() -> list[dict]:
 
 def main() -> int:
     rows = load()
-    rows.sort(key=lambda r: (r.get("title") or r.get("rel")))
+    rows.sort(key=lambda r: str(r.get("title") or r.get("rel") or ""))
     lines: list[str] = []
     lines.append("# Documentation Index")
     lines.append("")

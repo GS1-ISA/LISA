@@ -20,8 +20,8 @@ def path_exists(rel: str) -> bool:
     return p.exists()
 
 
-def workflow_script_refs() -> list[dict[str, str]]:
-    issues = []
+def workflow_script_refs() -> list[dict[str, object]]:
+    issues: list[dict[str, object]] = []
     for wf in (ROOT / ".github" / "workflows").glob("*.yml"):
         txt = load_text(wf)
         for m in re.finditer(r"python\s+([\w\-/\.]+\.py)", txt):
@@ -38,8 +38,8 @@ def workflow_script_refs() -> list[dict[str, str]]:
     return issues
 
 
-def dockerfile_copy_refs() -> list[dict[str, str]]:
-    issues = []
+def dockerfile_copy_refs() -> list[dict[str, object]]:
+    issues: list[dict[str, object]] = []
     for df in ROOT.rglob("Dockerfile"):
         txt = load_text(df)
         for m in re.finditer(r"^COPY\s+([^\s]+)\s+", txt, re.MULTILINE):
@@ -64,8 +64,8 @@ def dockerfile_copy_refs() -> list[dict[str, str]]:
     return issues
 
 
-def python_import_refs() -> list[dict[str, str]]:
-    issues = []
+def python_import_refs() -> list[dict[str, object]]:
+    issues: list[dict[str, object]] = []
     for py in (ROOT / "ISA_SuperApp" / "src").rglob("*.py"):
         txt = load_text(py)
         for m in re.finditer(r"(?:from|import)\s+src(?:\.|\s)([a-zA-Z0-9_\.]+)", txt):
@@ -88,7 +88,7 @@ def python_import_refs() -> list[dict[str, str]]:
 
 
 def main() -> int:
-    issues: list[dict[str, str]] = []
+    issues: list[dict[str, object]] = []
     issues += workflow_script_refs()
     issues += dockerfile_copy_refs()
     issues += python_import_refs()

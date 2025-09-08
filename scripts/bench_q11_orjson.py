@@ -51,8 +51,7 @@ def main() -> int:
     determinism_check()
     base = bench("stdlib", use_orjson=False)
     try:
-        import orjson  # noqa: F401
-
+        __import__("orjson")
         fast = bench("orjson", use_orjson=True)
         print(f"Speedup: {fast / base:.2f}x")
     except Exception as e:

@@ -109,7 +109,7 @@ def main() -> int:
         suggestions.append({"path": artefact, "reason": reason, "suggestion": sugg})
 
     # Write YAML
-    import yaml  # type: ignore
+    import yaml
 
     with gaps_yaml.open("w", encoding="utf-8") as f:
         yaml.safe_dump({"gaps": suggestions}, f, sort_keys=False)

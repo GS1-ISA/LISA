@@ -7,12 +7,12 @@ PR (ci.yml)
 - Tests (pytest+coverage): advisory until thresholds met; then gate.
 - Security (bandit, pip-audit, gitleaks): advisory → gate.
 - Artifacts: coverage.xml if present; logs.
- - Combined Coverage: runs app + packages + infra tests with coverage and uploads `coverage-total.xml`; advisory no-regression check against baseline.
- - Memory coherence: enforced drift gate; uploads memory logs snapshot.
- - Coherence Audit: generates repo graph and KPIs; uploads scorecard and lists.
- - Package Wheels: builds stub package wheels (advisory) and uploads artifacts.
+  - Combined Coverage: runs app + packages + infra tests with coverage and uploads `coverage-total.xml`; advisory no-regression check against baseline.
+  - Memory coherence: enforced drift gate; uploads memory logs snapshot.
+  - Coherence Audit: generates repo graph and KPIs; uploads scorecard and lists.
+  - Package Wheels: builds stub package wheels (advisory) and uploads artifacts.
   - Bloat Check: runs prune_bloat.py (dry-run) and uploads `bloat_candidates.txt` as an artifact.
- - Memory: advisory coherence gate; snapshot of JSONL memory logs uploaded as artifact.
+  - Memory: advisory coherence gate; snapshot of JSONL memory logs uploaded as artifact.
 
 Deep Checks (on-demand, nightly.yml via workflow_dispatch)
 - Mutation tests (mutmut) on mapping logic.

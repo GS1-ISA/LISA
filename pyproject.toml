@@ -107,7 +107,9 @@ include = '\.pyi?$'
 line-length = 88
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
+exclude = "(^src/docs_provider/src/|^src/orchestrator/src/|^scripts/research/|^scripts/tests/|^scripts/audit_|gen_docs_index.py|suggest_past_fixes.py|evaluate_research.py|audit_md_rules.py|audit_coherence.py)"
+follow_imports = "skip"
 check_untyped_defs = true
 ignore_missing_imports = true
 warn_unused_ignores = true

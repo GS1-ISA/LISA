@@ -35,7 +35,7 @@ LATENCY = Histogram(
 
 
 @app.middleware("http")
-async def metrics_middleware(request, call_next):  # type: ignore[no-untyped-def]
+async def metrics_middleware(request, call_next):
     start = time.perf_counter()
     try:
         response = await call_next(request)

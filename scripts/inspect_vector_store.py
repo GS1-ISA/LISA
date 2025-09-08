@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
@@ -83,7 +82,7 @@ def main(argv: List[str] | None = None) -> int:
     print(f"preview: {len(docs)} items")
     for i in range(len(docs)):
         print(
-            f"- id: {ids[i] if i < len(ids) else '?'} | source: {mds[i].get('source','?')} | chunk_id: {mds[i].get('chunk_id','?')}"
+            f"- id: {ids[i] if i < len(ids) else '?'} | source: {mds[i].get('source', '?')} | chunk_id: {mds[i].get('chunk_id', '?')}"
         )
     if problems:
         print("\nSchema issues:")

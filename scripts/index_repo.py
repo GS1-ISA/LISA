@@ -5,8 +5,6 @@ import csv
 import datetime as dt
 import hashlib
 import json
-import os
-import sys
 from pathlib import Path
 from typing import Iterable
 
@@ -51,7 +49,6 @@ def iter_files(root: Path) -> Iterable[Path]:
 
 
 def sha256_file(path: Path) -> str:
-    size = path.stat().st_size
     h = hashlib.sha256()
     with path.open("rb") as f:
         # If the file is huge, hash only the first MAX_HASH_SIZE bytes for speed,
@@ -69,7 +66,7 @@ def sha256_file(path: Path) -> str:
 
 
 def top_md_title(lines: list[str]) -> str:
-    for i, line in enumerate(lines[:10]):
+    for line in lines[:10]:
         s = line.strip()
         if s.startswith("Title:"):
             return s[len("Title:") :].strip()

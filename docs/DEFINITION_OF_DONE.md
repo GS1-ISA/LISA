@@ -29,7 +29,7 @@ Data/Mapping Changes
 Docs/Process Changes
 - [ ] Docs build; links and examples tested
 - [ ] PR template/DoD alignment verified
- - [ ] Autonomy: changes follow Lead Developer mode (act without asking); escalation only per policy triggers
+- [ ] Autonomy: changes follow Lead Developer mode (act without asking); escalation only per policy triggers
 
 Research/NeSy Changes
 - [ ] R2P artifacts attached: search ledger, POC protocol, replication notes

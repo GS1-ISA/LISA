@@ -32,7 +32,6 @@ Acceptance: 30 questions documented; rubric applied; ≥5 POC reports with metri
 
 - [ ] Add `data/data_catalog.yaml` (machine-readable data source catalog) and link to `VECTOR_STORE_SCHEMA.md` [owner: data-engineer]
 
-
 Metadata (single-owner model applies to all)
 
 - Owner: Project (You + Agent)

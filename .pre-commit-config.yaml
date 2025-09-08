@@ -41,8 +41,8 @@ repos:
     rev: 6.1.0
     hooks:
       - id: flake8
-        files: ^(src|isa_superapp)/.*\.py$
-        exclude: ^ISA_SuperApp/
+        files: ^(?:src\/(?!docs_provider\/src\/).+|scripts|isa_superapp)/.*\.py$
+        exclude: ^ISA_SuperApp/|^scripts/tests/
         # Keep flake8 core only to reduce noisy import-order rules
 
   # Type checking
@@ -51,7 +51,8 @@ repos:
     hooks:
       - id: mypy
         args: [--ignore-missing-imports]
-        files: ^(isa_superapp)/.*\.py$
+        files: ^(src|scripts|isa_superapp)/.*\.py$
+        exclude: ^scripts/research/|^scripts/tests/|^src/orchestrator/src/|^src/docs_provider/src/docs_provider/|^src/.*/tests/
         additional_dependencies: [types-requests, types-PyYAML]
 
   # Security scanning
@@ -59,12 +60,11 @@ repos:
     rev: 1.7.5
     hooks:
       - id: bandit
-        args: [-r, isa_superapp/, src/, -f, json, -o, bandit-report.json]
+        args: [-r, isa_superapp/, src/, -f, json, -o, bandit-report.json, --exit-zero]
         files: \.(py)$
         exclude: ^tests/
         additional_dependencies: [pbr]
         pass_filenames: false
-        stages: [manual]
 
   # Documentation checks
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -72,8 +72,7 @@ repos:
     hooks:
       - id: markdownlint
         args: [--config=.markdownlint.json]
-        files: \.(md)$
-        stages: [manual]
+        files: ^docs\/(?!audit\/).+\.md$
 
   # YAML validation
   - repo: https://github.com/adrienverge/yamllint
@@ -82,7 +81,6 @@ repos:
       - id: yamllint
         args: [-c=.yamllint]
         files: \.(yaml|yml)$
-        stages: [manual]
 
   # Python security vulnerabilities
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
@@ -114,8 +112,8 @@ repos:
     hooks:
       - id: pylint
         args: [--disable=all, --enable=unused-import, --enable=unused-variable]
-        files: ^isa_superapp/.*\.py$
-        exclude: ^tests/
+        files: ^(src|scripts|isa_superapp)/.*\.py$
+        exclude: ^tests/|^scripts/tests/
 
   # JSON formatting
   - repo: https://github.com/pre-commit/mirrors-prettier

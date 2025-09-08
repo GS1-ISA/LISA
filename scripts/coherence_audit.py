@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import json
-import os
 import re
-import sys
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -162,8 +160,8 @@ def main() -> int:
     )
 
     # Orphans & dead-ends
-    indeg = defaultdict(int)
-    outdeg = defaultdict(int)
+    indeg: Dict[str, int] = defaultdict(int)
+    outdeg: Dict[str, int] = defaultdict(int)
     for e in edges:
         outdeg[e.src] += 1
         indeg[e.dst] += 1
