@@ -73,13 +73,7 @@ except ImportError as e:
 
 # Utilities
 try:
-    from .utils import (
-        ISACrypto,
-        ISAFileSystem,
-        ISANetwork,
-        ISATime,
-        ISAUtils,
-    )
+    from .utils import ISACrypto, ISAFileSystem, ISANetwork, ISATime, ISAUtils
 
     logger.debug("Utilities imports successful")
 except ImportError as e:

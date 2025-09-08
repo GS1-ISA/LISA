@@ -8,7 +8,12 @@ class OpenAIResponsesStub:
         return {
             "model": model,
             "choices": [
-                {"message": {"role": "assistant", "content": "Final answer: stub-openai"}}
+                {
+                    "message": {
+                        "role": "assistant",
+                        "content": "Final answer: stub-openai",
+                    }
+                }
             ],
         }
 
@@ -18,7 +23,12 @@ class BedrockAgentsStub:
         return {
             "model": model,
             "choices": [
-                {"message": {"role": "assistant", "content": "Final answer: stub-bedrock"}}
+                {
+                    "message": {
+                        "role": "assistant",
+                        "content": "Final answer: stub-bedrock",
+                    }
+                }
             ],
         }
 
@@ -33,4 +43,3 @@ class LlmRuntime:
         if self.backend == "bedrock":
             return self._bedrock.chat(messages, model, **kw)
         return self._openai.chat(messages, model, **kw)
-

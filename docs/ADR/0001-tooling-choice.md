@@ -17,4 +17,3 @@ Consequences
 - Gating steps are opinionated; short-term transitions may need suppressions.
 
 Status: Accepted
-

@@ -1,10 +1,13 @@
-
 import logging
-from src.tools.web_research import WebResearchTool
+
 from src.agent_core.memory.rag_store import RAGMemory
+from src.tools.web_research import WebResearchTool
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 class ResearcherAgent:
     """
@@ -12,6 +15,7 @@ class ResearcherAgent:
     It uses a web research tool to search for information and a RAG memory
     to store and retrieve relevant findings.
     """
+
     def __init__(self, web_tool: WebResearchTool, rag_memory: RAGMemory):
         """
         Initializes the ResearcherAgent.
@@ -23,7 +27,7 @@ class ResearcherAgent:
         self.web_tool = web_tool
         self.rag_memory = rag_memory
         # This would be replaced by a proper call to an LLM in a real scenario
-        self.llm_client = None # Placeholder for an LLM client
+        self.llm_client = None  # Placeholder for an LLM client
         logging.info("ResearcherAgent initialized.")
 
     def _reason(self, prompt: str) -> str:
@@ -37,7 +41,7 @@ class ResearcherAgent:
         if "search for" in prompt.lower():
             return f"Action: search('{prompt.split('search for')[-1].strip()}')"
         if "read url" in prompt.lower():
-            url = prompt.split('read url')[-1].strip()
+            url = prompt.split("read url")[-1].strip()
             return f"Action: read_url('{url}')"
         return "Action: finish()"
 
@@ -53,17 +57,17 @@ class ResearcherAgent:
             A summary of the research findings.
         """
         logging.info(f"Starting research for task: {initial_task}")
-        
+
         working_memory = f"The initial task is to: {initial_task}.\n"
-        
+
         for step in range(max_steps):
             logging.info(f"--- Step {step + 1}/{max_steps} ---")
-            
+
             # 1. Reason
             # In a real agent, context from RAG memory would also be added here.
             llm_decision = self._reason(working_memory)
             logging.info(f"LLM Decision: {llm_decision}")
-            
+
             # 2. Act
             if llm_decision.startswith("Action: search"):
                 query = llm_decision.split("('")[-1].split("')")[0]
@@ -80,17 +84,21 @@ class ResearcherAgent:
                 except Exception:
                     url_s = llm_decision
                 content = self.web_tool.read_url(url_s)
-                
+
                 # Self-Correction/Critique Step
                 critique_prompt = f"Is the following content relevant to the task '{initial_task}'? Content: {content[:500]}..."
                 critique_decision = self._reason(critique_prompt)
-                
-                if "Action: finish()" in critique_decision: # Using finish() as a proxy for "irrelevant"
+
+                if (
+                    "Action: finish()" in critique_decision
+                ):  # Using finish() as a proxy for "irrelevant"
                     observation = f"Observation: Content from {url_s} was deemed irrelevant and was not stored.\n"
                 else:
                     # In a real agent, we would summarize before adding to memory.
                     self.rag_memory.add(text=content, source=url_s, doc_id=url_s)
-                    observation = f"Observation: Read and stored relevant content from {url_s}.\n"
+                    observation = (
+                        f"Observation: Read and stored relevant content from {url_s}.\n"
+                    )
                 working_memory += observation
 
             elif llm_decision.startswith("Action: finish"):

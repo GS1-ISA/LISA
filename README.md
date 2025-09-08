@@ -136,7 +136,7 @@ from isa_superapp import ISASuperApp, Task, TaskType, SearchQuery
 async def main():
     # Initialize the app
     app = await ISASuperApp.create()
-    
+
     # Index a document
     from isa_superapp import Document
     doc = Document(
@@ -145,12 +145,12 @@ async def main():
         source="path/to/paper.pdf"
     )
     doc_id = await app.index_document(doc)
-    
+
     # Search documents
     results = await app.search_documents(
         SearchQuery(query="machine learning", limit=10)
     )
-    
+
     # Execute a task
     task = Task(
         type=TaskType.RESEARCH,
@@ -158,7 +158,7 @@ async def main():
         priority="high"
     )
     task_id = await app.execute_task(task)
-    
+
     # Get results
     result = await app.get_task_result(task_id)
     print(result)
@@ -297,7 +297,7 @@ from isa_superapp import BaseAgent, Task, TaskResult
 
 class CustomResearchAgent(BaseAgent):
     """Custom research agent implementation."""
-    
+
     async def execute(self, task: Task) -> TaskResult:
         # Your custom logic here
         return TaskResult(

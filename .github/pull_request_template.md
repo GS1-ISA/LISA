@@ -25,19 +25,19 @@ Describe the change, motivation, and scope.
 ## Risk & Impact
 
 - Risk level: Low / Medium / High
-- Affected components: 
-- Performance impact (if any): 
-- Data/Schema/Mapping changes (if any): 
+- Affected components:
+- Performance impact (if any):
+- Data/Schema/Mapping changes (if any):
 
 ## Testing Evidence
 
-- Unit/Integration summary: 
-- Benchmarks (if critical path): 
-- Snapshot diffs (if applicable): 
+- Unit/Integration summary:
+- Benchmarks (if critical path):
+- Snapshot diffs (if applicable):
 
 ## Research (if applicable)
 
-- Search ledger link: 
-- POC protocol link: 
-- Replication notes: 
-- Decision (Adopt/Hold/Reject): 
+- Search ledger link:
+- POC protocol link:
+- Replication notes:
+- Decision (Adopt/Hold/Reject):

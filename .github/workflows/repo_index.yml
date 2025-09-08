@@ -28,4 +28,3 @@ jobs:
           body: "Automated inventory and search index refresh."
           branch: docs/reindex
           labels: documentation
-

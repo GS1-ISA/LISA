@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 """Offline RAG eval (minimal).
 
 Loads a VectorIndex storage and runs a small set of queries, printing top hit ids.
 """
+
+from __future__ import annotations
 
 import json
 import sys

@@ -53,4 +53,3 @@ KPIs & Gates (illustrative)
 
 References
 - Linked docs: ROADMAP (Tracks DG, SG), TODO (sections for DG/SG), QUALITY_GATES (gates), CI_WORKFLOWS (planned checks).
-

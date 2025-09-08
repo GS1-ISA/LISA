@@ -37,4 +37,3 @@ CI/CD & Supply Chain
 - Release automation tools (Release Please)
 
 Use this list to seed search ledgers; prefer Tier A/B evidence when possible.
-

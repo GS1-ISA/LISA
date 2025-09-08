@@ -2,10 +2,7 @@
   "entities": {
     "RFID": {
       "type": "technology",
-      "observations": [
-        "Used in supply chain",
-        "HF/UHF bands"
-      ]
+      "observations": ["Used in supply chain", "HF/UHF bands"]
     }
   },
   "relations": []

@@ -12,4 +12,3 @@ Client
 
 CI Smoke
 - Spin up servers for FS/Git; run basic list/read; assert permission boundaries; publish logs.
-

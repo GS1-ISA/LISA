@@ -4,30 +4,16 @@
   "block_reasons": [],
   "columns": {
     "TODO": [],
-    "FLAG-CREATED": [
-      "S01"
-    ],
+    "FLAG-CREATED": ["S01"],
     "PR-OPEN": [],
     "CANARY": [],
-    "DONE": [
-      "S02",
-      "S03",
-      "S04",
-      "S05",
-      "S06",
-      "S07",
-      "S08",
-      "S09",
-      "S10"
-    ]
+    "DONE": ["S02", "S03", "S04", "S05", "S06", "S07", "S08", "S09", "S10"]
   },
   "slices": {
     "S01": {
       "name": "S01",
       "domain": "src",
-      "files": [
-        "src/docs_provider/src/__init__.py"
-      ],
+      "files": ["src/docs_provider/src/__init__.py"],
       "entry_points": [],
       "flag": "ISA_REF_SRC_20250906",
       "est_loc": 0,
@@ -37,9 +23,7 @@
     "S02": {
       "name": "S02",
       "domain": "agent_core",
-      "files": [
-        "src/agent_core/__init__.py"
-      ],
+      "files": ["src/agent_core/__init__.py"],
       "entry_points": [],
       "flag": "ISA_REF_AGENT_CORE_20250906",
       "est_loc": 1,
@@ -88,10 +72,7 @@
     "S06": {
       "name": "S06",
       "domain": "tests",
-      "files": [
-        "src/llm/tests/test_parity.py",
-        "src/llm/tests/conftest.py"
-      ],
+      "files": ["src/llm/tests/test_parity.py", "src/llm/tests/conftest.py"],
       "entry_points": [],
       "flag": "ISA_REF_TESTS_20250906",
       "est_loc": 20,
@@ -114,9 +95,7 @@
     "S08": {
       "name": "S08",
       "domain": "tests",
-      "files": [
-        "src/docs_provider/tests/test_provider.py"
-      ],
+      "files": ["src/docs_provider/tests/test_provider.py"],
       "entry_points": [],
       "flag": "ISA_REF_TESTS_20250906",
       "est_loc": 44,

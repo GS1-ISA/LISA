@@ -5,4 +5,3 @@ Scope: Single interface with two stub drivers to validate schema parity across b
 
 Usage
 - Run tests: `pytest -q`
-

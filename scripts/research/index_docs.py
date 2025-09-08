@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Index normalized research docs into the SuperApp retrieval index (offline‑first).
 
 This utility is designed to run in PR CI without network access. It can ingest
@@ -9,6 +7,8 @@ Usage (Python):
   from scripts.research.index_docs import index_tr_fixture
   index_tr_fixture('scripts/research/tests/fixtures/w3c_tr_index.json', 'storage/research_index.json')
 """
+
+from __future__ import annotations
 
 import json
 import sys

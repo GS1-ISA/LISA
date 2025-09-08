@@ -1,12 +1,12 @@
-
-import os
-from packages.docs_provider.context7 import get_provider, Context7Provider
 from packages.docs_provider.base import NullProvider
+from packages.docs_provider.context7 import Context7Provider, get_provider
+
 
 def test_get_provider_disabled_by_default():
     """Ensures the NullProvider is returned when Context7 is not enabled."""
     provider = get_provider()
     assert isinstance(provider, NullProvider)
+
 
 def test_get_provider_enabled(monkeypatch):
     """Ensures the Context7Provider is returned when the env var is set."""
@@ -14,6 +14,7 @@ def test_get_provider_enabled(monkeypatch):
     # Still requires API key and project, but should return the correct type
     provider = get_provider()
     assert isinstance(provider, Context7Provider)
+
 
 def test_provider_cache(monkeypatch):
     """A simple test to check if the cache is being used."""

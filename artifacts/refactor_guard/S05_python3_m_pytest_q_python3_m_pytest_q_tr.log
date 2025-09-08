@@ -10,15 +10,15 @@ tmp_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/p
 >       n = index_fr_fixture(fixture, storage)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-scripts/research/tests/test_index_fr_integration.py:9: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/research/tests/test_index_fr_integration.py:9:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 fixture_path = PosixPath('/Users/frisowempe/ISA_D/scripts/research/tests/fixtures/federal_register_sample.json')
 storage_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/pytest-of-frisowempe/pytest-175/test_index_fr_fixture_builds_v0/research_index_fr.json')
 
     def index_fr_fixture(fixture_path: str | Path, storage_path: str | Path) -> int:
         """Load a Federal Register fixture JSON and write/update a VectorIndex storage file.
-    
+
         Returns number of docs written.
         """
         _ensure_superapp_on_path()
@@ -38,15 +38,15 @@ tmp_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/p
 >       n = index_tr_fixture(fixture, storage)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-scripts/research/tests/test_index_integration.py:10: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/research/tests/test_index_integration.py:10:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 fixture_path = PosixPath('/Users/frisowempe/ISA_D/scripts/research/tests/fixtures/w3c_tr_index.json')
 storage_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/pytest-of-frisowempe/pytest-175/test_index_tr_fixture_builds_v0/research_index.json')
 
     def index_tr_fixture(fixture_path: str | Path, storage_path: str | Path) -> int:
         """Load a TR fixture JSON and write/update a VectorIndex storage file.
-    
+
         Returns number of docs written.
         """
         _ensure_superapp_on_path()
@@ -67,15 +67,15 @@ tmp_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/p
 >       n = kg_from_normalized(docs, kg_path)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-scripts/research/tests/test_index_to_kg.py:11: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/research/tests/test_index_to_kg.py:11:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 docs = [('TR:WebAuthn Level 3', 'WebAuthn Level 3 (WD) — https://www.w3.org/TR/webauthn-3/ — 2025-08-01T00:00:00Z', {'date': ...0:00Z', {'date': '2025-07-15T00:00:00Z', 'source': 'w3c_tr', 'status': 'REC', 'url': 'https://www.w3.org/TR/webrtc/'})]
 kg_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/pytest-of-frisowempe/pytest-175/test_kg_from_normalized0/kg.json')
 
     def kg_from_normalized(docs: list[tuple[str,str,dict]], kg_path: str | Path) -> int:
         """Write normalized docs as KG entities with provenance.
-    
+
         Each doc becomes an entity with observations containing URL/status/date.
         """
         _ensure_superapp_on_path()
@@ -101,15 +101,15 @@ tmp_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/p
 >       n = index_fr_fixture(fixture, storage)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-scripts/research/tests/test_index_fr_integration.py:9: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/research/tests/test_index_fr_integration.py:9:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 fixture_path = PosixPath('/Users/frisowempe/ISA_D/scripts/research/tests/fixtures/federal_register_sample.json')
 storage_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/pytest-of-frisowempe/pytest-176/test_index_fr_fixture_builds_v0/research_index_fr.json')
 
     def index_fr_fixture(fixture_path: str | Path, storage_path: str | Path) -> int:
         """Load a Federal Register fixture JSON and write/update a VectorIndex storage file.
-    
+
         Returns number of docs written.
         """
         _ensure_superapp_on_path()
@@ -129,15 +129,15 @@ tmp_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/p
 >       n = index_tr_fixture(fixture, storage)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-scripts/research/tests/test_index_integration.py:10: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/research/tests/test_index_integration.py:10:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 fixture_path = PosixPath('/Users/frisowempe/ISA_D/scripts/research/tests/fixtures/w3c_tr_index.json')
 storage_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/pytest-of-frisowempe/pytest-176/test_index_tr_fixture_builds_v0/research_index.json')
 
     def index_tr_fixture(fixture_path: str | Path, storage_path: str | Path) -> int:
         """Load a TR fixture JSON and write/update a VectorIndex storage file.
-    
+
         Returns number of docs written.
         """
         _ensure_superapp_on_path()
@@ -158,15 +158,15 @@ tmp_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/p
 >       n = kg_from_normalized(docs, kg_path)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-scripts/research/tests/test_index_to_kg.py:11: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/research/tests/test_index_to_kg.py:11:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 docs = [('TR:WebAuthn Level 3', 'WebAuthn Level 3 (WD) — https://www.w3.org/TR/webauthn-3/ — 2025-08-01T00:00:00Z', {'date': ...0:00Z', {'date': '2025-07-15T00:00:00Z', 'source': 'w3c_tr', 'status': 'REC', 'url': 'https://www.w3.org/TR/webrtc/'})]
 kg_path = PosixPath('/private/var/folders/pf/l8k4fvrj7fgbhlnqpn7nhbc80000gn/T/pytest-of-frisowempe/pytest-176/test_kg_from_normalized0/kg.json')
 
     def kg_from_normalized(docs: list[tuple[str,str,dict]], kg_path: str | Path) -> int:
         """Write normalized docs as KG entities with provenance.
-    
+
         Each doc becomes an entity with observations containing URL/status/date.
         """
         _ensure_superapp_on_path()

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import importlib
 import json
-import os
 from pathlib import Path
 
-import importlib
 
-
-def test_feature_flag_gating_prefers_env_override_and_respects_FEATURE_FLAGS(tmp_path, monkeypatch):
+def test_feature_flag_gating_prefers_env_override_and_respects_FEATURE_FLAGS(
+    tmp_path, monkeypatch
+):
     # Ensure no ENV override active initially
     monkeypatch.delenv("CONTEXT7_ENABLED", raising=False)
     # Enable feature flags only when requested
@@ -17,8 +17,8 @@ def test_feature_flag_gating_prefers_env_override_and_respects_FEATURE_FLAGS(tmp
     impl = importlib.import_module("src.docs_provider.src.docs_provider.context7")
     impl.FLAGS_FILE = Path(tmp_path) / "flags.json"
 
-    from src.docs_provider.context7 import get_provider, Context7Provider
     from src.docs_provider.base import NullProvider
+    from src.docs_provider.context7 import Context7Provider, get_provider
 
     # No flag eval (FEATURE_FLAGS_ENABLED unset) -> NullProvider
     if impl.FLAGS_FILE.exists():
@@ -29,11 +29,13 @@ def test_feature_flag_gating_prefers_env_override_and_respects_FEATURE_FLAGS(tmp
     # FEATURE_FLAGS_ENABLED=1 but traffic=0 -> NullProvider
     monkeypatch.setenv("FEATURE_FLAGS_ENABLED", "1")
     impl.FLAGS_FILE.write_text(
-        json.dumps({
-            "flags": {
-                "ISA_REF_DOCS_PROVIDER_20990101": {"enabled": True, "traffic": 0}
-            }
-        }, indent=2
+        json.dumps(
+            {
+                "flags": {
+                    "ISA_REF_DOCS_PROVIDER_20990101": {"enabled": True, "traffic": 0}
+                }
+            },
+            indent=2,
         ),
         encoding="utf-8",
     )
@@ -42,11 +44,13 @@ def test_feature_flag_gating_prefers_env_override_and_respects_FEATURE_FLAGS(tmp
 
     # FEATURE_FLAGS_ENABLED=1 and traffic>0 -> Context7Provider
     impl.FLAGS_FILE.write_text(
-        json.dumps({
-            "flags": {
-                "ISA_REF_DOCS_PROVIDER_20990101": {"enabled": True, "traffic": 1}
-            }
-        }, indent=2
+        json.dumps(
+            {
+                "flags": {
+                    "ISA_REF_DOCS_PROVIDER_20990101": {"enabled": True, "traffic": 1}
+                }
+            },
+            indent=2,
         ),
         encoding="utf-8",
     )
@@ -58,4 +62,3 @@ def test_feature_flag_gating_prefers_env_override_and_respects_FEATURE_FLAGS(tmp
     monkeypatch.setenv("FEATURE_FLAGS_ENABLED", "0")
     provider = get_provider()
     assert isinstance(provider, Context7Provider)
-

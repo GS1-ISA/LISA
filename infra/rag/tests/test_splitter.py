@@ -7,4 +7,3 @@ def test_splitter_deterministic_and_bounds():
     assert all(len(c) <= 40 for c in chunks)
     # Stable re-run
     assert chunks == split_text(text, max_len=40)
-

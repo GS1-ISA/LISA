@@ -14,4 +14,3 @@ Last updated: 2025-09-02
 - Phase 10 (Quality Scoring & Report Card): Added qualitative scorecard with initial baseline; refine with CI data later.
 - Phase 11 (Common-Sense & Edge-Case): Noted risks and mitigations in summary; kill-switch and advisory gates documented.
 - Phase 12 (Final Guarantees & Sign-Off): Partial — re-ran tests/types. Git tag/sign requires user credentials; propose performing via CI.
-

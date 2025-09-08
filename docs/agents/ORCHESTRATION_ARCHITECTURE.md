@@ -74,4 +74,3 @@ Gating & Evidence
 - DSPy: eval harness with pass/fail metrics; compiled artifacts checked in
 - MCP: client/server smoke (FS, Git, Build); permission boundaries validated
 - CI publishes traces and evidence; PRs reference artifacts
-

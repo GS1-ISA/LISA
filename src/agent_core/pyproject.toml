@@ -9,4 +9,3 @@ description = "Core primitives for planner/builder/verifier/critic agents with p
 requires-python = ">=3.11"
 authors = [{ name = "ISA Agent Team" }]
 dependencies = []
-

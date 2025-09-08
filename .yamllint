@@ -5,26 +5,26 @@ rules:
   line-length:
     max: 120
     level: error
-  
+
   # Allow comments to start at any column
   comments:
     min-spaces-from-content: 1
-  
+
   # Allow empty lines at end of file
   empty-lines:
     max-end: 1
-  
+
   # Allow trailing spaces in markdown files (they handle line breaks)
   trailing-spaces: disable
-  
+
   # Allow empty values in certain contexts
   empty-values:
     forbid-in-block-mappings: false
     forbid-in-flow-mappings: false
-  
+
   # Allow key duplicates in certain contexts (like GitHub Actions)
   key-duplicates: disable
-  
+
   # Allow octal values starting with 0 (common in permissions)
   octal-values:
     forbid-implicit-octal: false

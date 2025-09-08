@@ -336,7 +336,6 @@ class AgentTaskExecutor(BaseWorkflowExecutor):
                 and agent_status["status"] == "active"
                 and len(agent_status["current_tasks"]) < 10
             ):  # Max tasks per agent
-
                 # Check capabilities
                 agent_capabilities = set(agent_status["capabilities"])
                 required_capabilities = set(
@@ -735,9 +734,9 @@ class WorkflowEngine:
 
                     # Update context with step result
                     if step_result.result:
-                        execution.context[f"step_{step.step_id}_result"] = (
-                            step_result.result
-                        )
+                        execution.context[
+                            f"step_{step.step_id}_result"
+                        ] = step_result.result
 
                     executed_steps.add(step.step_id)
                     pending_steps.remove(step.step_id)

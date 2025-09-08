@@ -1,15 +1,17 @@
-
-import logging
-from pathlib import Path
-from datetime import datetime, timezone
 import hashlib
-from typing import List, Optional, Dict, Any
+import logging
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import chromadb
 from chromadb.utils import embedding_functions
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 class RAGMemory:
     """
@@ -17,10 +19,13 @@ class RAGMemory:
     This class manages a persistent vector store for an agent, allowing it to
     store and retrieve information based on semantic similarity.
     """
-    def __init__(self,
-                 collection_name: str = "research_collection",
-                 persist_directory: str = "storage/vector_store/research_db",
-                 embedding_model_name: str = "all-MiniLM-L6-v2"):
+
+    def __init__(
+        self,
+        collection_name: str = "research_collection",
+        persist_directory: str = "storage/vector_store/research_db",
+        embedding_model_name: str = "all-MiniLM-L6-v2",
+    ):
         """
         Initializes the RAGMemory.
 
@@ -35,8 +40,10 @@ class RAGMemory:
 
         # Initialize the embedding function
         self.embedding_model_name = embedding_model_name
-        self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=self.embedding_model_name
+        self.embedding_function = (
+            embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=self.embedding_model_name
+            )
         )
 
         # Initialize the ChromaDB client
@@ -44,12 +51,21 @@ class RAGMemory:
 
         # Get or create the collection
         self.collection = self.client.get_or_create_collection(
-            name=self.collection_name,
-            embedding_function=self.embedding_function
+            name=self.collection_name, embedding_function=self.embedding_function
         )
-        logging.info(f"RAGMemory initialized. Collection '{self.collection_name}' loaded/created.")
+        logging.info(
+            f"RAGMemory initialized. Collection '{self.collection_name}' loaded/created."
+        )
 
-    def add(self, text: str, source: str, doc_id: str, *, page: Optional[int] = None, extra_metadata: Optional[Dict[str, Any]] = None) -> None:
+    def add(
+        self,
+        text: str,
+        source: str,
+        doc_id: str,
+        *,
+        page: Optional[int] = None,
+        extra_metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """
         Adds a document to the vector store using the canonical metadata schema.
 
@@ -98,7 +114,9 @@ class RAGMemory:
                 ids.append(chunk_id)
 
             self.collection.add(documents=documents, metadatas=metadatas, ids=ids)
-            logging.info(f"Added {len(ids)} chunk(s) for document '{doc_id}' from '{source}'.")
+            logging.info(
+                f"Added {len(ids)} chunk(s) for document '{doc_id}' from '{source}'."
+            )
         except Exception as e:
             logging.error(f"Failed to add document '{doc_id}': {e}")
 
@@ -115,18 +133,19 @@ class RAGMemory:
         """
         try:
             results = self.collection.query(
-                query_texts=[query_text],
-                n_results=n_results
+                query_texts=[query_text], n_results=n_results
             )
-            
+
             retrieved = []
-            if results and results['documents']:
-                for i, doc in enumerate(results['documents'][0]):
-                    retrieved.append({
-                        "document": doc,
-                        "metadata": results['metadatas'][0][i],
-                        "distance": results['distances'][0][i]
-                    })
+            if results and results["documents"]:
+                for i, doc in enumerate(results["documents"][0]):
+                    retrieved.append(
+                        {
+                            "document": doc,
+                            "metadata": results["metadatas"][0][i],
+                            "distance": results["distances"][0][i],
+                        }
+                    )
             logging.info(f"Query for '{query_text}' returned {len(retrieved)} results.")
             return retrieved
         except Exception as e:

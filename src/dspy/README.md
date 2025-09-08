@@ -5,4 +5,3 @@ Scope: Minimal stubs for DSPy-like modules with compile() to demonstrate CI wiri
 
 Usage
 - Run tests: `pytest -q`
-

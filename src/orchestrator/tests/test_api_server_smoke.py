@@ -22,4 +22,3 @@ def test_metrics_exposes_prometheus_text():
     # Basic sanity: default registry includes process_ and our histogram name
     assert "http_request_duration_seconds" in body
     assert "# HELP" in body
-

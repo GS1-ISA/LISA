@@ -10,4 +10,3 @@ Notes & Relevance:
 Bias/COI:
 Shortlist Candidates: Pydantic v2 compiled; fastjsonschema; jsonschema
 Next Actions: pre-register POC; parity tests on edge cases
-

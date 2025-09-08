@@ -58,7 +58,6 @@ class TestLLMInitialization:
         ) as mock_tokenizer, patch(
             "transformers.AutoModelForCausalLM.from_pretrained"
         ) as mock_model:
-
             mock_tokenizer_instance = MagicMock()
             mock_model_instance = MagicMock()
             mock_tokenizer.return_value = mock_tokenizer_instance
@@ -81,7 +80,6 @@ class TestLLMInitialization:
         ) as mock_tokenizer, patch(
             "transformers.AutoModelForCausalLM.from_pretrained"
         ) as mock_model:
-
             mock_tokenizer_instance = MagicMock()
             mock_model_instance = MagicMock()
             mock_tokenizer.return_value = mock_tokenizer_instance
@@ -282,7 +280,6 @@ class TestPromptManagement:
         """Test prompt template loading."""
         # Mock template loading
         with patch("builtins.open") as mock_open, patch("json.load") as mock_json_load:
-
             mock_json_load.return_value = mock_prompt_template
 
             # Load template
@@ -342,7 +339,6 @@ class TestPromptManagement:
         """Test prompt template caching."""
         # Mock template loading
         with patch("builtins.open"), patch("json.load") as mock_json_load:
-
             mock_json_load.return_value = sample_prompt_templates[0]
 
             # Load template multiple times

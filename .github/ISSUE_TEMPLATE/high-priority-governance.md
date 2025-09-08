@@ -16,8 +16,8 @@ Please use this template to track one of the top-priority deliverables:
 
 ## Deliverable
 - type: (charter | vector-schema | model-card | data-catalog)
-- title: 
-- owner: 
+- title:
+- owner:
 
 ## Acceptance criteria
 - Describe what "done" means (links added, reviewed, example produced, CI advisory check passes).
@@ -37,4 +37,3 @@ Please use this template to track one of the top-priority deliverables:
 
 
 ---
-

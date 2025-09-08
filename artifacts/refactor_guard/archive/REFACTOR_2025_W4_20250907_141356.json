@@ -24,9 +24,7 @@
     "S01": {
       "name": "S01",
       "domain": "src",
-      "files": [
-        "src/docs_provider/src/__init__.py"
-      ],
+      "files": ["src/docs_provider/src/__init__.py"],
       "entry_points": [],
       "flag": "ISA_REF_SRC_20250907",
       "est_loc": 0,
@@ -36,9 +34,7 @@
     "S02": {
       "name": "S02",
       "domain": "agent_core",
-      "files": [
-        "src/agent_core/__init__.py"
-      ],
+      "files": ["src/agent_core/__init__.py"],
       "entry_points": [],
       "flag": "ISA_REF_AGENT_CORE_20250907",
       "est_loc": 1,
@@ -74,10 +70,7 @@
     "S05": {
       "name": "S05",
       "domain": "tests",
-      "files": [
-        "src/llm/tests/test_parity.py",
-        "src/llm/tests/conftest.py"
-      ],
+      "files": ["src/llm/tests/test_parity.py", "src/llm/tests/conftest.py"],
       "entry_points": [],
       "flag": "ISA_REF_TESTS_20250907",
       "est_loc": 20,
@@ -100,9 +93,7 @@
     "S07": {
       "name": "S07",
       "domain": "tests",
-      "files": [
-        "src/docs_provider/tests/test_provider.py"
-      ],
+      "files": ["src/docs_provider/tests/test_provider.py"],
       "entry_points": [],
       "flag": "ISA_REF_TESTS_20250907",
       "est_loc": 44,

@@ -8,4 +8,3 @@ def test_plan_tool_reflect_runs():
     assert any(s.startswith("plan:") for s in res.steps)
     assert any(s.startswith("tool:") for s in res.steps)
     assert any(s.startswith("reflect:") for s in res.steps)
-

@@ -48,4 +48,3 @@ CI Gates
 Adoption
 - Adapters are optional; router degrades gracefully
 - Feature flags via environment variables to steer routing or destinations
-

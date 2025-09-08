@@ -8,4 +8,3 @@ Upper/Lower Control Limits (UCL/LCL):
 Data Points (date:value):
 Signals (rules broken):
 Actions Taken:
-

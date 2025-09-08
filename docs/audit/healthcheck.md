@@ -68,4 +68,3 @@ coherence audit artifacts written:
 
 Note: Initial baseline. Improve by adding cross-links and trimming orphans where appropriate.
 ````
-

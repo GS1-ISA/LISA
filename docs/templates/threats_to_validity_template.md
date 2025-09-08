@@ -19,4 +19,3 @@ Mitigations:
 - Randomization/blocking:
 - Blinding/automation:
 - Replication plan:
-

@@ -13,4 +13,3 @@ class ClassifierStub:
         if "ok" in text.lower():
             return "OK"
         return "OTHER"
-

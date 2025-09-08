@@ -25,4 +25,3 @@ def split_text(text: str, max_len: int = 100) -> List[str]:
     if cur:
         chunks.append(" ".join(cur))
     return chunks
-

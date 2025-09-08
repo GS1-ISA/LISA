@@ -62,7 +62,7 @@ Prioritized Next Steps (30/60/90 days)
   - Acceptance: reduced MD lint warnings in PRs; pre-commit configured.
 
 
- 
+
 Track A — Product & UX
 
 - Outcomes: Clear value stories, usable flows, accessible UI, measurable user success.
@@ -71,7 +71,7 @@ Track A — Product & UX
 - Phase 4–5: Usability tests; i18n readiness; UX quality gates in PR review.
 Refs: docs/TODO.md
 
- 
+
 Track B — Data & Domain (ISA_C, ESG, GDSN)
 
 - Outcomes: Authoritative schemas, mapping matrix, data quality gates.
@@ -80,7 +80,7 @@ Track B — Data & Domain (ISA_C, ESG, GDSN)
 - Phase 4–5: Data catalog/lineage, documented ownership and retention.
 Refs: docs/TODO.md; docs/ULTIMATE_PLAN.md
 
- 
+
 Track C — NeSy & Reasoning
 
 - Outcomes: Explainable gap detection and compliance reasoning.
@@ -89,7 +89,7 @@ Track C — NeSy & Reasoning
 - Phase 4–5: DeepProbLog pilot; research (NeurASP, DON) offline.
 Refs: docs/TODO_NeSy.md
 
- 
+
 Track MC — Memory & Context
 
 - Outcomes: Durable, auditable memory across short/long/structured contexts; adapters behind flags; coherent recall.

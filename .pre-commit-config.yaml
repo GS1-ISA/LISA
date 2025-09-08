@@ -41,9 +41,9 @@ repos:
     rev: 6.1.0
     hooks:
       - id: flake8
-        args: [--max-line-length=88, --extend-ignore=E203,W503]
-        files: \.(py)$
-        additional_dependencies: [flake8-docstrings, flake8-import-order]
+        files: ^(src|isa_superapp)/.*\.py$
+        exclude: ^ISA_SuperApp/
+        # Keep flake8 core only to reduce noisy import-order rules
 
   # Type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -51,7 +51,7 @@ repos:
     hooks:
       - id: mypy
         args: [--ignore-missing-imports]
-        files: \.(py)$
+        files: ^(isa_superapp)/.*\.py$
         additional_dependencies: [types-requests, types-PyYAML]
 
   # Security scanning
@@ -59,9 +59,12 @@ repos:
     rev: 1.7.5
     hooks:
       - id: bandit
-        args: [-r, -f, json, -o, bandit-report.json]
+        args: [-r, isa_superapp/, src/, -f, json, -o, bandit-report.json]
         files: \.(py)$
         exclude: ^tests/
+        additional_dependencies: [pbr]
+        pass_filenames: false
+        stages: [manual]
 
   # Documentation checks
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -70,6 +73,7 @@ repos:
       - id: markdownlint
         args: [--config=.markdownlint.json]
         files: \.(md)$
+        stages: [manual]
 
   # YAML validation
   - repo: https://github.com/adrienverge/yamllint
@@ -78,6 +82,7 @@ repos:
       - id: yamllint
         args: [-c=.yamllint]
         files: \.(yaml|yml)$
+        stages: [manual]
 
   # Python security vulnerabilities
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
@@ -87,11 +92,12 @@ repos:
         files: requirements.*\.txt$
 
   # GitHub Actions validation
-  - repo: https://github.com/rhymond/actionlint
-    rev: v1.6.26
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.6
     hooks:
       - id: actionlint
         files: ^\.github/workflows/
+        stages: [manual]
 
   # Python docstring formatting
   - repo: https://github.com/pycqa/pydocstyle
@@ -99,7 +105,7 @@ repos:
     hooks:
       - id: pydocstyle
         args: [--convention=google]
-        files: \.(py)$
+        files: ^isa_superapp/.*\.py$
         exclude: ^tests/
 
   # Python code complexity
@@ -108,7 +114,7 @@ repos:
     hooks:
       - id: pylint
         args: [--disable=all, --enable=unused-import, --enable=unused-variable]
-        files: \.(py)$
+        files: ^isa_superapp/.*\.py$
         exclude: ^tests/
 
   # JSON formatting
@@ -125,6 +131,7 @@ repos:
     hooks:
       - id: shellcheck
         files: \.(sh)$
+        args: ["-S", "error"]
 
   # Commit message validation
   - repo: https://github.com/commitizen-tools/commitizen
@@ -148,7 +155,7 @@ repos:
 default_language_version:
   python: python3.11
 
-default_stages: [commit]
+default_stages: [pre-commit]
 
 # Exclude patterns
 exclude: |

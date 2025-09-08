@@ -2,28 +2,30 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Optional
 
 from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
-from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
-from src.tools.web_research import WebResearchTool
-from src.agent_core.memory.rag_store import RAGMemory
 from src.agent_core.agents.planner import PlannerAgent
 from src.agent_core.agents.researcher import ResearcherAgent
 from src.agent_core.agents.synthesizer import SynthesizerAgent
-from src.orchestrator.research_graph import ResearchGraph
+from src.agent_core.memory.rag_store import RAGMemory
 from src.docs_provider.context7 import get_provider as get_docs_provider
+from src.orchestrator.research_graph import ResearchGraph
+from src.tools.web_research import WebResearchTool
 
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 app = FastAPI(title="ISA Research API", version="0.1.0")
 
 
 # Basic Prometheus metrics (low cardinality)
-REQS = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "code"])
+REQS = Counter(
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "code"]
+)
 LATENCY = Histogram(
     "http_request_duration_seconds",
     "Request latency",
@@ -44,7 +46,9 @@ async def metrics_middleware(request, call_next):  # type: ignore[no-untyped-def
         endpoint = request.url.path
         method = request.method
         LATENCY.labels(method=method, endpoint=endpoint).observe(elapsed)
-        REQS.labels(method=method, endpoint=endpoint, code=str(locals().get("code", 500))).inc()
+        REQS.labels(
+            method=method, endpoint=endpoint, code=str(locals().get("code", 500))
+        ).inc()
 
 
 @app.get("/", response_class=PlainTextResponse)
@@ -61,7 +65,9 @@ def metrics() -> Response:
 
 
 @app.get("/research")
-def research(query: str = Query(..., description="High-level research query")) -> JSONResponse:
+def research(
+    query: str = Query(..., description="High-level research query")
+) -> JSONResponse:
     """Run the multi-agent research flow and return the final Markdown report."""
     logging.info("Setting up research components for API call")
     web_tool = WebResearchTool()
@@ -83,4 +89,3 @@ def research(query: str = Query(..., description="High-level research query")) -
     logging.info("Running research graph")
     result_md = graph.run(query)
     return JSONResponse({"query": query, "result_markdown": result_md})
-

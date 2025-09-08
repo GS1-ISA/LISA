@@ -65,4 +65,3 @@ Next Actions (Local-First)
 - Emit PR plan/diff/test artifacts locally; attach to commits/PRs when CI is available.
 - Finish coverage no-regression and type surface report; drive core to ≥90%.
 - Track strategy outcomes in `agent/outcomes/`; weekly summary artifact.
-

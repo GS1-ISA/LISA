@@ -4,14 +4,14 @@ from __future__ import annotations
 try:
     from .src.docs_provider.base import (  # type: ignore
         DocsProvider,
-        ProviderResult,
         DocsSnippet,
         NullProvider,
+        ProviderResult,
     )
 except Exception:  # pragma: no cover
     # Minimal fallbacks to keep imports alive during partial refactors
     from dataclasses import dataclass
-    from typing import Protocol, List, Optional
+    from typing import List, Optional, Protocol
 
     @dataclass(frozen=True)
     class DocsSnippet:  # type: ignore
@@ -26,9 +26,25 @@ except Exception:  # pragma: no cover
         snippets: List[DocsSnippet]
 
     class DocsProvider(Protocol):  # type: ignore
-        def get_docs(self, query: str, *, libs: List[str], version: Optional[str] = None, limit: int = 5, section_hints: Optional[List[str]] = None) -> ProviderResult: ...
+        def get_docs(
+            self,
+            query: str,
+            *,
+            libs: List[str],
+            version: Optional[str] = None,
+            limit: int = 5,
+            section_hints: Optional[List[str]] = None,
+        ) -> ProviderResult:
+            ...
 
     class NullProvider(DocsProvider):  # type: ignore
-        def get_docs(self, query: str, *, libs: List[str], version: Optional[str] = None, limit: int = 5, section_hints: Optional[List[str]] = None) -> ProviderResult:
+        def get_docs(
+            self,
+            query: str,
+            *,
+            libs: List[str],
+            version: Optional[str] = None,
+            limit: int = 5,
+            section_hints: Optional[List[str]] = None,
+        ) -> ProviderResult:
             return ProviderResult(snippets=[])
-

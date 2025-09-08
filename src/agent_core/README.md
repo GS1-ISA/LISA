@@ -13,4 +13,3 @@ Modules
 - policy.py — allowlists, limits, autonomy tiers
 
 Note: This is a placeholder scaffold; logic will be implemented incrementally.
-

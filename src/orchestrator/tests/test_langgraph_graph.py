@@ -6,4 +6,3 @@ def test_graph_runner_returns_final():
     res = r.run("hello graph")
     assert isinstance(res, str)
     assert res.lower().startswith("final answer:")
-

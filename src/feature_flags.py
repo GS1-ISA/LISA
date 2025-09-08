@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-
 FLAGS_FILE = Path("infra/feature_flags/local_flags.json")
 
 
@@ -44,6 +43,8 @@ def traffic_percent(name: str) -> int:
 
 def set_flag(name: str, enabled: bool, traffic: int = 0) -> None:
     data = _load()
-    data.setdefault("flags", {})[name] = {"enabled": bool(enabled), "traffic": int(max(0, min(100, traffic)))}
+    data.setdefault("flags", {})[name] = {
+        "enabled": bool(enabled),
+        "traffic": int(max(0, min(100, traffic))),
+    }
     _save(data)
-

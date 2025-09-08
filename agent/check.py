@@ -49,7 +49,9 @@ def main() -> int:
     result["results"].append({"gate": "docs_build", "ok": True})
 
     out_path = out_dir / f"{run_id}.json"
-    out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    out_path.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(f"Wrote {out_path}")
     return 0
 

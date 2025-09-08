@@ -740,9 +740,9 @@ Thêm cấu hình sau vào phần `mcp` trong file cấu hình Copilot Coding Ag
 Để biết thêm thông tin, xem [tài liệu GitHub chính thức](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/agents/copilot-coding-agent/extending-copilot-coding-agent-with-mcp).
 
 </details>
-  
+
 <details>
-  
+
 <summary><b>Cài đặt trong Kiro</b></summary>
 
 Xem [Tài liệu Kiro Model Context Protocol](https://kiro.dev/docs/mcp/configuration/) để biết chi tiết.

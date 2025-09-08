@@ -380,7 +380,6 @@ def mock_external_services() -> None:
     ) as mock_anthropic, patch("chromadb.PersistentClient") as mock_chroma, patch(
         "redis.Redis"
     ) as mock_redis:
-
         # Configure mocks
         mock_openai.return_value = MockFactory.create_openai_response()
         mock_anthropic.return_value = MockFactory.create_anthropic_response()

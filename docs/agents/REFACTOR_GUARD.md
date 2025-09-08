@@ -25,4 +25,3 @@ Notes
 - Next simulates PR creation locally by running advisory tools and writing a PR summary stub to `artifacts/refactor_guard/`.
 - Sweep writes a deletion plan for legacy files; it does not delete files automatically.
 - Rollback flips all `ISA_REF_*` flags to false.
-

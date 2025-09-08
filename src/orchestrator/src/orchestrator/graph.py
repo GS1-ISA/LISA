@@ -31,4 +31,3 @@ class PlanToolReflect:
 
     def _reflect(self, tool_out: str) -> str:
         return f"Final answer: {tool_out.lower()}"
-

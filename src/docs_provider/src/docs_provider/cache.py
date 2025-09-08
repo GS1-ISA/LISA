@@ -1,9 +1,9 @@
-
 import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional
+
 
 class DiskCache:
     """A simple, file-based cache with TTL."""
@@ -13,7 +13,9 @@ class DiskCache:
         self.ttl = ttl
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def _get_cache_key(self, query: str, libs: list[str], version: Optional[str]) -> str:
+    def _get_cache_key(
+        self, query: str, libs: list[str], version: Optional[str]
+    ) -> str:
         """Creates a deterministic cache key."""
         key_string = f"{query}|{'|'.join(sorted(libs))}|{version or ''}"
         return hashlib.sha256(key_string.encode()).hexdigest()
@@ -28,11 +30,11 @@ class DiskCache:
         try:
             with path.open("r", encoding="utf-8") as f:
                 data = json.load(f)
-            
+
             if time.time() - data.get("timestamp", 0) > self.ttl:
                 path.unlink()
                 return None
-            
+
             return data.get("payload")
         except (IOError, json.JSONDecodeError):
             return None
@@ -41,15 +43,12 @@ class DiskCache:
         """Saves an item to the cache."""
         key = self._get_cache_key(query, libs, version)
         path = self.cache_dir / key
-        data = {
-            "timestamp": time.time(),
-            "payload": payload
-        }
+        data = {"timestamp": time.time(), "payload": payload}
         try:
             with path.open("w", encoding="utf-8") as f:
                 json.dump(data, f)
         except IOError:
-            pass # Fail silently if cache write fails
+            pass  # Fail silently if cache write fails
 
     def purge(self):
         """Removes all items from the cache directory."""

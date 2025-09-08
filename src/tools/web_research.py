@@ -1,21 +1,24 @@
-
 import hashlib
 import json
 import logging
-import os
 from pathlib import Path
+
 import httpx
 from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 class WebResearchTool:
     """
     A tool for performing web research, including searching, reading web pages,
     and caching results to avoid redundant network requests.
     """
+
     def __init__(self, cache_dir: str = "storage/cache/web_research"):
         self.client = httpx.Client(timeout=10.0, follow_redirects=True)
         self.cache_dir = Path(cache_dir)
@@ -42,15 +45,15 @@ class WebResearchTool:
 
         if cache_path.exists():
             logging.info(f"Cache hit for search query: {query}")
-            with open(cache_path, 'r') as f:
+            with open(cache_path, "r") as f:
                 return json.load(f)
 
         logging.info(f"Performing web search for: {query}")
         try:
             with DDGS() as ddgs:
                 results = list(ddgs.text(query, max_results=max_results))
-            
-            with open(cache_path, 'w') as f:
+
+            with open(cache_path, "w") as f:
                 json.dump(results, f)
 
             return results
@@ -73,7 +76,7 @@ class WebResearchTool:
 
         if cache_path.exists():
             logging.info(f"Cache hit for URL: {url}")
-            with open(cache_path, 'r') as f:
+            with open(cache_path, "r") as f:
                 return f.read()
 
         logging.info(f"Reading URL: {url}")
@@ -81,8 +84,8 @@ class WebResearchTool:
             response = self.client.get(url)
             response.raise_for_status()
 
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
+            soup = BeautifulSoup(response.text, "html.parser")
+
             # Remove script and style elements
             for script_or_style in soup(["script", "style"]):
                 script_or_style.decompose()
@@ -90,18 +93,20 @@ class WebResearchTool:
             text = soup.get_text()
             lines = (line.strip() for line in text.splitlines())
             chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-            clean_text = '\n'.join(chunk for chunk in chunks if chunk)
+            clean_text = "\n".join(chunk for chunk in chunks if chunk)
 
-            with open(cache_path, 'w') as f:
+            with open(cache_path, "w") as f:
                 f.write(clean_text)
 
             return clean_text
         except httpx.HTTPStatusError as e:
             logging.error(f"HTTP error occurred while reading URL '{url}': {e}")
-            return f"Error: Failed to read URL with status code {e.response.status_code}."
+            return (
+                f"Error: Failed to read URL with status code {e.response.status_code}."
+            )
         except Exception as e:
             logging.error(f"An error occurred while reading URL '{url}': {e}")
-            return f"Error: An unexpected error occurred while reading the URL."
+            return "Error: An unexpected error occurred while reading the URL."
 
     def find_links(self, url: str) -> list[str]:
         """
@@ -117,19 +122,19 @@ class WebResearchTool:
         try:
             response = self.client.get(url)
             response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
+            soup = BeautifulSoup(response.text, "html.parser")
+
             links = set()
-            for a_tag in soup.find_all('a', href=True):
-                href = a_tag['href']
+            for a_tag in soup.find_all("a", href=True):
+                href = a_tag["href"]
                 # Basic handling for relative URLs
                 from urllib.parse import urljoin
+
                 href = urljoin(url, href)
-                if href.startswith('http'):
+                if href.startswith("http"):
                     links.add(href)
-            
+
             return list(links)
         except Exception as e:
             logging.error(f"An error occurred while finding links on '{url}': {e}")
             return []
-

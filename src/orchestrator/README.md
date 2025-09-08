@@ -5,4 +5,3 @@ Scope: Safe stubs for plan→tool→reflect graphs (no external deps). Use to pr
 
 Usage
 - Run tests: `pytest -q`
-

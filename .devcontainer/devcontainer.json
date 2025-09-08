@@ -4,7 +4,7 @@
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/node:1": {"version": "lts"}
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" }
   },
   "customizations": {
     "vscode": {
@@ -19,4 +19,3 @@
   "postCreateCommand": "pip install -U pip && pip install -r ISA_SuperApp/requirements.txt -r ISA_SuperApp/requirements-dev.txt && pip install pre-commit && pre-commit install",
   "remoteUser": "vscode"
 }
-

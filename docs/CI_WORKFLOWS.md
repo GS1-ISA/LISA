@@ -40,7 +40,7 @@ Current thresholds and critical paths (tunable)
   - Core agents/orchestrator: `src/agent_core/**`, `src/orchestrator/**`
   - Research tooling and memory: `src/tools/**`, `src/docs_provider/**`, `infra/rag/**`
   - CI/Infra and dependency surfaces: `.github/workflows/**`, `infra/**`, `requirements*.txt`, `pyproject.toml`, `Makefile`
-  
+
   Historical paths referencing `ISA_SuperApp/**` apply to the API‑first variant and are not active here.
 
 Gating Schedule

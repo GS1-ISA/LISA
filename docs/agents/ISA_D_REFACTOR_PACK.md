@@ -173,4 +173,3 @@ LINK: <chat>
 2) Type `next`.
 3) Review the auto-generated PR.
 4) Merge if green.
-

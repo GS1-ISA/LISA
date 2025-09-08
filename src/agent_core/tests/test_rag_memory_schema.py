@@ -38,6 +38,7 @@ def test_rag_memory_add_schema(tmp_path: Path) -> None:
 
     assert md0["document_id"] == "doc-1"
     assert md0["source"] == "unit-test"
-    assert isinstance(md0["chunk_id"], str) and md0["chunk_id"].startswith("doc-1--chunk-")
+    assert isinstance(md0["chunk_id"], str) and md0["chunk_id"].startswith(
+        "doc-1--chunk-"
+    )
     assert md0["embedding_model"] == rag.embedding_model_name
-

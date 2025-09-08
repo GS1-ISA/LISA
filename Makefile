@@ -125,7 +125,7 @@ pre-commit:
 	pre-commit run --all-files
 
 ci: format-check lint type-check security test-all
-audit: 
+audit:
 	@echo "🔍 Running comprehensive audit with indexing and issue creation..."
 	@echo "📊 This will run the full audit suite and create issues if score delta > 5%"
 	@echo ""

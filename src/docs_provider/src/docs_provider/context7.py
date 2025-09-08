@@ -1,7 +1,6 @@
-
-import os
-import logging
 import json
+import logging
+import os
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -14,6 +13,7 @@ except Exception:  # pragma: no cover
 
 try:
     from prometheus_client import Counter
+
     DOCS_PROVIDER_PATH_TOTAL = Counter(
         "docs_provider_path_total",
         "Docs provider path selections",
@@ -22,11 +22,14 @@ try:
 except Exception:  # pragma: no cover
     DOCS_PROVIDER_PATH_TOTAL = None  # type: ignore
 
-from .base import DocsProvider, ProviderResult, DocsSnippet, NullProvider
+from .base import DocsProvider, DocsSnippet, NullProvider, ProviderResult
 from .cache import DiskCache
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 class Context7Provider(DocsProvider):
     """A client for the Context7 documentation service."""
@@ -35,19 +38,19 @@ class Context7Provider(DocsProvider):
         self.api_url = os.getenv("CONTEXT7_API_URL", "https://api.context7.com/v1")
         self.project = os.getenv("CONTEXT7_PROJECT")
         self.api_key = os.getenv("CONTEXT7_KEY")
-        self.allowed_sources = os.getenv("CONTEXT7_ALLOWED_SOURCES", "").split(',')
-        
+        self.allowed_sources = os.getenv("CONTEXT7_ALLOWED_SOURCES", "").split(",")
+
         cache_ttl = int(os.getenv("CONTEXT7_CACHE_TTL", "3600"))
         self.cache = DiskCache(ttl=cache_ttl)
 
     def get_docs(
         self,
         query: str,
-        *, 
+        *,
         libs: List[str],
         version: Optional[str] = None,
         limit: int = 5,
-        section_hints: Optional[List[str]] = None
+        section_hints: Optional[List[str]] = None,
     ) -> ProviderResult:
         """Fetches documentation, using a cache and respecting feature flags."""
         cached_result = self.cache.get(query, libs, version)
@@ -64,26 +67,28 @@ class Context7Provider(DocsProvider):
         # We will simulate it for now.
         logging.info(f"Context7 API call for query: '{query}' on libs: {libs}")
         simulated_snippets = self._simulate_api_call(query, libs, limit)
-        
+
         # Save to cache
         self.cache.set(query, libs, version, [s.__dict__ for s in simulated_snippets])
 
         return ProviderResult(snippets=simulated_snippets)
 
-    def _simulate_api_call(self, query: str, libs: List[str], limit: int) -> List[DocsSnippet]:
+    def _simulate_api_call(
+        self, query: str, libs: List[str], limit: int
+    ) -> List[DocsSnippet]:
         """Simulates a call to the external Context7 API."""
         # In a real scenario, this would make an HTTP request.
         # For now, return dummy data based on the library.
         if not libs:
             return []
-        
+
         lib_name = libs[0]
         return [
             DocsSnippet(
                 source=f"Context7:{lib_name}",
                 content=f"This is a simulated documentation snippet for '{query}' from the library '{lib_name}'.",
                 version="1.0.0",
-                url=f"https://docs.example.com/{lib_name}/{query.replace(' ', '-')}"
+                url=f"https://docs.example.com/{lib_name}/{query.replace(' ', '-')}",
             )
             for _ in range(limit)
         ]
@@ -98,12 +103,13 @@ class Context7Provider(DocsProvider):
                 "kind": "context7",
                 "query": query,
                 "libs": libs,
-                "cache_hit": cache_hit
+                "cache_hit": cache_hit,
             }
             with log_path.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(event) + "\n")
         except Exception as e:
             logging.warning(f"Failed to log Context7 memory event: {e}")
+
 
 def get_provider() -> DocsProvider:
     """Factory to select docs provider with env override + feature flag canary.
@@ -115,7 +121,9 @@ def get_provider() -> DocsProvider:
     """
     env_on = os.getenv("CONTEXT7_ENABLED", "0") == "1"
     flags_allowed = os.getenv("FEATURE_FLAGS_ENABLED", "0") == "1"
-    flag_on, flag_name, traffic = _docs_flag_signal() if flags_allowed else (False, "", 0)
+    flag_on, flag_name, traffic = (
+        _docs_flag_signal() if flags_allowed else (False, "", 0)
+    )
 
     if env_on:
         _record_path_metric("new", flag="ENV")
@@ -142,7 +150,11 @@ def _docs_flag_signal() -> Tuple[bool, str, int]:
         data = json.loads(FLAGS_FILE.read_text(encoding="utf-8"))
         flags = data.get("flags", {}) if isinstance(data, dict) else {}
         for name, cfg in flags.items():
-            if isinstance(name, str) and name.startswith("ISA_REF_DOCS_PROVIDER_") and isinstance(cfg, dict):
+            if (
+                isinstance(name, str)
+                and name.startswith("ISA_REF_DOCS_PROVIDER_")
+                and isinstance(cfg, dict)
+            ):
                 enabled = bool(cfg.get("enabled", False))
                 try:
                     traffic = int(cfg.get("traffic", 0))

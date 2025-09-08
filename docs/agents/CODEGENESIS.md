@@ -63,4 +63,3 @@ References
 - docs/AGENTIC_ARCHITECTURE.md — system roles and safety
 - docs/AGENTIC_GOALS.md — long‑term goals, metrics, and gates
 - docs/RESEARCH_OPERATIONS.md — R2P pipeline and evidence
-

@@ -12,4 +12,3 @@ Example Reply Template
 - Why: <short reasoning>
 - Plan: <1–3 bullets>
 - Confidence: <0.xx>
-

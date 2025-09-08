@@ -22,4 +22,3 @@ Remaining Technical Debt
 - Add mutation testing to PR/nightly and perf budgets on hot paths
 - Implement real external adapters (Zep, MemEngine, MCP) behind flags with parity tests
 - Add SBOM/Trivy gating and pip-audit availability in local dev
-

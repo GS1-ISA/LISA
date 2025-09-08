@@ -19,4 +19,3 @@ labels: bug
 - Python:
 
 ## Additional context
-

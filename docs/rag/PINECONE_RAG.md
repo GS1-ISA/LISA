@@ -14,4 +14,3 @@ Plan
 Adapters & Flags
 - Pinecone keys via env; feature flag to disable remote writes on forks.
 - Optional local fallback index (FAISS or in‑memory lexical) for dev.
-

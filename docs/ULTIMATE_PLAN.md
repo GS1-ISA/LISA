@@ -148,4 +148,3 @@ Appendix A — Success Metrics
 - Perf: ≥30% speedup; CI perf budgets enforced
 - Data: ≥99% expectations; zero unapproved schema drifts
 - Agent: Tier-1 win-rate ≥70%; Tier-2 ≥85% low-risk; <1% revert
-

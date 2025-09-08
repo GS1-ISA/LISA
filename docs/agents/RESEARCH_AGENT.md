@@ -14,7 +14,7 @@ The system is designed as a "crew" of specialized agents that collaborate in a s
 
 The research process is managed by the `ResearchGraph` orchestrator (`src/orchestrator/research_graph.py`) and involves three distinct agents:
 
-1.  **`PlannerAgent`**: 
+1.  **`PlannerAgent`**:
     -   **Role**: To take a high-level user query and decompose it into a structured plan of specific, actionable research questions.
     -   **Source**: `src/agent_core/agents/planner.py`
 

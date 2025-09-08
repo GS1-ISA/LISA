@@ -20,7 +20,9 @@ def load_policy(path: Path = POLICY_PATH) -> dict[str, Any]:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
-def is_significant(changed: list[str], threshold_files: int = 15, threshold_loc: int = 500) -> bool:
+def is_significant(
+    changed: list[str], threshold_files: int = 15, threshold_loc: int = 500
+) -> bool:
     # LOC threshold requires CI context; here we use file count only
     return len(changed) > threshold_files
 
@@ -31,14 +33,18 @@ def next_job(pr: PRContext, policy: dict[str, Any] | None = None) -> str | None:
         cond = job.get("when", {})
         any_globs = [g for g in cond.get("changed_paths_any", [])]
         if any_globs:
-            if any(any(fnmatch.fnmatch(f, g) for g in any_globs) for f in pr.changed_files):
+            if any(
+                any(fnmatch.fnmatch(f, g) for g in any_globs) for f in pr.changed_files
+            ):
                 return job["id"]
         if cond.get("significance") and is_significant(pr.changed_files):
             return job["id"]
     return None
 
 
-def is_waiver_needed(step_id: str, pr: PRContext, policy: dict[str, Any] | None = None) -> bool:
+def is_waiver_needed(
+    step_id: str, pr: PRContext, policy: dict[str, Any] | None = None
+) -> bool:
     pol = policy or load_policy()
     for job in pol.get("jobs", []):
         if job.get("id") == step_id:

@@ -16,4 +16,3 @@ Implementation Sketch
 Acceptance
 - Weekly cost report artifact exists (API/LLM totals, $/1k items, cache hit rate).
 - Budgets and alerts configured for costly features; PRs must not exceed budget without override.
-

@@ -1,4 +1,5 @@
 import logging
+
 from src.agent_core.agents.planner import PlannerAgent
 from src.agent_core.agents.researcher import ResearcherAgent
 from src.agent_core.agents.synthesizer import SynthesizerAgent
@@ -6,14 +7,25 @@ from src.agent_core.memory.rag_store import RAGMemory
 from src.docs_provider.base import DocsProvider, NullProvider
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 class ResearchGraph:
     """
     Orchestrates the multi-agent research crew (Planner, Researcher, Synthesizer).
     This class manages the flow of control and data between the agents.
     """
-    def __init__(self, planner: PlannerAgent, researcher: ResearcherAgent, synthesizer: SynthesizerAgent, rag_memory: RAGMemory, docs_provider: DocsProvider = NullProvider()):
+
+    def __init__(
+        self,
+        planner: PlannerAgent,
+        researcher: ResearcherAgent,
+        synthesizer: SynthesizerAgent,
+        rag_memory: RAGMemory,
+        docs_provider: DocsProvider = NullProvider(),
+    ):
         self.planner = planner
         self.researcher = researcher
         self.synthesizer = synthesizer
@@ -44,12 +56,16 @@ class ResearchGraph:
         for i, task in enumerate(research_plan):
             logging.info(f"Executing research task {i+1}/{len(research_plan)}: {task}")
             # The researcher runs a sub-loop for each task in the plan
-            self.researcher.run(initial_task=task, max_steps=3) # Limit steps per task
-        
-        logging.info(f"Research step complete. Total documents in memory: {self.rag_memory.get_collection_count()}")
+            self.researcher.run(initial_task=task, max_steps=3)  # Limit steps per task
+
+        logging.info(
+            f"Research step complete. Total documents in memory: {self.rag_memory.get_collection_count()}"
+        )
 
         # 3. Synthesis Step
         logging.info("--- Kicking off Synthesis Step ---")
-        final_report = self.synthesizer.run(query=initial_query, rag_memory=self.rag_memory)
-        
+        final_report = self.synthesizer.run(
+            query=initial_query, rag_memory=self.rag_memory
+        )
+
         return final_report

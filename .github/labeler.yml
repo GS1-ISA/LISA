@@ -14,4 +14,3 @@ infra:
 
 python:
   - '**/*.py'
-

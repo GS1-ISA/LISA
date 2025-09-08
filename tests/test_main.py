@@ -153,9 +153,9 @@ class TestISASuperApp:
 
         # Mock task execution result
         mock_components["orchestrator"].submit_task.return_value = "task_123"
-        mock_components["orchestrator"].get_task_status.return_value = (
-            TaskStatus.COMPLETED
-        )
+        mock_components[
+            "orchestrator"
+        ].get_task_status.return_value = TaskStatus.COMPLETED
         mock_components["orchestrator"].get_task_result.return_value = {
             "status": "success",
             "output_file": "output.json",
@@ -177,9 +177,9 @@ class TestISASuperApp:
         """Test getting task status."""
         await app_instance.initialize()
 
-        mock_components["orchestrator"].get_task_status.return_value = (
-            TaskStatus.RUNNING
-        )
+        mock_components[
+            "orchestrator"
+        ].get_task_status.return_value = TaskStatus.RUNNING
 
         status = await app_instance.get_task_status("task_123")
 

@@ -10,4 +10,3 @@ Notes & Relevance:
 Bias/COI:
 Shortlist Candidates: pure pandas; hybrid Polars+pandas; full Polars
 Next Actions: pre-register POC; port one heavy transform
-

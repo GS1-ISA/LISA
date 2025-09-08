@@ -6,4 +6,3 @@ def test_classifier_stub_predicts():
     m.compile()
     assert m.predict("this is OK") == "OK"
     assert m.predict("nope") == "OTHER"
-

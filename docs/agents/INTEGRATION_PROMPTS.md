@@ -22,4 +22,3 @@ Integrate the architecture end-to-end:
 7) Wire CI: run graphs, RAG tests, DSPy evals, and MCP smoke; publish traces and coverage.
 8) Refactor SuperApp to call the orchestrator only; forbid direct LLM calls.
 Deliver PRs, runnable scripts, and docs. Show diffs. Start now.
-

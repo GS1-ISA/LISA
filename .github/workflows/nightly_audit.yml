@@ -12,7 +12,7 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,13 +35,13 @@ jobs:
         id: audit
         run: |
           echo "Running comprehensive audit suite..."
-          
+
           # Run audit completeness check
           python scripts/audit_completeness.py
-          
+
           # Run audit synthesis to generate scores
           python scripts/audit_synthesis.py
-          
+
           # Extract current score from audit report
           if [ -f "docs/audit/audit_report.md" ]; then
             SCORE=$(grep -o "Overall Rule Confidence: [0-9.]*" docs/audit/audit_report.md | grep -o "[0-9.]*")
@@ -67,7 +67,7 @@ jobs:
         run: |
           CURRENT="${{ steps.audit.outputs.score }}"
           BASELINE="${{ steps.baseline.outputs.baseline_score }}"
-          
+
           # Calculate delta percentage
           DELTA=$(python -c "
           current = float('$CURRENT')
@@ -78,7 +78,7 @@ jobs:
               delta = 0 if current == 0 else 100
           print(f'{delta:.1f}')
           ")
-          
+
           echo "delta=$DELTA" >> $GITHUB_OUTPUT
           echo "Score delta: $DELTA%"
 
@@ -96,7 +96,7 @@ jobs:
       - name: Create badge SVG
         run: |
           SCORE="${{ steps.audit.outputs.score }}"
-          
+
           # Determine badge color based on score
           if (( $(echo "$SCORE >= 80" | bc -l) )); then
             COLOR="brightgreen"
@@ -107,7 +107,7 @@ jobs:
           else
             COLOR="red"
           fi
-          
+
           # Create badge SVG
           cat > audit-badge.svg << 'EOF'
           <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="116" height="20">
@@ -131,21 +131,21 @@ jobs:
             </g>
           </svg>
           EOF
-          
+
           # Replace placeholders
           sed -i "s/#COLOR/$COLOR/g" audit-badge.svg
           sed -i "s/SCORE/$SCORE/g" audit-badge.svg
-          
+
           echo "Created audit badge with score $SCORE and color $COLOR"
 
       - name: Commit badge to repository
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           # Add badge and updated baseline
           git add audit-badge.svg docs/audit/coverage_baseline.json || true
-          
+
           # Check if there are changes
           if git diff --staged --quiet; then
             echo "No changes to commit"
@@ -163,40 +163,40 @@ jobs:
             const baseline = '${{ steps.baseline.outputs.baseline_score }}';
             const delta = '${{ steps.delta.outputs.delta }}';
             const deltaDirection = parseFloat(score) > parseFloat(baseline) ? 'improvement' : 'decline';
-            
+
             const title = `🚨 Audit Score ${deltaDirection.charAt(0).toUpperCase() + deltaDirection.slice(1)} Alert - ${delta}% delta`;
             const body = `## Audit Score ${deltaDirection.charAt(0).toUpperCase() + deltaDirection.slice(1)} Detected
-            
+
             **Current Score:** ${score}%
             **Previous Baseline:** ${baseline}%
             **Delta:** ${delta}% ${deltaDirection}
-            
+
             ### Analysis
             The automated nightly audit has detected a significant ${deltaDirection} in the overall audit score.
-            
-            **Impact:** ${deltaDirection === 'improvement' ? 
-              'This represents a positive improvement in code quality and governance compliance.' : 
+
+            **Impact:** ${deltaDirection === 'improvement' ?
+              'This represents a positive improvement in code quality and governance compliance.' :
               'This may indicate degradation in code quality or governance compliance.'}
-            
+
             ### Next Steps
             ${deltaDirection === 'improvement' ?
               '- Review the improvements to understand what drove the score increase\n- Consider updating quality gates if the improvement is sustained' :
               '- Review recent changes that may have impacted audit scores\n- Check audit reports for specific areas of concern\n- Consider remediation actions if decline continues'}
-            
+
             ### Audit Details
             - Run ID: ${context.runId}
             - Workflow: ${context.workflow}
             - Timestamp: ${new Date().toISOString()}
-            
+
             ### Related Files
             - [Audit Report](docs/audit/audit_report.md)
             - [Remediation Plan](docs/audit/remediation_plan.md)
             - [Rule Confidence](docs/audit/rule_confidence.csv)
-            
+
             ---
-            
+
             *This issue was automatically created by the nightly audit workflow.*`;
-            
+
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -212,7 +212,7 @@ jobs:
             # Add badge after the first header
             sed -i '1a\
             ![Audit Score](audit-badge.svg)' README.md
-            
+
             git add README.md
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action"

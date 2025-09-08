@@ -1,5 +1,5 @@
 [bandit]
-exclude_dirs = 
+exclude_dirs =
     .venv,
     venv,
     __pycache__,
@@ -27,7 +27,7 @@ exclude_dirs =
     *.swo,
     *~
 
-skips = 
+skips =
     B101,  # assert_used - we use asserts in tests
     B601,  # paramiko_calls - we don't use paramiko
     B602,  # subprocess_popen_with_shell_equals_true - we need shell in some cases

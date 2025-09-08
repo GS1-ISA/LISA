@@ -12,4 +12,3 @@ Response & Disclosure
 
 Scope
 - App code under `ISA_SuperApp/`, packages under `packages/`, docs and infra in `docs/` and `infra/`.
-

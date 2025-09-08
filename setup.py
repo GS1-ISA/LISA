@@ -4,22 +4,25 @@ ISA SuperApp Setup Script.
 This script is used to install the ISA SuperApp package and its dependencies.
 """
 
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read the README file
 this_directory = Path(__file__).parent
 long_description = ""
 readme_path = this_directory / "README.md"
 if readme_path.exists():
-    long_description = readme_path.read_text(encoding='utf-8')
+    long_description = readme_path.read_text(encoding="utf-8")
 
 # Read requirements
 requirements = []
 requirements_path = this_directory / "requirements.txt"
 if requirements_path.exists():
-    with open(requirements_path, 'r', encoding='utf-8') as f:
-        requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+    with open(requirements_path, "r", encoding="utf-8") as f:
+        requirements = [
+            line.strip() for line in f if line.strip() and not line.startswith("#")
+        ]
 
 setup(
     name="isa-superapp",

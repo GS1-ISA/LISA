@@ -13,4 +13,3 @@ Scores (0–100) — Initial qualitative baseline
 
 Notes
 - Improve coverage and mutation testing; add perf budgets on hot paths; expand security gates to enforced after stability.
-

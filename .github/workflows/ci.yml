@@ -3,7 +3,7 @@ name: CI (PR)
 on:
   pull_request:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   build-test:
@@ -51,6 +51,8 @@ jobs:
             --critical requirements.txt \
             --critical requirements-dev.txt \
             --critical infra
+      - name: Log significance
+        run: |
           echo "Significance: ${{ steps.sig.outputs.significant }} Reason: ${{ steps.sig.outputs.reason }}"
       - name: Install project dependencies (best-effort)
         continue-on-error: true
@@ -92,6 +94,34 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine base ref
+        id: base
+        shell: bash
+        run: |
+          echo "branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
+          git fetch origin ${{ github.base_ref }} --depth=1
+          echo "sha=$(git rev-parse origin/${{ github.base_ref }})" >> $GITHUB_OUTPUT
+      - name: Significance trigger
+        id: sig
+        run: |
+          python scripts/significance_trigger.py --base "${{ steps.base.outputs.sha }}" \
+            --threshold-files 15 \
+            --threshold-loc 500 \
+            --critical src/agent_core \
+            --critical src/orchestrator \
+            --critical src/tools \
+            --critical src/docs_provider \
+            --critical src/api_server.py \
+            --critical ISA_SuperApp/Dockerfile \
+            --critical requirements.txt \
+            --critical requirements-dev.txt \
+            --critical infra
+      - name: Log significance
+        run: |
+          echo "Significance: ${{ steps.sig.outputs.significant }} Reason: ${{ steps.sig.outputs.reason }}"
       - name: Check for agent-blocked label
         uses: a-b-r-o-w-n/pr-label-required-action@v1
         with:
@@ -121,7 +151,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: combined_coverage_${{ matrix.python-version }}
+          name: combined_coverage
           path: coverage-total.xml
       - name: Coverage no-regression (combined, advisory)
         continue-on-error: true
@@ -158,7 +188,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wheels_${{ matrix.python-version }}
+          name: wheels
           path: |
             packages/orchestrator/dist
             packages/llm/dist
@@ -180,7 +210,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bloat_candidates_${{ matrix.python-version }}
+          name: bloat_candidates
           path: bloat_candidates.txt
       # Skipped: legacy app tests not present in this repo variant
       - name: Coherence audit (advisory)
@@ -191,7 +221,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coherence_audit_${{ matrix.python-version }}
+          name: coherence_audit
           path: |
             coherence_graph.json
             orphans_and_dead_ends.md
@@ -227,17 +257,16 @@ jobs:
         continue-on-error: true
         run: |
           radon cc -s -n D src || true
-      - name: Deep checks — Semgrep (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
+      - name: Deep checks — Semgrep (advisory)
         continue-on-error: true
         run: |
           pip install semgrep
           semgrep --config p/ci --error --timeout 120 --json | tee semgrep.json || true
       - name: Upload semgrep.json
-        if: always() && steps.sig.outputs.significant == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: semgrep_${{ matrix.python-version }}
+          name: semgrep
           path: semgrep.json
       - name: Docs build
         run: |
@@ -249,7 +278,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: docs_ref_report_${{ matrix.python-version }}
+          name: docs_ref_report
           path: docs/audit/docs_ref_report.md
       - name: Vector store schema inspection
         run: |
@@ -258,7 +287,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vector_store_inspection_${{ matrix.python-version }}
+          name: vector_store_inspection
           path: vector_store_inspection.txt
       - name: Docstring coverage (advisory)
         continue-on-error: true
@@ -268,7 +297,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: docstring_coverage_${{ matrix.python-version }}
+          name: docstring_coverage
           path: docstring_coverage.txt
       - name: Docs delta (required)
         run: |
@@ -281,10 +310,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: healthcheck_${{ matrix.python-version }}
+          name: healthcheck
           path: docs/audit/healthcheck.md
-      - name: Container build + smoke (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
+      - name: Container build + smoke (advisory)
         continue-on-error: true
         run: |
           docker build -t superapp:ci -f ISA_SuperApp/Dockerfile .
@@ -298,14 +326,14 @@ jobs:
           echo '${{ toJSON(github.event.pull_request.labels) }}' | grep -q 'policy/agent-blocked' && { echo 'Agent blocked by policy label'; exit 1; } || true
       - name: Waiver required for break-glass
         if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
         run: |
-          BODY='${{ github.event.pull_request.body }}'
-          LABELS='${{ toJSON(github.event.pull_request.labels) }}'
-          if echo "$LABELS" | grep -q 'break-glass'; then
-            echo "$BODY" | grep -qi 'waiver: *true' || { echo 'Missing waiver: true in PR body for break-glass'; exit 1; }
+          if echo "$PR_LABELS" | grep -q 'break-glass'; then
+            echo "$PR_BODY" | grep -qi 'waiver: *true' || { echo 'Missing waiver: true in PR body for break-glass'; exit 1; }
           fi
-      - name: Deep checks — Extended tests (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
+      - name: Deep checks — Extended tests (advisory)
         continue-on-error: true
         run: |
           cd ISA_SuperApp && pytest -q --maxfail=1 --durations=10 || true
@@ -330,7 +358,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: audit_artifacts_${{ matrix.python-version }}
+          name: audit_artifacts
           path: |
             docs/audit/coverage_baseline.json
             docs/audit/size_baseline.json
