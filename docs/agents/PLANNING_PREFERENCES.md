@@ -1,4 +1,4 @@
-Title: Planning Preferences — Stepwise Plan + Confidence
+# Planning Preferences — Stepwise Plan + Confidence
 
 Directive: For iterative work, always propose the next best action with:
 - Stepwise plan: brief, actionable steps ranked by impact.

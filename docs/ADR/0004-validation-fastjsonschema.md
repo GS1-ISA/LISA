@@ -1,4 +1,4 @@
-Title: ADR 0004 — JSON Schema Validation via fastjsonschema
+# ADR 0004 — JSON Schema Validation via fastjsonschema
 Last updated: 2025-09-02
 
 Context

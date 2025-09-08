@@ -1,4 +1,4 @@
-Title: ISA_D Refactor Pack (Zero-Regression Playbook)
+# ISA_D Refactor Pack (Zero-Regression Playbook)
 
 Below is a ready-to-paste “ISA_D Refactor Pack” that folds the zero-regression playbook into the ISA_D agent loop. Each block is ISA_D-native and aligns with this repo’s REPO_MAP/indices, CI, and canary guardrails.
 

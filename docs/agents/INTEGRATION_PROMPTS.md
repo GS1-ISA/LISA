@@ -1,4 +1,4 @@
-Title: Integration Prompts — Orchestration, RAG, Interop
+# Integration Prompts — Orchestration, RAG, Interop
 Last updated: 2025-09-02
 
 System

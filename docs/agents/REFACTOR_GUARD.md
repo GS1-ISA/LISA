@@ -1,4 +1,4 @@
-Title: Refactor Guard — Local CLI
+# Refactor Guard — Local CLI
 
 Purpose: Provide a local, ISA_D-native CLI that mirrors the “ISA_D Refactor Pack” flow without relying on external feature-flag services or GitHub APIs. It integrates with this repo’s CI and artifacts.
 

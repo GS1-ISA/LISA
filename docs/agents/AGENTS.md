@@ -1,4 +1,4 @@
-Title: Agent Operating Guide (System Prompt & Policies)
+# Agent Operating Guide (System Prompt & Policies)
 Last updated: 2025-09-05
 
 **Important:** For a comprehensive onboarding experience and detailed operational guidelines, all AI agents must first consult `docs/AI_AGENT_ONBOARDING.md`. This document provides foundational principles, project context, documentation flow, and strategies for preventing double work.
@@ -43,7 +43,7 @@ DocOps + TestOps Autopilot (Standing Preference)
 
 ---
 
-### Provider-Specific Instructions
+## Provider-Specific Instructions
 
 - **For Gemini Code Assist**: After reading this document, refer to your specific operating guide at `docs/agents/gemini.md` for tailored instructions.
 - **For ChatGPT**: Continue to use this document as your primary and complete set of instructions.

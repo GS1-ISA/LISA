@@ -10,6 +10,7 @@ extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
+    "sphinxcontrib.mermaid",
 ]
 
 source_suffix = {
@@ -32,4 +33,9 @@ html_static_path = ["_static"]
 
 myst_enable_extensions = [
     "colon_fence",
+]
+
+# Interpret fenced code blocks with language "mermaid" as mermaid directives
+myst_fence_as_directive = [
+    "mermaid",
 ]

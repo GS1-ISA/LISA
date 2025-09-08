@@ -1,4 +1,4 @@
-Title: Agent Orchestration & Interoperability — LangGraph, AutoGen, LLM Runtimes, RAG, MCP
+# Agent Orchestration & Interoperability — LangGraph, AutoGen, LLM Runtimes, RAG, MCP
 Last updated: 2025-09-02
 
 Overview
