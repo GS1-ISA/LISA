@@ -68,6 +68,9 @@ Refactor Guard Pack
 
 When starting a new session, load a compact set of artifacts so assistants can build an accurate mental model without pasting the entire repo:
 
+0) Session meta-prompt
+- `.agent/virtuous_cycle.md` — Perpetual OODA loop and guard-rails
+
 1) Directory snapshot (max depth 3)
 - `tree -L 3 -a -I '.git|node_modules|.venv|__pycache__|.mypy_cache|.pytest_cache'`
 
