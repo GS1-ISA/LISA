@@ -26,6 +26,12 @@ Operational Plan — Phases A–D (Solo‑Dev, Measurable)
 - Phase D (3–6 months) — Formal, Edge, Observability, Governance
   - Hypothesis property tests for canonical writer/adapters; offline mode smoke; metrics histograms + perf budget enforcement; CODEOWNERS and waiver expiry.
 
+Automation & Autonomy (Always-On)
+
+- Meta Audit: weekly job generates `meta_inventory.md` + `meta_risk_xray.md` and maintains a single “Top Risk (auto)” issue.
+- PR Discipline: template enforces a one-line metric delta; CI collects determinism/docs/perf/coverage/mutation artifacts.
+- Stubs by Default: CI uses stub modes and adapters to keep runs offline; network-only checks live in nightly/weekly workflows.
+
 Scoring Rubric (objective)
 
 - Determinism: 9.25 = identical snapshot hashes across macOS+Ubuntu for last 7 PRs; artifacts attached; gate enforced.

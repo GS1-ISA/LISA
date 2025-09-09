@@ -1,0 +1,73 @@
+name: Meta Audit (inventory + risk x-ray)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * MON'
+
+jobs:
+  meta-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run meta audit scripts
+        run: |
+          python -m pip install --upgrade pip
+          python scripts/meta_audit.py
+      - name: Upload meta artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta_audit
+          path: |
+            meta_inventory.md
+            meta_risk_xray.md
+      - name: Parse top risk
+        id: top
+        run: |
+          python - <<'PY'
+          import re
+          top = None
+          with open('meta_risk_xray.md','r') as f:
+            for line in f:
+              if line.startswith('| ') and 'Concept' not in line and '---' not in line:
+                parts = [p.strip() for p in line.strip().strip('|').split('|')]
+                if len(parts) >= 2:
+                  top = (parts[0], parts[1])
+                  break
+          if not top:
+            print('::warning::No top risk parsed')
+          else:
+            print(f"concept={top[0]}")
+            print(f"score={top[1]}")
+          PY
+      - name: Create/Update Top Risk Issue
+        if: steps.top.outputs.concept != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { concept, score } = {
+              concept: process.env.concept || core.getInput('concept') || '',
+              score: process.env.score || core.getInput('score') || '0',
+            };
+            const title = `Top Risk (auto): ${concept} (score ${score})`;
+            const body = `Auto-generated from meta_risk_xray.md.\n\nTop concept: **${concept}** with score **${score}**.\n\nArtifacts: meta_inventory.md, meta_risk_xray.md.`;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            // Find existing open issue by title
+            const issues = await github.rest.issues.listForRepo({owner, repo, state: 'open'});
+            const match = issues.data.find(i => i.title.startsWith('Top Risk (auto): '));
+            if (match) {
+              await github.rest.issues.update({owner, repo, issue_number: match.number, title, body});
+              core.info(`Updated issue #${match.number}`);
+            } else {
+              const created = await github.rest.issues.create({owner, repo, title, body});
+              core.info(`Created issue #${created.data.number}`);
+            }
+        env:
+          concept: ${{ steps.top.outputs.concept }}
+          score: ${{ steps.top.outputs.score }}
+

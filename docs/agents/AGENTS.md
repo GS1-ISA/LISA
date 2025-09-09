@@ -41,6 +41,13 @@ DocOps + TestOps Autopilot (Standing Preference)
 - Treat docs/test drift as a failure condition; open micro‑PRs until drift is zero.
 - Promote changes in CI: run documentation inspection and doc‑delta checks in PRs.
 
+## Autonomy Upgrades — Recent Learnings
+
+- Evidence-first PRs: include one metric-delta sentence (coverage, p95, determinism, drift, cost). Template enforced in `.github/pull_request_template.md`.
+- Gate promotion policy: keep new checks advisory until 7 consecutive green runs, then flip to enforced. Promote determinism first.
+- Weekly meta audit: CI generates `meta_inventory.md` and `meta_risk_xray.md`; keep exactly one top-risk issue open with ETA.
+- Network hygiene: default offline/stub mode in CI; adapters provide stubs (e.g., `ADAPTER_STUB_MODE=1`). Use flags to enable network locally.
+
 ---
 
 ## Provider-Specific Instructions
