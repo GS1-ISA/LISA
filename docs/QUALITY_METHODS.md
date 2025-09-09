@@ -18,8 +18,8 @@ Process
 - Documents: Auto‑update timestamps; docs lint; MkDocs build on PR (advisory) and nightly.
 
 References
-- docs/QUALITY_GATES.md — thresholds and promotion rules
-- docs/CI_WORKFLOWS.md — pipelines and schedules
-- docs/agents/MEMORY_ARCHITECTURE.md — memory policy
-- docs/agents/ORCHESTRATION_ARCHITECTURE.md — orchestrator policy
-- COHERENCE_SCORECARD.md — graph KPIs
+- {doc}`QUALITY_GATES` — thresholds and promotion rules
+- {doc}`CI_WORKFLOWS` — pipelines and schedules
+- {doc}`agents/MEMORY_ARCHITECTURE` — memory policy
+- {doc}`agents/ORCHESTRATION_ARCHITECTURE` — orchestrator policy
+- {doc}`COHERENCE_SCORECARD` — graph KPIs

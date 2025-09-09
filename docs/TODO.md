@@ -19,8 +19,8 @@ See also: docs/ULTIMATE_PLAN.md, docs/AGENTIC_ARCHITECTURE.md, docs/AGENTIC_GOAL
 - [ ] Update ROADMAP/TODO and backlog with accepted integrations and deprecations
 Acceptance: 30 questions documented; rubric applied; ≥5 POC reports with metrics; ≥3 ADRs accepted; no new core dependencies without adapters and feature flags; projected ROI documented.
 
-- [x] Refine research questions to v2 with per-question approach (docs/RESEARCH_KNOWLEDGE_GAPS.md)
-- [x] Add curated source list (docs/RESEARCH_SOURCES.md) and cross-link from RESEARCH_OPERATIONS.md
+- [x] Refine research questions to v2 with per-question approach ({doc}`RESEARCH_KNOWLEDGE_GAPS`)
+- [x] Add curated source list ({doc}`RESEARCH_SOURCES`) and cross-link from {doc}`RESEARCH_OPERATIONS`
 
 ## 00a) High-Priority Governance & Docs (Immediate)
 

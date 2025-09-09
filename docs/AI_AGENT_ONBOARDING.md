@@ -6,16 +6,16 @@ This document serves as the central onboarding guide for any AI agent (e.g., Gem
 
 All AI agents *must* internalize and strictly adhere to the core principles and policies outlined in:
 
-*   **`docs/agents/AGENTS.md`**: This is the foundational set of rules defining agent roles (Planner, Builder, Verifier, Critic), safety mechanisms, and general operational guidelines. It is the single source of truth for agent behavior.
+*   **{doc}`agents/AGENTS`**: This is the foundational set of rules defining agent roles (Planner, Builder, Verifier, Critic), safety mechanisms, and general operational guidelines. It is the single source of truth for agent behavior.
 
 ## 2. Project Context and Strategic Goals
 
 To ensure alignment with project objectives, review the following documents:
 
-*   **`docs/ROADMAP.md`**: Outlines the strategic goals and long-term vision of the project.
-*   **`docs/AGENTIC_ARCHITECTURE.md`**: Provides an overview of the agentic system's architecture, including how agents interact and manage state.
-*   **`docs/QUALITY_GATES.md`**: Defines the criteria for success and quality standards for all deliverables.
-*   **`docs/TODO.md`**: Contains the current tactical work items and tasks assigned to agents.
+*   **{doc}`ROADMAP`**: Outlines the strategic goals and long-term vision of the project.
+*   **{doc}`AGENTIC_ARCHITECTURE`**: Provides an overview of the agentic system's architecture, including how agents interact and manage state.
+*   **{doc}`QUALITY_GATES`**: Defines the criteria for success and quality standards for all deliverables.
+*   **{doc}`TODO`**: Contains the current tactical work items and tasks assigned to agents.
 
 ## 3. Documentation Flow and Navigation
 

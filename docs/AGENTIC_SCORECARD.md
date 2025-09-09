@@ -29,7 +29,7 @@ Next Promotions
 - Add council checks + weekly outcomes strategy summary.
 
 Evidence Pointers
-- Architecture: docs/AGENTIC_ARCHITECTURE.md; docs/agents/CODEGENESIS.md; docs/AGENTIC_GOALS.md; docs/ADOPTION_PLAN.md
-- CI & Gates: docs/CI_WORKFLOWS.md; docs/QUALITY_GATES.md
-- Research: docs/research/*; docs/ADR/*
+- Architecture: {doc}`AGENTIC_ARCHITECTURE`; {doc}`agents/CODEGENESIS`; {doc}`AGENTIC_GOALS`; {doc}`ADOPTION_PLAN`
+- CI & Gates: {doc}`CI_WORKFLOWS`; {doc}`QUALITY_GATES`
+- Research: {doc}`research/POC_TEMPLATE`; {doc}`ADR/0001-tooling-choice`
 - Observability: `infra/monitoring/docker-compose.yml`, `infra/otel/docker-compose.yml`

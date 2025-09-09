@@ -6,11 +6,11 @@ Execute the immediate governance and infra tasks so Roadmap and TODO reflect del
 
 ## Top-Level Checklist
 
-- [ ] Deliver AI Project Charter (docs/AI_PROJECT_CHARTER.md) — owner: eng-lead — Acceptance: charter reviewed by core team, linked from README
+- [ ] Deliver AI Project Charter ({doc}`AI_PROJECT_CHARTER`) — owner: eng-lead — Acceptance: charter reviewed by core team, linked from README
 
-- [ ] Deliver Vector Store Schema (docs/VECTOR_STORE_SCHEMA.md) — owner: data-engineer — Acceptance: ingestion manifests conform to schema, example produced
+- [ ] Deliver Vector Store Schema ({doc}`VECTOR_STORE_SCHEMA`) — owner: data-engineer — Acceptance: ingestion manifests conform to schema, example produced
 
-- [ ] Deliver Model Card (docs/model_cards/EXAMPLE.md) — owner: data-science — Acceptance: model card committed and linked to experiments
+- [ ] Deliver Model Card ({doc}`model_cards/EXAMPLE`) — owner: data-science — Acceptance: model card committed and linked to experiments
 
 - [ ] Deliver Data Catalog stub (data/data_catalog.yaml) — owner: data-engineer — Acceptance: dataset entries for vector index and golden datasets present
 
