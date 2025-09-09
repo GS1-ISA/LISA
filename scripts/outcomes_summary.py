@@ -46,7 +46,7 @@ def summarize() -> str:
     lines.append("# Agent Outcomes Summary")
     lines.append("")
     lines.append(
-        f"Total tasks: {total} | Success: {success} | Win-rate: { (success/total*100 if total else 0):.1f}%"
+        f"Total tasks: {total} | Success: {success} | Win-rate: {(success / total * 100 if total else 0):.1f}%"
     )
     lines.append("")
     lines.append("## By Strategy")

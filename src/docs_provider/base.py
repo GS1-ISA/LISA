@@ -34,8 +34,7 @@ except Exception:  # pragma: no cover
             version: Optional[str] = None,
             limit: int = 5,
             section_hints: Optional[List[str]] = None,
-        ) -> ProviderResult:
-            ...
+        ) -> ProviderResult: ...
 
     class NullProvider(DocsProvider):  # type: ignore[no-redef]
         def get_docs(

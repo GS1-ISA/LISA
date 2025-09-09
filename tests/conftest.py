@@ -362,9 +362,9 @@ class ISAAssertions:
         assert len(document["content"]) > 0, "Document content cannot be empty"
 
         if "metadata" in document:
-            assert isinstance(
-                document["metadata"], dict
-            ), "Document metadata must be dict"
+            assert isinstance(document["metadata"], dict), (
+                "Document metadata must be dict"
+            )
 
     @staticmethod
     def assert_valid_query(query: str) -> None:
@@ -378,12 +378,12 @@ class ISAAssertions:
         """Assert that an embedding is valid."""
         assert isinstance(embedding, list), "Embedding must be list"
         assert len(embedding) > 0, "Embedding cannot be empty"
-        assert all(
-            isinstance(x, (int, float)) for x in embedding
-        ), "Embedding must contain numbers"
-        assert all(
-            -1 <= x <= 1 for x in embedding
-        ), "Embedding values must be normalized"
+        assert all(isinstance(x, (int, float)) for x in embedding), (
+            "Embedding must contain numbers"
+        )
+        assert all(-1 <= x <= 1 for x in embedding), (
+            "Embedding values must be normalized"
+        )
 
 
 @pytest.fixture
@@ -429,11 +429,11 @@ def document_generator() -> Any:
         for i in range(count):
             documents.append(
                 {
-                    "content": f"Test document {i+1} content about various topics.",
+                    "content": f"Test document {i + 1} content about various topics.",
                     "metadata": {
-                        "source": f"test_doc_{i+1}",
+                        "source": f"test_doc_{i + 1}",
                         "category": f"category_{(i % 3) + 1}",
-                        "timestamp": f"2024-01-{i+1:02d}T10:00:00Z",
+                        "timestamp": f"2024-01-{i + 1:02d}T10:00:00Z",
                     },
                 }
             )

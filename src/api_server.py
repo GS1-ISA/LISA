@@ -66,7 +66,7 @@ def metrics() -> Response:
 
 @app.get("/research")
 def research(
-    query: str = Query(..., description="High-level research query")
+    query: str = Query(..., description="High-level research query"),
 ) -> JSONResponse:
     """Run the multi-agent research flow and return the final Markdown report."""
     logging.info("Setting up research components for API call")

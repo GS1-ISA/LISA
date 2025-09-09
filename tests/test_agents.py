@@ -667,7 +667,9 @@ class TestAgentMemory:
     def agent_memory(self):
         """Create an AgentMemory instance."""
         return AgentMemory(
-            max_size=1000, retention_period=3600, enable_compression=True  # 1 hour
+            max_size=1000,
+            retention_period=3600,
+            enable_compression=True,  # 1 hour
         )
 
     def test_initialization(self, agent_memory):

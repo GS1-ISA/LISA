@@ -48,7 +48,7 @@ class TestDataGenerator:
 
             if include_metadata:
                 document["metadata"] = {
-                    "source": f"test_doc_{i+1}",
+                    "source": f"test_doc_{i + 1}",
                     "category": random.choice(categories),
                     "author": fake.name(),
                     "created_date": fake.date_time_this_year().isoformat(),
@@ -127,7 +127,7 @@ class TestDataGenerator:
 
         for i in range(count):
             metadata = {
-                "source": f"document_{i+1}",
+                "source": f"document_{i + 1}",
                 "title": fake.sentence(nb_words=6),
                 "author": fake.name(),
                 "created_date": fake.date_time_this_year().isoformat(),

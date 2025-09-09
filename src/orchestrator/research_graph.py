@@ -54,7 +54,9 @@ class ResearchGraph:
         # 2. Research Step
         logging.info("--- Kicking off Research Step ---")
         for i, task in enumerate(research_plan):
-            logging.info(f"Executing research task {i+1}/{len(research_plan)}: {task}")
+            logging.info(
+                f"Executing research task {i + 1}/{len(research_plan)}: {task}"
+            )
             # The researcher runs a sub-loop for each task in the plan
             self.researcher.run(initial_task=task, max_steps=3)  # Limit steps per task
 

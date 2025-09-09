@@ -9,6 +9,7 @@ Capabilities (scaffold):
 Usage:
   python scripts/fix_coherence.py --dry-run
 """
+
 from __future__ import annotations
 
 import argparse

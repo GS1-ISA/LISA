@@ -863,5 +863,6 @@ class TestVectorStoreErrorHandling:
         # Try to search with wrong dimension
         with pytest.raises(VectorStoreError):
             await store.search(
-                query="test query", query_embedding=[0.1] * 100  # Wrong dimension
+                query="test query",
+                query_embedding=[0.1] * 100,  # Wrong dimension
             )

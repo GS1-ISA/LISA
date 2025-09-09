@@ -2,6 +2,7 @@
 
 Delegates to the canonical implementation under src.docs_provider.src.docs_provider.
 """
+
 from importlib import import_module
 
 _impl = import_module("src.docs_provider.src.docs_provider.context7")

@@ -4,6 +4,7 @@ Reads an ingestion manifest (YAML), creates an artifacts directory for run_id,
 writes a minimal processed.json and experiments/{run_id}.yaml metadata file.
 Designed to be safe and fast for PR CI (no external web crawling).
 """
+
 import argparse
 import os
 import shutil

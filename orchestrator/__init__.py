@@ -4,6 +4,7 @@ This repo variant keeps the full orchestrator graphs elsewhere. To satisfy
 tests that import `orchestrator`, provide minimal stub implementations with the
 expected interfaces.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

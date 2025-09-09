@@ -459,7 +459,9 @@ class TestErrorHandling:
 
         # Invalid task definition (missing required fields)
         invalid_task = TaskDefinition(
-            task_id="", task_type="test", parameters={}  # Empty ID
+            task_id="",
+            task_type="test",
+            parameters={},  # Empty ID
         )
 
         with pytest.raises(ValueError):

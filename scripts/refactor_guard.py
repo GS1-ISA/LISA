@@ -17,6 +17,7 @@ Feature flags stored at infra/feature_flags/local_flags.json.
 
 This CLI avoids remote dependencies and integrates with this repo's CI.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -195,12 +196,12 @@ def cmd_precheck(args: argparse.Namespace) -> None:
         rc, out = _pytest_once(
             with_cov=(i == 0), cov_out_xml=ARTIFACTS_DIR / "coverage.xml", paths=["src"]
         )
-        (ARTIFACTS_DIR / f"pytest_run_{i+1}.log").write_text(out, encoding="utf-8")
+        (ARTIFACTS_DIR / f"pytest_run_{i + 1}.log").write_text(out, encoding="utf-8")
         failed = _parse_pytest_output_for_failures(out)
         all_failures.append(failed)
         if rc != 0:
             any_red = True
-        log(f"Run {i+1}: rc={rc}, failed={len(failed)}")
+        log(f"Run {i + 1}: rc={rc}, failed={len(failed)}")
     # Coverage gaps from first run with coverage
     gaps = _collect_coverage_gaps(ARTIFACTS_DIR / "coverage.xml")
     flaky: List[str] = []
@@ -396,9 +397,7 @@ def cmd_next(args: argparse.Namespace) -> None:
         print("No TODO slices. Run: slice")
         return
     # Re-order by est_loc
-    todos_sorted = sorted(
-        todos, key=lambda sid: board["slices"][sid]["est_loc"]
-    )  # noqa: E501
+    todos_sorted = sorted(todos, key=lambda sid: board["slices"][sid]["est_loc"])  # noqa: E501
     sid = todos_sorted[0]
     s = board["slices"][sid]
     branch = f"refactor/{sid}-{s['domain']}"
@@ -414,9 +413,9 @@ def cmd_next(args: argparse.Namespace) -> None:
     ]
     for c in cmds:
         _rc, out = run(c)
-        (ARTIFACTS_DIR / f"{sid}_{re.sub('[^a-zA-Z0-9]+','_',c)[:40]}.log").write_text(
-            out, encoding="utf-8"
-        )
+        (
+            ARTIFACTS_DIR / f"{sid}_{re.sub('[^a-zA-Z0-9]+', '_', c)[:40]}.log"
+        ).write_text(out, encoding="utf-8")
     # Keep flag false (safe)
     print(f"PICKED: {sid}")
     print(f"CREATING PR (local sim): {branch}")

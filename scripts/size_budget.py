@@ -49,7 +49,9 @@ def main() -> int:
             pass
     size_delta = size - baseline.get("size", 0)
     files_delta = files - baseline.get("files", 0)
-    print(f"Repo size: {size/1024/1024:.2f} MB (Δ {size_delta/1024/1024:.2f} MB)")
+    print(
+        f"Repo size: {size / 1024 / 1024:.2f} MB (Δ {size_delta / 1024 / 1024:.2f} MB)"
+    )
     print(f"File count: {files} (Δ {files_delta})")
     # advisory budget: warn if >10% increase
     if baseline.get("size", 0) > 0 and pct(size_delta, baseline["size"]) > 10.0:

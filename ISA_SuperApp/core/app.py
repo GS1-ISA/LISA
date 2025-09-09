@@ -352,9 +352,9 @@ class ISASuperApp:
             status["components"]["vector_store"] = self.vector_store.get_status()
 
         if self.agent_orchestrator:
-            status["components"][
-                "agent_orchestrator"
-            ] = self.agent_orchestrator.get_status()
+            status["components"]["agent_orchestrator"] = (
+                self.agent_orchestrator.get_status()
+            )
 
         if self.workflow_engine:
             status["components"]["workflow_engine"] = self.workflow_engine.get_status()

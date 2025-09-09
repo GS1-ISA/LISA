@@ -734,9 +734,9 @@ class WorkflowEngine:
 
                     # Update context with step result
                     if step_result.result:
-                        execution.context[
-                            f"step_{step.step_id}_result"
-                        ] = step_result.result
+                        execution.context[f"step_{step.step_id}_result"] = (
+                            step_result.result
+                        )
 
                     executed_steps.add(step.step_id)
                     pending_steps.remove(step.step_id)
