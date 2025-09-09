@@ -121,12 +121,16 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
         depth = len(rel.parts)
         fcount = sum(1 for _ in (ROOT / rel).rglob("*") if _.is_file())
         desc = ",".join(list(map(str, list((ROOT / rel).glob("*"))[:5])))
-        lines.append(f"| {rel} | {depth} | {fcount} | Files: {Path(desc).name if desc else ''} |")
+        lines.append(
+            f"| {rel} | {depth} | {fcount} | Files: {Path(desc).name if desc else ''} |"
+        )
     lines.append("")
 
     # Section 2: Files
     lines.append("## 2. Meta-Files")
-    lines.append("| File | SHA256 | Lines | Keyword Hits | Excerpt Proving Implementation |")
+    lines.append(
+        "| File | SHA256 | Lines | Keyword Hits | Excerpt Proving Implementation |"
+    )
     lines.append("|---|---|---:|---:|---|")
     for p in meta_files:
         text = read_text(ROOT / p)
@@ -170,7 +174,10 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
         r"(langchain|llama|openai|anthropic|transformers|torch|tensorflow|embed|vector|chromadb|faiss|weaviate|qdrant|pgvector|milvus|structurizr|c4|dsl|guard|ai-|meta-|memory|drift|bloat)",
         re.IGNORECASE,
     )
-    for rf in sorted(list(ROOT.glob("requirements*.txt")) + list(ROOT.glob("ISA_SuperApp/etl/requirements.txt"))):
+    for rf in sorted(
+        list(ROOT.glob("requirements*.txt"))
+        + list(ROOT.glob("ISA_SuperApp/etl/requirements.txt"))
+    ):
         for line in read_text(rf).splitlines():
             if dep_rx.search(line):
                 clean = re.sub(r"\s*#.*$", "", line)
@@ -217,7 +224,10 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
             risk = "SINGLETON"
         if dircnt >= 3:
             risk = "DUPLICATE"
-        promised = re.search(rx, read_text(ROOT / "docs/AI_PROJECT_CHARTER.md"), re.IGNORECASE) is not None
+        promised = (
+            re.search(rx, read_text(ROOT / "docs/AI_PROJECT_CHARTER.md"), re.IGNORECASE)
+            is not None
+        )
         if dircnt == 0 and promised:
             risk = "MISSING"
         lines.append(
@@ -272,7 +282,11 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
         last_epoch = int(dt.datetime.strptime(last_date, "%Y-%m-%d").timestamp())
     except Exception:
         last_epoch = 0
-    days = int((dt.datetime.utcnow().timestamp() - last_epoch) / 86400) if last_epoch else 0
+    days = (
+        int((dt.datetime.utcnow().timestamp() - last_epoch) / 86400)
+        if last_epoch
+        else 0
+    )
     lines.append(f"- Days since last meta-change: {days}")
     if days > 30:
         lines.append("- META-STALENESS WARNING")
@@ -284,7 +298,9 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
     sh = sha256_text(content)
     lines.append(f"- SHA256 of this inventory file: {sh}")
     lines.append("- Agent session UUID: (n/a)")
-    lines.append("- Human reviewer action: **NONE** – this file is read-only reconnaissance.")
+    lines.append(
+        "- Human reviewer action: **NONE** – this file is read-only reconnaissance."
+    )
     return "\n".join(lines), meta_dirs, meta_files
 
 
@@ -309,7 +325,9 @@ def build_risk_xray(meta_dirs: List[Path], meta_files: List[Path]) -> str:
         elif dircnt == 1:
             riskflag = "SINGLETON"
         elif dircnt == 0:
-            if re.search(rx, read_text(ROOT / "docs/AI_PROJECT_CHARTER.md"), re.IGNORECASE):
+            if re.search(
+                rx, read_text(ROOT / "docs/AI_PROJECT_CHARTER.md"), re.IGNORECASE
+            ):
                 riskflag = "MISSING"
                 score += 2
         if riskflag == "SINGLETON":
@@ -333,7 +351,9 @@ def build_risk_xray(meta_dirs: List[Path], meta_files: List[Path]) -> str:
         # simple hotspot bonus if there are many matched files across repo
         if len(matched) >= 15:
             score += 1
-        ev = f"{fam}: folders={dircnt}, files={len(matched)}, Risk={riskflag or ''}; max_age={max_age}d"[:120]
+        ev = f"{fam}: folders={dircnt}, files={len(matched)}, Risk={riskflag or ''}; max_age={max_age}d"[
+            :120
+        ]
         owner = {
             "Memory": "data-engineer",
             "Embedding": "data-science",
@@ -353,4 +373,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

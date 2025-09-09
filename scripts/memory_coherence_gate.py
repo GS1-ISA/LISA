@@ -5,6 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
+
 def compute_drift(a: str, b: str) -> float:
     """Return a simple drift score in [0,1], higher = more drift.
 
