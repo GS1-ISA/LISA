@@ -10,13 +10,21 @@ class _DocsProviderStub:
         snippets: list[str]
 
     def get_docs(self, query: str, libs: list[str]) -> "_DocsProviderStub._Result":
-        return _DocsProviderStub._Result(snippets=[f"Overview for {libs[0]}: ..."]) if libs else _DocsProviderStub._Result(snippets=[])
+        return (
+            _DocsProviderStub._Result(snippets=[f"Overview for {libs[0]}: ..."])
+            if libs
+            else _DocsProviderStub._Result(snippets=[])
+        )
 
 
 class _WebResearchToolStub:
     def search(self, query: str, max_results: int = 5) -> list[dict]:
         return [
-            {"title": f"Result for {query}", "href": "https://example.com", "body": "stub"}
+            {
+                "title": f"Result for {query}",
+                "href": "https://example.com",
+                "body": "stub",
+            }
         ]
 
     def read_url(self, url: str) -> str:
@@ -33,7 +41,9 @@ class _RAGMemoryStub:
     def get_collection_count(self) -> int:
         return len(self._docs)
 
-    def query(self, query_text: str, n_results: int = 5) -> list[dict]:  # pragma: no cover - trivial stub
+    def query(
+        self, query_text: str, n_results: int = 5
+    ) -> list[dict]:  # pragma: no cover - trivial stub
         # simple return of most recent docs
         return list(reversed(self._docs))[:n_results]
 
@@ -55,9 +65,12 @@ def test_researcher_interacts_with_tools_and_memory():
 
 def test_synthesizer_produces_report_from_memory():
     mem = _RAGMemoryStub()
-    mem.add(text="A long document about orchestration and agents.", source="https://example.com", doc_id="doc-1")
+    mem.add(
+        text="A long document about orchestration and agents.",
+        source="https://example.com",
+        doc_id="doc-1",
+    )
     syn = SynthesizerAgent()
     report = syn.run("agent orchestration", mem)
     assert report.startswith("# Research Report:")
     assert "Sources Consulted" in report
-
