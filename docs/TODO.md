@@ -1,6 +1,6 @@
 # Master TODO — Agentic Monorepo Program (All Plans)
 
-Last updated: 2025-09-05
+Last updated: 2025-09-09
 
 Status Legend: [ ] pending  [~] in-progress  [x] done  [!] blocked
 
@@ -77,6 +77,36 @@ These are the current developer-prioritized milestones distilled from the Roadma
 - Address repo hygiene: run ruff/format across docs and enforce consistent Markdown style in CI [owner: eng-lead]
   - Acceptance: PR CI shows no MD lint warnings for modified files; pre-commit hooks configured.
 
+## Operational Plan — Phase A (0–2 weeks)
+
+- [ ] Determinism matrix and gate (owner: eng-lead) — ETA: 2025-09-13
+  - Acceptance: macOS+Ubuntu snapshot hashes identical; artifact diff attached; gate enforced on mismatch.
+
+- [ ] Sphinx docs build (advisory) + hygiene (owner: eng-lead) — ETA: 2025-09-12
+  - Acceptance: zero “not included in toctree”/missing title warnings on 3 consecutive builds.
+
+- [ ] Agent parity tests + adapters (owner: eng-lead) — ETA: 2025-09-16
+  - Acceptance: parity suite for Planner/Researcher/Synthesizer passes; adapters added; no removals yet.
+
+- [ ] Coverage ≥ 80% and mutation ≥ 60% on core (advisory) (owner: eng-lead) — ETA: 2025-09-18
+  - Acceptance: coverage XML and curated mutmut artifacts uploaded; thresholds met on agent_core/orchestrator.
+
+- [ ] Weekly SBOM (Syft) + Trivy scans (owner: eng-lead) — ETA: 2025-09-12
+  - Acceptance: two consecutive weekly runs green; bandit/pip‑audit 0 high severity.
+
+- [ ] Core perf benchmark + budget (owner: eng-lead) — ETA: 2025-09-15
+  - Acceptance: pytest‑benchmark artifact with p95 < 400 ms (advisory), 3‑run median stable ±5%.
+
+- [ ] Cost telemetry artifact + 80% alert (owner: eng-lead) — ETA: 2025-09-20
+  - Acceptance: monthly spend artifact present; CI prints alert test at 80% threshold.
+
+- [ ] Weekly meta risk loop (owner: eng-lead) — recurring, Fridays
+  - Acceptance: `meta_inventory.md` + `meta_risk_xray.md` updated; exactly one top‑risk issue open with ETA; session JSONL appended.
+
+Links
+
+- Top risk: Agent concept duplication — https://github.com/GS1-ISA/LISA/issues/14
+
 Notes
 
 - Keep the agent-integration work low-risk: adapters/feature flags for connecting research outputs to runtime systems.
@@ -138,6 +168,9 @@ Acceptance: Owners listed per area; ADRs linked from README; tech-debt review on
 ## 1) Monorepo Unification
 
 - Blocks: 2, 4, 5, 6
+
+- [~] Reduce Agent concept duplication across src/ (owner: eng-lead) — ETA: 2025-09-16
+  - Acceptance: plan to consolidate into `src/agent_core` agreed; parity tests green; duplicates removed after parity.
 
 ## 26) MLOps/LLMOps
 

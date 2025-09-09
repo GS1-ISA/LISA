@@ -1,8 +1,49 @@
 # Program Roadmap — Tracks, Phases, and Gates
 
-Last updated: 2025-09-04
+Last updated: 2025-09-09
 
 Purpose: Provide a holistic roadmap for building a self-improving, production-grade agentic platform and ESG/ISA_C data system. Organized by tracks and phased milestones with gates.
+
+Operational Plan — Phases A–D (Solo‑Dev, Measurable)
+
+- Phase A (0–2 weeks) — Establish hard baselines and hygiene
+  - Determinism: add macOS+Ubuntu snapshot matrix; attach artifacts; flip to gate after first pass is green.
+  - Docs hygiene: Sphinx build job (advisory) with curated toctrees; zero “not in toctree” warnings.
+  - Agent parity: write parity test list for Planner/Researcher/Synthesizer; add thin adapters; no removals yet.
+  - Coverage/Mutation: reach ≥80% line and ≥60% mutation on core targets (agent_core/orchestrator) with curated mutmut set (advisory).
+  - Security/SBOM: weekly Syft+Trivy jobs; keep bandit/pip‑audit 0 high severity.
+  - Performance: add pytest‑benchmark for core flow; record p95; set budget advisory (<400 ms on M1).
+  - Cost telemetry: emit monthly spend artifact; 80% budget alert (advisory).
+  - Risk loop: maintain meta inventory + single top‑risk issue with ETA; session JSONL log appended.
+
+- Phase B (2–4 weeks) — Unify Agent and promote checks
+  - Collapse Agent implementations into `src/agent_core`; keep adapters in `src/llm` and `src/orchestrator`; remove duplicates post‑parity.
+  - Promote docs build and coverage/mutation to gates after 7 clean runs; maintain determinism gate.
+
+- Phase C (1–3 months) — Performance, Cost, R2P, Privacy
+  - Meet performance budget (p95 < 400 ms, 3‑run median stable ±5%); add cost alerts; enforce R2P (ADR+adapter+flag) presence on adoption PRs; add privacy DSR tests.
+
+- Phase D (3–6 months) — Formal, Edge, Observability, Governance
+  - Hypothesis property tests for canonical writer/adapters; offline mode smoke; metrics histograms + perf budget enforcement; CODEOWNERS and waiver expiry.
+
+Scoring Rubric (objective)
+
+- Determinism: 9.25 = identical snapshot hashes across macOS+Ubuntu for last 7 PRs; artifacts attached; gate enforced.
+- Coverage/Mutation: 9.25 = line ≥ 80%, mutation ≥ 60% on core; enforced.
+- Docs Hygiene: 9.25 = zero Sphinx warnings on last 7 builds; gate ready.
+- Security/Supply Chain: 9.25 = 0 high‑sev (bandit+pip‑audit) and 2 weekly SBOM+Trivy runs clean.
+- Performance: 9.25 = p95 < 400 ms on M1; 3‑run median stable ±5%.
+- Cost/FinOps: 9.25 = <$50/mo with 80% alert tested in CI.
+- Architecture Coherence: 9.25 = single Agent source of truth + adapters; parity suite green; duplicates removed.
+- Memory Coherence: 9.25 = drift ≤ 5% for last 7 PRs; gate ready.
+- Dependency Hygiene: 9.25 = one manager + lock; dep report artifact weekly; net new deps ≤2/month.
+- Bloat Control: 9.25 = repo growth ≤2%/week for 4 weeks; LFS policy enforced.
+- Observability: 9.25 = structured logs + metrics histograms; perf budget check active in CI.
+
+Verification
+
+- CI artifacts serve as the sole source of truth (determinism snapshots, coverage/mutation, Sphinx logs, SBOM/Trivy, perf p95, cost reports, memory drift).
+- Gates promoted only after 7 consecutive clean runs; waivers must include expiry.
 
 Phases
 
@@ -58,6 +99,10 @@ Prioritized Next Steps (30/60/90 days)
 
 - Repo hygiene and CI: run ruff/format and enforce MD lint to reduce churn [owner: eng-lead]
   - Acceptance: reduced MD lint warnings in PRs; pre-commit configured.
+
+Live Risk Focus (kept to one active top‑risk)
+
+- Agent concept duplication (Issue #14) — consolidate into `src/agent_core` with adapters; parity suite drives removals post‑green.
 
 Track A — Product & UX
 
