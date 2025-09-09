@@ -11,4 +11,3 @@ def test_agent_core_adapter_stub_mode():
     assert any(step.startswith("plan:") for step in res.steps)
     assert any(step.startswith("research:") for step in res.steps)
     assert any(step.startswith("synthesize:") for step in res.steps)
-
