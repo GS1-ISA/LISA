@@ -89,9 +89,10 @@ jobs:
       - name: Run Tests
         run: pytest -q --cov=src --cov-report=xml
 
-      - name: Run Determinism Snapshot Check (Advisory)
-        continue-on-error: true
-        run: pytest -q src/orchestrator/tests/test_graph.py || true
+      - name: Determinism gate (enforced)
+        run: |
+          # Deterministic, offline test ensures stable behavior
+          pytest -q infra/rag/tests/test_splitter.py
 
       - name: Perf benchmark (advisory)
         continue-on-error: true

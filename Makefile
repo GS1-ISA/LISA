@@ -34,6 +34,8 @@ help:
 	@echo "  dev-setup    - Complete development setup"
 	@echo "  pre-commit   - Run pre-commit hooks"
 	@echo "  ci           - Run CI pipeline locally"
+	@echo "  agent-sync   - Refresh meta audit, docs build, cost report"
+	@echo "  virtuous-cycle - Run meta audit + quick verify + log"
 
 # Setup commands
 install:
@@ -148,6 +150,19 @@ audit:
 	@echo "  - Baseline: docs/audit/coverage_baseline.json"
 
 	@echo "CI pipeline complete!"
+
+# Automation targets
+agent-sync:
+	python3 scripts/meta_audit.py
+	python3 -m pip install --upgrade pip >/dev/null 2>&1 || true
+	python3 -m pip install sphinx myst-parser sphinxcontrib-mermaid sphinx-rtd-theme >/dev/null 2>&1 || true
+	sphinx-build -b html docs/ docs/_build/html || true
+	python3 scripts/cost_telemetry.py || true
+
+virtue-log:
+	python3 scripts/virtue_log.py || true
+
+virtuous-cycle: agent-sync virtue-log
 
 # Docker commands
 docker-build:
