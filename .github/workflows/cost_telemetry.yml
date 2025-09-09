@@ -1,0 +1,28 @@
+name: Cost Telemetry (advisory)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 1 * *'  # monthly, 03:00 UTC on day 1
+
+jobs:
+  cost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+      - name: Emit cost telemetry (advisory)
+        run: |
+          python scripts/cost_telemetry.py
+      - name: Upload cost report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cost_report
+          path: cost_report.json
+

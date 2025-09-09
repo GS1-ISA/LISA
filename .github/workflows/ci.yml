@@ -22,7 +22,7 @@ jobs:
       - name: Install base tooling
         run: |
           python -m pip install --upgrade pip
-          pip install ruff mypy pytest pytest-cov bandit pip-audit radon
+          pip install ruff mypy pytest pytest-cov pytest-benchmark bandit pip-audit radon
       - name: Determine base ref
         id: base
         shell: bash
@@ -92,6 +92,11 @@ jobs:
       - name: Run Determinism Snapshot Check (Advisory)
         continue-on-error: true
         run: pytest -q src/orchestrator/tests/test_graph.py || true
+
+      - name: Perf benchmark (advisory)
+        continue-on-error: true
+        run: |
+          pytest -q infra/rag/tests/test_perf_splitter_bench.py || true
 
   label-check:
     runs-on: ubuntu-latest
