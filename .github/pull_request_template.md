@@ -1,43 +1,21 @@
-Last updated: 2025-09-02
 ## Summary
 
-Describe the change, motivation, and scope.
+Describe the change at a high level.
 
-## Definition of Done
+## Metric Delta (required)
 
-- [ ] Lint/format clean (ruff)
-- [ ] Typecheck clean (mypy) or waivers documented
-- [ ] Tests updated/added and green (advisory until gates flip)
-- [ ] Determinism preserved (snapshots/canonical outputs where applicable)
-- [ ] Memory coherence reviewed (gate output and memory logs snapshot in CI artifacts)
-- [ ] Coherence audit reviewed (coherence scorecard and orphans list in CI artifacts)
-- [ ] Security reviewed (Bandit/pip-audit output); no secrets committed
-- [ ] Docs updated (README/CHANGELOG/runbooks as needed)
-- [ ] Rollback plan noted
-- [ ] Adapters/feature flags for new integrations (default OFF)
+This change moves `<metric>` from `x → y` (±z%).
 
-## Local Checks (run before submit)
+Examples: coverage % (core), p95 latency (ms), determinism (fail→pass), memory drift (%), cost ($/month).
 
-- [ ] `make docs-lint` (fix any broken refs; see `docs/audit/docs_ref_report.md`)
-- [ ] `make healthcheck` (review `docs/audit/healthcheck.md` and attach key excerpts)
-- [ ] `make pr-notes` (attach `agent/outcomes/PR_NOTES.md` Plan/Diff/Evidence)
+## Checks
 
-## Risk & Impact
+- [ ] Lint/type/tests ran locally or in CI
+- [ ] Determinism snapshots green (if applicable)
+- [ ] Docs updated where relevant
+- [ ] ADR/flag for adopted research (if applicable)
 
-- Risk level: Low / Medium / High
-- Affected components:
-- Performance impact (if any):
-- Data/Schema/Mapping changes (if any):
+## Risk & Rollback
 
-## Testing Evidence
+Risk: <low/med/high>. Rollback plan:
 
-- Unit/Integration summary:
-- Benchmarks (if critical path):
-- Snapshot diffs (if applicable):
-
-## Research (if applicable)
-
-- Search ledger link:
-- POC protocol link:
-- Replication notes:
-- Decision (Adopt/Hold/Reject):
