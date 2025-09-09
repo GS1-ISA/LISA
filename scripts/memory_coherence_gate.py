@@ -5,7 +5,19 @@ import argparse
 import json
 from pathlib import Path
 
-from ISA_SuperApp.src.memory.drift import compute_drift
+def compute_drift(a: str, b: str) -> float:
+    """Return a simple drift score in [0,1], higher = more drift.
+
+    Uses Jaccard distance over lowercase word sets as a lightweight proxy.
+    """
+    wa = set(a.lower().split())
+    wb = set(b.lower().split())
+    if not wa and not wb:
+        return 0.0
+    inter = len(wa & wb)
+    union = len(wa | wb)
+    jaccard = inter / union if union else 1.0
+    return 1.0 - jaccard
 
 
 def load_last_two_summaries(mem_file: Path) -> tuple[str, str] | None:

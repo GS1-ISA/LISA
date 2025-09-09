@@ -103,6 +103,19 @@ jobs:
         run: |
           pytest -q --cov=src/agent_core --cov=src/orchestrator --cov-report=term-missing --cov-fail-under=80 || true
 
+      - name: Memory coherence gate (advisory)
+        continue-on-error: true
+        run: |
+          python scripts/memory_coherence_gate.py --log agent/memory/memory_log.jsonl || true
+
+      - name: Upload memory log snapshot (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory_log
+          path: agent/memory/memory_log.jsonl
+          if-no-files-found: ignore
+
   label-check:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
