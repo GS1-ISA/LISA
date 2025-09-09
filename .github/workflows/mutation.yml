@@ -1,0 +1,30 @@
+name: Mutation Tests (curated, advisory)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * MON'
+
+jobs:
+  mutmut:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install mutmut and deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install mutmut pytest
+      - name: Run curated mutation tests (agent_core/orchestrator)
+        continue-on-error: true
+        run: |
+          # Keep scope tight for CI time
+          mutmut run --paths-to-mutate src/agent_core/agents --tests-dir src/agent_core/tests || true
+          mutmut run --paths-to-mutate src/orchestrator/src/orchestrator --tests-dir src/orchestrator/tests || true
+      - name: Show mutation results (advisory)
+        if: always()
+        run: |
+          mutmut results || true
+
