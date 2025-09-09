@@ -82,22 +82,22 @@ These are the current developer-prioritized milestones distilled from the Roadma
 - [ ] Determinism matrix and gate (owner: eng-lead) — ETA: 2025-09-13
   - Acceptance: macOS+Ubuntu snapshot hashes identical; artifact diff attached; gate enforced on mismatch.
 
-- [ ] Sphinx docs build (advisory) + hygiene (owner: eng-lead) — ETA: 2025-09-12
+- [x] Sphinx docs build (advisory) + hygiene (owner: eng-lead) — ETA: 2025-09-12
   - Acceptance: zero “not included in toctree”/missing title warnings on 3 consecutive builds.
 
-- [ ] Agent parity tests + adapters (owner: eng-lead) — ETA: 2025-09-16
+- [x] Agent parity tests + adapters (owner: eng-lead) — ETA: 2025-09-16
   - Acceptance: parity suite for Planner/Researcher/Synthesizer passes; adapters added; no removals yet.
 
 - [ ] Coverage ≥ 80% and mutation ≥ 60% on core (advisory) (owner: eng-lead) — ETA: 2025-09-18
   - Acceptance: coverage XML and curated mutmut artifacts uploaded; thresholds met on agent_core/orchestrator.
 
-- [ ] Weekly SBOM (Syft) + Trivy scans (owner: eng-lead) — ETA: 2025-09-12
+- [x] Weekly SBOM (Syft) + Trivy scans (owner: eng-lead) — ETA: 2025-09-12
   - Acceptance: two consecutive weekly runs green; bandit/pip‑audit 0 high severity.
 
-- [ ] Core perf benchmark + budget (owner: eng-lead) — ETA: 2025-09-15
+- [x] Core perf benchmark + budget (owner: eng-lead) — ETA: 2025-09-15
   - Acceptance: pytest‑benchmark artifact with p95 < 400 ms (advisory), 3‑run median stable ±5%.
 
-- [ ] Cost telemetry artifact + 80% alert (owner: eng-lead) — ETA: 2025-09-20
+- [x] Cost telemetry artifact + 80% alert (owner: eng-lead) — ETA: 2025-09-20
   - Acceptance: monthly spend artifact present; CI prints alert test at 80% threshold.
 
 - [ ] Weekly meta risk loop (owner: eng-lead) — recurring, Fridays
