@@ -12,4 +12,3 @@ def test_unified_runner_env_switch_uses_adapter_stub(monkeypatch):
     assert res.final.startswith("Final answer:")
     # We expect at least plan/research/synthesize markers from adapter stub
     assert any(s.startswith("plan:") for s in res.steps)
-
