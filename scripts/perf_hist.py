@@ -31,7 +31,9 @@ def percentile(data: list[float], p: float) -> float:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Emit latency histogram for a core path (advisory)")
+    ap = argparse.ArgumentParser(
+        description="Emit latency histogram for a core path (advisory)"
+    )
     ap.add_argument("--runs", type=int, default=200, help="number of iterations")
     ap.add_argument("--goal", default="measure core path latency")
     ap.add_argument("--out", default="perf_histogram.json")
@@ -72,4 +74,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
