@@ -25,12 +25,9 @@ exclude_patterns = [
     "_build",
     "Thumbs.db",
     ".DS_Store",
-    # Exclude raw audits, research artifacts, and templates
-    "audit/**",
+    # Exclude research artifacts/templates by default (curate via toctree when wanted)
     "research/**",
     "templates/**",
-    "guilds/**",
-    "data_quality/**",
     # Exclude data-style files under docs from Sphinx scanning
     "**/*.csv",
     "**/*.json",

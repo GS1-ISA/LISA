@@ -53,6 +53,20 @@ ISA SuperApp Documentation
 
 .. toctree::
    :maxdepth: 1
+   :caption: Guilds
+   :glob:
+
+   guilds/*
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Audit
+   :glob:
+
+   audit/*.md
+
+.. toctree::
+   :maxdepth: 1
    :caption: Issues & Checklists
    :glob:
 

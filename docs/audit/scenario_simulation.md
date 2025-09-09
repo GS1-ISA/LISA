@@ -1,6 +1,5 @@
-Title: Phase 9 — Scenario Simulation
+# Phase 9 — Scenario Simulation
 Last updated: 2025-09-02
-## Phase 9 — Scenario Simulation
 
 This document simulates five critical user journeys from unit → integration → deploy and checks compliance against documented rules. Evidence cites file paths, line numbers, and sha256 from docs/audit/inventory.csv.
 

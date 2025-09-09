@@ -1,4 +1,4 @@
-Title: Intelligence‑Driven Future — Roadmap for Diplomacy & Standards Guilds
+# Diplomacy & Standards Guilds — Intelligence‑Driven Future
 Last updated: 2025-09-02
 
 Executive Summary

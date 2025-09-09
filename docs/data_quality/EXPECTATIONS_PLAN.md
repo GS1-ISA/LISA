@@ -1,4 +1,4 @@
-Title: Data Quality Expectations — Starter Plan
+# Data Quality Expectations — Starter Plan
 Last updated: 2025-09-02
 
 Scope (Phase 1)
