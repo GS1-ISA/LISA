@@ -12,4 +12,3 @@ def test_splitter_perf_benchmark(benchmark):
         split_text(text, max_len=80)
 
     benchmark(run)
-

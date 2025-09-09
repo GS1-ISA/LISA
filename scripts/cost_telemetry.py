@@ -10,6 +10,7 @@ configured budget. This stub reads environment variables so it can run offline:
 
 Writes cost_report.json to the current working directory.
 """
+
 from __future__ import annotations
 
 import json
@@ -39,4 +40,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
