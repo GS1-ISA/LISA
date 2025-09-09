@@ -1,4 +1,4 @@
-Title: Git LFS Policy — Large/Binary Assets
+# Git LFS Policy — Large/Binary Assets
 Last updated: 2025-09-02
 
 Scope

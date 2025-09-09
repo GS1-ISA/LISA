@@ -1,4 +1,4 @@
-Title: Research Data Flow — CLI, Agents, Tools, Memory
+# Research Data Flow — CLI, Agents, Tools, Memory
 Last updated: 2025-09-06
 
 Overview

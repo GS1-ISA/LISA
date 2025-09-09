@@ -1,4 +1,4 @@
-Title: Quality Methods & Consistency Charter
+# Quality Methods & Consistency Charter
 Last updated: 2025-09-02
 
 Objective: Use consistent, evidence‑based quality methods across code, data, docs, and processes.

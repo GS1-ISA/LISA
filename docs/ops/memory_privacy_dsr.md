@@ -1,4 +1,4 @@
-Title: Memory Privacy — DSR (Access/Delete/Export) Runbook
+# Memory Privacy — DSR (Access/Delete/Export) Runbook
 Last updated: 2025-09-02
 
 Scope

@@ -1,4 +1,4 @@
-Title: Research Operations — From Learning to Adoption (R2P)
+# Research Operations — From Learning to Adoption (R2P)
 Last updated: 2025-09-02
 
 Goal: Convert research into high‑impact, low‑bloat improvements via a repeatable Research‑to‑Production (R2P) pipeline with strong evidence standards and measurable ROI.

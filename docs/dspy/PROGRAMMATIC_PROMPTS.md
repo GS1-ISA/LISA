@@ -1,4 +1,4 @@
-Title: DSPy — Declarative, Trainable Prompt Modules
+# DSPy — Declarative, Trainable Prompt Modules
 Last updated: 2025-09-02
 
 Scope

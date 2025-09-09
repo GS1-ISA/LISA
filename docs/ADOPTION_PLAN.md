@@ -1,4 +1,4 @@
-Title: Adoption Plan — Agentic Enhancements (Step-by-Step, With Acceptance)
+# Adoption Plan — Agentic Enhancements (Step-by-Step, With Acceptance)
 Last updated: 2025-09-02
 
 Scope: This plan turns the scorecard and goals into a concrete, phased adoption path that we can execute locally-first and then promote to CI/gates when stable.

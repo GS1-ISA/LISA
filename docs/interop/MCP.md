@@ -1,4 +1,4 @@
-Title: MCP — Model Context Protocol for Tools & Data
+# MCP — Model Context Protocol for Tools & Data
 Last updated: 2025-09-02
 
 Goals

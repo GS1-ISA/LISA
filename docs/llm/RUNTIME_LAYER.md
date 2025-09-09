@@ -1,4 +1,4 @@
-Title: LLM Runtime Layer — OpenAI Responses API and Bedrock Agents
+# LLM Runtime Layer — OpenAI Responses API and Bedrock Agents
 Last updated: 2025-09-02
 
 Interface

@@ -1,4 +1,4 @@
-Title: Research Capabilities — Acquisition, Extraction, Provenance
+# Research Capabilities — Acquisition, Extraction, Provenance
 Last updated: 2025-09-02
 
 Overview

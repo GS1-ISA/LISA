@@ -1,4 +1,4 @@
-Title: RAG Stack — Pinecone, Ingestion, Indexers, Retrievers
+# RAG Stack — Pinecone, Ingestion, Indexers, Retrievers
 Last updated: 2025-09-02
 
 Scope

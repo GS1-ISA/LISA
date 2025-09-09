@@ -1,4 +1,4 @@
-Title: Agentic Scorecard — Dimensions, Rubric, and Status
+# Agentic Scorecard — Dimensions, Rubric, and Status
 Last updated: 2025-09-02
 
 Rubric
