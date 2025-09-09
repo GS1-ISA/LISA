@@ -7,6 +7,7 @@ Defaults to lightweight stubs if agent_core or external deps are unavailable so
 that importing this module never pulls heavy optional dependencies in CI.
 """
 
+import os
 from dataclasses import dataclass
 from typing import List
 
@@ -37,7 +38,9 @@ class OrchestratorAgentRunner:
     """
 
     def run(self, goal: str) -> AgentCoreResult:
-        if not _AGENT_CORE_AVAILABLE:
+        # Allow forcing stub mode via env to keep CI/network free: ADAPTER_STUB_MODE=1
+        force_stub = os.getenv("ADAPTER_STUB_MODE", "0") == "1"
+        if force_stub or not _AGENT_CORE_AVAILABLE:
             steps = [
                 f"plan: stub for '{goal}'",
                 f"research: stub-web",

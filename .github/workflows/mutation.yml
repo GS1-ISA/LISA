@@ -27,4 +27,9 @@ jobs:
         if: always()
         run: |
           mutmut results || true
-
+      - name: Upload mutation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutmut_results
+          path: .mutmut-cache

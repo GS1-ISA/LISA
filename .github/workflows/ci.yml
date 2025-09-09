@@ -98,6 +98,11 @@ jobs:
         run: |
           pytest -q infra/rag/tests/test_perf_splitter_bench.py || true
 
+      - name: Coverage threshold (core, advisory)
+        continue-on-error: true
+        run: |
+          pytest -q --cov=src/agent_core --cov=src/orchestrator --cov-report=term-missing --cov-fail-under=80 || true
+
   label-check:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
