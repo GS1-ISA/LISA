@@ -1,4 +1,4 @@
-Title: Definition of Done (DoD) — Project-Wide
+# Definition of Done (DoD) — Project-Wide
 Last updated: 2025-09-02
 
 Purpose: Ensure every change ships with quality, performance, safety, and documentation, aligned with the agentic, evidence-first philosophy.

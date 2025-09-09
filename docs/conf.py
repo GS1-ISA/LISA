@@ -25,7 +25,18 @@ exclude_patterns = [
     "_build",
     "Thumbs.db",
     ".DS_Store",
-    "audit/*",
+    # Exclude raw audits, research artifacts, and templates
+    "audit/**",
+    "research/**",
+    "templates/**",
+    "guilds/**",
+    "data_quality/**",
+    # Exclude data-style files under docs from Sphinx scanning
+    "**/*.csv",
+    "**/*.json",
+    "**/*.jsonl",
+    "**/*.yaml",
+    "**/*.yml",
 ]
 
 html_theme = "sphinx_rtd_theme"

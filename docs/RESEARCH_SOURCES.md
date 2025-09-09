@@ -1,4 +1,4 @@
-Title: High-Quality Sources — Research & Implementation
+# High-Quality Sources — Research & Implementation
 Last updated: 2025-09-02
 
 Standards & Policy

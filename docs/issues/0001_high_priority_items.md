@@ -1,4 +1,4 @@
-Title: High-priority governance & docs
+# High-priority governance & docs
 
 This issue groups the top-priority items from docs/TODO.md and docs/ROADMAP.md.
 

@@ -53,13 +53,6 @@ ISA SuperApp Documentation
 
 .. toctree::
    :maxdepth: 1
-   :caption: Research
-   :glob:
-
-   research/*
-
-.. toctree::
-   :maxdepth: 1
    :caption: Issues & Checklists
    :glob:
 

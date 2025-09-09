@@ -1,4 +1,4 @@
-Title: NeSy (NeuroSymbolic) Roadmap — TODOs and Acceptance Criteria
+# NeSy (NeuroSymbolic) Roadmap — TODOs and Acceptance Criteria
 Last updated: 2025-09-02
 
 Note: This file is the NeSy-specific tracker. For the full program checklist, see docs/TODO.md.
