@@ -99,6 +99,17 @@ jobs:
         run: |
           pytest -q infra/rag/tests/test_perf_splitter_bench.py || true
 
+      - name: Latency histograms (advisory)
+        continue-on-error: true
+        run: |
+          python scripts/perf_hist.py --runs 200 --out perf_histogram.json || true
+      - name: Upload latency histogram
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf_histogram
+          path: perf_histogram.json
+
       - name: Coverage threshold (core, advisory)
         continue-on-error: true
         run: |
