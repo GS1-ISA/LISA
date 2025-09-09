@@ -17,6 +17,7 @@ try:  # pragma: no cover - optional dependency boundary
     from src.agent_core.agents.synthesizer import SynthesizerAgent
     from src.agent_core.memory.rag_store import RAGMemory
     from src.tools.web_research import WebResearchTool
+
     _AGENT_CORE_AVAILABLE = True
 except Exception:  # pragma: no cover - optional import path
     _AGENT_CORE_AVAILABLE = False
@@ -56,5 +57,6 @@ class OrchestratorAgentRunner:
         synthesizer = SynthesizerAgent()
         report = synthesizer.run(goal, researcher.rag_memory)
         steps.append("synthesize: completed")
-        return AgentCoreResult(steps=steps, final=report.splitlines()[0] if report else "Final answer:")
-
+        return AgentCoreResult(
+            steps=steps, final=report.splitlines()[0] if report else "Final answer:"
+        )
