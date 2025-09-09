@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import List
 
@@ -17,6 +18,17 @@ class PlanToolReflect:
     """
 
     def run(self, goal: str) -> OrchestratorResult:
+        # Optional path: delegate to agent_core via adapter if enabled
+        if os.getenv("ORCHESTRATOR_USE_AGENT_CORE", "0") == "1":  # pragma: no cover - integration mode
+            try:
+                from .agent_core_adapter import OrchestratorAgentRunner  # local import to avoid hard dep
+
+                res = OrchestratorAgentRunner().run(goal)
+                # Normalize to OrchestratorResult
+                return OrchestratorResult(steps=res.steps, final=res.final)
+            except Exception:
+                # Fallback to deterministic stub
+                pass
         steps: list[str] = []
         steps.append(f"plan: solve '{goal}' with a simple tool")
         tool_out = self._tool(goal)

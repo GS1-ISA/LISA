@@ -1,0 +1,22 @@
+name: PR Metric Guard
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  metric-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body contains metric delta
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request && context.payload.pull_request.body || '';
+            const ok = /This change moves\s+`?.+`?\s+from\s+.+\s+→\s+.+/.test(body) || /metric delta/i.test(body);
+            if (!ok) {
+              core.setFailed('PR body must include a metric delta sentence (e.g., "This change moves <metric> from x → y (±z%).").');
+            } else {
+              core.info('Metric delta sentence detected.');
+            }
+
