@@ -36,6 +36,7 @@ help:
 	@echo "  ci           - Run CI pipeline locally"
 	@echo "  agent-sync   - Refresh meta audit, docs build, cost report"
 	@echo "  virtuous-cycle - Run meta audit + quick verify + log"
+	@echo "  pdf-index     - Build PDF index from ISA goals PDFs into artifacts/"
 
 # Setup commands
 install:
@@ -163,6 +164,16 @@ virtue-log:
 	python3 scripts/virtue_log.py || true
 
 virtuous-cycle: agent-sync virtue-log
+
+# Build a local PDF index (advisory/offline)
+.PHONY: pdf-index
+pdf-index:
+	mkdir -p artifacts
+	python3 -m pip install --upgrade pip >/dev/null 2>&1 || true
+	# Ensure optional deps are present
+	python3 -c "import PyPDF2, yaml" 2>/dev/null || python3 -m pip install PyPDF2 pyyaml
+	python3 scripts/ingest_pdfs.py --manifest data/ingestion_manifests/isa_goals_pdfs_manifest.yaml --out artifacts/pdf_index.jsonl
+	@echo "✅ Wrote artifacts/pdf_index.jsonl"
 
 # Docker commands
 docker-build:
