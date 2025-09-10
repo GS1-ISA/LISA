@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
       - name: Agent Sync
         run: |
           python -m pip install --upgrade pip
@@ -38,4 +39,3 @@ jobs:
             meta_risk_xray.md
             _build/html
             cost_report.json
-

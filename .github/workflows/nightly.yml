@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '0 3 * * *'
 
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   mutation-fuzz-bench:
     runs-on: ubuntu-latest
@@ -13,6 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
       - name: Install tools
         run: |
           python -m pip install --upgrade pip
@@ -34,6 +39,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
       - name: Install pytest
         run: |
           python -m pip install --upgrade pip
