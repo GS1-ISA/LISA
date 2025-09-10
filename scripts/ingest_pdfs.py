@@ -79,14 +79,18 @@ def extract_pages(pdf_path: Path, max_pages: int) -> List[tuple[int, str]]:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Ingest PDFs into a simple JSONL index (advisory/offline)")
+    ap = argparse.ArgumentParser(
+        description="Ingest PDFs into a simple JSONL index (advisory/offline)"
+    )
     ap.add_argument(
         "--manifest",
         default="data/ingestion_manifests/isa_goals_pdfs_manifest.yaml",
         help="Path to ingestion manifest YAML",
     )
     ap.add_argument("--out", default="pdf_index.jsonl", help="Output JSONL path")
-    ap.add_argument("--max-pages", type=int, default=None, help="Override max pages per PDF")
+    ap.add_argument(
+        "--max-pages", type=int, default=None, help="Override max pages per PDF"
+    )
     ns = ap.parse_args()
 
     specs, max_pages_manifest = load_manifest(Path(ns.manifest))
@@ -115,4 +119,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
