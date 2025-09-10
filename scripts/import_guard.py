@@ -26,7 +26,9 @@ def main() -> int:
             try:
                 for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
                     if DISALLOWED.search(line):
-                        violations.append(f"{p.relative_to(ROOT)}:{i}: disallowed direct import of agent_core")
+                        violations.append(
+                            f"{p.relative_to(ROOT)}:{i}: disallowed direct import of agent_core"
+                        )
             except Exception:
                 continue
     if violations:
@@ -38,4 +40,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
