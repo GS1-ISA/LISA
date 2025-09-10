@@ -128,6 +128,11 @@ jobs:
           path: agent/memory/memory_log.jsonl
           if-no-files-found: ignore
 
+      - name: Import path discipline (advisory)
+        continue-on-error: true
+        run: |
+          python scripts/import_guard.py || true
+
   label-check:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'

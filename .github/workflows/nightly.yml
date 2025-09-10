@@ -26,3 +26,21 @@ jobs:
         continue-on-error: true
         run: |
           pytest -q --benchmark-only || true
+
+  adapter-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+      - name: Exercise orchestrator→agent_core adapter (stub mode)
+        env:
+          ORCHESTRATOR_USE_AGENT_CORE: "1"
+          ADAPTER_STUB_MODE: "1"
+        run: |
+          pytest -q src/orchestrator/tests/test_unified_runner_env_switch.py
