@@ -1,0 +1,29 @@
+name: PDF Index (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pdf-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install deps (PyPDF2, PyYAML)
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyPDF2 pyyaml
+      - name: Build PDF index (advisory)
+        run: |
+          python scripts/ingest_pdfs.py --manifest data/ingestion_manifests/isa_goals_pdfs_manifest.yaml --out pdf_index.jsonl
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf_index
+          path: pdf_index.jsonl
+
