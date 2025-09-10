@@ -37,6 +37,8 @@ help:
 	@echo "  agent-sync   - Refresh meta audit, docs build, cost report"
 	@echo "  virtuous-cycle - Run meta audit + quick verify + log"
 	@echo "  pdf-index     - Build PDF index from ISA goals PDFs into artifacts/"
+	@echo "  pr-notes      - Generate agent/outcomes/PR_NOTES.md (Plan/Diff/Evidence)"
+	@echo "  pr            - Run format-check → lint → type-check → test-all → docs → pr-notes"
 
 # Setup commands
 TEST_PATHS=src/agent_core src/orchestrator infra/rag
@@ -154,6 +156,21 @@ pdf-index:
 	python3 -c "import PyPDF2, yaml" 2>/dev/null || python3 -m pip install PyPDF2 pyyaml
 	python3 scripts/ingest_pdfs.py --manifest data/ingestion_manifests/isa_goals_pdfs_manifest.yaml --out artifacts/pdf_index.jsonl
 	@echo "✅ Wrote artifacts/pdf_index.jsonl"
+
+# PR helpers
+.PHONY: pr-notes pr
+pr-notes:
+	mkdir -p agent/outcomes
+	python3 scripts/prepare_pr_notes.py
+	@echo "✅ Wrote agent/outcomes/PR_NOTES.md"
+
+pr:
+	$(MAKE) format-check
+	$(MAKE) lint
+	$(MAKE) type-check
+	$(MAKE) test-all
+	$(MAKE) docs
+	$(MAKE) pr-notes
 
 # Docker commands (optional)
 docker-build:
