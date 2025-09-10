@@ -34,6 +34,7 @@ exclude_patterns = [
     "**/*.jsonl",
     "**/*.yaml",
     "**/*.yml",
+    "**/*.pdf",
 ]
 
 html_theme = "sphinx_rtd_theme"

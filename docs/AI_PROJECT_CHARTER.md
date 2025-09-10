@@ -51,3 +51,4 @@ This AI Project Charter summarizes scope, objectives, success metrics, stakehold
 - [AGENTIC_ARCHITECTURE.md](AGENTIC_ARCHITECTURE.md)
 - [AGENTIC_GOALS.md](AGENTIC_GOALS.md)
 - [QUALITY_GATES.md](QUALITY_GATES.md)
+- [ISA_VISION_OUTCOMES.md](ISA_VISION_OUTCOMES.md)

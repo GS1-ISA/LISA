@@ -4,6 +4,8 @@ Last updated: 2025-09-09
 
 Purpose: Provide a holistic roadmap for building a self-improving, production-grade agentic platform and ESG/ISA_C data system. Organized by tracks and phased milestones with gates.
 
+See also: ISA_VISION_OUTCOMES.md for the concise vision, outcomes, and KPIs guiding this roadmap.
+
 Operational Plan — Phases A–D (Solo‑Dev, Measurable)
 
 - Phase A (0–2 weeks) — Establish hard baselines and hygiene
