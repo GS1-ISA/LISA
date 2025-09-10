@@ -1,23 +1,23 @@
 # CI Workflows Overview — PR, Nightly, Weekly
-Last updated: 2025-09-02
+Last updated: 2025-09-10
 
 PR (ci.yml)
-- Lint/format (ruff): gate.
-- Typecheck (mypy): initially advisory, becomes gate once green.
-- Tests (pytest+coverage): advisory until thresholds met; then gate.
-- Security (bandit, pip-audit, gitleaks): advisory → gate.
-- Artifacts: coverage.xml if present; logs.
-  - Combined Coverage: runs app + packages + infra tests with coverage and uploads `coverage-total.xml`; advisory no-regression check against baseline.
-  - Memory coherence: enforced drift gate; uploads memory logs snapshot.
-  - Coherence Audit: generates repo graph and KPIs; uploads scorecard and lists.
-  - Package Wheels: builds stub package wheels (advisory) and uploads artifacts.
-  - Bloat Check: runs prune_bloat.py (dry-run) and uploads `bloat_candidates.txt` as an artifact.
-  - Memory: advisory coherence gate; snapshot of JSONL memory logs uploaded as artifact.
+- Lint/format (ruff): enforced.
+- Typecheck (mypy): advisory → enforced after stability window.
+- Tests (pytest+coverage): advisory; core coverage gate promoted after stability.
+- Determinism: enforced (deterministic splitter test, offline).
+- Security (bandit, pip-audit, gitleaks): advisory → enforced.
+- Concurrency: cancel in‑progress runs per ref; pip cache enabled; pytest‑xdist for parallel tests.
+- Artifacts/signals (advisory):
+  - Combined Coverage: `coverage-total.xml`; no‑regression check.
+  - Memory coherence: drift check (advisory) + memory log snapshot (artifact).
+  - Latency Histogram: `perf_histogram.json` from scripts/perf_hist.py.
+  - Coherence Audit: repo graph and KPIs (on demand).
+  - Bloat Check: `bloat_candidates.txt` from prune_bloat.py (dry‑run).
 
-Deep Checks (on-demand, nightly.yml via workflow_dispatch)
-- Mutation tests (mutmut) on mapping logic.
-- Fuzzing (atheris) for parsers (curated targets).
-- Benchmarks (pytest-benchmark) and perf budget diff.
+Deep Checks (scheduled + on-demand)
+- Nightly (nightly.yml): curated mutation tests, benchmarks; adapter env‑switch test (orchestrator→agent_core in stub mode).
+- Determinism matrix (determinism_matrix.yml): daily cross‑OS test (advisory).
 
 Formal & Supply Chain (on-demand, weekly.yml via workflow_dispatch)
 - CrossHair on pure mapping utilities (curated list).
@@ -44,7 +44,7 @@ Current thresholds and critical paths (tunable)
   Historical paths referencing `ISA_SuperApp/**` apply to the API‑first variant and are not active here.
 
 Gating Schedule
-- Start permissive (advisory) to avoid blocking; flip to gating per plan acceptance when green.
+- Start permissive (advisory) to avoid blocking; flip to gating per plan acceptance when green. Determinism is already enforced.
 
 Coverage Details
 - `.coveragerc` omits tests and stdlib and enables branch coverage; sources include app, packages, and infra where relevant.
@@ -60,6 +60,13 @@ Promotion Criteria — Memory Coherence Gate
 - Privacy/Audit: deletion events (when present) are logged with reasons; audit test passes.
 - Flakiness: no intermittent failures attributed to memory gate during the stability window.
 Once these conditions are met, flip the memory coherence gate from advisory to enforced and document the change in `docs/QUALITY_GATES.md` and the release notes.
+
+Additional Workflows
+- Virtuous Cycle (virtue_cycle.yml): daily meta audit, docs build (advisory), cost telemetry, virtue log artifact.
+- Meta Audit (meta_audit.yml): weekly inventory + risk X‑ray; auto‑maintains Top Risk issue.
+- PDF Index (pdf_index.yml): manual job builds `pdf_index.jsonl` from ISA goals PDFs using `scripts/ingest_pdfs.py`.
+- PR Metric Guard (pr_metric_guard.yml): blocks PRs missing a metric‑delta sentence.
+- Import Discipline: advisory guard ensures orchestrator/llm do not import agent_core except via adapter.
 
 Planned CI (Guilds)
 - Diplomacy Guild: ingestion coverage checks, summary sampling accuracy, horizon‑scanning evidence logging.
@@ -87,3 +94,6 @@ Local-First Utilities (make)
 - `make pr-notes`: Generate `agent/outcomes/PR_NOTES.md` with Plan/Diff/Evidence ready for PRs.
 - `make outcomes-summary`: Summarize agent outcomes to `docs/audit/agent_outcomes_summary.md`.
 - `make healthcheck`: Run lint, types (advisory), determinism snapshot, security scans, and docs lint; report to `docs/audit/healthcheck.md`.
+- `make agent-sync`: Meta audit, docs build (advisory), cost report.
+- `make virtuous-cycle`: Runs `agent-sync` and appends a virtue log entry.
+- `make pdf-index`: Builds `artifacts/pdf_index.jsonl` from ISA goals PDFs for local research memory.

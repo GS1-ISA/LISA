@@ -71,6 +71,13 @@ Operational Principle — Lead Developer Mode
 - Exceptions: explicit kill-switch, destructive actions outside allowlists, compliance/privacy red flags, or repeated unexplained failures.
 - When blocked by missing context, the agent researches (search index, docs, code, tests) and continues; only then, if truly ambiguous, request minimal clarification.
 
+Adapter Boundaries & Env Flags
+- Orchestrator → agent_core delegation happens via an adapter to preserve boundaries and keep CI offline by default.
+- Env flags:
+  - `ORCHESTRATOR_USE_AGENT_CORE=1` — route orchestrator runner to agent_core via adapter.
+  - `ADAPTER_STUB_MODE=1` — force adapter to stub (no network, no heavy deps) for CI/nightly.
+- Import discipline: orchestrator/llm must not import `src.agent_core` directly; CI runs an advisory import guard.
+
 Reward Model (Initial)
 - Positive: tests pass (+3), coverage up (+1/2%), perf budget met (+2), docs updated (+1), approval (+2).
 - Negative: tests fail (−3), type/lint fail (−2), revert (−4), perf regression (−2), security/data-quality fail (−3).

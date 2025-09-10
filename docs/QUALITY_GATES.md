@@ -1,15 +1,16 @@
 # Quality Gates and Acceptance Thresholds
-Last updated: 2025-09-02
+Last updated: 2025-09-10
 
 Gating Levels
 - Advisory: job runs, failures do not block merges.
 - Enforced: failures block merges.
 
-Initial PR CI (advisory → enforced when stable)
-- Lint/format (ruff): enforced immediately.
-- Typecheck (mypy): advisory → enforced once green for 7 consecutive days.
-- Tests + coverage: advisory → enforced at ≥90% coverage (core modules).
-- Security (bandit, pip-audit, gitleaks): advisory → enforced once baseline issues triaged.
+Initial PR CI (current status)
+- Lint/format (ruff): enforced.
+- Determinism: enforced (deterministic, offline test). Cross‑OS matrix runs daily (advisory).
+- Typecheck (mypy): advisory → enforced after 7 clean runs on target modules.
+- Tests + coverage: advisory; core coverage gate (≥80%) promotes after stability; broader ≥90% tracked nightly.
+- Security (bandit, pip‑audit, gitleaks): advisory → enforced once baseline issues triaged.
 - Complexity (radon): advisory with budget (most functions < 10).
 
 ## Source Code Governance
@@ -33,9 +34,9 @@ Project configuration files (`.yml`, `.toml`, `.yaml`, `Dockerfile`, etc.) are g
 All GitHub workflow files (`.github/workflows/*.yml`) are governed by the `CI_WORKFLOWS.md` document.
 
 Nightly
-- Mutation (mutmut) target ≥70% score.
-- Perf budgets: fail job if >10% regression in P95 runtime.
-- Memory coherence: enforced drift gate (threshold tuned); report includes coherence scorecard.
+- Mutation (mutmut) curated targets; promote to gate after stability; aim ≥70% score.
+- Perf: pytest‑benchmark + latency histogram; promote p95 budget once stable; fail if >10% regression vs baseline (post‑promotion).
+- Memory coherence: advisory drift gate; promote to enforced after stability window; include scorecard.
 
 Weekly
 - CrossHair: advisory report; human triage.
@@ -68,14 +69,13 @@ Waiver Policy
 - Waivers must be documented in TECH_DEBT.md with owner, reason, scope, and expiry date (≤30 days by default).
 - CI posts a reminder when a waiver is within 7 days of expiry; expired waivers fail merges until renewed or resolved.
 
-Additional PR Gates (Promoted)
-- Determinism snapshots: run snapshot tests for canonical JSON; promotion pending on stability window.
-- Memory coherence: gate promoted to enforced after 7 consecutive green PRs (now enforced by default).
-- Memory logs snapshot: upload JSONL memory log artifact.
-- Docs build: build MkDocs site (if present); start advisory, then enforce.
-- Container smoke: on significant changes, build Docker image and curl `/metrics`; enforce after stability.
+Additional PR Gates
+- Memory coherence: advisory drift gate + log snapshot; promote after stability window.
+- Docs build: Sphinx build (advisory), enforced after stability.
+- Container smoke: on significant changes, build image and curl `/metrics` (advisory), promote after stability.
+- PR Metric Guard: enforced — requires a metric‑delta sentence in PR body.
+- Import Discipline: advisory — disallow direct imports of `src.agent_core` from orchestrator/llm except via adapter.
 
 Determinism Policy
-- Canonical JSON writer follows ADR‑0003: stdlib json as default, optional orjson via `CANONICAL_USE_ORJSON=1`.
-- Snapshot tests validate stable ordering, UTF‑8 encoding, and newline policy across environments.
-- Promotion: orjson default may be considered only after cross‑OS parity and 7 consecutive green nightly runs.
+- Canonical behavior validated by deterministic tests (offline path); cross‑OS matrix runs daily (advisory).
+- ADR‑0003 governs optional orjson path via `CANONICAL_USE_ORJSON=1` (parity required before defaulting).
