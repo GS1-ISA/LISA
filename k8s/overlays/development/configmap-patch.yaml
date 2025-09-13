@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isa-superapp-config
+  namespace: isa-superapp-dev
+data:
+  LOG_LEVEL: "DEBUG"
+  APP_ENV: "development"
+  DEBUG: "true"
+  ENABLE_PROFILING: "true"
+  DATABASE_URL: "postgresql://isa_dev:isa_dev@postgres-dev:5432/isa_superapp_dev"
+  REDIS_URL: "redis://redis-dev:6379/0"
+  CACHE_TTL: "300"
+  MAX_WORKERS: "2"

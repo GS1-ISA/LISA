@@ -1,0 +1,76 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: isa-superapp
+  namespace: isa-superapp
+
+resources:
+- namespace.yaml
+- configmap.yaml
+- secret.yaml
+- deployment.yaml
+- service.yaml
+- ingress.yaml
+- pdb.yaml
+- rbac.yaml
+- networkpolicy.yaml
+- hpa.yaml
+- vpa.yaml
+- servicemonitor.yaml
+
+commonLabels:
+  app.kubernetes.io/name: isa-superapp
+  app.kubernetes.io/instance: production
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: isa-superapp
+
+images:
+- name: isa-superapp
+  newName: ghcr.io/isa-superapp/isa-superapp
+  newTag: latest
+
+replicas:
+- name: isa-superapp
+  count: 3
+
+patchesStrategicMerge:
+- |-
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: isa-superapp
+    namespace: isa-superapp
+  spec:
+    template:
+      spec:
+        containers:
+        - name: isa-superapp
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+
+configMapGenerator:
+- name: isa-superapp-config
+  literals:
+  - LOG_LEVEL=INFO
+  - APP_ENV=production
+  - METRICS_ENABLED=true
+  - HEALTH_CHECK_PATH=/health
+
+secretGenerator:
+- name: isa-superapp-secrets
+  literals:
+  - DATABASE_URL=postgresql://user:password@db:5432/isa_superapp
+  - REDIS_URL=redis://redis:6379/0
+  - JWT_SECRET=your-jwt-secret-here
+  - API_KEY=your-api-key-here
+  options:
+    disableNameSuffixHash: true
+
+generatorOptions:
+  disableNameSuffixHash: true

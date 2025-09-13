@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: isa-superapp
+  labels:
+    app.kubernetes.io/name: isa-superapp
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: namespace
+    app.kubernetes.io/managed-by: kubernetes
+    kubernetes.io/metadata.name: isa-superapp
+  annotations:
+    scheduler.alpha.kubernetes.io/node-selector: "node-type=compute"
+    scheduler.alpha.kubernetes.io/tolerations: '[{"key":"workload-type","operator":"Equal","value":"isa-superapp","effect":"NoSchedule"}]'

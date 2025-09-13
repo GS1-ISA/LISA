@@ -1,0 +1,493 @@
+groups:
+  - name: isa-superapp.rules
+    interval: 30s
+    rules:
+      # Application availability alerts
+      - alert: ISASuperAppDown
+        expr: up{job="isa-superapp"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: isa-superapp
+          environment: '{{ $labels.environment }}'
+          team: isa-superapp-team
+        annotations:
+          summary: "ISA SuperApp is down"
+          description: "ISA SuperApp has been down for more than 1 minute. Instance: {{ $labels.instance }}"
+          runbook_url: "https://github.com/isa-superapp/runbooks/blob/main/app-down.md"
+          dashboard_url: "http://grafana:3000/d/isa-superapp/overview?var-instance={{ $labels.instance }}"
+
+      - alert: ISASuperAppHighErrorRate
+        expr: rate(http_requests_total{job="isa-superapp",status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: isa-superapp
+          environment: '{{ $labels.environment }}'
+          team: isa-superapp-team
+        annotations:
+          summary: "High error rate in ISA SuperApp"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+          runbook_url: "https://github.com/isa-superapp/runbooks/blob/main/high-error-rate.md"
+
+      - alert: ISASuperAppHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="isa-superapp"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: isa-superapp
+          environment: '{{ $labels.environment }}'
+          team: isa-superapp-team
+        annotations:
+          summary: "High latency in ISA SuperApp"
+          description: "95th percentile latency is {{ $value }}s for {{ $labels.instance }}"
+
+      # ETL pipeline alerts
+      - alert: ISASuperAppETLDown
+        expr: up{job="isa-superapp-etl"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: isa-superapp-etl
+          environment: '{{ $labels.environment }}'
+          team: isa-superapp-team
+        annotations:
+          summary: "ISA SuperApp ETL is down"
+          description: "ISA SuperApp ETL has been down for more than 2 minutes. Instance: {{ $labels.instance }}"
+
+      - alert: ISASuperAppETLHighErrorRate
+        expr: rate(etl_errors_total{job="isa-superapp-etl"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: isa-superapp-etl
+          environment: '{{ $labels.environment }}'
+          team: isa-superapp-team
+        annotations:
+          summary: "High ETL error rate"
+          description: "ETL error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      # Database alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+          environment: '{{ $labels.environment }}'
+          team: database-team
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL has been down for more than 1 minute. Instance: {{ $labels.instance }}"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: postgres
+          environment: '{{ $labels.environment }}'
+          team: database-team
+        annotations:
+          summary: "PostgreSQL high connection count"
+          description: "PostgreSQL has {{ $value }} active connections"
+
+      - alert: PostgreSQLSlowQueries
+        expr: pg_stat_activity_max_tx_duration > 300
+        for: 5m
+        labels:
+          severity: warning
+          service: postgres
+          environment: '{{ $labels.environment }}'
+          team: database-team
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Longest running transaction is {{ $value }}s"
+
+      - alert: PostgreSQLReplicationLag
+        expr: pg_replication_lag > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: postgres
+          environment: '{{ $labels.environment }}'
+          team: database-team
+        annotations:
+          summary: "PostgreSQL replication lag"
+          description: "Replication lag is {{ $value }}s"
+
+      # Redis alerts
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+          environment: '{{ $labels.environment }}'
+          team: cache-team
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 1 minute. Instance: {{ $labels.instance }}"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+          environment: '{{ $labels.environment }}'
+          team: cache-team
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+          environment: '{{ $labels.environment }}'
+          team: cache-team
+        annotations:
+          summary: "Redis high connection count"
+          description: "Redis has {{ $value }} connected clients"
+
+      - alert: RedisRejectedConnections
+        expr: increase(redis_rejected_connections_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: redis
+          environment: '{{ $labels.environment }}'
+          team: cache-team
+        annotations:
+          summary: "Redis rejected connections"
+          description: "Redis rejected {{ $value }} connections in the last 5 minutes"
+
+      # Nginx alerts
+      - alert: NginxDown
+        expr: up{job="nginx-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: nginx
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Nginx is down"
+          description: "Nginx has been down for more than 1 minute. Instance: {{ $labels.instance }}"
+
+      - alert: NginxHighRequestRate
+        expr: rate(nginx_http_requests_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: nginx
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Nginx high request rate"
+          description: "Nginx request rate is {{ $value }} req/s"
+
+      - alert: NginxHighErrorRate
+        expr: rate(nginx_http_requests_total{status=~"4..|5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: nginx
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Nginx high error rate"
+          description: "Nginx error rate is {{ $value | humanizePercentage }}"
+
+      # System resource alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 5m
+        labels:
+          severity: critical
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: CriticalMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }} mount {{ $labels.mountpoint }}"
+
+      - alert: CriticalDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Critical disk usage"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }} mount {{ $labels.mountpoint }}"
+
+      - alert: HighLoadAverage
+        expr: node_load1 > 4
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "High load average"
+          description: "Load average is {{ $value }} on {{ $labels.instance }}"
+
+      # Network alerts
+      - alert: HighNetworkErrors
+        expr: rate(node_network_receive_errs_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "High network receive errors"
+          description: "Network receive errors: {{ $value }}/s on {{ $labels.instance }} interface {{ $labels.device }}"
+
+      - alert: HighNetworkDrops
+        expr: rate(node_network_receive_drop_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "High network packet drops"
+          description: "Network packet drops: {{ $value }}/s on {{ $labels.instance }} interface {{ $labels.device }}"
+
+      # Container alerts
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Container high CPU usage"
+          description: "Container CPU usage is {{ $value }}% for {{ $labels.name }}"
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Container high memory usage"
+          description: "Container memory usage is {{ $value }}% for {{ $labels.name }}"
+
+      - alert: ContainerRestarting
+        expr: increase(kube_pod_container_status_restarts_total[1h]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Container restarting frequently"
+          description: "Container {{ $labels.container }} in pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+
+      # Prometheus alerts
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: monitoring-team
+        annotations:
+          summary: "Prometheus target down"
+          description: "Prometheus target {{ $labels.job }} on {{ $labels.instance }} has been down for more than 5 minutes"
+
+      - alert: PrometheusHighQueryLatency
+        expr: prometheus_engine_query_duration_seconds{quantile="0.95"} > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: monitoring-team
+        annotations:
+          summary: "Prometheus high query latency"
+          description: "Prometheus 95th percentile query latency is {{ $value }}s"
+
+      - alert: PrometheusHighMemoryUsage
+        expr: prometheus_tsdb_head_series > 1000000
+        for: 10m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: monitoring-team
+        annotations:
+          summary: "Prometheus high memory usage"
+          description: "Prometheus has {{ $value }} active time series"
+
+      # Blackbox exporter alerts
+      - alert: EndpointDown
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Endpoint is down"
+          description: "Endpoint {{ $labels.instance }} has been down for more than 2 minutes"
+
+      - alert: EndpointSlowResponse
+        expr: probe_duration_seconds > 5
+        for: 5m
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "Endpoint slow response"
+          description: "Endpoint {{ $labels.instance }} response time is {{ $value }}s"
+
+      - alert: EndpointSSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 1h
+        labels:
+          severity: warning
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+
+      - alert: EndpointSSLCertificateExpired
+        expr: probe_ssl_earliest_cert_expiry - time() <= 0
+        for: 1m
+        labels:
+          severity: critical
+          environment: '{{ $labels.environment }}'
+          team: infrastructure-team
+        annotations:
+          summary: "SSL certificate expired"
+          description: "SSL certificate for {{ $labels.instance }} has expired"
+
+  - name: isa-superapp.recording
+    interval: 30s
+    rules:
+      # Application performance recording rules
+      - record: isa_superapp:request_rate
+        expr: rate(http_requests_total{job="isa-superapp"}[5m])
+
+      - record: isa_superapp:error_rate
+        expr: rate(http_requests_total{job="isa-superapp",status=~"5.."}[5m])
+
+      - record: isa_superapp:latency_p95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="isa-superapp"}[5m]))
+
+      - record: isa_superapp:latency_p99
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job="isa-superapp"}[5m]))
+
+      - record: isa_superapp:availability
+        expr: 1 - (rate(http_requests_total{job="isa-superapp",status=~"5.."}[5m]) / rate(http_requests_total{job="isa-superapp"}[5m]))
+
+      # System resource recording rules
+      - record: isa_superapp:cpu_usage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      - record: isa_superapp:memory_usage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+      - record: isa_superapp:disk_usage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100
+
+      # Database performance recording rules
+      - record: isa_superapp:postgres_connections
+        expr: pg_stat_activity_count
+
+      - record: isa_superapp:postgres_slow_queries
+        expr: pg_stat_activity_max_tx_duration
+
+      - record: isa_superapp:redis_memory_usage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes
+
+      - record: isa_superapp:redis_connections
+        expr: redis_connected_clients
+
+      # Container performance recording rules
+      - record: isa_superapp:container_cpu_usage
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100
+
+      - record: isa_superapp:container_memory_usage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100
+
+      # ETL pipeline recording rules
+      - record: isa_superapp:etl_processing_rate
+        expr: rate(etl_processed_total[5m])
+
+      - record: isa_superapp:etl_error_rate
+        expr: rate(etl_errors_total[5m])
+
+      # Business metrics recording rules
+      - record: isa_superapp:documents_processed_rate
+        expr: rate(documents_processed_total[5m])
+
+      - record: isa_superapp:api_calls_rate
+        expr: rate(api_calls_total[5m])
+
+      - record: isa_superapp:research_queries_rate
+        expr: rate(research_queries_total[5m])
+
+      # Composite health score
+      - record: isa_superapp:health_score
+        expr: |
+          (
+            (isa_superapp:availability * 0.4) +
+            ((1 - (isa_superapp:cpu_usage / 100)) * 0.2) +
+            ((1 - (isa_superapp:memory_usage / 100)) * 0.2) +
+            ((1 - (isa_superapp:disk_usage / 100)) * 0.2)
+          ) * 100

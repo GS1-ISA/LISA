@@ -1,0 +1,484 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+  CACHE_VERSION: 'v1'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+  security-events: write
+  pull-requests: write
+
+jobs:
+  # Security and compliance checks
+  security-checks:
+    name: Security & Compliance
+    runs-on: ubuntu-latest
+    environment:
+      name: security-review
+      url: ${{ github.server_url }}/${{ github.repository }}/security
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety pip-audit detect-secrets
+
+      - name: Run Bandit security scan
+        run: |
+          bandit -r src/ scripts/ -f json -o bandit-report.json || true
+          bandit -r src/ scripts/ || true
+
+      - name: Run pip-audit
+        run: |
+          pip-audit -r requirements.txt -r requirements-dev.txt --format=json --output=pip-audit-report.json || true
+          pip-audit -r requirements.txt -r requirements-dev.txt || true
+
+      - name: Run detect-secrets
+        run: |
+          detect-secrets scan --all-files --baseline .secrets.baseline || true
+          detect-secrets audit .secrets.baseline || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            pip-audit-report.json
+            .secrets.baseline
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit-report.json
+          category: bandit
+
+  # Code quality and linting
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: security-checks
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements*.txt') }}-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ env.CACHE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy black isort
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || true
+
+      - name: Run ruff linting
+        run: |
+          ruff check . --output-format=github
+          ruff format --check .
+
+      - name: Run type checking
+        run: |
+          mypy src/ --show-error-codes || true
+
+      - name: Generate code quality report
+        run: |
+          ruff check . --output-format=json > ruff-report.json || true
+          mypy src/ --json-file mypy-report.json || true
+
+      - name: Upload quality reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports-${{ matrix.python-version }}
+          path: |
+            ruff-report.json
+            mypy-report.json
+
+  # Testing across Python versions
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: [security-checks, code-quality]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+        test-group: ['unit', 'integration']
+        include:
+          - test-group: 'unit'
+            test-paths: 'tests/unit'
+            test-flags: '-m "not integration"'
+          - test-group: 'integration'
+            test-paths: 'tests/integration'
+            test-flags: '-m "integration"'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements*.txt') }}-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ env.CACHE_VERSION }}
+
+      - name: Cache test data
+        uses: actions/cache@v4
+        with:
+          path: |
+            .pytest_cache
+            data/cache
+          key: ${{ runner.os }}-test-${{ matrix.python-version }}-${{ matrix.test-group }}-${{ hashFiles('tests/**/*.py') }}-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ matrix.python-version }}-${{ matrix.test-group }}-${{ env.CACHE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || true
+          pip install pytest pytest-cov pytest-xdist
+
+      - name: Run ${{ matrix.test-group }} tests
+        if: ${{ !inputs.skip_tests }}
+        run: |
+          pytest ${{ matrix.test-paths }} \
+            -v \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            -n auto \
+            ${{ matrix.test-flags }} \
+            --junitxml=junit-${{ matrix.python-version }}-${{ matrix.test-group }}.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}-${{ matrix.test-group }}
+          path: |
+            junit-${{ matrix.python-version }}-${{ matrix.test-group }}.xml
+            coverage.xml
+            .coverage
+
+      - name: Upload coverage to Codecov
+        if: ${{ !inputs.skip_tests && matrix.test-group == 'unit' }}
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: ${{ matrix.python-version }}
+          name: ${{ matrix.python-version }}-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Build and package
+  build:
+    name: Build & Package
+    runs-on: ubuntu-latest
+    needs: [test]
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Check package
+        run: |
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Staging deployment
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch' && inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.isa-superapp.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_STAGING_ROLE_ARN }}
+          role-session-name: github-actions-staging
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your staging deployment commands here
+          # Example: kubectl apply -f k8s/staging/
+          # Example: aws ecs update-service --cluster staging --service isa-superapp
+          
+      - name: Run health checks
+        run: |
+          echo "Running health checks..."
+          # Add health check commands here
+          # Example: curl -f https://staging.isa-superapp.com/health || exit 1
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Staging deployment ${{ job.status }}
+            Commit: ${{ github.sha }}
+            Image: ${{ needs.build.outputs.image-tag }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Production deployment with approval gate
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' && inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://isa-superapp.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PRODUCTION_ROLE_ARN }}
+          role-session-name: github-actions-production
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create deployment backup
+        run: |
+          echo "Creating backup of current production deployment..."
+          # Add backup commands here
+          # Example: kubectl get deployment isa-superapp -o yaml > backup/deployment-$(date +%Y%m%d-%H%M%S).yaml
+
+      - name: Deploy to production (blue-green)
+        run: |
+          echo "Deploying to production with blue-green strategy..."
+          # Add production deployment commands here
+          # Example: kubectl apply -f k8s/production/
+          # Example: aws ecs update-service --cluster production --service isa-superapp
+
+      - name: Run comprehensive health checks
+        run: |
+          echo "Running comprehensive health checks..."
+          # Add comprehensive health checks here
+          # Example: ./scripts/health-check.sh production
+
+      - name: Verify deployment
+        timeout-minutes: 10
+        run: |
+          echo "Verifying deployment..."
+          # Add verification commands here
+          # Example: ./scripts/verify-deployment.sh
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed, initiating rollback..."
+          # Add rollback commands here
+          # Example: kubectl rollout undo deployment/isa-superapp
+          # Example: aws ecs update-service --cluster production --service isa-superapp --task-definition previous
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Production deployment ${{ job.status }}
+            Commit: ${{ github.sha }}
+            Image: ${{ needs.build.outputs.image-tag }}
+            ${{ job.status == 'failure' && 'ROLLBACK INITIATED' || '' }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Post-deployment monitoring
+  monitoring:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup monitoring tools
+        run: |
+          echo "Setting up monitoring..."
+          # Add monitoring setup commands here
+
+      - name: Collect metrics
+        run: |
+          echo "Collecting deployment metrics..."
+          # Add metrics collection commands here
+
+      - name: Generate deployment report
+        run: |
+          echo "Generating deployment report..."
+          # Add report generation commands here
+
+      - name: Upload deployment metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-metrics
+          path: |
+            deployment-report.json
+            metrics-*.json
+
+  # Cleanup and maintenance
+  cleanup:
+    name: Cleanup & Maintenance
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Cleanup old container images
+        run: |
+          echo "Cleaning up old container images..."
+          # Add cleanup commands here
+          # Example: gh api repos/${{ github.repository }}/packages/container/isa-superapp/versions --jq '.[] | select(.updated_at < (now - 86400*30 | strftime("%Y-%m-%dT%H:%M:%SZ"))) | .id' | xargs -I {} gh api repos/${{ github.repository }}/packages/container/isa-superapp/versions/{} -X DELETE || true
+
+      - name: Cleanup workflow artifacts
+        uses: actions/delete-artifact@v4
+        with:
+          name: |
+            security-reports
+            quality-reports-*
+            test-results-*
+            build-artifacts
+          fail-on-error: false

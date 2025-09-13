@@ -1,0 +1,26 @@
+name: R2P Checklist (advisory)
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  r2p-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine base ref
+        id: base
+        run: |
+          echo "branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
+          git fetch origin ${{ github.base_ref }} --depth=1
+          echo "sha=$(git rev-parse origin/${{ github.base_ref }})" >> $GITHUB_OUTPUT
+      - name: Run R2P advisory checklist
+        env:
+          R2P_BASE: ${{ steps.base.outputs.sha }}
+        run: |
+          python3 scripts/r2p_check.py || true
+

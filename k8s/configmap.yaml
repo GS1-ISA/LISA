@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isa-superapp-config
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: isa-superapp
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: config
+data:
+  # Application Configuration
+  APP_NAME: "ISA SuperApp"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_LOG_LEVEL: "INFO"
+  APP_TIMEZONE: "UTC"
+  
+  # Server Configuration
+  SERVER_HOST: "0.0.0.0"
+  SERVER_PORT: "8080"
+  SERVER_WORKERS: "4"
+  SERVER_TIMEOUT: "30"
+  
+  # Database Configuration (non-sensitive)
+  DB_HOST: "postgres.database.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "isa_superapp"
+  DB_POOL_SIZE: "20"
+  DB_POOL_MAX_OVERFLOW: "10"
+  DB_POOL_TIMEOUT: "30"
+  
+  # Redis Configuration (non-sensitive)
+  REDIS_HOST: "redis.cache.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_DECODE_RESPONSES: "true"
+  
+  # Monitoring Configuration
+  METRICS_ENABLED: "true"
+  METRICS_PORT: "8080"
+  METRICS_PATH: "/metrics"
+  HEALTH_CHECK_PATH: "/health"
+  READINESS_CHECK_PATH: "/ready"
+  STARTUP_CHECK_PATH: "/startup"
+  
+  # Security Configuration
+  SECURITY_CORS_ENABLED: "true"
+  SECURITY_CORS_ORIGINS: "*"
+  SECURITY_RATE_LIMIT_ENABLED: "true"
+  SECURITY_RATE_LIMIT_REQUESTS: "100"
+  SECURITY_RATE_LIMIT_WINDOW: "60"
+  
+  # Feature Flags
+  FEATURE_ANALYTICS_ENABLED: "true"
+  FEATURE_CACHE_ENABLED: "true"
+  FEATURE_BACKGROUND_TASKS_ENABLED: "true"
+  FEATURE_WEBHOOKS_ENABLED: "true"
+  
+  # External Services
+  EXTERNAL_API_TIMEOUT: "30"
+  EXTERNAL_API_RETRY_ATTEMPTS: "3"
+  EXTERNAL_API_RETRY_DELAY: "1"
