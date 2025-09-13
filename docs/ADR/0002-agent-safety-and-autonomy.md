@@ -1,4 +1,5 @@
-Title: ADR 0002 — Agent Safety, Policies, and Autonomy Tiers
+# ADR 0002 — Agent Safety, Policies, and Autonomy Tiers
+Last updated: 2025-09-02
 
 Context
 - The agent edits code and runs tools; safety must be explicit and enforceable.

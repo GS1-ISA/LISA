@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import csv
-import sys
 from pathlib import Path
-
 
 NORMATIVE_GLOBS = [
     "**/*.py",
@@ -20,7 +18,7 @@ NORMATIVE_GLOBS = [
     ".github/workflows/*.yml",
 ]
 
-EXCLUDE_DIRS = {".git", "node_modules", ".venv", "__pycache__"}
+EXCLUDE_DIRS = {".git", "node_modules", ".venv", "__pycache__", "context7-master"}
 
 
 def is_normative(path: Path) -> bool:
@@ -111,7 +109,7 @@ def main() -> int:
         suggestions.append({"path": artefact, "reason": reason, "suggestion": sugg})
 
     # Write YAML
-    import yaml  # type: ignore
+    import yaml
 
     with gaps_yaml.open("w", encoding="utf-8") as f:
         yaml.safe_dump({"gaps": suggestions}, f, sort_keys=False)
@@ -122,4 +120,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

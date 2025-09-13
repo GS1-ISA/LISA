@@ -15,22 +15,37 @@ def slugify(path: str) -> str:
 def classify(text: str, source: str) -> tuple[str, str]:
     t = text.lower()
     # Severity
-    if any(k in t for k in ["must", "shall", "enforced", "never", "prohibited", "kill-switch"]):
+    if any(
+        k in t
+        for k in ["must", "shall", "enforced", "never", "prohibited", "kill-switch"]
+    ):
         sev = "High"
-    elif any(k in t for k in ["should", "acceptance:", "gate", "waiver", "break-glass"]):
+    elif any(
+        k in t for k in ["should", "acceptance:", "gate", "waiver", "break-glass"]
+    ):
         sev = "Medium"
     else:
         sev = "Low"
     # Category
-    if any(k in source for k in ["QUALITY_GATES", "CI_WORKFLOWS"]) or "ci" in t or "gate" in t:
+    if (
+        any(k in source for k in ["QUALITY_GATES", "CI_WORKFLOWS"])
+        or "ci" in t
+        or "gate" in t
+    ):
         cat = "CI/CD"
-    elif any(k in source for k in ["AGENTIC_ARCHITECTURE", "ADR/0002"] ) or "agent" in t:
+    elif any(k in source for k in ["AGENTIC_ARCHITECTURE", "ADR/0002"]) or "agent" in t:
         cat = "Agentic"
-    elif any(k in source for k in ["SECURITY", "ADR/"]) or any(k in t for k in ["secret", "security", "sbom", "bandit", "trivy", "pip-audit"]):
+    elif any(k in source for k in ["SECURITY", "ADR/"]) or any(
+        k in t for k in ["secret", "security", "sbom", "bandit", "trivy", "pip-audit"]
+    ):
         cat = "Security"
-    elif any(k in t for k in ["coverage", "test", "lint", "type", "determinism", "snapshot"]):
+    elif any(
+        k in t for k in ["coverage", "test", "lint", "type", "determinism", "snapshot"]
+    ):
         cat = "Quality"
-    elif any(k in t for k in ["prometheus", "metrics", "slo", "logging", "observability"]):
+    elif any(
+        k in t for k in ["prometheus", "metrics", "slo", "logging", "observability"]
+    ):
         cat = "Observability"
     elif any(k in t for k in ["data", "schema", "lineage", "privacy", "dpia"]):
         cat = "Data"
@@ -47,7 +62,10 @@ def main() -> int:
     out_csv = root / "docs" / "audit" / "rule_catalog.csv"
     out_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    with rules_csv.open("r", encoding="utf-8") as f_in, out_csv.open("w", newline="", encoding="utf-8") as f_out:
+    with (
+        rules_csv.open("r", encoding="utf-8") as f_in,
+        out_csv.open("w", newline="", encoding="utf-8") as f_out,
+    ):
         r = csv.DictReader(f_in)
         w = csv.writer(f_out)
         w.writerow(["RuleID", "Title", "Severity", "Category", "SourceFile", "Line"])
@@ -56,7 +74,7 @@ def main() -> int:
             line = int(row["line"]) if row["line"].isdigit() else row["line"]
             text = row["text"].strip()
             # Deterministic RuleID: R-<short hash of source:line:text>
-            h = hashlib.sha256(f"{source}:{line}:{text}".encode("utf-8")).hexdigest()[:12]
+            h = hashlib.sha256(f"{source}:{line}:{text}".encode()).hexdigest()[:12]
             rule_id = f"R-{h}"
             title = text[:80]
             sev, cat = classify(text, source)
@@ -67,4 +85,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

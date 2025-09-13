@@ -1,0 +1,5 @@
+requirement,user_story,api_endpoint,service,test_case,metric,dashboard_alert
+API behavior,,/validate,src/api_server.py,ISA_SuperApp/tests/unit/test_api_validate.py,http_request_duration_seconds,/metrics
+API behavior,,/metrics,src/api_server.py,ISA_SuperApp/tests/integration/test_metrics_and_ask.py,http_request_duration_seconds,/metrics
+API behavior,,/search,src/api_server.py,ISA_SuperApp/tests/system/test_end_to_end.py,http_request_duration_seconds,/metrics
+API behavior,,/doc/generate,src/api_server.py,ISA_SuperApp/tests/system/test_end_to_end.py,http_request_duration_seconds,/metrics

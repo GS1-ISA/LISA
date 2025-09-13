@@ -1,0 +1,6 @@
+from_path,to_path,notes
+ISA_SuperApp,apps/superapp,Primary app stays
+packages/isa_c_full,packages/isa_c_full,Create package if split
+packages/isa_c_mapping,packages/isa_c_mapping,Create package if split
+infra,infra,Monitoring/OTel compose stays
+scripts,scripts,Operational scripts unchanged

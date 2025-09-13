@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isa-superapp
+  labels:
+    app: isa-superapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: isa-superapp
+  template:
+    metadata:
+      labels:
+        app: isa-superapp
+    spec:
+      containers:
+      - name: isa-superapp
+        image: isa-superapp:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: isa-superapp-config
+        - secretRef:
+            name: isa-superapp-secrets
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL

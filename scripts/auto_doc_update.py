@@ -6,14 +6,20 @@ line near the top if present or inserts after the title line if missing.
 
 Designed to be run in CI to create an automated PR with doc updates.
 """
+
 from __future__ import annotations
 
 import datetime as dt
-import re
 from pathlib import Path
 
-
-EXCLUDE_DIRS = {".git", "node_modules", ".venv", "__pycache__", "ISA_SuperApp/webui", "ISA_SuperApp/__MACOSX"}
+EXCLUDE_DIRS = {
+    ".git",
+    "node_modules",
+    ".venv",
+    "__pycache__",
+    "ISA_SuperApp/webui",
+    "ISA_SuperApp/__MACOSX",
+}
 
 
 def should_skip(path: Path) -> bool:
@@ -50,7 +56,9 @@ def process_file(path: Path) -> bool:
         changed = True
 
     if changed:
-        path.write_text("\n".join(lines) + ("\n" if text.endswith("\n") else ""), encoding="utf-8")
+        path.write_text(
+            "\n".join(lines) + ("\n" if text.endswith("\n") else ""), encoding="utf-8"
+        )
     return changed
 
 
@@ -71,4 +79,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

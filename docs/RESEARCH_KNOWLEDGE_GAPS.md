@@ -1,4 +1,5 @@
-Title: Knowledge Gaps Research — 30 Questions, Rubric, and POCs
+# Knowledge Gaps Research — 30 Questions, Rubric, and POCs
+Last updated: 2025-09-02
 
 Purpose: Identify knowledge gaps and external capabilities that would most improve delivery quality, velocity, and safety. Drive high‑ROI, low‑bloat integrations.
 

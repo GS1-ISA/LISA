@@ -1,4 +1,5 @@
-Title: ADR 0001 — Tooling Choices and Consolidation
+# ADR 0001 — Tooling Choices and Consolidation
+Last updated: 2025-09-02
 
 Context
 - Aim to maximize signal, minimize bloat.
@@ -16,4 +17,3 @@ Consequences
 - Gating steps are opinionated; short-term transitions may need suppressions.
 
 Status: Accepted
-

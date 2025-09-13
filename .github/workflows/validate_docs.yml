@@ -1,0 +1,54 @@
+name: Validate docs (advisory)
+
+on: [push, pull_request]
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: validate-docs-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Validate docs and data catalog (advisory)
+        run: |
+          python - <<'PY'
+          import os, sys, yaml
+          warnings = []
+          if not os.path.exists('docs/VECTOR_STORE_SCHEMA.md'):
+              warnings.append('docs/VECTOR_STORE_SCHEMA.md missing')
+          if not os.path.exists('data/data_catalog.yaml'):
+              warnings.append('data/data_catalog.yaml missing')
+          else:
+              try:
+                  with open('data/data_catalog.yaml') as f:
+                      yaml.safe_load(f)
+              except Exception as e:
+                  warnings.append('data/data_catalog.yaml parse error: ' + str(e))
+          if warnings:
+              for w in warnings:
+                  # Print warnings so they appear in the Action log and as annotations
+                  print('::warning::' + w)
+          else:
+              print('Docs validation checks passed (advisory).')
+          # Advisory by design: always exit 0 so it's informational until team promotes to gate
+          sys.exit(0)
+        shell: bash
+
+      - name: Install Sphinx toolchain
+        run: |
+          python -m pip install --upgrade pip
+          pip install sphinx myst-parser sphinxcontrib-mermaid sphinx-rtd-theme
+
+      - name: Build Sphinx docs (enforced)
+        run: |
+          sphinx-build -n -W -b html docs _build/html
+          echo "Docs built. Zero warnings enforced."

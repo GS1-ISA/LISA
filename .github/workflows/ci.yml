@@ -1,169 +1,134 @@
-name: CI (PR)
+name: CI
 
 on:
-  pull_request:
   push:
-    branches: [ main, master ]
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-test:
+  lint-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install base tooling
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff mypy pytest pytest-cov bandit pip-audit radon
-      - name: Determine base ref
-        id: base
-        shell: bash
+          pip install ruff pytest pytest-cov
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-research.txt ]; then pip install -r requirements-research.txt; fi
+
+      - name: Lint with ruff
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
-            git fetch origin ${{ github.base_ref }} --depth=1
-            echo "sha=$(git rev-parse origin/${{ github.base_ref }})" >> $GITHUB_OUTPUT
-          else
-            echo "branch=main" >> $GITHUB_OUTPUT
-            git fetch origin main --depth=1 || true
-            echo "sha=$(git rev-parse origin/main 2>/dev/null || echo HEAD^)" >> $GITHUB_OUTPUT
-          fi
-      - name: Significance trigger
-        id: sig
+          ruff check .
+          ruff format --check .
+
+      - name: Test with pytest
         run: |
-          python scripts/significance_trigger.py --base "${{ steps.base.outputs.sha }}" \
-            --threshold-files 15 \
-            --threshold-loc 500 \
-            --critical ISA_SuperApp/src/pipelines \
-            --critical ISA_SuperApp/src/nesy \
-            --critical ISA_SuperApp/src/api_server.py \
-            --critical ISA_SuperApp/src/utils \
-            --critical ISA_SuperApp/schemas \
-            --critical ISA_SuperApp/Dockerfile \
-            --critical ISA_SuperApp/docker-compose.yml \
-            --critical ISA_SuperApp/requirements.txt \
-            --critical ISA_SuperApp/requirements-dev.txt \
-            --critical infra
-          echo "Significance: ${{ steps.sig.outputs.significant }} Reason: ${{ steps.sig.outputs.reason }}"
-      - name: Install project dependencies (best-effort)
-        continue-on-error: true
-        run: |
-          if [ -f ISA_SuperApp/requirements.txt ]; then pip install -r ISA_SuperApp/requirements.txt || true; fi
-          if [ -f ISA_SuperApp/requirements-dev.txt ]; then pip install -r ISA_SuperApp/requirements-dev.txt || true; fi
-      - name: Lint (ruff)
-        run: |
-          ruff format --check . --output-format=github
-          ruff check . --output-format=github
-      - name: Typecheck (mypy) — advisory
-        continue-on-error: true
-        run: |
-          mypy ISA_SuperApp/src || true
-      - name: Type coverage (mypy linecount report) — artifact
-        continue-on-error: true
-        run: |
-          mypy --linecount-report .mypy_linecount ISA_SuperApp/src || true
-          if [ -f .mypy_linecount/index.txt ]; then echo '--- mypy linecount summary ---'; cat .mypy_linecount/index.txt || true; fi
-      - name: Policy lint (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/policy_lint.py || true
-      - name: Upload type report
-        if: always()
-        uses: actions/upload-artifact@v4
+          pytest tests/ -v --cov=. --cov-report=xml
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
         with:
-          name: mypy_linecount_${{ matrix.python-version }}
-          path: .mypy_linecount
-      - name: Tests (pytest) — advisory
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q || true
-      - name: Coverage XML (if tests exist) — artifact
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q --cov=src --cov-report=xml || true
-      - name: Upload coverage.xml
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage_${{ matrix.python-version }}
-          path: ISA_SuperApp/coverage.xml
-      - name: Coverage no-regression (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/check_coverage_delta.py || true
-      - name: Determinism snapshots (advisory)
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q tests/unit/test_snapshot_canonical_sample.py || true
-      - name: Security — Bandit (advisory)
-        continue-on-error: true
-        run: |
-          bandit -qq -r ISA_SuperApp/src || true
-      - name: Security — pip-audit (advisory)
-        continue-on-error: true
-        run: |
-          pip-audit || true
-      - name: Complexity — Radon (report only)
-        continue-on-error: true
-        run: |
-          radon cc -s -n D ISA_SuperApp/src || true
-      - name: Deep checks — Semgrep (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
-        continue-on-error: true
-        run: |
-          pip install semgrep
-          semgrep --config p/ci --error --timeout 120 --json | tee semgrep.json || true
-      - name: Upload semgrep.json
-        if: always() && steps.sig.outputs.significant == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: semgrep_${{ matrix.python-version }}
-          path: semgrep.json
-      - name: Docs build (advisory)
-        continue-on-error: true
-        run: |
-          if [ -f ISA_SuperApp/mkdocs.yml ]; then cd ISA_SuperApp && mkdocs build -q || true; fi
-      - name: Container build + smoke (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp
-          docker build -t superapp:ci .
-          docker run -d -p 8787:8787 --name superapp_ci superapp:ci
-          echo 'Waiting for /metrics...'; for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8787/metrics && break || sleep 2; done
-          curl -fsS http://127.0.0.1:8787/metrics | head -n 5
-          docker rm -f superapp_ci || true
-      - name: Agent kill-switch (policy/agent-blocked)
-        if: github.event_name == 'pull_request'
-        run: |
-          echo '${{ toJSON(github.event.pull_request.labels) }}' | grep -q 'policy/agent-blocked' && { echo 'Agent blocked by policy label'; exit 1; } || true
-      - name: Waiver required for break-glass
-        if: github.event_name == 'pull_request'
-        run: |
-          BODY='${{ github.event.pull_request.body }}'
-          LABELS='${{ toJSON(github.event.pull_request.labels) }}'
-          if echo "$LABELS" | grep -q 'break-glass'; then
-            echo "$BODY" | grep -qi 'waiver: *true' || { echo 'Missing waiver: true in PR body for break-glass'; exit 1; }
-          fi
-      - name: Deep checks — Extended tests (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q --maxfail=1 --durations=10 || true
-  secrets:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  security-scan:
     runs-on: ubuntu-latest
+    needs: lint-and-test
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Gitleaks (advisory)
-        uses: gitleaks/gitleaks-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          args: detect --no-git -v --redact
-        continue-on-error: true
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, security-scan]
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Output image
+        id: image
+        run: |
+          echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT

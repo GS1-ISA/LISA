@@ -1,0 +1,8 @@
+# Minimal ownership map
+# Adjust as needed; waiver expiry comments should include date and scope.
+
+/src/agent_core/ @GS1Ned
+/src/orchestrator/ @GS1Ned
+/docs/ @GS1Ned
+/.github/ @GS1Ned
+

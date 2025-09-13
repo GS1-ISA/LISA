@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: isa-superapp-production
+
+resources:
+- ../../base
+
+patchesStrategicMerge:
+- deployment-patch.yaml
+- configmap-patch.yaml
+
+images:
+- name: isa-superapp
+  newTag: production
+
+commonLabels:
+  app.kubernetes.io/version: production
+  app.kubernetes.io/environment: production

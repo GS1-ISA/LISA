@@ -1,35 +1,21 @@
 ## Summary
 
-Describe the change, motivation, and scope.
+Describe the change at a high level.
 
-## Definition of Done
+## Metric Delta (required)
 
-- [ ] Lint/format clean (ruff)
-- [ ] Typecheck clean (mypy) or waivers documented
-- [ ] Tests updated/added and green (advisory until gates flip)
-- [ ] Determinism preserved (snapshots/canonical outputs where applicable)
-- [ ] Security reviewed (Bandit/pip-audit output); no secrets committed
-- [ ] Docs updated (README/CHANGELOG/runbooks as needed)
-- [ ] Rollback plan noted
-- [ ] Adapters/feature flags for new integrations (default OFF)
+This change moves `<metric>` from `x → y` (±z%).
 
-## Risk & Impact
+Examples: coverage % (core), p95 latency (ms), determinism (fail→pass), memory drift (%), cost ($/month).
 
-- Risk level: Low / Medium / High
-- Affected components: 
-- Performance impact (if any): 
-- Data/Schema/Mapping changes (if any): 
+## Checks
 
-## Testing Evidence
+- [ ] Lint/type/tests ran locally or in CI
+- [ ] Determinism snapshots green (if applicable)
+- [ ] Docs updated where relevant
+- [ ] ADR/flag for adopted research (if applicable)
 
-- Unit/Integration summary: 
-- Benchmarks (if critical path): 
-- Snapshot diffs (if applicable): 
+## Risk & Rollback
 
-## Research (if applicable)
-
-- Search ledger link: 
-- POC protocol link: 
-- Replication notes: 
-- Decision (Adopt/Hold/Reject): 
+Risk: <low/med/high>. Rollback plan:
 

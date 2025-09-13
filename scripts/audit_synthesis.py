@@ -2,20 +2,15 @@
 from __future__ import annotations
 
 import csv
-import json
 from pathlib import Path
-from typing import Dict, Tuple
-
-import yaml  # type: ignore
-
 
 ROOT = Path.cwd()
 AUDIT = ROOT / "docs" / "audit"
 
 
-def load_traceability() -> Dict[str, str]:
+def load_traceability() -> dict[str, str]:
     path = AUDIT / "traceability_matrix.csv"
-    status: Dict[str, str] = {}
+    status: dict[str, str] = {}
     with path.open("r", encoding="utf-8") as f:
         r = csv.DictReader(f)
         for row in r:
@@ -31,7 +26,7 @@ def score_status(s: str) -> int:
     return 0
 
 
-def write_rule_confidence(status: Dict[str, str]) -> Tuple[int, int, int, float]:
+def write_rule_confidence(status: dict[str, str]) -> tuple[int, int, int, float]:
     path = AUDIT / "rule_confidence.csv"
     passes = warns = fails = 0
     total_score = 0
@@ -52,7 +47,7 @@ def write_rule_confidence(status: Dict[str, str]) -> Tuple[int, int, int, float]
     return passes, warns, fails, overall
 
 
-def load_gates_summary() -> Tuple[int, int, int]:
+def load_gates_summary() -> tuple[int, int, int]:
     path = AUDIT / "gates_status.csv"
     present = enforced = advisory = 0
     if not path.exists():
@@ -70,11 +65,15 @@ def load_gates_summary() -> Tuple[int, int, int]:
     return present, enforced, advisory
 
 
-def load_counts() -> Tuple[int, int]:
+def load_counts() -> tuple[int, int]:
     inv = AUDIT / "inventory.csv"
     rules = AUDIT / "rule_catalog.csv"
-    inv_count = sum(1 for _ in inv.open("r", encoding="utf-8")) - 1 if inv.exists() else 0
-    rule_count = sum(1 for _ in rules.open("r", encoding="utf-8")) - 1 if rules.exists() else 0
+    inv_count = (
+        sum(1 for _ in inv.open("r", encoding="utf-8")) - 1 if inv.exists() else 0
+    )
+    rule_count = (
+        sum(1 for _ in rules.open("r", encoding="utf-8")) - 1 if rules.exists() else 0
+    )
     return inv_count, rule_count
 
 
@@ -105,24 +104,46 @@ def write_audit_report(passes: int, warns: int, fails: int, overall: float) -> N
     md = []
     md.append("## Audit Report — Executive Summary")
     md.append("")
-    md.append(f"- Rules: {rule_count} | PASS: {passes} ✅ | WARN: {warns} ⚠️ | FAIL: {fails} ❌")
+    md.append(
+        f"- Rules: {rule_count} | PASS: {passes} ✅ | WARN: {warns} ⚠️ | FAIL: {fails} ❌"
+    )
     md.append(f"- Overall Rule Confidence: {overall:.1f} %")
-    md.append(f"- CI Gates: Present {present}, Enforced {enforced}, Advisory {advisory}")
+    md.append(
+        f"- CI Gates: Present {present}, Enforced {enforced}, Advisory {advisory}"
+    )
     md.append(f"- Inventory size: {inv_count} files")
     md.append("")
     md.append("### Dashboard")
     md.append("- Lint/Type/Tests/Sec: present (promotion pending for some gates)")
-    md.append("- Observability: /metrics and histograms present (api_server.py sha=" + sha_api + ")")
-    md.append("- Container: non-root + healthcheck present (Dockerfile sha=" + sha_docker + ")")
-    md.append("- Determinism: canonical writer + snapshot present (json_canonical.py sha=" + sha_canon + ")")
-    md.append("- Event-driven deep checks: significance trigger and semgrep wired (ci.yml sha=" + sha_ci + ")")
+    md.append(
+        "- Observability: /metrics and histograms present (api_server.py sha="
+        + sha_api
+        + ")"
+    )
+    md.append(
+        "- Container: non-root + healthcheck present (Dockerfile sha="
+        + sha_docker
+        + ")"
+    )
+    md.append(
+        "- Determinism: canonical writer + snapshot present (json_canonical.py sha="
+        + sha_canon
+        + ")"
+    )
+    md.append(
+        "- Event-driven deep checks: significance trigger and semgrep wired (ci.yml sha="
+        + sha_ci
+        + ")"
+    )
     md.append("")
     md.append("### Go/No-Go Recommendation")
     go = overall >= 70.0 and fails == 0
     if go:
         md.append("- Recommendation: GO ✅")
     else:
-        md.append("- Recommendation: CONDITIONAL (AMBER) — Fix priority items in remediation plan, then GO")
+        md.append(
+            "- Recommendation: CONDITIONAL (AMBER) — Fix priority items in remediation plan, then GO"
+        )
     out.write_text("\n".join(md) + "\n", encoding="utf-8")
 
 
@@ -131,14 +152,22 @@ def write_remediation_plan() -> None:
     plan = []
     plan.append("## Remediation Plan — Prioritized Backlog")
     plan.append("")
-    plan.append("- [ ] Flip ruff/pytest/coverage/semgrep to enforced after 7-day stability (3 pts)")
+    plan.append(
+        "- [ ] Flip ruff/pytest/coverage/semgrep to enforced after 7-day stability (3 pts)"
+    )
     plan.append("- [ ] Add determinism snapshot CI job (advisory → enforced) (2 pts)")
     plan.append("- [ ] Add docs build (MkDocs) advisory gate (1 pt)")
     plan.append("- [ ] Add container build + /metrics curl check in CI (2 pts)")
     plan.append("- [ ] Enforce kill-switch/waiver labels in CI (1 pt)")
-    plan.append("- [ ] Link dependency files to pip-audit policy in QUALITY_GATES (1 pt)")
-    plan.append("- [ ] Reference workflows (docs_auto_sync, poc_bench) in CI_WORKFLOWS and QUALITY_GATES (1 pt)")
-    plan.append("- [ ] Reduce completeness gaps by referencing key docs in ROADMAP/TODO/DoD (2 pts)")
+    plan.append(
+        "- [ ] Link dependency files to pip-audit policy in QUALITY_GATES (1 pt)"
+    )
+    plan.append(
+        "- [ ] Reference workflows (docs_auto_sync, poc_bench) in CI_WORKFLOWS and QUALITY_GATES (1 pt)"
+    )
+    plan.append(
+        "- [ ] Reduce completeness gaps by referencing key docs in ROADMAP/TODO/DoD (2 pts)"
+    )
     plan.append("")
     plan.append("Owner: Project (You + Agent) — single-owner model")
     out.write_text("\n".join(plan) + "\n", encoding="utf-8")
@@ -155,4 +184,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

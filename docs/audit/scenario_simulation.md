@@ -1,4 +1,5 @@
-## Phase 9 — Scenario Simulation
+# Phase 9 — Scenario Simulation
+Last updated: 2025-09-02
 
 This document simulates five critical user journeys from unit → integration → deploy and checks compliance against documented rules. Evidence cites file paths, line numbers, and sha256 from docs/audit/inventory.csv.
 
@@ -43,4 +44,3 @@ This document simulates five critical user journeys from unit → integration �
 - Status: ✅ PASS — Event‑driven deep checks enabled per CI_WORKFLOWS.
 
 No violations detected in these journeys given current scope (no staging/prod deployment simulation). For container build/run and docs build, we recommend adding optional gates when ready.
-

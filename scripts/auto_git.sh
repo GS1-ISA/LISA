@@ -68,4 +68,3 @@ if $DO_AUTOMERGE; then
 fi
 
 echo "==> Done"
-

@@ -139,4 +139,3 @@ Tips:
 - Branch protection: Adjust required checks later if you want stricter enforcement
 
 EOF
-

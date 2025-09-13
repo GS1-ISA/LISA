@@ -1,0 +1,28 @@
+# Lightweight data catalog (stub)
+# Add entries for important data sources, vector indexes, and golden datasets.
+# Fields: id, name, description, owner, path, schema_version, created_at, last_updated, notes
+
+- id: vectors_isa_docs_v1
+  name: ISA Docs Vector Index (v1)
+  description: "Embeddings index derived from canonical ISA docs used for retrieval and evaluation."
+  owner: data-engineer
+  type: embedding_index
+  path: infra/rag/indexes/isa_docs_v1
+  embedding_model: text-embedding-3-small
+  schema_version: 1.0
+  created_at: 2025-09-05
+  last_updated: 2025-09-05
+  provenance: docs/VECTOR_STORE_SCHEMA.md
+  notes: "Chunking=500 tokens, overlap=50, checksum per source; update when reingesting with new embeddings."
+
+- id: golden_mappings_v1
+  name: Golden Mappings Dataset (v1)
+  description: "Canonical mapping examples and test fixtures for mapping correctness matrix."
+  owner: data-engineer
+  type: dataset
+  path: data/golden/golden_mappings_v1.csv
+  schema_version: 1.0
+  created_at: 2025-09-05
+  last_updated: 2025-09-05
+  provenance: docs/TODO.md#mapping-correctness-matrix
+  notes: "Stored in CSV for now; consider Git LFS if large."

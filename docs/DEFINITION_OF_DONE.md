@@ -1,4 +1,5 @@
-Title: Definition of Done (DoD) — Project-Wide
+# Definition of Done (DoD) — Project-Wide
+Last updated: 2025-09-02
 
 Purpose: Ensure every change ships with quality, performance, safety, and documentation, aligned with the agentic, evidence-first philosophy.
 
@@ -28,6 +29,7 @@ Data/Mapping Changes
 Docs/Process Changes
 - [ ] Docs build; links and examples tested
 - [ ] PR template/DoD alignment verified
+- [ ] Autonomy: changes follow Lead Developer mode (act without asking); escalation only per policy triggers
 
 Research/NeSy Changes
 - [ ] R2P artifacts attached: search ledger, POC protocol, replication notes
@@ -36,4 +38,3 @@ Research/NeSy Changes
 
 Acceptance
 - PR passes all applicable checkboxes above; any exceptions documented with reason and timeline in TECH_DEBT.md; CI artifacts (coverage/type) uploaded.
-

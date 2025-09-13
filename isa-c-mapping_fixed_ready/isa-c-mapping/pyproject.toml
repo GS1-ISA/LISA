@@ -1,8 +1,0 @@
-[project]
-name = "isa-c-mapping"
-version = "0.1.0"
-description = "Minimal ISA_C mapping CLI for GS1-like product JSON"
-requires-python = ">=3.10"
-
-[project.scripts]
-isa-c-mapping = "isa_c_mapping.cli:main"

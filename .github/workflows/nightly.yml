@@ -2,6 +2,12 @@ name: Deep Checks (On-Demand)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   mutation-fuzz-bench:
@@ -11,6 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
       - name: Install tools
         run: |
           python -m pip install --upgrade pip
@@ -24,3 +31,31 @@ jobs:
         continue-on-error: true
         run: |
           pytest -q --benchmark-only || true
+
+  adapter-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+      - name: Exercise orchestrator→agent_core adapter (stub mode)
+        env:
+          ORCHESTRATOR_USE_AGENT_CORE: "1"
+          ADAPTER_STUB_MODE: "1"
+          PERF_LOG: perf_core.jsonl
+        run: |
+          pytest -q src/orchestrator/tests/test_unified_runner_env_switch.py
+          test -f perf_core.jsonl && echo 'perf log present' || true
+      - name: Upload perf log (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly_perf_log
+          path: perf_core.jsonl
+          if-no-files-found: ignore

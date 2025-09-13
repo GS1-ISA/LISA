@@ -1,4 +1,5 @@
 Title: Micro‑POC Protocol — Q12 Compiled Validation
+Last updated: 2025-09-02
 
 Question/Hypothesis: Compiled Pydantic v2 validators or fastjsonschema yield ≥20% speedup with parity on edge cases.
 Success Metrics: ≥20% speedup; 0 correctness regressions vs baseline
@@ -10,4 +11,3 @@ Results: (TBD)
 Replication Notes: (TBD)
 Decision: (TBD)
 Follow‑ups: (TBD)
-

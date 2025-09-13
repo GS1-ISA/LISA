@@ -1,0 +1,59 @@
+[bandit]
+exclude_dirs =
+    .venv,
+    venv,
+    __pycache__,
+    .git,
+    .ruff_cache,
+    .mypy_cache,
+    .pytest_cache,
+    .coverage,
+    htmlcov,
+    *.egg-info,
+    build,
+    dist,
+    migrations,
+    alembic,
+    __MACOSX,
+    ISA_synthesized,
+    tests,
+    test_,
+    */tests/*,
+    */test_*,
+    *.log,
+    *.tmp,
+    *.bak,
+    *.swp,
+    *.swo,
+    *~
+
+skips =
+    B101,  # assert_used - we use asserts in tests
+    B601,  # paramiko_calls - we don't use paramiko
+    B602,  # subprocess_popen_with_shell_equals_true - we need shell in some cases
+    B603,  # subprocess_without_shell_equals_true - we control subprocess usage
+    B604,  # any_other_function_with_shell_equals_true - we control shell usage
+    B605,  # start_process_with_a_shell - we control process starting
+    B606,  # start_process_with_no_shell - we control process starting
+    B607,  # start_process_with_partial_path - we control process paths
+
+# Severity levels: LOW, MEDIUM, HIGH
+severity_level = MEDIUM
+
+# Confidence levels: LOW, MEDIUM, HIGH
+confidence_level = MEDIUM
+
+# Output format: txt, json, yaml, csv, xml
+output_format = txt
+
+# Output file (optional)
+# output_file = bandit_report.txt
+
+# Quiet mode (only show issues)
+quiet = false
+
+# Verbose mode (show more details)
+verbose = false
+
+# Debug mode (show debug information)
+debug = false

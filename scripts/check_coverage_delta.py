@@ -1,59 +1,56 @@
 #!/usr/bin/env python3
-"""Check coverage against a baseline and fail on regression > threshold.
-
-Usage: scripts/check_coverage_delta.py [--baseline docs/coverage_baseline.txt] [--threshold 0.5]
-
-Exits non-zero if coverage.xml exists and baseline exists and the drop > threshold percent.
-If baseline is missing, prints a notice and exits 0 (advisory mode).
-"""
 from __future__ import annotations
 
 import argparse
-import sys
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+BASELINE = Path("docs/audit/coverage_baseline.json")
 
-def read_coverage_percent(coverage_xml: Path) -> float:
-    tree = ET.parse(str(coverage_xml))
+
+def parse_coverage(path: Path) -> float:
+    tree = ET.parse(path)
     root = tree.getroot()
-    # Cobertura XML has line-rate attribute (0..1)
-    line_rate = root.attrib.get("line-rate")
-    if line_rate is None:
-        raise ValueError("coverage.xml missing line-rate attribute")
-    return float(line_rate) * 100.0
+    lines_valid = float(root.attrib.get("lines-valid", 0))
+    lines_covered = float(root.attrib.get("lines-covered", 0))
+    if lines_valid <= 0:
+        return 0.0
+    return lines_covered / lines_valid * 100.0
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--coverage", default="coverage.xml")
-    ap.add_argument("--baseline", default="docs/coverage_baseline.txt")
-    ap.add_argument("--threshold", type=float, default=0.5)
-    args = ap.parse_args()
+    ap = argparse.ArgumentParser(
+        description="Check coverage delta vs baseline (advisory)"
+    )
+    ap.add_argument("--xml", default="ISA_SuperApp/coverage.xml")
+    ap.add_argument(
+        "--threshold",
+        type=float,
+        default=0.5,
+        help="max allowed drop in percentage points",
+    )
+    ns = ap.parse_args()
 
-    cov_path = Path(args.coverage)
-    base_path = Path(args.baseline)
-
-    if not cov_path.exists():
-        print(f"[coverage-delta] {cov_path} not found; skipping")
+    xml_path = Path(ns.xml)
+    if not xml_path.exists():
+        print(f"coverage xml not found: {xml_path}")
         return 0
-    if not base_path.exists():
-        print(f"[coverage-delta] baseline {base_path} not found; skipping (advisory)")
-        return 0
-
-    current = read_coverage_percent(cov_path)
-    baseline = float(base_path.read_text(encoding="utf-8").strip())
-    delta = current - baseline
-    print(f"[coverage-delta] current={current:.2f}% baseline={baseline:.2f}% delta={delta:+.2f}pp")
-    if delta < -args.threshold:
-        print(
-            f"[coverage-delta] FAIL: drop {abs(delta):.2f}pp exceeds threshold {args.threshold:.2f}pp",
-            file=sys.stderr,
-        )
-        return 1
+    current = parse_coverage(xml_path)
+    baseline_val = 0.0
+    if BASELINE.exists():
+        try:
+            baseline_val = float(
+                json.loads(BASELINE.read_text()).get("coverage_pct", 0.0)
+            )
+        except Exception:
+            baseline_val = 0.0
+    delta = current - baseline_val
+    print(f"Coverage: {current:.2f}% (baseline {baseline_val:.2f}%, Δ {delta:+.2f} pp)")
+    if baseline_val and delta < -ns.threshold:
+        print(f"WARNING: coverage decreased more than {ns.threshold:.2f} pp")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1,0 +1,266 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+  smtp_smarthost: '${SMTP_SMARTHOST}'
+  smtp_from: '${SMTP_FROM}'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: 'default'
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical'
+      group_wait: 0s
+      group_interval: 30s
+      repeat_interval: 5m
+      continue: true
+    
+    # Warning alerts - standard notification
+    - match:
+        severity: warning
+      receiver: 'warning'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+    
+    # Service-specific routing
+    - match:
+        service: isa-superapp
+      receiver: 'isa-superapp-team'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 30m
+    
+    - match:
+        service: postgres
+      receiver: 'database-team'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 30m
+    
+    - match:
+        service: redis
+      receiver: 'cache-team'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 30m
+    
+    # Environment-specific routing
+    - match:
+        environment: production
+      receiver: 'production-team'
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 10m
+      continue: true
+    
+    - match:
+        environment: staging
+      receiver: 'staging-team'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+    
+    - match:
+        environment: development
+      receiver: 'development-team'
+      group_wait: 1m
+      group_interval: 10m
+      repeat_interval: 2h
+
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: '${DEFAULT_EMAIL_TO}'
+        headers:
+          Subject: 'ISA SuperApp Alert - {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>{{ .GroupLabels.alertname }}</h2>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+    
+  - name: 'critical'
+    email_configs:
+      - to: '${CRITICAL_EMAIL_TO}'
+        headers:
+          Subject: '🚨 CRITICAL: ISA SuperApp Alert - {{ .GroupLabels.alertname }}'
+        html: |
+          <h2 style="color: red;">🚨 CRITICAL ALERT</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+        send_resolved: true
+    
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .GroupLabels.alertname }}: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        severity: 'critical'
+        details:
+          alertname: '{{ .GroupLabels.alertname }}'
+          summary: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+          description: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    
+    slack_configs:
+      - send_resolved: true
+        channel: '#alerts-critical'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Labels:* {{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }} {{ end }}
+          {{ end }}
+        color: 'danger'
+        footer: 'ISA SuperApp Monitoring'
+
+  - name: 'warning'
+    email_configs:
+      - to: '${WARNING_EMAIL_TO}'
+        headers:
+          Subject: '⚠️ WARNING: ISA SuperApp Alert - {{ .GroupLabels.alertname }}'
+        html: |
+          <h2 style="color: orange;">⚠️ WARNING ALERT</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+        send_resolved: true
+    
+    slack_configs:
+      - send_resolved: true
+        channel: '#alerts-warning'
+        title: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Labels:* {{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }} {{ end }}
+          {{ end }}
+        color: 'warning'
+        footer: 'ISA SuperApp Monitoring'
+
+  - name: 'isa-superapp-team'
+    email_configs:
+      - to: '${ISA_SUPERAPP_EMAIL_TO}'
+        headers:
+          Subject: '[ISA-SuperApp] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>ISA SuperApp Team Alert</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+    
+    slack_configs:
+      - send_resolved: true
+        channel: '#isa-superapp-alerts'
+        title: '[ISA-SuperApp] {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Labels:* {{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }} {{ end }}
+          {{ end }}
+        footer: 'ISA SuperApp Monitoring'
+
+  - name: 'database-team'
+    email_configs:
+      - to: '${DATABASE_EMAIL_TO}'
+        headers:
+          Subject: '[Database] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Database Team Alert</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+
+  - name: 'cache-team'
+    email_configs:
+      - to: '${CACHE_EMAIL_TO}'
+        headers:
+          Subject: '[Cache] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Cache Team Alert</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+
+  - name: 'production-team'
+    email_configs:
+      - to: '${PRODUCTION_EMAIL_TO}'
+        headers:
+          Subject: '[PRODUCTION] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2 style="color: red;">PRODUCTION ENVIRONMENT ALERT</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+    
+    slack_configs:
+      - send_resolved: true
+        channel: '#production-alerts'
+        title: '[PRODUCTION] {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Labels:* {{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }} {{ end }}
+          {{ end }}
+        color: 'danger'
+        footer: 'ISA SuperApp Production Monitoring'
+
+  - name: 'staging-team'
+    email_configs:
+      - to: '${STAGING_EMAIL_TO}'
+        headers:
+          Subject: '[STAGING] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2 style="color: orange;">STAGING ENVIRONMENT ALERT</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+
+  - name: 'development-team'
+    email_configs:
+      - to: '${DEVELOPMENT_EMAIL_TO}'
+        headers:
+          Subject: '[DEV] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2 style="color: blue;">DEVELOPMENT ENVIRONMENT ALERT</h2>
+          <h3>{{ .GroupLabels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}</p>
+          <p><strong>Description:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Labels:</strong> {{ range .Alerts }}{{ range .Labels.SortedPairs }}{{ .Name }}: {{ .Value }}<br>{{ end }}{{ end }}</p>
+          <p><strong>Time:</strong> {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}</p>
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
