@@ -22,4 +22,4 @@ References
 - {doc}`CI_WORKFLOWS` — pipelines and schedules
 - {doc}`agents/MEMORY_ARCHITECTURE` — memory policy
 - {doc}`agents/ORCHESTRATION_ARCHITECTURE` — orchestrator policy
-- {doc}`COHERENCE_SCORECARD` — graph KPIs
+- `COHERENCE_SCORECARD.md` (repo root; advisory report, not built in Sphinx) — graph KPIs

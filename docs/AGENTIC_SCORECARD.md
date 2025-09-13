@@ -31,5 +31,5 @@ Next Promotions
 Evidence Pointers
 - Architecture: {doc}`AGENTIC_ARCHITECTURE`; {doc}`agents/CODEGENESIS`; {doc}`AGENTIC_GOALS`; {doc}`ADOPTION_PLAN`
 - CI & Gates: {doc}`CI_WORKFLOWS`; {doc}`QUALITY_GATES`
-- Research: {doc}`research/POC_TEMPLATE`; {doc}`ADR/0001-tooling-choice`
+- Research: `docs/research/POC_TEMPLATE.md` (excluded from Sphinx); {doc}`ADR/0001-tooling-choice`
 - Observability: `infra/monitoring/docker-compose.yml`, `infra/otel/docker-compose.yml`

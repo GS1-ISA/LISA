@@ -272,7 +272,7 @@ This comprehensive audit report evaluates the ISA_D project across 11 critical q
 ## Evidence & Artifacts
 
 ### Generated Reports
-- [`COHERENCE_SCORECARD.md`](../../COHERENCE_SCORECARD.md) - Repository coherence metrics
+- COHERENCE_SCORECARD.md (repo root; advisory report) - Repository coherence metrics
 - [`docs/audit/audit_report.md`](./audit_report.md) - Executive audit summary
 - [`docs/audit/healthcheck.md`](./healthcheck.md) - System health status
 

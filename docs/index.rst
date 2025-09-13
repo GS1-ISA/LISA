@@ -62,9 +62,29 @@ ISA SuperApp Documentation
 .. toctree::
    :maxdepth: 1
    :caption: Audit
-   :glob:
 
-   audit/*.md
+   audit/QUALITY_SCORECARD
+   audit/agent_outcomes_summary
+   audit/audit_report
+   audit/docs_ref_report
+   audit/healthcheck
+   audit/refactor_guard_summary
+   audit/remediation_plan
+   audit/scenario_simulation
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Reports
+
+   audit/QUALITY_SCORECARD
+   audit/agent_outcomes_summary
+   audit/audit_report
+   audit/docs_ref_report
+   audit/healthcheck
+   audit/refactor_guard_summary
+   audit/remediation_plan
+   audit/scenario_simulation
+   data_quality/EXPECTATIONS_PLAN
 
 .. toctree::
    :maxdepth: 1

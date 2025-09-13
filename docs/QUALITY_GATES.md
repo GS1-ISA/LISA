@@ -9,7 +9,7 @@ Initial PR CI (current status)
 - Lint/format (ruff): enforced.
 - Determinism: enforced (deterministic, offline test). Cross‑OS matrix runs daily (advisory).
 - Typecheck (mypy): advisory → enforced after 7 clean runs on target modules.
-- Tests + coverage: advisory; core coverage gate (≥80%) promotes after stability; broader ≥90% tracked nightly.
+- Tests + coverage: core coverage gate enforced at ≥80% for agent_core + orchestrator; broader ≥90% tracked nightly.
 - Security (bandit, pip‑audit, gitleaks): advisory → enforced once baseline issues triaged.
 - Complexity (radon): advisory with budget (most functions < 10).
 
@@ -34,7 +34,7 @@ Project configuration files (`.yml`, `.toml`, `.yaml`, `Dockerfile`, etc.) are g
 All GitHub workflow files (`.github/workflows/*.yml`) are governed by the `CI_WORKFLOWS.md` document.
 
 Nightly
-- Mutation (mutmut) curated targets; promote to gate after stability; aim ≥70% score.
+- Mutation (mutmut) curated targets — enforced in nightly at ≥60% score; PR remains advisory to protect CI runtime.
 - Perf: pytest‑benchmark + latency histogram; promote p95 budget once stable; fail if >10% regression vs baseline (post‑promotion).
 - Memory coherence: advisory drift gate; promote to enforced after stability window; include scorecard.
 

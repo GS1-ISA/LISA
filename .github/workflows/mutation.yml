@@ -19,15 +19,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install mutmut pytest
       - name: Run curated mutation tests (agent_core/orchestrator)
-        continue-on-error: true
         run: |
           # Keep scope tight for CI time
           mutmut run --paths-to-mutate src/agent_core/agents --tests-dir src/agent_core/tests || true
           mutmut run --paths-to-mutate src/orchestrator/src/orchestrator --tests-dir src/orchestrator/tests || true
-      - name: Show mutation results (advisory)
+      - name: Compute mutation score
         if: always()
+        id: score
         run: |
-          mutmut results || true
+          mutmut results --all > mutmut_results.txt || true
+          killed=$(grep -i '^killed' mutmut_results.txt | wc -l | awk '{print $1}')
+          survived=$(grep -i '^survived' mutmut_results.txt | wc -l | awk '{print $1}')
+          total=$((killed+survived))
+          if [ "$total" -eq 0 ]; then score=100; else score=$(( 100 * killed / total )); fi
+          echo "killed=$killed" >> $GITHUB_OUTPUT
+          echo "survived=$survived" >> $GITHUB_OUTPUT
+          echo "score=$score" >> $GITHUB_OUTPUT
+          echo "Mutation score: $score% (killed=$killed survived=$survived total=$total)"
+      - name: Enforce curated mutation threshold
+        env:
+          MIN_SCORE: "60"
+        run: |
+          echo "Threshold: ${MIN_SCORE}%  Actual: ${{ steps.score.outputs.score }}%"
+          test ${{ steps.score.outputs.score }} -ge ${MIN_SCORE}
       - name: Upload mutation results
         if: always()
         uses: actions/upload-artifact@v4

@@ -48,5 +48,14 @@ jobs:
         env:
           ORCHESTRATOR_USE_AGENT_CORE: "1"
           ADAPTER_STUB_MODE: "1"
+          PERF_LOG: perf_core.jsonl
         run: |
           pytest -q src/orchestrator/tests/test_unified_runner_env_switch.py
+          test -f perf_core.jsonl && echo 'perf log present' || true
+      - name: Upload perf log (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly_perf_log
+          path: perf_core.jsonl
+          if-no-files-found: ignore

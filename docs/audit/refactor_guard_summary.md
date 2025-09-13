@@ -1,4 +1,4 @@
-Title: Refactor Guard Summary — REFACTOR_2025_W3
+# Refactor Guard Summary — REFACTOR_2025_W3
 
 Board: artifacts/refactor_guard/board.json
 

@@ -1,6 +1,6 @@
 # Program Roadmap — Tracks, Phases, and Gates
 
-Last updated: 2025-09-09
+Last updated: 2025-09-10
 
 Purpose: Provide a holistic roadmap for building a self-improving, production-grade agentic platform and ESG/ISA_C data system. Organized by tracks and phased milestones with gates.
 
@@ -33,6 +33,73 @@ Automation & Autonomy (Always-On)
 - Meta Audit: weekly job generates `meta_inventory.md` + `meta_risk_xray.md` and maintains a single “Top Risk (auto)” issue.
 - PR Discipline: template enforces a one-line metric delta; CI collects determinism/docs/perf/coverage/mutation artifacts.
 - Stubs by Default: CI uses stub modes and adapters to keep runs offline; network-only checks live in nightly/weekly workflows.
+
+Detailed Roadmap — Short / Medium / Long Term
+
+Short Term (0–4 weeks)
+- Gates & CI
+  - Enforce determinism (DONE); daily determinism matrix (advisory).
+  - Promote Docs build → enforced after 7 clean runs.
+  - Promote Core coverage (agent_core, orchestrator) ≥ 80% → enforced after 7 clean runs; track ≥ 90% nightly.
+  - Curated mutation: expand planner/researcher/synthesizer targets; publish score; gate after stability.
+  - PR Metric Guard: enforced (requires metric‑delta sentence).
+  - Import discipline: advisory guard to prevent direct agent_core imports from orchestrator/llm (adapter only).
+  - CI speed-ups: pip cache, xdist, cancel in‑progress (DONE).
+- Agent Architecture
+  - Offline parity tests for Planner/Researcher/Synthesizer (DONE).
+  - Orchestrator → agent_core adapter (DONE); exercise env switch nightly (stub mode) and de‑risk consolidation.
+- Performance & Telemetry
+  - Latency histogram artifact in CI; trend p95; prepare gating.
+  - Perf bench via pytest‑benchmark; maintain baseline.
+- Research & Knowledge
+  - Ingest ISA goals PDFs locally (make pdf-index) and via manual workflow; keep Sphinx clean.
+  - Seed research memory with PDF index (advisory only).
+- Docs
+  - ISA_VISION_OUTCOMES.md (DONE); cross-links in Charter/Roadmap/Index.
+  - Onboarding references OODA meta‑prompt; Makefile utilities documented.
+
+Acceptance (Short Term)
+- Determinism enforced; docs build and core coverage clean runs ≥ 7; mutation score visible; perf_histogram.json artifacts present; PDF index artifact available; nightly adapter test green.
+
+Medium Term (1–3 months)
+- Consolidation
+  - Route orchestrator/llm call‑sites through adapter; remove duplicates post‑parity.
+  - Enforce adapter path via import‑guard; add static checks in PRs.
+- Gates
+  - Docs build: enforced.
+  - Core coverage ≥ 80%: enforced; nightly reports ≥ 90% on core.
+  - Mutation: promote curated threshold (e.g., ≥ 60%) to enforced for core modules.
+  - Memory coherence: promote drift gate after 7 green PRs; include scorecard link.
+  - Performance: enforce p95 < 400 ms budget on core paths; fail on >10% regression.
+- Research→Production (R2P)
+  - Define adopt/hold/reject checklist (ADR + adapter + flag + parity tests) and add CI checks.
+  - Pilot “GDSN Agent” vertical: ESG→GDSN mapping for a seeded retailer dataset; include acceptance tests.
+- Ontology & KG
+  - Establish initial GS1 ontology schema and loading pipeline; attach provenance.
+- Governance & Process
+  - CODEOWNERS minimal set live; waiver-expiry convention documented and observed.
+
+Acceptance (Medium Term)
+- Adapter consolidation complete; direct imports prevented; docs/coverage/mutation/memory/perf gates enforced; GDSN Agent pilot tests pass; R2P checks active.
+
+Long Term (3–6 / 6–12 months)
+- Formal & Safety
+  - Property-based tests (Hypothesis) for canonical writer/adapters; curate ghost‑code assertions on invariants.
+  - Targeted CrossHair checks on pure mapping utilities.
+- Offline & Edge
+  - Offline mode proven (no external inference); document toggles and costs; smoke tests in CI.
+- Scale & Adoption
+  - Sector pilots expanded (circular textiles, retail ESG); mapping coverage/quality KPIs reported.
+  - Standards workflows: co‑authoring/publisher lints; (advisory → enforced) publishing checks.
+- Supply Chain & Security
+  - SBOM + Trivy weekly; zero high/critical on default branch; supply‑chain attestations on release.
+- Observability & SLOs
+  - Dashboards for latency histograms and memory coherence; SLOs and burn‑rate alerts; runbooks.
+- Releases
+  - Release process (release‑please) producing wheels/images and notes; changelog increments gates’ status changes.
+
+Acceptance (Long Term)
+- Stable, self‑improving platform with enforced gates; pilots generating measurable wins; releases and security posture mature; offline path documented and tested.
 
 Scoring Rubric (objective)
 

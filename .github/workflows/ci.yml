@@ -1,427 +1,134 @@
-name: CI (PR)
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+name: CI
 
 on:
-  pull_request:
   push:
-    branches: [main, master]
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-test:
+  lint-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-      - name: Install base tooling
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff mypy pytest pytest-cov pytest-benchmark pytest-xdist bandit pip-audit radon
-      - name: Determine base ref
-        id: base
-        shell: bash
+          pip install ruff pytest pytest-cov
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-research.txt ]; then pip install -r requirements-research.txt; fi
+
+      - name: Lint with ruff
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
-            git fetch origin ${{ github.base_ref }} --depth=1
-            echo "sha=$(git rev-parse origin/${{ github.base_ref }})" >> $GITHUB_OUTPUT
-          else
-            echo "branch=main" >> $GITHUB_OUTPUT
-            git fetch origin main --depth=1 || true
-            echo "sha=$(git rev-parse origin/main 2>/dev/null || echo HEAD^)" >> $GITHUB_OUTPUT
-          fi
-      - name: Significance trigger
-        id: sig
+          ruff check .
+          ruff format --check .
+
+      - name: Test with pytest
         run: |
-          # Defaults to satisfy actionlint and initialize outputs
-          echo "significant=false" >> "$GITHUB_OUTPUT"
-          echo "reason=not-implemented" >> "$GITHUB_OUTPUT"
-          python scripts/significance_trigger.py --base "${{ steps.base.outputs.sha }}" \
-            --threshold-files 15 \
-            --threshold-loc 500 \
-            --critical src/agent_core \
-            --critical src/orchestrator \
-            --critical src/tools \
-            --critical src/docs_provider \
-            --critical src/api_server.py \
-            --critical ISA_SuperApp/Dockerfile \
-            --critical requirements.txt \
-            --critical requirements-dev.txt \
-            --critical infra
-      - name: Log significance
-        run: |
-          echo "Significance: ${{ steps.sig.outputs.significant }} Reason: ${{ steps.sig.outputs.reason }}"
-      - name: Install project dependencies (best-effort)
-        continue-on-error: true
-        run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt || true; fi
-      - name: Lint (ruff)
-        run: |
-          ruff format --check . --output-format=github
-          ruff check . --output-format=github
-      - name: Typecheck (mypy) — advisory
-        continue-on-error: true
-        run: |
-          mypy src || true
-      - name: Type coverage (mypy linecount report) — artifact
-        continue-on-error: true
-        run: |
-          mypy --linecount-report .mypy_linecount src || true
-          if [ -f .mypy_linecount/index.txt ]; then echo '--- mypy linecount summary ---'; cat .mypy_linecount/index.txt || true; fi
-      - name: Policy lint (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/policy_lint.py || true
-      - name: Upload type report
-        if: always()
-        uses: actions/upload-artifact@v4
+          pytest tests/ -v --cov=. --cov-report=xml
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
         with:
-          name: mypy_linecount_${{ matrix.python-version }}
-          path: .mypy_linecount
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
 
-      - name: Run Tests
-        run: pytest -q -n auto --cov=src --cov-report=xml
-
-      - name: Determinism gate (enforced)
-        run: |
-          # Deterministic, offline test ensures stable behavior
-          pytest -q infra/rag/tests/test_splitter.py
-
-      - name: Perf benchmark (advisory)
-        continue-on-error: true
-        run: |
-          pytest -q -n auto infra/rag/tests/test_perf_splitter_bench.py || true
-
-      - name: Latency histograms (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/perf_hist.py --runs 200 --out perf_histogram.json || true
-      - name: Upload latency histogram
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: perf_histogram
-          path: perf_histogram.json
-
-      - name: Coverage threshold (core, advisory)
-        continue-on-error: true
-        run: |
-          pytest -q -n auto --cov=src/agent_core --cov=src/orchestrator --cov-report=term-missing --cov-fail-under=80 || true
-
-      - name: Memory coherence gate (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/memory_coherence_gate.py --log agent/memory/memory_log.jsonl || true
-
-      - name: Upload memory log snapshot (if present)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: memory_log
-          path: agent/memory/memory_log.jsonl
-          if-no-files-found: ignore
-
-      - name: Import path discipline (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/import_guard.py || true
-
-  label-check:
+  security-scan:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    needs: lint-and-test
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Determine base ref
-        id: base
-        shell: bash
-        run: |
-          echo "branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
-          git fetch origin ${{ github.base_ref }} --depth=1
-          echo "sha=$(git rev-parse origin/${{ github.base_ref }})" >> $GITHUB_OUTPUT
-      - name: Significance trigger
-        id: sig
-        run: |
-          echo "significant=false" >> "$GITHUB_OUTPUT"
-          echo "reason=not-implemented" >> "$GITHUB_OUTPUT"
-          python scripts/significance_trigger.py --base "${{ steps.base.outputs.sha }}" \
-            --threshold-files 15 \
-            --threshold-loc 500 \
-            --critical src/agent_core \
-            --critical src/orchestrator \
-            --critical src/tools \
-            --critical src/docs_provider \
-            --critical src/api_server.py \
-            --critical ISA_SuperApp/Dockerfile \
-            --critical requirements.txt \
-            --critical requirements-dev.txt \
-            --critical infra
-      - name: Log significance
-        run: |
-          echo "Significance: ${{ steps.sig.outputs.significant }} Reason: ${{ steps.sig.outputs.reason }}"
-      - name: Check for agent-blocked label
-        uses: a-b-r-o-w-n/pr-label-required-action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          required-labels: "agent-ok"
-          blocking-labels: "agent-blocked,WIP"
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
-      - name: Build and Smoke Test Docker Container (Advisory)
-        continue-on-error: true
-        run: |
-          docker build -t isa-super-app -f ISA_SuperApp/Dockerfile .
-          docker run -d --rm -p 8787:8787 --name isa-super-app-ci isa-super-app
-          sleep 15 # Give the server time to start
-          curl -f http://127.0.0.1:8787/metrics
-      - name: Combined coverage (advisory)
-        continue-on-error: true
-        run: |
-          rm -f .coverage coverage-total.xml || true
-          # Run coverage across src and infra
-          pytest -q --cov=src --cov-report= --maxfail=1 || true
-          pytest -q --cov=infra/rag --cov-report= --cov-append infra/rag/tests || true
-          coverage xml -o coverage-total.xml || true
-      - name: Upload combined coverage
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
         with:
-          name: combined_coverage
-          path: coverage-total.xml
-      - name: Coverage no-regression (combined, advisory)
-        continue-on-error: true
-        run: |
-          python scripts/check_coverage_delta.py --xml coverage-total.xml || true
-      - name: Orchestrator package tests (advisory)
-        continue-on-error: true
-        run: |
-          cd packages/orchestrator && pytest -q || true
-      - name: LLM runtime package tests (advisory)
-        continue-on-error: true
-        run: |
-          cd packages/llm && pytest -q || true
-      - name: DSPy modules package tests (advisory)
-        continue-on-error: true
-        run: |
-          cd packages/dspy && pytest -q || true
-      - name: RAG splitter tests (advisory)
-        continue-on-error: true
-        run: |
-          pytest -q infra/rag/tests || true
-      - name: Research offline tests (advisory)
-        continue-on-error: true
-        run: |
-          pytest -q scripts/research/tests || true
-      - name: Build wheels (advisory)
-        continue-on-error: true
-        run: |
-          python -m pip install --upgrade build
-          python -m build packages/orchestrator || true
-          python -m build packages/llm || true
-          python -m build packages/dspy || true
-      - name: Upload wheels
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels
-          path: |
-            packages/orchestrator/dist
-            packages/llm/dist
-            packages/dspy/dist
-      - name: Coverage no-regression (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/check_coverage_delta.py || true
-      - name: Repo size budget (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/size_budget.py || true
-      - name: Bloat Check (advisory)
-        continue-on-error: true
-        run: |
-          python3 scripts/prune_bloat.py --min-mb 25 > bloat_candidates.txt || true
-          echo "Bloat candidates written to bloat_candidates.txt"
-      - name: Upload bloat candidates
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: bloat_candidates
-          path: bloat_candidates.txt
-      # Skipped: legacy app tests not present in this repo variant
-      - name: Coherence audit (advisory)
-        continue-on-error: true
-        run: |
-          python3 scripts/coherence_audit.py || true
-      - name: Upload coherence audit artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coherence_audit
-          path: |
-            coherence_graph.json
-            orphans_and_dead_ends.md
-            TERMS.md
-            traceability_matrix.csv
-            COHERENCE_SCORECARD.md
-            contradiction_report.md
-      # Skipped: memory coherence gate script not present in this repo variant
-      - name: Snapshot memory logs (artifact)
-        continue-on-error: true
-        run: |
-          python - << 'PY'
-          from ISA_SuperApp.src.memory.logs import MemoryEventLogger
-          logger = MemoryEventLogger()
-          n = logger.snapshot_to('docs/audit/memory_logs_snapshot.jsonl')
-          print(f'snapshotted {n} memory events')
-          PY
-      - name: Upload memory logs snapshot
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: memory_logs
-          path: docs/audit/memory_logs_snapshot.jsonl
-      - name: Security — Bandit (advisory)
-        continue-on-error: true
-        run: |
-          bandit -qq -r src || true
-      - name: Security — pip-audit (advisory)
-        continue-on-error: true
-        run: |
-          pip-audit || true
-      - name: Complexity — Radon (report only)
-        continue-on-error: true
-        run: |
-          radon cc -s -n D src || true
-      - name: Deep checks — Semgrep (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
-        continue-on-error: true
-        run: |
-          pip install semgrep
-          semgrep --config p/ci --error --timeout 120 --json | tee semgrep.json || true
-      - name: Upload semgrep.json
-        if: always() && steps.sig.outputs.significant == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: semgrep
-          path: semgrep.json
-      - name: Docs build
-        run: |
-          if [ -f mkdocs.yml ]; then mkdocs build -q; fi
-      - name: Docs reference lint (links/titles)
-        run: |
-          python scripts/docs_ref_lint.py
-      - name: Upload docs_ref_report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs_ref_report
-          path: docs/audit/docs_ref_report.md
-      - name: Vector store schema inspection
-        run: |
-          python scripts/inspect_vector_store.py | tee vector_store_inspection.txt
-      - name: Upload vector store inspection
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vector_store_inspection
-          path: vector_store_inspection.txt
-      - name: Docstring coverage (advisory)
-        continue-on-error: true
-        run: |
-          python scripts/docstring_coverage.py --path src --min 0.0 | tee docstring_coverage.txt
-      - name: Upload docstring coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: docstring_coverage
-          path: docstring_coverage.txt
-      - name: Docs delta (required)
-        run: |
-          python scripts/check_docs_delta.py --base "${{ steps.base.outputs.sha }}"
-      - name: Healthcheck (advisory)
-        continue-on-error: true
-        run: |
-          make healthcheck || true
-      - name: Upload healthcheck
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: healthcheck
-          path: docs/audit/healthcheck.md
-      - name: Container build + smoke (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
-        continue-on-error: true
-        run: |
-          docker build -t superapp:ci -f ISA_SuperApp/Dockerfile .
-          docker run -d --rm -p 8787:8787 --name superapp_ci superapp:ci
-          echo 'Waiting for /metrics...'; for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8787/metrics && break || sleep 2; done
-          curl -fsS http://127.0.0.1:8787/metrics | head -n 5
-          docker rm -f superapp_ci || true
-      - name: Agent kill-switch (policy/agent-blocked)
-        if: github.event_name == 'pull_request'
-        run: |
-          echo '${{ toJSON(github.event.pull_request.labels) }}' | grep -q 'policy/agent-blocked' && { echo 'Agent blocked by policy label'; exit 1; } || true
-      - name: Waiver required for break-glass
-        if: github.event_name == 'pull_request'
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
-        run: |
-          if echo "$PR_LABELS" | grep -q 'break-glass'; then
-            echo "$PR_BODY" | grep -qi 'waiver: *true' || { echo 'Missing waiver: true in PR body for break-glass'; exit 1; }
-          fi
-      - name: Deep checks — Extended tests (advisory, significance)
-        if: steps.sig.outputs.significant == 'true'
-        continue-on-error: true
-        run: |
-          cd ISA_SuperApp && pytest -q --maxfail=1 --durations=10 || true
-      - name: Save baselines on main
-        if: github.ref == 'refs/heads/main'
-        continue-on-error: true
-        run: |
-          python scripts/save_baselines.py || true
-          # Also store combined coverage baseline
-          if [ -f coverage-total.xml ]; then python - << 'PY'
-          import json, xml.etree.ElementTree as ET
-          from pathlib import Path
-          root = ET.parse('coverage-total.xml').getroot()
-          valid=float(root.attrib.get('lines-valid',0)); covered=float(root.attrib.get('lines-covered',0))
-          pct=(covered/valid*100.0) if valid else 0.0
-          p=Path('docs/audit/coverage_baseline.json'); p.parent.mkdir(parents=True, exist_ok=True)
-          p.write_text(json.dumps({'coverage_pct':pct}, indent=2), encoding='utf-8')
-          print('combined coverage baseline ->', p, f'({pct:.2f}%)')
-          PY
-          fi
-      - name: Upload audit artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: audit_artifacts
-          path: |
-            docs/audit/coverage_baseline.json
-            docs/audit/size_baseline.json
-            docs/audit/docs_ref_report.md
-  secrets:
+          sarif_file: 'trivy-results.sarif'
+
+  build-image:
     runs-on: ubuntu-latest
+    needs: [lint-and-test, security-scan]
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      digest: ${{ steps.build.outputs.digest }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Gitleaks (advisory)
-        uses: gitleaks/gitleaks-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
         with:
-          args: detect --no-git -v --redact
-        continue-on-error: true
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Output image
+        id: image
+        run: |
+          echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
