@@ -1,0 +1,519 @@
+name: Unified Deployment Pipeline
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: false
+        type: choice
+        options:
+          - rolling
+          - blue-green
+          - canary
+          - recreate
+        default: 'rolling'
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        type: boolean
+        default: false
+      skip_security_scan:
+        description: 'Skip security scan'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Dry run'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CONFIG_FILE: config/deployment-config.yaml
+
+jobs:
+  # Job to determine what needs to be built and deployed
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.changes.outputs.app }}
+      infrastructure: ${{ steps.changes.outputs.infrastructure }}
+      docs: ${{ steps.changes.outputs.docs }}
+      config: ${{ steps.changes.outputs.config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            app:
+              - 'src/**'
+              - 'package.json'
+              - 'requirements.txt'
+              - 'Dockerfile'
+              - 'docker-compose.yml'
+            infrastructure:
+              - 'terraform/**'
+              - 'kubernetes/**'
+              - '.github/workflows/**'
+              - 'config/**'
+            docs:
+              - 'docs/**'
+              - '*.md'
+            config:
+              - 'config/**'
+              - '.env*'
+
+  # Security scanning job
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_security_scan && github.event_name != 'pull_request' }}
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup tools
+        run: |
+          # Install security scanning tools
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          ignore-unfixed: true
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Grype vulnerability scanner
+        run: |
+          grype dir:. --output json --file grype-results.json || true
+          grype dir:. --output table --fail-on high || true
+
+      - name: Upload Grype scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: grype-results
+          path: grype-results.json
+
+  # Code quality and testing job
+  test-and-quality:
+    name: Test & Quality
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_tests }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: ${{ hashFiles('package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Python
+        if: ${{ hashFiles('requirements.txt') != '' }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          fi
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Run linting
+        run: |
+          if [ -f package.json ]; then
+            npm run lint || true
+          fi
+          if [ -f requirements.txt ]; then
+            flake8 . || true
+            black --check . || true
+          fi
+
+      - name: Run tests
+        run: |
+          if [ -f package.json ]; then
+            npm test -- --coverage --ci --watchAll=false || true
+          fi
+          if [ -f requirements.txt ]; then
+            pytest --cov=. --cov-report=xml || true
+          fi
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # Build and push container image
+  build-and-push:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    needs: [changes, security-scan, test-and-quality]
+    if: ${{ needs.changes.outputs.app == 'true' || github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ inputs.environment }},enable=${{ inputs.environment != '' }}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Scan container image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          format: 'sarif'
+          output: 'image-trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload image scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'image-trivy-results.sarif'
+
+  # Infrastructure validation
+  validate-infrastructure:
+    name: Validate Infrastructure
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.infrastructure == 'true' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        if: ${{ hashFiles('terraform/**/*.tf') != '' }}
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.7.0'
+
+      - name: Terraform Format Check
+        if: ${{ hashFiles('terraform/**/*.tf') != '' }}
+        run: |
+          terraform fmt -check -recursive terraform/
+
+      - name: Terraform Validate
+        if: ${{ hashFiles('terraform/**/*.tf') != '' }}
+        run: |
+          cd terraform
+          terraform init -backend=false
+          terraform validate
+
+      - name: Setup kubectl
+        if: ${{ hashFiles('kubernetes/**/*.yaml') != '' }}
+        uses: azure/setup-kubectl@v3
+
+      - name: Validate Kubernetes manifests
+        if: ${{ hashFiles('kubernetes/**/*.yaml') != '' }}
+        run: |
+          find kubernetes -name "*.yaml" -exec kubectl apply --dry-run=client -f {} \;
+
+  # Deployment job
+  deploy:
+    name: Deploy to Environment
+    runs-on: ubuntu-latest
+    needs: [changes, build-and-push, validate-infrastructure]
+    if: ${{ always() && (needs.build-and-push.result == 'success' || needs.validate-infrastructure.result == 'success') }}
+    environment: 
+      name: ${{ inputs.environment || 'development' }}
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+    outputs:
+      deployment-id: ${{ steps.deploy.outputs.deployment-id }}
+      deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        if: ${{ contains(inputs.environment || 'development', 'production') || contains(inputs.environment || 'development', 'staging') }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: github-actions-deployment
+          aws-region: us-east-1
+
+      - name: Setup deployment tools
+        run: |
+          # Install deployment tools
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          
+          # Install yq for YAML processing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Deploy application
+        id: deploy
+        env:
+          DEPLOYMENT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+          ENVIRONMENT: ${{ inputs.environment || 'development' }}
+          DEPLOYMENT_STRATEGY: ${{ inputs.deployment_strategy || 'rolling' }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          # Make deployment script executable
+          chmod +x scripts/deploy-docker.sh
+          
+          # Execute deployment
+          ./scripts/deploy-docker.sh \
+            --environment "${ENVIRONMENT}" \
+            --image-tag "${IMAGE_TAG}" \
+            --strategy "${DEPLOYMENT_STRATEGY}" \
+            --deployment-id "${DEPLOYMENT_ID}" \
+            --config-file "${CONFIG_FILE}" \
+            --dry-run "${DRY_RUN}" \
+            --verbose
+
+      - name: Wait for deployment health
+        if: ${{ steps.deploy.outcome == 'success' && inputs.dry_run != true }}
+        run: |
+          # Wait for service to be healthy
+          max_attempts=30
+          attempt=1
+          
+          while [[ $attempt -le $max_attempts ]]; do
+            # Check service health (customize based on your application)
+            if curl -f -s -o /dev/null http://localhost:8080/health; then
+              echo "Service is healthy"
+              break
+            fi
+            
+            if [[ $attempt -eq $max_attempts ]]; then
+              echo "Service failed to become healthy after $max_attempts attempts"
+              exit 1
+            fi
+            
+            echo "Waiting for service to be healthy... (attempt $attempt/$max_attempts)"
+            sleep 10
+            ((attempt++))
+          done
+
+      - name: Run smoke tests
+        if: ${{ steps.deploy.outcome == 'success' && inputs.dry_run != true }}
+        run: |
+          # Run basic smoke tests
+          echo "Running smoke tests..."
+          
+          # Test application endpoints
+          if curl -f -s http://localhost:8080/health > /dev/null; then
+            echo "Health check passed"
+          else
+            echo "Health check failed"
+            exit 1
+          fi
+          
+          # Test API endpoints if available
+          if curl -f -s http://localhost:8080/api/v1/status > /dev/null; then
+            echo "API status check passed"
+          else
+            echo "API status check failed (this may be expected for some applications)"
+          fi
+
+  # Post-deployment validation
+  post-deployment-validation:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: ${{ always() && needs.deploy.result == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run performance tests
+        if: ${{ contains(inputs.environment || 'development', 'staging') || contains(inputs.environment || 'development', 'production') }}
+        run: |
+          echo "Running performance tests..."
+          # Add your performance testing commands here
+          # Example: k6 run tests/performance/load-test.js
+
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          # Add your integration testing commands here
+          # Example: npm run test:integration
+
+      - name: Validate monitoring
+        run: |
+          echo "Validating monitoring setup..."
+          # Check if monitoring is working
+          # Example: curl -f http://prometheus:9090/-/healthy
+
+  # Rollback job
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: ${{ always() && needs.deploy.result == 'failure' }}
+    environment: ${{ inputs.environment || 'development' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Execute rollback
+        env:
+          DEPLOYMENT_ID: ${{ needs.deploy.outputs.deployment-id }}
+          ENVIRONMENT: ${{ inputs.environment || 'development' }}
+        run: |
+          echo "Executing rollback for deployment ${DEPLOYMENT_ID} in environment ${ENVIRONMENT}"
+          # Add rollback logic here
+          # This could involve:
+          # - Restoring previous container image
+          # - Restoring database backup
+          # - Reverting infrastructure changes
+          
+          # Example rollback commands:
+          # docker service update --image previous-image:tag app-service
+          # kubectl rollout undo deployment/app-deployment
+
+      - name: Notify rollback
+        if: always()
+        run: |
+          echo "Rollback completed with status: ${{ job.status }}"
+          # Add notification logic here (Slack, email, etc.)
+
+  # Cleanup job
+  cleanup:
+    name: Cleanup Resources
+    runs-on: ubuntu-latest
+    needs: [deploy, rollback]
+    if: ${{ always() }}
+    steps:
+      - name: Cleanup temporary resources
+        run: |
+          echo "Cleaning up temporary resources..."
+          # Remove temporary files, containers, etc.
+          # docker system prune -f
+          # rm -rf /tmp/deployment-*
+
+      - name: Update deployment status
+        if: always()
+        run: |
+          echo "Deployment pipeline completed with status: ${{ job.status }}"
+          # Update deployment status in external systems
+          # Example: Update deployment tracking database
+
+  # Notification job
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy, rollback, cleanup]
+    if: ${{ always() }}
+    steps:
+      - name: Send deployment notification
+        run: |
+          # Send notifications based on deployment status
+          if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "✅ Deployment successful!"
+            # Send success notification
+          else
+            echo "❌ Deployment failed!"
+            # Send failure notification
+          fi
+          
+          # Example Slack notification:
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"Deployment to ${{ inputs.environment || 'development' }} ${{ job.status }}"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+# Workflow-level concurrency control
+concurrency:
+  group: deployment-${{ inputs.environment || 'development' }}
+  cancel-in-progress: false

@@ -1,0 +1,314 @@
+name: Deployment Validation
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'Environment to validate'
+      deployment-version:
+        required: true
+        type: string
+        description: 'Version that was deployed'
+      validation-timeout:
+        required: false
+        type: number
+        default: 300
+        description: 'Timeout for validation in seconds'
+      enable-auto-rollback:
+        required: false
+        type: boolean
+        default: true
+        description: 'Enable automatic rollback on validation failure'
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+      VALIDATION_WEBHOOK_URL:
+        required: false
+
+env:
+  ENVIRONMENT_URL: ${{ inputs.environment == 'production' && 'https://app.example.com' || 'https://staging.example.com' }}
+
+permissions:
+  contents: read
+  id-token: write
+  actions: write
+
+jobs:
+  # Health check validation
+  health-check:
+    name: Health Check Validation
+    runs-on: ubuntu-latest
+    outputs:
+      health-status: ${{ steps.health-check.outputs.status }}
+    
+    steps:
+      - name: Wait for deployment stabilization
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 30
+
+      - name: Run health checks
+        id: health-check
+        run: |
+          echo "Running health checks for ${{ inputs.environment }}"
+          HEALTH_CHECK_URL="${{ env.ENVIRONMENT_URL }}/health"
+          
+          # Retry health check with exponential backoff
+          MAX_RETRIES=5
+          RETRY_COUNT=0
+          BACKOFF=5
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Health check attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES"
+            
+            if curl -f -s -o /dev/null -w "%{http_code}" "$HEALTH_CHECK_URL" | grep -q "200"; then
+              echo "Health check passed"
+              echo "status=healthy" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "Health check failed, retrying in ${BACKOFF}s..."
+              sleep $BACKOFF
+              BACKOFF=$((BACKOFF * 2))
+            fi
+          done
+          
+          echo "Health check failed after $MAX_RETRIES attempts"
+          echo "status=unhealthy" >> $GITHUB_OUTPUT
+          exit 1
+
+  # Smoke test validation
+  smoke-tests:
+    name: Smoke Test Validation
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: needs.health-check.outputs.health-status == 'healthy'
+    outputs:
+      smoke-test-status: ${{ steps.smoke-tests.outputs.status }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+          pip install requests pytest
+
+      - name: Run smoke tests
+        id: smoke-tests
+        run: |
+          echo "Running smoke tests for ${{ inputs.environment }}"
+          
+          # Set environment variables for smoke tests
+          export TEST_ENVIRONMENT="${{ inputs.environment }}"
+          export TEST_BASE_URL="${{ env.ENVIRONMENT_URL }}"
+          export TEST_VERSION="${{ inputs.deployment-version }}"
+          
+          # Run smoke tests
+          if python -m pytest tests/smoke/ -v --tb=short; then
+            echo "Smoke tests passed"
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "Smoke tests failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  # Performance validation
+  performance-check:
+    name: Performance Validation
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: needs.health-check.outputs.health-status == 'healthy'
+    outputs:
+      performance-status: ${{ steps.performance-check.outputs.status }}
+    
+    steps:
+      - name: Run performance checks
+        id: performance-check
+        run: |
+          echo "Running performance validation for ${{ inputs.environment }}"
+          
+          # Check response time
+          RESPONSE_TIME=$(curl -o /dev/null -s -w "%{time_total}" "${{ env.ENVIRONMENT_URL }}")
+          echo "Response time: ${RESPONSE_TIME}s"
+          
+          # Set performance threshold (e.g., 2 seconds)
+          THRESHOLD=2.0
+          
+          if (( $(echo "$RESPONSE_TIME < $THRESHOLD" | bc -l) )); then
+            echo "Performance check passed"
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "Performance check failed - response time ${RESPONSE_TIME}s exceeds threshold ${THRESHOLD}s"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  # Security validation
+  security-check:
+    name: Security Validation
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: needs.health-check.outputs.health-status == 'healthy'
+    outputs:
+      security-status: ${{ steps.security-check.outputs.status }}
+    
+    steps:
+      - name: Run security checks
+        id: security-check
+        run: |
+          echo "Running security validation for ${{ inputs.environment }}"
+          
+          # Check HTTPS redirect
+          if curl -I -s "${{ env.ENVIRONMENT_URL }}" | grep -q "Location: https://"; then
+            echo "HTTPS redirect check passed"
+          else
+            echo "HTTPS redirect check failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Check security headers
+          SECURITY_HEADERS=$(curl -I -s "${{ env.ENVIRONMENT_URL }}")
+          if echo "$SECURITY_HEADERS" | grep -q "X-Content-Type-Options:" && \
+             echo "$SECURITY_HEADERS" | grep -q "X-Frame-Options:" && \
+             echo "$SECURITY_HEADERS" | grep -q "X-XSS-Protection:"; then
+            echo "Security headers check passed"
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "Security headers check failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  # Overall validation result
+  validation-result:
+    name: Validation Result
+    runs-on: ubuntu-latest
+    needs: [health-check, smoke-tests, performance-check, security-check]
+    if: always()
+    outputs:
+      validation-status: ${{ steps.result.outputs.status }}
+      should-rollback: ${{ steps.rollback-check.outputs.should-rollback }}
+    
+    steps:
+      - name: Determine validation result
+        id: result
+        run: |
+          if [ "${{ needs.health-check.outputs.health-status }}" == "healthy" ] && \
+             [ "${{ needs.smoke-tests.outputs.smoke-test-status }}" == "passed" ] && \
+             [ "${{ needs.performance-check.outputs.performance-status }}" == "passed" ] && \
+             [ "${{ needs.security-check.outputs.security-status }}" == "passed" ]; then
+            echo "All validation checks passed"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "One or more validation checks failed"
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if rollback is needed
+        id: rollback-check
+        run: |
+          if [ "${{ steps.result.outputs.status }}" == "failure" ] && \
+             [ "${{ inputs.enable-auto-rollback }}" == "true" ]; then
+            echo "Validation failed and auto-rollback is enabled"
+            echo "should-rollback=true" >> $GITHUB_OUTPUT
+          else
+            echo "No rollback needed"
+            echo "should-rollback=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Trigger automatic rollback if needed
+  auto-rollback:
+    name: Automatic Rollback
+    runs-on: ubuntu-latest
+    needs: [validation-result]
+    if: needs.validation-result.outputs.should-rollback == 'true'
+    
+    steps:
+      - name: Trigger rollback workflow
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'rollback-deployment.yml',
+              ref: context.ref,
+              inputs: {
+                environment: '${{ inputs.environment }}',
+                rollback_to_version: '${{ inputs.deployment-version }}',
+                reason: 'Automatic rollback due to validation failure'
+              }
+            })
+
+      - name: Create incident issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const title = `Deployment Rollback: ${{ inputs.environment }} - ${{ inputs.deployment-version }}`;
+            const body = `## Automatic Rollback Triggered
+            
+            **Environment:** ${{ inputs.environment }}
+            **Version:** ${{ inputs.deployment-version }}
+            **Reason:** Validation failure
+            **Time:** ${new Date().toISOString()}
+            
+            ### Validation Results
+            - Health Check: ${{ needs.health-check.outputs.health-status }}
+            - Smoke Tests: ${{ needs.smoke-tests.outputs.smoke-test-status }}
+            - Performance: ${{ needs.performance-check.outputs.performance-status }}
+            - Security: ${{ needs.security-check.outputs.security-status }}
+            
+            ### Next Steps
+            1. Investigate the validation failures
+            2. Fix the issues
+            3. Redeploy after fixes`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['incident', 'rollback', '${{ inputs.environment }}']
+            });
+
+  # Send validation notification
+  send-notification:
+    name: Send Validation Notification
+    runs-on: ubuntu-latest
+    needs: [validation-result]
+    if: always()
+    
+    steps:
+      - name: Send notification
+        run: |
+          echo "Sending validation notification"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Version: ${{ inputs.deployment-version }}"
+          echo "Status: ${{ needs.validation-result.outputs.validation-status }}"
+          echo "Auto-rollback: ${{ needs.validation-result.outputs.should-rollback }}"
+          
+          # Add webhook notification if configured
+          if [ -n "${{ secrets.VALIDATION_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.VALIDATION_WEBHOOK_URL }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "environment": "${{ inputs.environment }}",
+                "version": "${{ inputs.deployment-version }}",
+                "status": "${{ needs.validation-result.outputs.validation-status }}",
+                "rollback": ${{ needs.validation-result.outputs.should-rollback }},
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }'
+          fi

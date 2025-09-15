@@ -1,0 +1,465 @@
+name: Deployment
+
+on:
+  workflow_call:
+    inputs:
+      deployment_environment:
+        description: 'Target deployment environment'
+        required: true
+        type: string
+      deployment_strategy:
+        description: 'Deployment strategy (blue-green, canary, rolling)'
+        required: false
+        type: string
+        default: 'rolling'
+      rollback_enabled:
+        description: 'Enable automatic rollback'
+        required: false
+        type: boolean
+        default: true
+      health_check_enabled:
+        description: 'Enable health checks'
+        required: false
+        type: boolean
+        default: true
+      deployment_timeout:
+        description: 'Deployment timeout in minutes'
+        required: false
+        type: number
+        default: 30
+      max_parallel:
+        description: 'Maximum parallel deployments'
+        required: false
+        type: number
+        default: 1
+      canary_percentage:
+        description: 'Canary deployment percentage'
+        required: false
+        type: number
+        default: 10
+      blue_green_switch_timeout:
+        description: 'Blue-green switch timeout in minutes'
+        required: false
+        type: number
+        default: 5
+      artifact_name:
+        description: 'Name of artifact to deploy'
+        required: false
+        type: string
+        default: 'build-artifacts'
+      deployment_script:
+        description: 'Custom deployment script path'
+        required: false
+        type: string
+      pre_deployment_checks:
+        description: 'Enable pre-deployment checks'
+        required: false
+        type: boolean
+        default: true
+      post_deployment_verification:
+        description: 'Enable post-deployment verification'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      deployment_status:
+        description: 'Overall deployment status'
+        value: ${{ jobs.deploy.outputs.status }}
+      deployment_url:
+        description: 'Deployment URL'
+        value: ${{ jobs.deploy.outputs.deployment_url }}
+      rollback_triggered:
+        description: 'Whether rollback was triggered'
+        value: ${{ jobs.deploy.outputs.rollback_triggered }}
+      deployment_duration:
+        description: 'Deployment duration in seconds'
+        value: ${{ jobs.deploy.outputs.deployment_duration }}
+      health_check_status:
+        description: 'Health check status'
+        value: ${{ jobs.deploy.outputs.health_check_status }}
+
+env:
+  DEPLOYMENT_TIMEOUT: ${{ inputs.deployment_timeout }}
+  HEALTH_CHECK_TIMEOUT: 300  # 5 minutes
+  ROLLBACK_TIMEOUT: 600      # 10 minutes
+
+permissions:
+  contents: read
+  id-token: write  # For OIDC authentication
+  deployments: write
+
+jobs:
+  # Pre-deployment validation
+  pre-deployment-validation:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.deployment_environment }}
+    
+    outputs:
+      validation_status: ${{ steps.validation.outputs.status }}
+      validation_details: ${{ steps.validation.outputs.details }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: deployment-artifacts/
+      
+      - name: Environment validation
+        id: validation
+        run: |
+          echo "Performing pre-deployment validation for ${{ inputs.deployment_environment }}"
+          
+          ENVIRONMENT="${{ inputs.deployment_environment }}"
+          STRATEGY="${{ inputs.deployment_strategy }}"
+          
+          # Validate environment configuration
+          case "$ENVIRONMENT" in
+            "development")
+              echo "Validating development environment..."
+              # Development-specific validations
+              ;;
+            "staging")
+              echo "Validating staging environment..."
+              # Staging-specific validations
+              ;;
+            "production")
+              echo "Validating production environment..."
+              # Production-specific validations
+              if [ "${{ inputs.pre_deployment_checks }}" != "true" ]; then
+                echo "❌ Pre-deployment checks are required for production"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "❌ Unknown environment: $ENVIRONMENT"
+              exit 1
+              ;;
+          esac
+          
+          # Validate deployment strategy
+          case "$STRATEGY" in
+            "blue-green"|"canary"|"rolling")
+              echo "✅ Valid deployment strategy: $STRATEGY"
+              ;;
+            *)
+              echo "❌ Invalid deployment strategy: $STRATEGY"
+              exit 1
+              ;;
+          esac
+          
+          # Validate required secrets and configurations
+          REQUIRED_SECRETS=("DEPLOYMENT_TOKEN" "ENVIRONMENT_CONFIG")
+          for secret in "${REQUIRED_SECRETS[@]}"; do
+            if [ -z "${!secret}" ]; then
+              echo "❌ Missing required secret: $secret"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Pre-deployment validation completed"
+          echo "status=passed" >> $GITHUB_OUTPUT
+          echo "details=All validations passed" >> $GITHUB_OUTPUT
+      
+      - name: Security scan deployment artifacts
+        if: inputs.pre_deployment_checks == true
+        run: |
+          echo "Scanning deployment artifacts for security issues..."
+          
+          # Basic security checks on artifacts
+          if [ -d "deployment-artifacts/" ]; then
+            # Check for sensitive files
+            find deployment-artifacts/ -name "*.pem" -o -name "*.key" -o -name "*.p12" | while read file; do
+              echo "⚠️ Found potential sensitive file: $file"
+            done
+            
+            # Check file permissions
+            find deployment-artifacts/ -type f -perm /002 | while read file; do
+              echo "⚠️ Found world-writable file: $file"
+            done
+          fi
+          
+          echo "✅ Security scan completed"
+
+  # Deployment execution
+  deploy:
+    name: Deploy to ${{ inputs.deployment_environment }}
+    runs-on: ubuntu-latest
+    needs: pre-deployment-validation
+    environment: ${{ inputs.deployment_environment }}
+    
+    outputs:
+      status: ${{ steps.deployment.outputs.status }}
+      deployment_url: ${{ steps.deployment.outputs.deployment_url }}
+      rollback_triggered: ${{ steps.rollback.outputs.triggered }}
+      deployment_duration: ${{ steps.deployment.outputs.duration }}
+      health_check_status: ${{ steps.health-check.outputs.status }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: deployment-artifacts/
+      
+      - name: Setup deployment environment
+        run: |
+          echo "Setting up deployment environment for ${{ inputs.deployment_environment }}"
+          
+          # Configure deployment tools
+          case "${{ inputs.deployment_environment }}" in
+            "development")
+              DEPLOYMENT_URL="https://dev.example.com"
+              ;;
+            "staging")
+              DEPLOYMENT_URL="https://staging.example.com"
+              ;;
+            "production")
+              DEPLOYMENT_URL="https://app.example.com"
+              ;;
+          esac
+          
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+      
+      - name: Execute deployment
+        id: deployment
+        timeout-minutes: ${{ inputs.deployment_timeout }}
+        run: |
+          echo "Starting deployment with strategy: ${{ inputs.deployment_strategy }}"
+          
+          START_TIME=$(date +%s)
+          DEPLOYMENT_SUCCESS=false
+          
+          # Execute deployment based on strategy
+          case "${{ inputs.deployment_strategy }}" in
+            "blue-green")
+              echo "Executing blue-green deployment..."
+              ./scripts/deploy-blue-green.sh \
+                --environment "${{ inputs.deployment_environment }}" \
+                --artifacts-path "deployment-artifacts/" \
+                --timeout "${{ inputs.blue_green_switch_timeout }}" \
+                --health-check "${{ inputs.health_check_enabled }}" || exit 1
+              ;;
+              
+            "canary")
+              echo "Executing canary deployment..."
+              ./scripts/deploy-canary.sh \
+                --environment "${{ inputs.deployment_environment }}" \
+                --artifacts-path "deployment-artifacts/" \
+                --canary-percentage "${{ inputs.canary_percentage }}" \
+                --health-check "${{ inputs.health_check_enabled }}" || exit 1
+              ;;
+              
+            "rolling")
+              echo "Executing rolling deployment..."
+              ./scripts/deploy-rolling.sh \
+                --environment "${{ inputs.deployment_environment }}" \
+                --artifacts-path "deployment-artifacts/" \
+                --max-parallel "${{ inputs.max_parallel }}" \
+                --health-check "${{ inputs.health_check_enabled }}" || exit 1
+              ;;
+          esac
+          
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          
+          echo "✅ Deployment completed successfully"
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          echo "deployment_url=${{ env.DEPLOYMENT_URL }}" >> $GITHUB_OUTPUT
+      
+      - name: Health check
+        id: health-check
+        if: inputs.health_check_enabled == true
+        timeout-minutes: 10
+        run: |
+          echo "Performing health checks..."
+          
+          HEALTH_CHECK_URL="${{ env.DEPLOYMENT_URL }}/health"
+          MAX_RETRIES=30
+          RETRY_INTERVAL=10
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Health check attempt $i/$MAX_RETRIES"
+            
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_CHECK_URL" || echo "000")
+            
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+              echo "✅ Health check passed"
+              echo "status=healthy" >> $GITHUB_OUTPUT
+              return 0
+            fi
+            
+            echo "Health check failed with status: $HTTP_STATUS"
+            sleep $RETRY_INTERVAL
+          done
+          
+          echo "❌ Health check failed after $MAX_RETRIES attempts"
+          echo "status=unhealthy" >> $GITHUB_OUTPUT
+          exit 1
+      
+      - name: Post-deployment verification
+        if: inputs.post_deployment_verification == true
+        run: |
+          echo "Performing post-deployment verification..."
+          
+          # Basic smoke tests
+          SMOKE_TEST_URL="${{ env.DEPLOYMENT_URL }}/api/status"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SMOKE_TEST_URL" || echo "000")
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ Smoke test failed with status: $HTTP_STATUS"
+            exit 1
+          fi
+          
+          echo "✅ Post-deployment verification completed"
+
+  # Rollback mechanism
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-validation, deploy]
+    if: always() && inputs.rollback_enabled == true && (needs.deploy.result == 'failure' || needs.deploy.outputs.health_check_status == 'unhealthy')
+    
+    outputs:
+      triggered: ${{ steps.rollback.outputs.triggered }}
+      rollback_status: ${{ steps.rollback.outputs.status }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Execute rollback
+        id: rollback
+        timeout-minutes: ${{ env.ROLLBACK_TIMEOUT }}
+        run: |
+          echo "🔄 Initiating rollback due to deployment failure..."
+          
+          ROLLBACK_START_TIME=$(date +%s)
+          
+          # Execute rollback based on deployment strategy
+          case "${{ inputs.deployment_strategy }}" in
+            "blue-green")
+              echo "Rolling back blue-green deployment..."
+              ./scripts/rollback-blue-green.sh \
+                --environment "${{ inputs.deployment_environment }}" \
+                --timeout "5" || exit 1
+              ;;
+              
+            "canary")
+              echo "Rolling back canary deployment..."
+              ./scripts/rollback-canary.sh \
+                --environment "${{ inputs.deployment_environment }}" \
+                --timeout "10" || exit 1
+              ;;
+              
+            "rolling")
+              echo "Rolling back rolling deployment..."
+              ./scripts/rollback-rolling.sh \
+                --environment "${{ inputs.deployment_environment }}" \
+                --timeout "15" || exit 1
+              ;;
+          esac
+          
+          ROLLBACK_END_TIME=$(date +%s)
+          ROLLBACK_DURATION=$((ROLLBACK_END_TIME - ROLLBACK_START_TIME))
+          
+          echo "✅ Rollback completed in ${ROLLBACK_DURATION} seconds"
+          echo "triggered=true" >> $GITHUB_OUTPUT
+          echo "status=success" >> $GITHUB_OUTPUT
+      
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback success..."
+          
+          # Perform health check on rolled back version
+          ROLLBACK_HEALTH_URL="${{ needs.deploy.outputs.deployment_url }}/health"
+          
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$ROLLBACK_HEALTH_URL" || echo "000")
+          
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ Rollback verification passed"
+          else
+            echo "❌ Rollback verification failed with status: $HTTP_STATUS"
+            exit 1
+          fi
+
+  # Deployment notification
+  notify-deployment:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-validation, deploy, rollback]
+    if: always()
+    
+    steps:
+      - name: Prepare deployment notification
+        run: |
+          DEPLOYMENT_STATUS="${{ needs.deploy.outputs.status }}"
+          ROLLBACK_TRIGGERED="${{ needs.rollback.outputs.triggered }}"
+          HEALTH_STATUS="${{ needs.deploy.outputs.health_check_status }}"
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          
+          if [ "$DEPLOYMENT_STATUS" == "success" ] && [ "$HEALTH_STATUS" == "healthy" ]; then
+            MESSAGE="✅ Deployment to ${{ inputs.deployment_environment }} completed successfully"
+            COLOR="good"
+          elif [ "$ROLLBACK_TRIGGERED" == "true" ]; then
+            MESSAGE="⚠️ Deployment to ${{ inputs.deployment_environment }} failed - Rollback executed"
+            COLOR="warning"
+          else
+            MESSAGE="❌ Deployment to ${{ inputs.deployment_environment }} failed"
+            COLOR="danger"
+          fi
+          
+          echo "DEPLOYMENT_MESSAGE=$MESSAGE" >> $GITHUB_ENV
+          echo "DEPLOYMENT_COLOR=$COLOR" >> $GITHUB_ENV
+      
+      - name: Send deployment notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          custom_payload: |
+            {
+              attachments: [{
+                color: '${{ env.DEPLOYMENT_COLOR }}',
+                fields: [{
+                  title: 'Deployment Results',
+                  value: '${{ env.DEPLOYMENT_MESSAGE }}',
+                  short: false
+                }, {
+                  title: 'Environment',
+                  value: '${{ inputs.deployment_environment }}',
+                  short: true
+                }, {
+                  title: 'Strategy',
+                  value: '${{ inputs.deployment_strategy }}',
+                  short: true
+                }, {
+                  title: 'Deployment URL',
+                  value: '${{ needs.deploy.outputs.deployment_url }}',
+                  short: false
+                }, {
+                  title: 'Duration',
+                  value: '${{ needs.deploy.outputs.deployment_duration }}s',
+                  short: true
+                }, {
+                  title: 'Health Check',
+                  value: '${{ needs.deploy.outputs.health_check_status }}',
+                  short: true
+                }, {
+                  title: 'Rollback Triggered',
+                  value: '${{ needs.rollback.outputs.triggered }}',
+                  short: true
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

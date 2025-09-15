@@ -34,6 +34,7 @@ class RetrievalConfig:
     rerank_top_k: int = 5
     similarity_threshold: float = 0.7
     enable_reranking: bool = True
+    reranker_type: str = "simple"  # "simple" or "cross_encoder"
     enable_hybrid_search: bool = True
     sparse_weight: float = 0.3
     dense_weight: float = 0.7
@@ -66,6 +67,11 @@ class RetrievalConfig:
         if self.rerank_top_k <= 0:
             raise ISAValidationError(
                 "rerank_top_k must be positive", field="rerank_top_k"
+            )
+        if self.reranker_type not in ["simple", "cross_encoder"]:
+            raise ISAValidationError(
+                "reranker_type must be 'simple' or 'cross_encoder'",
+                field="reranker_type",
             )
         if not 0 <= self.similarity_threshold <= 1:
             raise ISAValidationError(
@@ -713,7 +719,18 @@ class RetrievalSystem:
         """Context manager exit."""
         if self._initialized:
             try:
-                asyncio.run(self.close())
+                # Get the current event loop or create a new one
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        # If loop is running, we can't use asyncio.run
+                        # Create a task instead
+                        loop.create_task(self.close())
+                    else:
+                        loop.run_until_complete(self.close())
+                except RuntimeError:
+                    # No event loop running, create a new one
+                    asyncio.run(self.close())
             except Exception as e:
                 self.logger.error(f"Error closing retrieval system: {e}")
 

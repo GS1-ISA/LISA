@@ -1,472 +1,410 @@
-"""
-# ISA SuperApp
+# Unified CI/CD Pipeline
 
-![Audit Score](audit-badge.svg)
-
-**Intelligent System Architecture SuperApp** - A comprehensive AI-powered research and analysis platform that combines vector databases, large language models, and intelligent agents to deliver sophisticated research capabilities.</search>
-</search_and_replace>
+A comprehensive, enterprise-grade CI/CD pipeline that consolidates multiple workflows into a single, efficient, and secure deployment system.
 
 ## 🚀 Overview
 
-ISA SuperApp is a powerful platform designed to revolutionize how researchers, analysts, and knowledge workers interact with information. It provides:
+This unified CI/CD pipeline addresses the complexity and duplication found in traditional multi-workflow approaches by providing:
 
-- **Intelligent Document Search**: Semantic search across your document collections using state-of-the-art embeddings
-- **AI-Powered Research Agents**: Autonomous agents that can perform complex research tasks
-- **Workflow Automation**: Customizable workflows for repetitive research tasks
-- **Vector Database Integration**: Efficient storage and retrieval of document embeddings
-- **Multi-Modal Support**: Handle text, structured data, and various document formats
-- **RESTful API**: Full API access for integration with existing tools and workflows
+- **Single Workflow Architecture**: One GitHub Actions workflow handles all deployment scenarios
+- **Standardized Security Scanning**: Consistent security checks across all environments
+- **OIDC-based Authentication**: Secure, keyless authentication to cloud providers
+- **Environment Protection**: Proper gating and approval processes for production
+- **Intelligent Caching**: Optimized caching strategies for faster builds
+- **Comprehensive Rollback**: Automated rollback mechanisms with health checks
+- **Deployment Staging**: Proper staging with validation gates
 
-## ✨ Key Features
+## 📋 Table of Contents
 
-### 🔍 Advanced Search Capabilities
-- **Semantic Search**: Find relevant documents based on meaning, not just keywords
-- **Hybrid Search**: Combine semantic and keyword search for optimal results
-- **Multi-Collection Support**: Organize documents into logical collections
-- **Similarity Thresholds**: Fine-tune search precision and recall
+- [Features](#features)
+- [Architecture](#architecture)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Security](#security)
+- [Monitoring](#monitoring)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
-### 🤖 Intelligent Agents
-- **Research Agents**: Specialized agents for different research domains
-- **Analysis Agents**: Perform complex data analysis and synthesis
-- **Document Processing Agents**: Extract, transform, and analyze document content
-- **Custom Agent Creation**: Build your own specialized agents
+## ✨ Features
 
-### 🔄 Workflow Engine
-- **Predefined Workflows**: Common research workflows out of the box
-- **Custom Workflow Builder**: Create your own automated processes
-- **Parallel Processing**: Execute multiple tasks simultaneously
-- **Progress Tracking**: Monitor workflow execution in real-time
+### Core Capabilities
+- **Multi-Environment Support**: Development, Staging, and Production environments
+- **Container Security**: Vulnerability scanning with Trivy and Grype
+- **Code Security**: Static analysis with Semgrep and secret scanning with TruffleHog
+- **Performance Testing**: Load testing with K6 and performance monitoring
+- **Infrastructure as Code**: Terraform integration with validation
+- **Compliance Reporting**: Automated compliance checks and reporting
 
-### 📊 Data Integration
-- **Multiple Data Sources**: Ingest from files, databases, APIs, and web sources
-- **Format Support**: Handle PDFs, Word documents, Markdown, JSON, CSV, and more
-- **Real-time Updates**: Keep your knowledge base current with automatic updates
-- **Data Validation**: Ensure data quality and consistency
+### Advanced Features
+- **Smart Caching**: Multi-layer caching for dependencies, builds, and Docker layers
+- **Progressive Deployment**: Blue-green and canary deployment strategies
+- **Automated Rollback**: Health-check based automatic rollback
+- **Real-time Monitoring**: Integrated monitoring and alerting
+- **Backup & Restore**: Configuration and deployment state backup
+- **OIDC Authentication**: Secure, keyless cloud provider authentication
 
-## 🛠️ Installation
+## 🏗️ Architecture
 
-### Prerequisites
-- Python 3.8 or higher
-- pip package manager
-- (Optional) Docker for containerized deployment
+### High-Level Architecture
 
-### Quick Install
-```bash
-# Clone the repository
-git clone https://github.com/isa-superapp/isa-superapp.git
-cd isa-superapp
-
-# Install the package
-pip install -e .
-
-# Or install from PyPI (when available)
-pip install isa-superapp
+```mermaid
+graph TD
+    A[GitHub Repository] --> B[GitHub Actions]
+    B --> C[Unified CI/CD Workflow]
+    C --> D[Security Scanning]
+    C --> E[Build & Test]
+    C --> F[Performance Testing]
+    C --> G[Deployment Staging]
+    G --> H[Development]
+    G --> I[Staging]
+    G --> J[Production]
+    D --> K[Security Reports]
+    E --> L[Build Artifacts]
+    F --> M[Performance Reports]
+    H --> N[Monitoring]
+    I --> N
+    J --> N
+    N --> O[Alerts & Notifications]
 ```
 
-### Development Install
-```bash
-# Clone the repository
-git clone https://github.com/isa-superapp/isa-superapp.git
-cd isa-superapp
+### Component Architecture
 
-# Install in development mode with all dependencies
-pip install -e .[dev,research,docs]
+The unified pipeline consists of several key components:
 
-# Install pre-commit hooks
-pre-commit install
-```
+1. **Unified Workflow** (`.github/workflows/unified-cicd.yml`)
+2. **Configuration Management** (`config/` directory)
+3. **Security Scanning** (`scripts/security-scanning.sh`)
+4. **Performance Testing** (`scripts/performance-testing.sh`)
+5. **Deployment Management** (`scripts/deployment-staging.sh`)
+6. **Rollback Mechanisms** (`scripts/rollback-deployment.sh`)
+7. **Monitoring & Alerting** (`scripts/monitoring.sh`)
 
 ## 🚀 Quick Start
 
-### 1. Create Configuration
-```bash
-# Create a default configuration file
-isa-superapp create-config --output config.yaml
+### Prerequisites
 
-# Or create with custom settings
-isa-superapp create-config --format json --output my-config.json
-```
+- GitHub repository with Actions enabled
+- Docker Hub account (or other container registry)
+- Cloud provider account (AWS, Azure, or GCP)
+- Basic understanding of GitHub Actions and Docker
 
-### 2. Start the Server
-```bash
-# Start with default configuration
-isa-superapp serve
+### Installation
 
-# Start with custom configuration
-isa-superapp serve --config config.yaml --host 0.0.0.0 --port 8080
+1. **Clone the repository** (or copy the files to your project):
+   ```bash
+   git clone <your-repo-url>
+   cd your-project
+   ```
 
-# Enable auto-reload for development
-isa-superapp serve --reload
-```
+2. **Run the setup script**:
+   ```bash
+   ./scripts/setup-unified-cicd.sh
+   ```
 
-### 3. Index Documents
-```bash
-# Index a single document
-isa-superapp index path/to/document.pdf --title "Research Paper" --collection research
+3. **Configure your environment**:
+   ```bash
+   # Edit the main configuration
+   nano config/unified-cicd.conf
+   
+   # Configure environment-specific settings
+   nano config/environments/production.conf
+   ```
 
-# Batch index from directory
-isa-superapp batch-index ./documents --pattern "**/*.md" --collection docs --recursive
-```
+4. **Set up GitHub secrets** (see [Configuration](#configuration) section)
 
-### 4. Search Documents
-```bash
-# Basic search
-isa-superapp search "machine learning techniques"
+5. **Validate the setup**:
+   ```bash
+   ./scripts/validate-unified-cicd.sh
+   ```
 
-# Advanced search with options
-isa-superapp search "neural networks" --limit 20 --threshold 0.7 --collection research
-```
-
-### 5. Execute Tasks
-```bash
-# Research task
-isa-superapp task research --query "Analyze recent developments in quantum computing" --priority high
-
-# Analysis task
-isa-superapp task analysis --query "Compare different machine learning algorithms" --context "Focus on supervised learning"
-```
-
-## 📖 Usage Examples
-
-### Python API
-```python
-import asyncio
-from isa_superapp import ISASuperApp, Task, TaskType, SearchQuery
-
-async def main():
-    # Initialize the app
-    app = await ISASuperApp.create()
-
-    # Index a document
-    from isa_superapp import Document
-    doc = Document(
-        title="Research Paper",
-        content="Content of your research paper...",
-        source="path/to/paper.pdf"
-    )
-    doc_id = await app.index_document(doc)
-
-    # Search documents
-    results = await app.search_documents(
-        SearchQuery(query="machine learning", limit=10)
-    )
-
-    # Execute a task
-    task = Task(
-        type=TaskType.RESEARCH,
-        query="Analyze recent AI developments",
-        priority="high"
-    )
-    task_id = await app.execute_task(task)
-
-    # Get results
-    result = await app.get_task_result(task_id)
-    print(result)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### REST API
-```bash
-# Start the server
-isa-superapp serve
-
-# Index a document
-curl -X POST http://localhost:8000/api/v1/documents \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Research Paper",
-    "content": "Content of your research paper...",
-    "source": "path/to/paper.pdf"
-  }'
-
-# Search documents
-curl -X POST http://localhost:8000/api/v1/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "machine learning",
-    "limit": 10
-  }'
-
-# Execute a task
-curl -X POST http://localhost:8000/api/v1/tasks \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "research",
-    "query": "Analyze recent AI developments",
-    "priority": "high"
-  }'
-```
+6. **Run your first deployment**:
+   ```bash
+   ./scripts/unified-cicd-pipeline.sh deploy development
+   ```
 
 ## ⚙️ Configuration
 
-ISA SuperApp is highly configurable. Key configuration areas include:
+### Main Configuration (`config/unified-cicd.conf`)
 
-### Vector Store Settings
-```yaml
-vector_store:
-  provider: chroma
-  collection_name: default
-  embedding_model: sentence-transformers/all-MiniLM-L6-v2
-  chunk_size: 1000
-  chunk_overlap: 200
-```
-
-### LLM Settings
-```yaml
-llm:
-  provider: openai
-  model: gpt-4
-  api_key: ${OPENAI_API_KEY}
-  max_tokens: 4000
-  temperature: 0.7
-```
-
-### Agent Settings
-```yaml
-agents:
-  max_concurrent: 5
-  timeout: 300
-  retry_attempts: 3
-  specialized_agents:
-    - research
-    - analysis
-    - synthesis
-```
-
-### API Settings
-```yaml
-api:
-  host: 0.0.0.0
-  port: 8000
-  cors_origins: ["*"]
-  rate_limit: 1000
-```
-
-## 🧪 Development
-
-### Setting Up Development Environment
 ```bash
-# Clone the repository
-git clone https://github.com/isa-superapp/isa-superapp.git
-cd isa-superapp
+# Project Configuration
+PROJECT_NAME="my-app"
+PROJECT_VERSION="1.0.0"
+DOCKER_REGISTRY="docker.io"
+DOCKER_USERNAME="your-username"
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Environment Configuration
+ENVIRONMENTS=("development" "staging" "production")
+DEFAULT_ENVIRONMENT="development"
 
-# Install development dependencies
-pip install -e .[dev]
+# Security Configuration
+SECURITY_SCAN_ENABLED=true
+VULNERABILITY_THRESHOLD="HIGH"
+COMPLIANCE_CHECKS_ENABLED=true
 
-# Run tests
-pytest
+# Performance Configuration
+PERFORMANCE_TEST_ENABLED=true
+LOAD_TEST_DURATION="5m"
+LOAD_TEST_VUS=100
 
-# Run tests with coverage
-pytest --cov=isa_superapp
+# Deployment Configuration
+DEPLOYMENT_STRATEGY="blue-green"
+ROLLBACK_ENABLED=true
+HEALTH_CHECK_ENABLED=true
 
-# Format code
-black isa_superapp/
-isort isa_superapp/
-
-# Type checking
-mypy isa_superapp/
+# Monitoring Configuration
+MONITORING_ENABLED=true
+ALERTING_ENABLED=true
+SLACK_WEBHOOK_URL=""  # Set via GitHub secret
 ```
 
-### Project Structure
-```
-isa_superapp/
-├── core/                 # Core functionality
-│   ├── app.py           # Main application class
-│   ├── config.py        # Configuration management
-│   ├── models.py        # Data models
-│   └── exceptions.py    # Custom exceptions
-├── vector_store/        # Vector database integration
-├── agent_system/        # AI agent implementation
-├── workflow/           # Workflow engine
-├── api/                # REST API
-├── cli.py              # Command line interface
-└── __main__.py         # Module entry point
-```
+### Environment-Specific Configuration
 
-## 🔧 Advanced Usage
+Each environment has its own configuration file in `config/environments/`:
 
-### Custom Agents
-```python
-from isa_superapp import BaseAgent, Task, TaskResult
+- `development.conf` - Development environment settings
+- `staging.conf` - Staging environment settings  
+- `production.conf` - Production environment settings
 
-class CustomResearchAgent(BaseAgent):
-    """Custom research agent implementation."""
+### GitHub Secrets
 
-    async def execute(self, task: Task) -> TaskResult:
-        # Your custom logic here
-        return TaskResult(
-            task_id=task.id,
-            status="completed",
-            result="Custom research results"
-        )
-```
+Configure the following secrets in your GitHub repository:
 
-### Custom Workflows
-```python
-from isa_superapp import Workflow, WorkflowStep
+#### Required Secrets
+- `DOCKER_USERNAME` - Docker Hub username
+- `DOCKER_PASSWORD` - Docker Hub password or token
+- `SLACK_WEBHOOK_URL` - Slack webhook for notifications (optional)
 
-custom_workflow = Workflow(
-    name="custom_research",
-    steps=[
-        WorkflowStep(
-            name="search_documents",
-            type="search",
-            config={"query": "{{ initial_query }}"}
-        ),
-        WorkflowStep(
-            name="analyze_results",
-            type="analysis",
-            config={"context": "{{ search_results }}"}
-        )
-    ]
-)
-```
+#### Cloud Provider Secrets (choose one)
 
-### Integration with External Tools
-```python
-# Integrate with Jupyter notebooks
-from isa_superapp import ISASuperApp
+**AWS:**
+- `AWS_ROLE_ARN` - IAM role for OIDC authentication
+- `AWS_REGION` - AWS region for deployment
 
-app = await ISASuperApp.create()
-# Use in your notebook analysis
+**Azure:**
+- `AZURE_CLIENT_ID` - Azure service principal client ID
+- `AZURE_TENANT_ID` - Azure tenant ID
+- `AZURE_SUBSCRIPTION_ID` - Azure subscription ID
 
-# Integrate with Streamlit
-import streamlit as st
-from isa_superapp import ISASuperApp
+**GCP:**
+- `GCP_WORKLOAD_IDENTITY_PROVIDER` - Workload identity provider
+- `GCP_SERVICE_ACCOUNT` - Service account email
 
-@st.cache_resource
-def get_app():
-    return asyncio.run(ISASuperApp.create())
-```
+## 🎯 Usage
 
-## 📊 Monitoring and Observability
+### Command Line Interface
 
-### Health Checks
+The unified pipeline provides a comprehensive CLI:
+
 ```bash
-# Check application health
-isa-superapp health
+# Deploy to development environment
+./scripts/unified-cicd-pipeline.sh deploy development
 
-# Get detailed status
-isa-superapp status
+# Deploy to staging with specific version
+./scripts/unified-cicd-pipeline.sh deploy staging --version v1.2.3
+
+# Deploy to production with approval
+./scripts/unified-cicd-pipeline.sh deploy production --require-approval
+
+# Run security scanning only
+./scripts/unified-cicd-pipeline.sh security-scan
+
+# Run performance testing
+./scripts/unified-cicd-pipeline.sh performance-test
+
+# Rollback deployment
+./scripts/unified-cicd-pipeline.sh rollback production --to-version v1.2.2
+
+# Backup configuration
+./scripts/unified-cicd-pipeline.sh backup-config
+
+# Get help
+./scripts/unified-cicd-pipeline.sh --help
 ```
 
-### Metrics and Logging
-- **Prometheus Metrics**: Available at `/metrics` endpoint
-- **Structured Logging**: JSON-formatted logs for easy parsing
-- **Performance Monitoring**: Built-in performance tracking
+### GitHub Actions Integration
+
+The pipeline automatically triggers on:
+
+- **Push to main branch**: Deploys to staging
+- **Pull requests**: Runs security scanning and testing
+- **Manual workflow dispatch**: Deploy to any environment
+- **Scheduled runs**: Nightly security scans
+
+### Manual Triggers
+
+You can manually trigger the workflow from the GitHub Actions tab:
+
+1. Go to Actions → Unified CI/CD Pipeline
+2. Click "Run workflow"
+3. Select the environment and options
+4. Click "Run workflow"
 
 ## 🔒 Security
 
-### API Security
-- JWT-based authentication
-- Rate limiting
-- CORS configuration
-- Input validation and sanitization
+### Security Scanning
 
-### Data Security
-- Encryption at rest for sensitive data
-- Secure API key management
-- Audit logging
-- Access control
+The pipeline includes comprehensive security scanning:
 
-## 🐳 Docker Deployment
+1. **Container Vulnerability Scanning** (Trivy, Grype)
+2. **Static Code Analysis** (Semgrep)
+3. **Secret Detection** (TruffleHog)
+4. **Dependency Scanning** (built into package managers)
+5. **Infrastructure Scanning** (Checkov for Terraform)
 
-### Using Docker Compose
-```yaml
-version: '3.8'
-services:
-  isa-superapp:
-    image: isa-superapp:latest
-    ports:
-      - "8000:8000"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    volumes:
-      - ./data:/app/data
-      - ./config.yaml:/app/config.yaml
-    command: ["isa-superapp", "serve", "--config", "/app/config.yaml"]
-```
+### OIDC Authentication
 
-### Building Docker Image
+The pipeline uses OIDC for secure authentication to cloud providers:
+
+- **No long-lived credentials** stored in GitHub
+- **Temporary tokens** with limited scope and duration
+- **Auditable access** through cloud provider logs
+
+### Environment Protection
+
+Production deployments require:
+- **Manual approval** from designated reviewers
+- **Passing security scans** with no critical vulnerabilities
+- **Successful staging deployment** validation
+- **Health check validation** before traffic switch
+
+## 📊 Monitoring
+
+### Built-in Monitoring
+
+The pipeline includes comprehensive monitoring:
+
+- **Deployment Status**: Real-time deployment progress
+- **Security Reports**: Vulnerability and compliance reports
+- **Performance Metrics**: Load test results and performance trends
+- **Health Checks**: Application and infrastructure health
+- **Cost Tracking**: Resource usage and cost analysis
+
+### Alerting
+
+Configure alerts for:
+- **Deployment failures**
+- **Security vulnerabilities** above threshold
+- **Performance degradation**
+- **Infrastructure issues**
+- **Cost overruns**
+
+### Dashboards
+
+Access pre-built dashboards:
+- **Deployment Dashboard**: Deployment history and success rates
+- **Security Dashboard**: Vulnerability trends and compliance status
+- **Performance Dashboard**: Application performance metrics
+- **Infrastructure Dashboard**: Resource utilization and health
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### 1. Docker Build Failures
 ```bash
-# Build the image
-docker build -t isa-superapp .
+# Check Docker daemon
+docker info
 
-# Run the container
-docker run -p 8000:8000 -v $(pwd)/data:/app/data isa-superapp
+# Check Dockerfile syntax
+docker build --no-cache .
+
+# Check available disk space
+df -h
 ```
+
+#### 2. Security Scan Failures
+```bash
+# Run security scan manually
+./scripts/security-scanning.sh --verbose
+
+# Check security tool versions
+trivy --version
+grype --version
+semgrep --version
+```
+
+#### 3. Deployment Failures
+```bash
+# Check deployment logs
+tail -f logs/deployment.log
+
+# Validate configuration
+./scripts/validate-unified-cicd.sh
+
+# Test connectivity to cloud provider
+./scripts/unified-cicd-pipeline.sh --dry-run
+```
+
+#### 4. Performance Test Failures
+```bash
+# Run performance test manually
+./scripts/performance-testing.sh --debug
+
+# Check K6 installation
+k6 version
+
+# Review performance test configuration
+cat config/performance/performance.conf
+```
+
+### Debug Mode
+
+Enable debug mode for detailed logging:
+```bash
+export DEBUG=true
+./scripts/unified-cicd-pipeline.sh deploy development
+```
+
+### Support
+
+For issues and questions:
+1. Check the [troubleshooting guide](docs/troubleshooting.md)
+2. Review the [FAQ](docs/faq.md)
+3. Open an issue in the repository
+4. Check the logs in `logs/` directory
 
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-### Development Process
+### Development Setup
+
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+2. Create a feature branch
 3. Make your changes
-4. Add tests for your changes
-5. Ensure all tests pass (`pytest`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+4. Run tests: `./scripts/validate-unified-cicd.sh`
+5. Submit a pull request
 
-## 📄 Governance & Documentation
+### Code Style
 
-- **[AI Project Charter](docs/AI_PROJECT_CHARTER.md)** - Project scope, objectives, success metrics, stakeholders, and Responsible-AI risk assessment
-- **[License](LICENSE)** - MIT License details
+- Follow shell scripting best practices
+- Use shellcheck for linting
+- Include comprehensive comments
+- Update documentation for changes
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **OpenAI** for GPT models
-- **Anthropic** for Claude models
-- **Hugging Face** for transformers and models
-- **ChromaDB** for vector database
-- **FastAPI** for the web framework
-- **All contributors** who have helped shape this project
+- GitHub Actions team for the excellent CI/CD platform
+- Security tool maintainers (Trivy, Grype, Semgrep, TruffleHog)
+- Performance testing tools (K6)
+- Cloud providers for OIDC support
 
-## 📞 Support
+## 📚 Additional Resources
 
-- **Documentation**: [https://isa-superapp.readthedocs.io](https://isa-superapp.readthedocs.io)
-- **Issues**: [GitHub Issues](https://github.com/isa-superapp/isa-superapp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/isa-superapp/isa-superapp/discussions)
-- **Email**: support@isa-superapp.com
-
-## 📈 Roadmap
-
-See our [Roadmap](ROADMAP.md) for upcoming features and improvements.
-
-## 🤖 Self-Driving Audit Mechanisms
-
-ISA SuperApp includes three automated audit mechanisms that continuously monitor and improve code quality:
-
-### 🔍 Nightly Audit with Score Badge
-- **GitHub Action**: Runs comprehensive audit every night at 2 AM UTC
-- **Score Badge**: Automatically updates audit score badge in README
-- **Issue Creation**: Creates GitHub issues when score delta > 5%
-- **Baseline Tracking**: Maintains and updates baseline scores for trend analysis
-
-### 🚫 Pre-commit Audit Threshold
-- **Threshold Check**: Blocks commits if audit score < 70% (configurable)
-- **Clear Feedback**: Provides detailed failure messages with improvement suggestions
-- **Integration**: Seamlessly integrates with existing pre-commit framework
-- **Configuration**: Customizable threshold via `.audit_threshold.json`
-
-### ⚡ Makefile Audit Target
-- **Comprehensive Audit**: Runs full indexing and audit suite with `make audit`
-- **Issue Creation**: Automatically creates GitHub issues for significant score changes
-- **Baseline Updates**: Updates baseline scores when improvements are detected
-- **Detailed Reporting**: Provides comprehensive audit results and remediation guidance
-
-These mechanisms ensure continuous quality monitoring and automated improvement suggestions, making the codebase self-healing and self-improving over time.</search>
-</search_and_replace>
+- [Architecture Documentation](docs/unified-cicd-architecture.md)
+- [Security Best Practices](docs/security-best-practices.md)
+- [Performance Optimization](docs/performance-optimization.md)
+- [Cloud Provider Setup](docs/cloud-provider-setup.md)
+- [Migration Guide](docs/migration-guide.md)
 
 ---
 
-**⭐ If you find this project useful, please give it a star on GitHub! ⭐**
+**Happy Deploying!** 🚀
+
+For more information, visit our [documentation](docs/) or [open an issue](https://github.com/your-repo/issues).

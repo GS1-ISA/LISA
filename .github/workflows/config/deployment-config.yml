@@ -1,0 +1,299 @@
+# Deployment Configuration for Unified CI/CD Pipeline
+# This file defines deployment strategies and environment configurations
+
+# Environment configurations
+environments:
+  development:
+    enabled: true
+    auto_deploy: true
+    required_approvals: 0
+    deployment_strategy: "rolling"
+    rollback_enabled: true
+    health_check_enabled: true
+    monitoring_enabled: false
+    
+    # Infrastructure configuration
+    infrastructure:
+      type: "kubernetes"
+      namespace: "development"
+      replicas: 1
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+    
+    # Database configuration
+    database:
+      enabled: true
+      type: "postgres"
+      size: "small"
+      backup_enabled: false
+    
+    # Feature flags
+    feature_flags:
+      enabled: true
+      allow_experimental: true
+
+  integration:
+    enabled: true
+    auto_deploy: true
+    required_approvals: 1
+    deployment_strategy: "rolling"
+    rollback_enabled: true
+    health_check_enabled: true
+    monitoring_enabled: true
+    
+    infrastructure:
+      type: "kubernetes"
+      namespace: "integration"
+      replicas: 2
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "256Mi"
+        limits:
+          cpu: "1000m"
+          memory: "1Gi"
+    
+    database:
+      enabled: true
+      type: "postgres"
+      size: "medium"
+      backup_enabled: true
+      backup_schedule: "0 2 * * *"
+    
+    feature_flags:
+      enabled: true
+      allow_experimental: false
+
+  staging:
+    enabled: true
+    auto_deploy: false
+    required_approvals: 2
+    deployment_strategy: "blue-green"
+    rollback_enabled: true
+    health_check_enabled: true
+    monitoring_enabled: true
+    
+    infrastructure:
+      type: "kubernetes"
+      namespace: "staging"
+      replicas: 3
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "512Mi"
+        limits:
+          cpu: "2000m"
+          memory: "2Gi"
+    
+    database:
+      enabled: true
+      type: "postgres"
+      size: "large"
+      backup_enabled: true
+      backup_schedule: "0 1 * * *"
+    
+    feature_flags:
+      enabled: false
+      allow_experimental: false
+
+  production:
+    enabled: true
+    auto_deploy: false
+    required_approvals: 3
+    deployment_strategy: "canary"
+    rollback_enabled: true
+    health_check_enabled: true
+    monitoring_enabled: true
+    
+    infrastructure:
+      type: "kubernetes"
+      namespace: "production"
+      replicas: 5
+      resources:
+        requests:
+          cpu: "1000m"
+          memory: "1Gi"
+        limits:
+          cpu: "4000m"
+          memory: "4Gi"
+    
+    database:
+      enabled: true
+      type: "postgres"
+      size: "xlarge"
+      backup_enabled: true
+      backup_schedule: "0 0 * * *"
+      point_in_time_recovery: true
+    
+    feature_flags:
+      enabled: false
+      allow_experimental: false
+
+# Deployment strategies configuration
+deployment_strategies:
+  rolling:
+    enabled: true
+    max_surge: "25%"
+    max_unavailable: "25%"
+    timeout: 600s
+    progress_deadline: 300s
+    
+  blue-green:
+    enabled: true
+    smoke_test_enabled: true
+    traffic_switch_timeout: 300s
+    rollback_on_failure: true
+    
+  canary:
+    enabled: true
+    stages:
+      - weight: 10
+        duration: 300s
+        success_threshold: 95
+      - weight: 50
+        duration: 600s
+        success_threshold: 98
+      - weight: 100
+        duration: 0s
+        success_threshold: 99
+    rollback_on_failure: true
+    analysis_interval: 30s
+    
+  emergency:
+    enabled: true
+    skip_health_checks: true
+    skip_tests: true
+    force_deploy: true
+    notification_channels:
+      - "pagerduty"
+      - "slack-critical"
+
+# Health check configuration
+health_checks:
+  enabled: true
+  endpoint: "/health"
+  timeout: 30s
+  interval: 10s
+  success_threshold: 3
+  failure_threshold: 3
+  
+  readiness_probe:
+    enabled: true
+    endpoint: "/ready"
+    initial_delay: 30s
+    period: 10s
+    
+  liveness_probe:
+    enabled: true
+    endpoint: "/alive"
+    initial_delay: 60s
+    period: 30s
+
+# Monitoring and alerting
+monitoring:
+  enabled: true
+  metrics:
+    - name: "cpu_utilization"
+      threshold: 80
+      duration: 300s
+    - name: "memory_utilization"
+      threshold: 85
+      duration: 300s
+    - name: "error_rate"
+      threshold: 5
+      duration: 180s
+    - name: "response_time"
+      threshold: 2000
+      duration: 300s
+  
+  alerting:
+    enabled: true
+    channels:
+      - type: "slack"
+        severity: "warning"
+        channels:
+          - "#alerts"
+      - type: "email"
+        severity: "critical"
+        recipients:
+          - "ops-team@company.com"
+      - type: "pagerduty"
+        severity: "critical"
+        service_key: "${{ secrets.PAGERDUTY_SERVICE_KEY }}"
+
+# Rollback configuration
+rollback:
+  enabled: true
+  automatic_rollback: true
+  conditions:
+    - "health_check_failure"
+    - "error_rate_threshold_exceeded"
+    - "response_time_threshold_exceeded"
+    - "manual_trigger"
+  
+  strategies:
+    immediate:
+      enabled: true
+      timeout: 60s
+      
+    gradual:
+      enabled: true
+      steps: 5
+      interval: 30s
+
+# Database migration configuration
+database_migrations:
+  enabled: true
+  strategy: "rolling"
+  backup_before_migration: true
+  validation_enabled: true
+  rollback_enabled: true
+  
+  migration_types:
+    - name: "schema"
+      timeout: 1800s
+      requires_downtime: false
+    - name: "data"
+      timeout: 3600s
+      requires_downtime: true
+
+# Feature flag configuration
+feature_flags:
+  enabled: true
+  provider: "launchdarkly"
+  environment_mapping:
+    development: "test"
+    integration: "test"
+    staging: "staging"
+    production: "production"
+  
+  flag_prefixes:
+    - "feature"
+    - "experiment"
+    - "rollout"
+
+# Security configuration
+security:
+  enabled: true
+  network_policies:
+    enabled: true
+    default_deny: true
+    
+  pod_security_policies:
+    enabled: true
+    enforce: "restricted"
+    
+  secrets_management:
+    enabled: true
+    provider: "vault"
+    rotation_enabled: true
+    
+  vulnerability_scanning:
+    enabled: true
+    scan_before_deploy: true
+    severity_threshold: "HIGH"

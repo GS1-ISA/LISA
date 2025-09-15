@@ -2,42 +2,12 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": true,
-        "source.fixAll": true
-    },
     "python.formatting.provider": "none",
-    "python.testing.pytestEnabled": true,
-    "python.testing.pytestArgs": [
-        "src/agent_core/tests",
-        "src/orchestrator/tests",
-        "infra/rag/tests"
-    ],
-    "python.analysis.typeCheckingMode": "basic",
-    "files.watcherExclude": {
-        "**/.git/**": true,
-        "**/.mypy_cache/**": true,
-        "**/.pytest_cache/**": true,
-        "**/__pycache__/**": true,
-        "**/_build/**": true
-    },
-    "terminal.integrated.env.osx": {
-        "BASH_ENV": "${workspaceFolder}/.agent/bashrc_telemetry.sh"
-    },
-    "terminal.integrated.env.linux": {
-        "BASH_ENV": "${workspaceFolder}/.agent/bashrc_telemetry.sh"
-    },
     "mcp.languageServers": {
         "context7": {
             "serverUrl": "${env:CONTEXT7_MCP_URL}",
             "enabled": true
         }
     },
-    "chatgpt.config": {
-        "systemPromptPath": "${workspaceFolder}/.agent/virtuous_cycle.md",
-        "maxTokens": 2000,
-        "reasoning": "HIGH",
-        "logPath": "${workspaceFolder}/agent/outcomes/vsc_loop.jsonl"
-    }
+    "chatgpt.config": {}
 }

@@ -1,0 +1,460 @@
+name: Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      build_matrix:
+        description: 'Build matrix as JSON string'
+        required: true
+        type: string
+      test_matrix:
+        description: 'Test matrix as JSON string'
+        required: true
+        type: string
+      cache_key:
+        description: 'Cache key for dependencies'
+        required: false
+        type: string
+        default: 'default-cache-key'
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+      upload_artifacts:
+        description: 'Upload build artifacts'
+        required: false
+        type: boolean
+        default: true
+      generate_coverage:
+        description: 'Generate test coverage reports'
+        required: false
+        type: boolean
+        default: true
+      test_timeout:
+        description: 'Test execution timeout in minutes'
+        required: false
+        type: string
+        default: '30'
+      build_timeout:
+        description: 'Build timeout in minutes'
+        required: false
+        type: string
+        default: '20'
+    outputs:
+      build_status:
+        description: 'Overall build status'
+        value: ${{ jobs.build.outputs.status }}
+      test_status:
+        description: 'Overall test status'
+        value: ${{ jobs.test.outputs.status }}
+      coverage_reports:
+        description: 'Coverage report artifacts'
+        value: ${{ jobs.test.outputs.coverage_reports }}
+      build_artifacts:
+        description: 'Build artifacts'
+        value: ${{ jobs.build.outputs.artifacts }}
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+  JAVA_VERSION: '17'
+  GO_VERSION: '1.21'
+
+jobs:
+  build:
+    name: Build ${{ matrix.component }} (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(inputs.build_matrix) }}
+      fail-fast: false
+    timeout-minutes: ${{ fromJson(inputs.build_timeout) }}
+    outputs:
+      status: ${{ steps.summary.outputs.status }}
+      artifacts: ${{ steps.artifacts.outputs.list }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        if: matrix.language == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.version }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
+      
+      - name: Setup Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.version }}
+          cache: 'pip'
+      
+      - name: Setup Java
+        if: matrix.language == 'java'
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.version }}
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Setup Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.version }}
+          cache: true
+      
+      - name: Install dependencies (Node.js)
+        if: matrix.language == 'node'
+        run: |
+          echo "Installing Node.js dependencies..."
+          if [ -f "package-lock.json" ]; then
+            npm ci
+          elif [ -f "yarn.lock" ]; then
+            yarn install --frozen-lockfile
+          else
+            npm install
+          fi
+      
+      - name: Install dependencies (Python)
+        if: matrix.language == 'python'
+        run: |
+          echo "Installing Python dependencies..."
+          python -m pip install --upgrade pip
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          if [ -f "requirements-dev.txt" ]; then
+            pip install -r requirements-dev.txt
+          fi
+          if [ -f "pyproject.toml" ]; then
+            pip install -e .
+          fi
+      
+      - name: Build application (Node.js)
+        if: matrix.language == 'node'
+        run: |
+          echo "Building Node.js application..."
+          if [ -f "package.json" ]; then
+            npm run build --if-present
+          fi
+      
+      - name: Build application (Python)
+        if: matrix.language == 'python'
+        run: |
+          echo "Building Python application..."
+          if [ -f "setup.py" ]; then
+            python setup.py build
+          fi
+          if [ -f "pyproject.toml" ]; then
+            python -m build
+          fi
+      
+      - name: Build application (Java)
+        if: matrix.language == 'java'
+        run: |
+          echo "Building Java application..."
+          if [ -f "pom.xml" ]; then
+            mvn clean compile
+          fi
+          if [ -f "build.gradle" ]; then
+            ./gradlew build -x test
+          fi
+      
+      - name: Build application (Go)
+        if: matrix.language == 'go'
+        run: |
+          echo "Building Go application..."
+          go build -v ./...
+      
+      - name: Build Docker images
+        if: matrix.language == 'docker'
+        run: |
+          echo "Building Docker images..."
+          docker build -t ${{ matrix.component }}:latest -f Dockerfile.${{ matrix.component }} .
+      
+      - name: Upload build artifacts
+        if: inputs.upload_artifacts && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ matrix.component }}-${{ matrix.language }}
+          path: |
+            dist/
+            build/
+            target/
+            *.jar
+            *.war
+            node_modules/
+            !node_modules/.cache/
+          retention-days: 7
+          if-no-files-found: warn
+      
+      - name: Generate build summary
+        id: summary
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "✅ Build completed successfully"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Build failed"
+          fi
+      
+      - name: List artifacts
+        id: artifacts
+        if: inputs.upload_artifacts
+        run: |
+          ARTIFACTS=$(find . -name "dist" -o -name "build" -o -name "target" -o -name "*.jar" -o -name "*.war" 2>/dev/null | jq -R -s -c 'split("\n")[:-1]')
+          echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
+
+  test:
+    name: Test ${{ matrix.component }} (${{ matrix.language }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(inputs.test_matrix) }}
+      fail-fast: false
+    timeout-minutes: ${{ fromJson(inputs.test_timeout) }}
+    outputs:
+      status: ${{ steps.summary.outputs.status }}
+      coverage_reports: ${{ steps.coverage.outputs.reports }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        if: matrix.language == 'node' && inputs.skip_tests != true
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.version }}
+          cache: 'npm'
+      
+      - name: Setup Python
+        if: matrix.language == 'python' && inputs.skip_tests != true
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.version }}
+          cache: 'pip'
+      
+      - name: Setup Java
+        if: matrix.language == 'java' && inputs.skip_tests != true
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.version }}
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Setup Go
+        if: matrix.language == 'go' && inputs.skip_tests != true
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.version }}
+          cache: true
+      
+      - name: Download build artifacts
+        if: inputs.upload_artifacts && inputs.skip_tests != true
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ matrix.component }}-${{ matrix.language }}
+      
+      - name: Install test dependencies (Node.js)
+        if: matrix.language == 'node' && inputs.skip_tests != true
+        run: |
+          echo "Installing test dependencies..."
+          if [ -f "package-lock.json" ]; then
+            npm ci
+          elif [ -f "yarn.lock" ]; then
+            yarn install --frozen-lockfile
+          else
+            npm install
+          fi
+      
+      - name: Install test dependencies (Python)
+        if: matrix.language == 'python' && inputs.skip_tests != true
+        run: |
+          echo "Installing test dependencies..."
+          python -m pip install --upgrade pip
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          if [ -f "requirements-dev.txt" ]; then
+            pip install -r requirements-dev.txt
+          fi
+          if [ -f "pyproject.toml" ]; then
+            pip install -e .[dev,test]
+          fi
+      
+      - name: Run unit tests (Node.js)
+        if: matrix.language == 'node' && inputs.skip_tests != true
+        run: |
+          echo "Running Node.js unit tests..."
+          if [ -f "package.json" ]; then
+            npm run test:unit --if-present || npm test --if-present
+          fi
+      
+      - name: Run unit tests (Python)
+        if: matrix.language == 'python' && inputs.skip_tests != true
+        run: |
+          echo "Running Python unit tests..."
+          if [ -f "pytest.ini" ] || [ -f "pyproject.toml" ]; then
+            pytest tests/unit -v --tb=short
+          elif [ -f "setup.py" ]; then
+            python -m unittest discover tests/unit -v
+          fi
+      
+      - name: Run unit tests (Java)
+        if: matrix.language == 'java' && inputs.skip_tests != true
+        run: |
+          echo "Running Java unit tests..."
+          if [ -f "pom.xml" ]; then
+            mvn test
+          fi
+          if [ -f "build.gradle" ]; then
+            ./gradlew test
+          fi
+      
+      - name: Run unit tests (Go)
+        if: matrix.language == 'go' && inputs.skip_tests != true
+        run: |
+          echo "Running Go unit tests..."
+          go test -v ./...
+      
+      - name: Generate coverage report (Node.js)
+        if: matrix.language == 'node' && inputs.generate_coverage && inputs.skip_tests != true
+        run: |
+          echo "Generating Node.js coverage report..."
+          if [ -f "package.json" ]; then
+            npm run test:coverage --if-present || npm run coverage --if-present
+          fi
+      
+      - name: Generate coverage report (Python)
+        if: matrix.language == 'python' && inputs.generate_coverage && inputs.skip_tests != true
+        run: |
+          echo "Generating Python coverage report..."
+          if [ -f "pytest.ini" ] || [ -f "pyproject.toml" ]; then
+            pytest tests/unit --cov=. --cov-report=xml --cov-report=html
+          fi
+      
+      - name: Generate coverage report (Java)
+        if: matrix.language == 'java' && inputs.generate_coverage && inputs.skip_tests != true
+        run: |
+          echo "Generating Java coverage report..."
+          if [ -f "pom.xml" ]; then
+            mvn jacoco:report
+          fi
+          if [ -f "build.gradle" ]; then
+            ./gradlew jacocoTestReport
+          fi
+      
+      - name: Generate coverage report (Go)
+        if: matrix.language == 'go' && inputs.generate_coverage && inputs.skip_tests != true
+        run: |
+          echo "Generating Go coverage report..."
+          go test -coverprofile=coverage.out ./...
+          go tool cover -html=coverage.out -o coverage.html
+      
+      - name: Upload coverage reports
+        if: inputs.generate_coverage && inputs.skip_tests != true
+        uses: codecov/codecov-action@v4
+        with:
+          directory: ./coverage/
+          files: ./coverage.xml,./coverage.out,./target/site/jacoco/jacoco.xml
+          flags: ${{ matrix.component }},${{ matrix.language }}
+          name: ${{ matrix.component }}-${{ matrix.language }}
+          fail_ci_if_error: false
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: Upload coverage artifacts
+        if: inputs.generate_coverage && inputs.skip_tests != true
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-${{ matrix.component }}-${{ matrix.language }}
+          path: |
+            coverage/
+            htmlcov/
+            target/site/jacoco/
+            coverage.html
+            coverage.out
+          retention-days: 30
+          if-no-files-found: warn
+      
+      - name: Generate test summary
+        id: summary
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "✅ Tests completed successfully"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Tests failed"
+          fi
+      
+      - name: List coverage reports
+        id: coverage
+        if: inputs.generate_coverage && inputs.skip_tests != true
+        run: |
+          REPORTS=$(find . -name "coverage*" -type f 2>/dev/null | jq -R -s -c 'split("\n")[:-1]')
+          echo "reports=$REPORTS" >> $GITHUB_OUTPUT
+
+  integration-tests:
+    name: Integration Tests
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    if: inputs.skip_tests != true && always() && needs.build.result == 'success' && needs.test.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup test environment
+        run: |
+          echo "Setting up integration test environment..."
+          # Start required services (databases, message queues, etc.)
+          if [ -f "docker-compose.test.yml" ]; then
+            docker-compose -f docker-compose.test.yml up -d
+            sleep 30  # Wait for services to be ready
+          fi
+      
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          if [ -f "tests/integration/run-tests.sh" ]; then
+            ./tests/integration/run-tests.sh
+          elif [ -f "package.json" ]; then
+            npm run test:integration --if-present
+          elif [ -f "pytest.ini" ]; then
+            pytest tests/integration -v
+          elif [ -f "pom.xml" ]; then
+            mvn verify -DskipUnitTests
+          fi
+      
+      - name: Cleanup test environment
+        if: always()
+        run: |
+          echo "Cleaning up integration test environment..."
+          if [ -f "docker-compose.test.yml" ]; then
+            docker-compose -f docker-compose.test.yml down -v
+          fi
+      
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            test-results/
+            integration-test-report.xml
+          retention-days: 7
+          if-no-files-found: warn

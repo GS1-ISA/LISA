@@ -1,0 +1,332 @@
+name: Reusable Deployment Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment (development, staging, production)'
+        required: true
+        type: string
+      deployment_strategy:
+        description: 'Deployment strategy (rolling, blue-green, canary)'
+        required: true
+        type: string
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        type: string
+      namespace:
+        description: 'Kubernetes namespace'
+        required: true
+        type: string
+      replicas:
+        description: 'Number of replicas'
+        required: true
+        type: string
+        default: '3'
+      health_check_timeout:
+        description: 'Health check timeout in seconds'
+        required: false
+        type: string
+        default: '300'
+      enable_monitoring:
+        description: 'Enable monitoring and alerting'
+        required: false
+        type: boolean
+        default: true
+      backup_before_deploy:
+        description: 'Create backup before deployment'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+      AWS_REGION:
+        required: true
+      KUBECONFIG_SECRET:
+        required: true
+      BACKUP_BUCKET:
+        required: true
+      SLACK_WEBHOOK_URL:
+        required: true
+      MONITORING_ENDPOINT:
+        required: true
+
+env:
+  DEPLOYMENT_TIMEOUT: ${{ inputs.health_check_timeout }}
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.environment == 'production' && 'https://app.example.com' || format('https://app-{0}.example.com', inputs.environment) }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: github-actions-deployment
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG_SECRET }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Create backup (if enabled)
+        if: inputs.backup_before_deploy == true
+        run: |
+          echo "🔒 Creating backup before deployment..."
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BACKUP_NAME="backup-${{ inputs.environment }}-${TIMESTAMP}"
+          
+          # Backup current deployment
+          kubectl get deployment isa-superapp -n ${{ inputs.namespace }} -o yaml > backup-deployment.yaml || true
+          kubectl get service isa-superapp -n ${{ inputs.namespace }} -o yaml > backup-service.yaml || true
+          kubectl get configmap isa-superapp-config -n ${{ inputs.namespace }} -o yaml > backup-configmap.yaml || true
+          
+          # Upload to S3 backup bucket
+          aws s3 cp backup-deployment.yaml s3://${{ secrets.BACKUP_BUCKET }}/backups/${BACKUP_NAME}/deployment.yaml
+          aws s3 cp backup-service.yaml s3://${{ secrets.BACKUP_BUCKET }}/backups/${BACKUP_NAME}/service.yaml
+          aws s3 cp backup-configmap.yaml s3://${{ secrets.BACKUP_BUCKET }}/backups/${BACKUP_NAME}/configmap.yaml
+          
+          echo "✅ Backup created: ${BACKUP_NAME}"
+          echo "BACKUP_NAME=${BACKUP_NAME}" >> $GITHUB_ENV
+
+      - name: Update deployment configuration
+        run: |
+          echo "📝 Updating deployment configuration..."
+          
+          # Create or update deployment
+          cat > deployment.yaml << EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: isa-superapp
+            namespace: ${{ inputs.namespace }}
+            labels:
+              app: isa-superapp
+              environment: ${{ inputs.environment }}
+              version: ${{ inputs.image_tag }}
+          spec:
+            replicas: ${{ inputs.replicas }}
+            strategy:
+              type: ${{ inputs.deployment_strategy == 'rolling' && 'RollingUpdate' || 'Recreate' }}
+              ${{ inputs.deployment_strategy == 'rolling' && 'rollingUpdate:' || '' }}
+              ${{ inputs.deployment_strategy == 'rolling' && '  maxUnavailable: 1' || '' }}
+              ${{ inputs.deployment_strategy == 'rolling' && '  maxSurge: 1' || '' }}
+            selector:
+              matchLabels:
+                app: isa-superapp
+            template:
+              metadata:
+                labels:
+                  app: isa-superapp
+                  environment: ${{ inputs.environment }}
+                  version: ${{ inputs.image_tag }}
+              spec:
+                containers:
+                - name: isa-superapp
+                  image: ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
+                  ports:
+                  - containerPort: 8080
+                  env:
+                  - name: ENVIRONMENT
+                    value: ${{ inputs.environment }}
+                  - name: VERSION
+                    value: ${{ inputs.image_tag }}
+                  livenessProbe:
+                    httpGet:
+                      path: /health
+                      port: 8080
+                    initialDelaySeconds: 30
+                    periodSeconds: 10
+                    timeoutSeconds: 5
+                    failureThreshold: 3
+                  readinessProbe:
+                    httpGet:
+                      path: /ready
+                      port: 8080
+                    initialDelaySeconds: 5
+                    periodSeconds: 5
+                    timeoutSeconds: 3
+                    failureThreshold: 3
+                  resources:
+                    requests:
+                      memory: "256Mi"
+                      cpu: "100m"
+                    limits:
+                      memory: "512Mi"
+                      cpu: "500m"
+          EOF
+
+          # Apply the deployment
+          kubectl apply -f deployment.yaml
+          echo "✅ Deployment configuration updated"
+
+      - name: Update service configuration
+        run: |
+          echo "🌐 Updating service configuration..."
+          
+          cat > service.yaml << EOF
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: isa-superapp
+            namespace: ${{ inputs.namespace }}
+            labels:
+              app: isa-superapp
+              environment: ${{ inputs.environment }}
+          spec:
+            selector:
+              app: isa-superapp
+            ports:
+            - name: http
+              port: 80
+              targetPort: 8080
+              protocol: TCP
+            type: ClusterIP
+          EOF
+
+          kubectl apply -f service.yaml
+          echo "✅ Service configuration updated"
+
+      - name: Wait for deployment rollout
+        timeout-minutes: 10
+        run: |
+          echo "⏳ Waiting for deployment rollout..."
+          kubectl rollout status deployment/isa-superapp -n ${{ inputs.namespace }} --timeout=${{ env.DEPLOYMENT_TIMEOUT }}s
+          echo "✅ Deployment rollout completed"
+
+      - name: Health check
+        timeout-minutes: 5
+        run: |
+          echo "🏥 Performing health check..."
+          
+          # Get service endpoint
+          SERVICE_IP=$(kubectl get service isa-superapp -n ${{ inputs.namespace }} -o jsonpath='{.spec.clusterIP}')
+          
+          # Wait for pods to be ready
+          kubectl wait --for=condition=ready pod -l app=isa-superapp -n ${{ inputs.namespace }} --timeout=300s
+          
+          # Check if pods are running
+          READY_PODS=$(kubectl get pods -n ${{ inputs.namespace }} -l app=isa-superapp --field-selector=status.phase=Running --no-headers | wc -l)
+          TOTAL_PODS=$(kubectl get pods -n ${{ inputs.namespace }} -l app=isa-superapp --no-headers | wc -l)
+          
+          echo "📊 Pod status: ${READY_PODS}/${TOTAL_PODS} pods ready"
+          
+          if [ "${READY_PODS}" -eq "${TOTAL_PODS}" ] && [ "${READY_PODS}" -gt 0 ]; then
+            echo "✅ Health check passed"
+          else
+            echo "❌ Health check failed"
+            kubectl get pods -n ${{ inputs.namespace }} -l app=isa-superapp
+            kubectl describe pods -n ${{ inputs.namespace }} -l app=isa-superapp
+            exit 1
+          fi
+
+      - name: Blue-green deployment switch (if applicable)
+        if: inputs.deployment_strategy == 'blue-green'
+        run: |
+          echo "🔄 Executing blue-green deployment switch..."
+          
+          # This is a simplified blue-green switch
+          # In a real scenario, you would have separate blue and green deployments
+          echo "Blue-green deployment strategy selected"
+          echo "Current deployment is now serving traffic"
+          
+          # Add a small delay to ensure stability
+          sleep 30
+          echo "✅ Blue-green switch completed"
+
+      - name: Setup monitoring (if enabled)
+        if: inputs.enable_monitoring == true
+        run: |
+          echo "📊 Setting up monitoring..."
+          
+          # Create monitoring configmap
+          cat > monitoring-config.yaml << EOF
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: isa-superapp-monitoring
+            namespace: ${{ inputs.namespace }}
+            labels:
+              app: isa-superapp
+              monitoring: enabled
+          data:
+            environment: "${{ inputs.environment }}"
+            version: "${{ inputs.image_tag }}"
+            deployment_strategy: "${{ inputs.deployment_strategy }}"
+            timestamp: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          EOF
+
+          kubectl apply -f monitoring-config.yaml
+          
+          # Send deployment notification to monitoring endpoint
+          curl -X POST ${{ secrets.MONITORING_ENDPOINT }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "event": "deployment",
+              "environment": "${{ inputs.environment }}",
+              "version": "${{ inputs.image_tag }}",
+              "status": "success",
+              "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+            }' || true
+          
+          echo "✅ Monitoring setup completed"
+
+      - name: Send deployment notification
+        if: always()
+        run: |
+          DEPLOYMENT_STATUS="${{ job.status == 'success' && 'success' || 'failure' }}"
+          COLOR="${{ job.status == 'success' && 'good' || 'danger' }}"
+          
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "attachments": [{
+                "color": "'"${COLOR}"'",
+                "title": "Deployment '"${DEPLOYMENT_STATUS}"'",
+                "fields": [
+                  {"title": "Environment", "value": "${{ inputs.environment }}", "short": true},
+                  {"title": "Version", "value": "${{ inputs.image_tag }}", "short": true},
+                  {"title": "Strategy", "value": "${{ inputs.deployment_strategy }}", "short": true},
+                  {"title": "Replicas", "value": "${{ inputs.replicas }}", "short": true},
+                  {"title": "Triggered by", "value": "${{ github.actor }}", "short": true},
+                  {"title": "Repository", "value": "${{ github.repository }}", "short": true}
+                ],
+                "footer": "GitHub Actions",
+                "ts": '$(date +%s)'
+              }]
+            }' || true
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "📋 Deployment Summary"
+          echo "====================="
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Version: ${{ inputs.image_tag }}"
+          echo "Strategy: ${{ inputs.deployment_strategy }}"
+          echo "Status: ${{ job.status }}"
+          echo "Replicas: ${{ inputs.replicas }}"
+          echo "Namespace: ${{ inputs.namespace }}"
+          echo "Backup created: ${{ inputs.backup_before_deploy == true && env.BACKUP_NAME || 'No' }}"
+          echo "Monitoring enabled: ${{ inputs.enable_monitoring }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "====================="

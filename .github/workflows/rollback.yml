@@ -1,0 +1,367 @@
+name: Reusable Rollback Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment for rollback'
+        required: true
+        type: string
+      rollback_strategy:
+        description: 'Rollback strategy (immediate, gradual, blue-green)'
+        required: false
+        type: string
+        default: 'immediate'
+      previous_version:
+        description: 'Previous version to rollback to'
+        required: false
+        type: string
+        default: ''
+      validation_enabled:
+        description: 'Enable post-rollback validation'
+        required: false
+        type: boolean
+        default: true
+      notification_enabled:
+        description: 'Enable rollback notifications'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for rollback
+      
+      - name: Setup rollback tools
+        run: |
+          # Install kubectl for Kubernetes rollbacks
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          
+          # Install Helm for Helm-based rollbacks
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          
+          # Install AWS CLI for AWS deployments
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+          
+          # Install Azure CLI for Azure deployments
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          
+          echo "✅ Rollback tools installed"
+      
+      - name: Configure environment access
+        run: |
+          # Configure access to the target environment
+          case "${{ inputs.environment }}" in
+            "development")
+              echo "Configuring development environment access..."
+              echo "${{ secrets.DEV_KUBECONFIG }}" | base64 -d > kubeconfig
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.DEV_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+              echo "AZURE_CREDENTIALS=${{ secrets.DEV_AZURE_CREDENTIALS }}" >> $GITHUB_ENV
+              ;;
+            "staging")
+              echo "Configuring staging environment access..."
+              echo "${{ secrets.STAGING_KUBECONFIG }}" | base64 -d > kubeconfig
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+              echo "AZURE_CREDENTIALS=${{ secrets.STAGING_AZURE_CREDENTIALS }}" >> $GITHUB_ENV
+              ;;
+            "production")
+              echo "Configuring production environment access..."
+              echo "${{ secrets.PROD_KUBECONFIG }}" | base64 -d > kubeconfig
+              echo "AWS_ACCESS_KEY_ID=${{ secrets.PROD_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+              echo "AWS_SECRET_ACCESS_KEY=${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+              echo "AZURE_CREDENTIALS=${{ secrets.PROD_AZURE_CREDENTIALS }}" >> $GITHUB_ENV
+              ;;
+          esac
+          
+          export KUBECONFIG=kubeconfig
+          echo "✅ Environment access configured for ${{ inputs.environment }}"
+      
+      - name: Determine rollback target
+        id: determine_target
+        run: |
+          echo "Determining rollback target..."
+          
+          if [ -n "${{ inputs.previous_version }}" ]; then
+            echo "Using specified previous version: ${{ inputs.previous_version }}"
+            echo "rollback_version=${{ inputs.previous_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "Finding previous version from deployment history..."
+            
+            # Get previous deployment version from various sources
+            export KUBECONFIG=kubeconfig
+            
+            # Try to get previous version from Kubernetes
+            if kubectl get deployment app-deployment -o jsonpath='{.metadata.annotations.deployment\.kubernetes\.io/revision}' 2>/dev/null; then
+              CURRENT_REVISION=$(kubectl get deployment app-deployment -o jsonpath='{.metadata.annotations.deployment\.kubernetes\.io/revision}')
+              PREVIOUS_REVISION=$((CURRENT_REVISION - 1))
+              echo "rollback_version=revision-${PREVIOUS_REVISION}" >> $GITHUB_OUTPUT
+            elif [ -f "deployment-history.json" ]; then
+              # Get from deployment history file
+              PREVIOUS_VERSION=$(jq -r '.deployments[-2].version' deployment-history.json)
+              echo "rollback_version=${PREVIOUS_VERSION}" >> $GITHUB_OUTPUT
+            else
+              # Fallback to git previous tag
+              PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "previous")
+              echo "rollback_version=${PREVIOUS_TAG}" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+          echo "✅ Rollback target determined: $(cat $GITHUB_OUTPUT | grep rollback_version | cut -d= -f2)"
+      
+      - name: Execute Kubernetes rollback
+        if: contains(inputs.rollback_strategy, 'kubernetes')
+        run: |
+          echo "🔄 Executing Kubernetes rollback..."
+          export KUBECONFIG=kubeconfig
+          
+          case "${{ inputs.rollback_strategy }}" in
+            "immediate")
+              echo "Performing immediate rollback..."
+              kubectl rollout undo deployment/app-deployment
+              kubectl rollout status deployment/app-deployment --timeout=300s
+              ;;
+            "gradual")
+              echo "Performing gradual rollback..."
+              # Scale down new version gradually
+              kubectl patch deployment app-deployment -p '{"spec":{"replicas":0}}'
+              sleep 30
+              # Rollback and scale up gradually
+              kubectl rollout undo deployment/app-deployment
+              kubectl patch deployment app-deployment -p '{"spec":{"replicas":1}}'
+              sleep 60
+              kubectl patch deployment app-deployment -p '{"spec":{"replicas":3}}'
+              kubectl rollout status deployment/app-deployment --timeout=300s
+              ;;
+            "blue-green")
+              echo "Performing blue-green rollback..."
+              # Switch traffic back to blue environment
+              kubectl patch service app-service -p '{"spec":{"selector":{"version":"blue"}}}'
+              sleep 30
+              # Scale down green environment
+              kubectl scale deployment app-deployment-green --replicas=0
+              ;;
+          esac
+          
+          echo "✅ Kubernetes rollback completed"
+      
+      - name: Execute Helm rollback
+        if: contains(inputs.rollback_strategy, 'helm')
+        run: |
+          echo "🔄 Executing Helm rollback..."
+          
+          case "${{ inputs.rollback_strategy }}" in
+            "immediate")
+              echo "Performing immediate Helm rollback..."
+              helm rollback app-release 1 --wait --timeout=300s
+              ;;
+            "gradual")
+              echo "Performing gradual Helm rollback..."
+              # Get previous release values
+              helm get values app-release > current-values.yaml
+              helm rollback app-release 1 --wait --timeout=300s
+              # Apply gradual scaling if needed
+              kubectl patch deployment app-release -p '{"spec":{"replicas":1}}'
+              sleep 60
+              kubectl patch deployment app-release -p '{"spec":{"replicas":3}}'
+              ;;
+          esac
+          
+          echo "✅ Helm rollback completed"
+      
+      - name: Execute AWS rollback
+        if: contains(inputs.rollback_strategy, 'aws')
+        run: |
+          echo "🔄 Executing AWS rollback..."
+          
+          case "${{ inputs.rollback_strategy }}" in
+            "immediate")
+              echo "Performing immediate AWS rollback..."
+              # Rollback ECS service
+              aws ecs update-service --cluster app-cluster --service app-service --task-definition app-task:${{ steps.determine_target.outputs.rollback_version }} --force-new-deployment
+              aws ecs wait services-stable --cluster app-cluster --services app-service
+              ;;
+            "gradual")
+              echo "Performing gradual AWS rollback..."
+              # Update ECS service with gradual deployment
+              aws ecs update-service --cluster app-cluster --service app-service --task-definition app-task:${{ steps.determine_target.outputs.rollback_version }} --deployment-configuration maximumPercent=200,minimumHealthyPercent=100
+              aws ecs wait services-stable --cluster app-cluster --services app-service
+              ;;
+            "blue-green")
+              echo "Performing blue-green AWS rollback..."
+              # Switch traffic back to blue target group
+              aws elbv2 modify-listener --listener-arn ${{ secrets.BLUE_LISTENER_ARN }} --default-actions Type=forward,TargetGroupArn=${{ secrets.BLUE_TARGET_GROUP_ARN }}
+              # Wait for traffic switch
+              sleep 60
+              # Scale down green target group
+              aws ecs update-service --cluster app-cluster --service app-service-green --desired-count 0
+              ;;
+          esac
+          
+          echo "✅ AWS rollback completed"
+      
+      - name: Execute Azure rollback
+        if: contains(inputs.rollback_strategy, 'azure')
+        run: |
+          echo "🔄 Executing Azure rollback..."
+          
+          # Login to Azure
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          
+          case "${{ inputs.rollback_strategy }}" in
+            "immediate")
+              echo "Performing immediate Azure rollback..."
+              # Rollback container app
+              az containerapp revision activate --name app-containerapp --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --revision app-containerapp--${{ steps.determine_target.outputs.rollback_version }}
+              ;;
+            "gradual")
+              echo "Performing gradual Azure rollback..."
+              # Scale down current version
+              az containerapp update --name app-containerapp --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --min-replicas 0 --max-replicas 0
+              sleep 30
+              # Activate previous version
+              az containerapp revision activate --name app-containerapp --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --revision app-containerapp--${{ steps.determine_target.outputs.rollback_version }}
+              # Scale up gradually
+              az containerapp update --name app-containerapp --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --min-replicas 1 --max-replicas 3
+              ;;
+          esac
+          
+          echo "✅ Azure rollback completed"
+      
+      - name: Update deployment history
+        run: |
+          echo "📝 Updating deployment history..."
+          
+          # Create or update deployment history
+          DEPLOYMENT_HISTORY="deployment-history.json"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          if [ -f "$DEPLOYMENT_HISTORY" ]; then
+            # Update existing history
+            jq --arg timestamp "$TIMESTAMP" \
+               --arg version "${{ steps.determine_target.outputs.rollback_version }}" \
+               --arg environment "${{ inputs.environment }}" \
+               --arg strategy "${{ inputs.rollback_strategy }}" \
+               '.deployments += [{
+                 "timestamp": $timestamp,
+                 "version": $version,
+                 "environment": $environment,
+                 "strategy": $strategy,
+                 "type": "rollback",
+                 "status": "completed"
+               }]' "$DEPLOYMENT_HISTORY" > temp_history.json
+            mv temp_history.json "$DEPLOYMENT_HISTORY"
+          else
+            # Create new history
+            cat > "$DEPLOYMENT_HISTORY" <<EOF
+          {
+            "deployments": [
+              {
+                "timestamp": "$TIMESTAMP",
+                "version": "${{ steps.determine_target.outputs.rollback_version }}",
+                "environment": "${{ inputs.environment }}",
+                "strategy": "${{ inputs.rollback_strategy }}",
+                "type": "rollback",
+                "status": "completed"
+              }
+            ]
+          }
+          EOF
+          fi
+          
+          echo "✅ Deployment history updated"
+      
+      - name: Post-rollback validation
+        if: inputs.validation_enabled
+        run: |
+          echo "🔍 Running post-rollback validation..."
+          
+          # Basic health checks
+          export KUBECONFIG=kubeconfig
+          
+          # Check pod status
+          if kubectl get pods --selector=app=app-deployment -o jsonpath='{.items[*].status.phase}' | grep -q "Running"; then
+            echo "✅ Pods are running after rollback"
+          else
+            echo "❌ Pods are not running properly after rollback"
+            exit 1
+          fi
+          
+          # Check service endpoints
+          if kubectl get endpoints app-service; then
+            echo "✅ Service endpoints are available"
+          else
+            echo "❌ Service endpoints are not available"
+            exit 1
+          fi
+          
+          # Wait for deployment to stabilize
+          kubectl rollout status deployment/app-deployment --timeout=300s
+          
+          echo "✅ Post-rollback validation completed"
+      
+      - name: Create rollback report
+        if: always()
+        run: |
+          echo "📋 Creating rollback report..."
+          
+          ROLLBACK_REPORT="rollback-report-${{ inputs.environment }}-$(date +%Y%m%d-%H%M%S).json"
+          
+          cat > "$ROLLBACK_REPORT" <<EOF
+          {
+            "rollback_id": "${{ github.run_id }}",
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "environment": "${{ inputs.environment }}",
+            "strategy": "${{ inputs.rollback_strategy }}",
+            "rollback_version": "${{ steps.determine_target.outputs.rollback_version }}",
+            "triggered_by": "${{ github.actor }}",
+            "status": "${{ job.status }}",
+            "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "validation_enabled": ${{ inputs.validation_enabled }},
+            "validation_status": "${{ inputs.validation_enabled && 'completed' || 'skipped' }}"
+          }
+          EOF
+          
+          echo "✅ Rollback report created: $ROLLBACK_REPORT"
+      
+      - name: Upload rollback artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-artifacts-${{ inputs.environment }}
+          path: |
+            rollback-report-*.json
+            deployment-history.json
+          retention-days: 90
+      
+      - name: Rollback summary
+        if: always()
+        run: |
+          echo "📋 Rollback Summary"
+          echo "=================="
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Strategy: ${{ inputs.rollback_strategy }}"
+          echo "Rollback Version: ${{ steps.determine_target.outputs.rollback_version }}"
+          echo "Status: ${{ job.status }}"
+          echo "Validation: ${{ inputs.validation_enabled && 'Enabled' || 'Disabled' }}"
+          echo ""
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Rollback completed successfully!"
+            echo "🎯 System has been rolled back to version: ${{ steps.determine_target.outputs.rollback_version }}"
+          else
+            echo "❌ Rollback failed"
+            echo "🔧 Manual intervention may be required"
+          fi

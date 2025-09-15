@@ -1,98 +1,262 @@
 #!/usr/bin/env python3
-from __future__ import annotations
+"""
+Vector Store Inspection Tool
+
+This script connects to the ChromaDB vector store and validates that entries
+conform to the VECTOR_STORE_SCHEMA.md requirements.
+
+Usage:
+    python scripts/inspect_vector_store.py [--limit N] [--verbose]
+"""
 
 import argparse
+import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Dict, List, Any
+
+# Add the src directory to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from agent_core.agent_core.memory.rag_store import RAGMemory
 
 
-def _connect(path: Path, collection: str):
-    import chromadb
+def validate_metadata(metadata: Dict[str, Any], chunk_id: str) -> List[str]:
+    """
+    Validate metadata against VECTOR_STORE_SCHEMA.md requirements.
+    
+    Args:
+        metadata: Metadata dictionary to validate
+        chunk_id: Chunk ID for error reporting
+        
+    Returns:
+        List of validation errors (empty if valid)
+    """
+    required_fields = [
+        "document_id",
+        "source",
+        "chunk_id",
+        "chunk_text",
+        "created_at",
+        "embedding_model",
+        "language",
+        "checksum",
+    ]
+    
+    optional_fields = [
+        "document_version",
+        "page",
+        "provenance",
+    ]
+    
+    errors = []
+    
+    # Check required fields
+    for field in required_fields:
+        if field not in metadata:
+            errors.append(f"Missing required field '{field}' in chunk {chunk_id}")
+        elif metadata[field] is None:
+            errors.append(f"Required field '{field}' is None in chunk {chunk_id}")
+    
+    # Validate specific field formats
+    if "chunk_id" in metadata and metadata["chunk_id"] != chunk_id:
+        errors.append(f"chunk_id mismatch: expected {chunk_id}, got {metadata['chunk_id']}")
+    
+    if "created_at" in metadata:
+        created_at = metadata["created_at"]
+        if not created_at.endswith("Z"):
+            errors.append(f"created_at should end with 'Z' (UTC): {created_at}")
+    
+    if "language" in metadata:
+        language = metadata["language"]
+        if len(language) != 2:  # ISO language codes are 2 characters
+            errors.append(f"Invalid language code format: {language}")
+    
+    return errors
 
-    client = chromadb.PersistentClient(path=str(path))
-    col = client.get_or_create_collection(name=collection)
-    return col
 
-
-def _peek(col, n: int = 5) -> Dict[str, Any]:
-    # Try peek (preferred), fall back to get(limit=...)
+def inspect_vector_store(limit: int = 10, verbose: bool = False) -> Dict[str, Any]:
+    """
+    Inspect the vector store and validate entries.
+    
+    Args:
+        limit: Maximum number of entries to inspect
+        verbose: Whether to print detailed information
+        
+    Returns:
+        Dictionary containing inspection results
+    """
+    print("🔍 Inspecting Vector Store...")
+    print("=" * 50)
+    
     try:
-        return col.peek(n)
-    except Exception:
-        try:
-            return col.get(limit=n)
-        except Exception as e:
-            raise RuntimeError(f"Failed to read collection: {e}")
+        # Initialize RAGMemory
+        rag_memory = RAGMemory()
+        
+        # Get basic stats
+        stats = rag_memory.get_stats()
+        print(f"📊 Vector Store Statistics:")
+        print(f"   Total chunks: {stats['total_chunks']}")
+        print(f"   Embedding model: {stats['embedding_model']}")
+        print(f"   Persist directory: {stats['persist_directory']}")
+        print()
+        
+        if stats['total_chunks'] == 0:
+            print("⚠️  Vector store is empty")
+            return {"status": "empty", "total_chunks": 0}
+        
+        # Get a sample of chunks
+        collection = rag_memory.collection
+        all_ids = collection.get()["ids"]
+        
+        if limit and len(all_ids) > limit:
+            sample_ids = all_ids[:limit]
+            print(f"📋 Inspecting first {limit} of {len(all_ids)} chunks...")
+        else:
+            sample_ids = all_ids
+            print(f"📋 Inspecting all {len(all_ids)} chunks...")
+        
+        print()
+        
+        # Validate each chunk
+        validation_results = {
+            "total_inspected": len(sample_ids),
+            "valid_chunks": 0,
+            "invalid_chunks": 0,
+            "errors": [],
+            "sources": set(),
+            "embedding_models": set(),
+            "languages": set(),
+        }
+        
+        for i, chunk_id in enumerate(sample_ids):
+            if verbose:
+                print(f"🔎 Chunk {i+1}/{len(sample_ids)}: {chunk_id}")
+            
+            try:
+                # Get chunk data
+                result = collection.get(ids=[chunk_id])
+                
+                if not result["ids"] or not result["metadatas"]:
+                    error_msg = f"Could not retrieve data for chunk {chunk_id}"
+                    validation_results["errors"].append(error_msg)
+                    validation_results["invalid_chunks"] += 1
+                    if verbose:
+                        print(f"   ❌ {error_msg}")
+                    continue
+                
+                metadata = result["metadatas"][0]
+                document = result["documents"][0] if result["documents"] else ""
+                
+                # Validate metadata
+                errors = validate_metadata(metadata, chunk_id)
+                
+                if errors:
+                    validation_results["invalid_chunks"] += 1
+                    validation_results["errors"].extend(errors)
+                    if verbose:
+                        for error in errors:
+                            print(f"   ❌ {error}")
+                else:
+                    validation_results["valid_chunks"] += 1
+                    if verbose:
+                        print("   ✅ Valid")
+                
+                # Collect statistics
+                validation_results["sources"].add(metadata.get("source", "unknown"))
+                validation_results["embedding_models"].add(metadata.get("embedding_model", "unknown"))
+                validation_results["languages"].add(metadata.get("language", "unknown"))
+                
+                if verbose:
+                    print(f"   📄 Source: {metadata.get('source', 'unknown')}")
+                    print(f"   🏷️  Document ID: {metadata.get('document_id', 'unknown')}")
+                    print(f"   🔤 Language: {metadata.get('language', 'unknown')}")
+                    print(f"   📅 Created: {metadata.get('created_at', 'unknown')}")
+                    print(f"   📝 Text preview: {document[:100]}...")
+                    print()
+                
+            except Exception as e:
+                error_msg = f"Error processing chunk {chunk_id}: {str(e)}"
+                validation_results["errors"].append(error_msg)
+                validation_results["invalid_chunks"] += 1
+                if verbose:
+                    print(f"   ❌ {error_msg}")
+        
+        # Print summary
+        print("📋 Validation Summary:")
+        print("=" * 30)
+        print(f"✅ Valid chunks: {validation_results['valid_chunks']}")
+        print(f"❌ Invalid chunks: {validation_results['invalid_chunks']}")
+        print(f"📊 Success rate: {(validation_results['valid_chunks'] / validation_results['total_inspected'] * 100):.1f}%")
+        print()
+        
+        if validation_results["errors"]:
+            print("🚨 Errors Found:")
+            for error in validation_results["errors"][:10]:  # Show first 10 errors
+                print(f"   • {error}")
+            if len(validation_results["errors"]) > 10:
+                print(f"   ... and {len(validation_results['errors']) - 10} more errors")
+        else:
+            print("✅ No validation errors found!")
+        
+        print()
+        print("📈 Data Diversity:")
+        print(f"   📚 Sources: {len(validation_results['sources'])} unique")
+        print(f"   🔤 Languages: {len(validation_results['languages'])} unique")
+        print(f"   🧠 Embedding models: {len(validation_results['embedding_models'])} unique")
+        
+        # Convert sets to lists for JSON serialization
+        validation_results["sources"] = list(validation_results["sources"])
+        validation_results["embedding_models"] = list(validation_results["embedding_models"])
+        validation_results["languages"] = list(validation_results["languages"])
+        
+        return validation_results
+        
+    except Exception as e:
+        print(f"❌ Error inspecting vector store: {e}")
+        return {"status": "error", "error": str(e)}
 
 
-REQUIRED = [
-    "document_id",
-    "source",
-    "chunk_id",
-    "chunk_text",
-    "created_at",
-    "embedding_model",
-    "language",
-    "checksum",
-]
-
-
-def _validate(mds: List[Dict[str, Any]]) -> List[str]:
-    problems: List[str] = []
-    for i, md in enumerate(mds):
-        missing = [k for k in REQUIRED if k not in md]
-        if missing:
-            problems.append(f"item {i} missing: {', '.join(missing)}")
-    return problems
-
-
-def main(argv: List[str] | None = None) -> int:
-    p = argparse.ArgumentParser(
-        description="Inspect vector store entries and validate schema fields"
+def main():
+    """Main function to run the inspection tool."""
+    parser = argparse.ArgumentParser(
+        description="Inspect and validate vector store entries"
     )
-    p.add_argument(
-        "--path",
-        default="storage/vector_store/research_db",
-        help="Persistent DB directory",
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Maximum number of entries to inspect (default: 10, use 0 for all)",
     )
-    p.add_argument(
-        "--collection", default="research_collection", help="Collection name"
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print detailed information for each chunk",
     )
-    p.add_argument("--limit", type=int, default=5, help="Number of entries to preview")
-    args = p.parse_args(argv)
-
-    col = _connect(Path(args.path), args.collection)
-    try:
-        count = col.count()
-    except Exception:
-        count = -1
-
-    data = _peek(col, args.limit)
-    docs = data.get("documents", []) or []
-    mds = data.get("metadatas", []) or []
-    ids = data.get("ids", []) or []
-
-    problems = _validate(mds)
-
-    print("--- Vector Store Inspection ---")
-    print(f"path: {args.path}")
-    print(f"collection: {args.collection}")
-    print(f"count: {count}")
-    print(f"preview: {len(docs)} items")
-    for i in range(len(docs)):
-        print(
-            f"- id: {ids[i] if i < len(ids) else '?'} | source: {mds[i].get('source', '?')} | chunk_id: {mds[i].get('chunk_id', '?')}"
-        )
-    if problems:
-        print("\nSchema issues:")
-        for pbl in problems:
-            print(f"- {pbl}")
-        return 1
-    else:
-        print("\nSchema validation: OK (required fields present)")
-        return 0
+    parser.add_argument(
+        "--output",
+        type=str,
+        help="Save results to JSON file",
+    )
+    
+    args = parser.parse_args()
+    
+    # Run inspection
+    results = inspect_vector_store(
+        limit=args.limit if args.limit > 0 else None,
+        verbose=args.verbose,
+    )
+    
+    # Save results if requested
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2, default=str)
+        
+        print(f"\n💾 Results saved to: {output_path}")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

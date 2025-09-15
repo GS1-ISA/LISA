@@ -1,0 +1,154 @@
+# OIDC Configuration for Unified CI/CD Pipeline
+
+oidc:
+  enabled: true
+  providers:
+    aws:
+      enabled: true
+      role_arn: "${{ secrets.AWS_ROLE_ARN }}"
+      session_name: "github-actions-deployment"
+      region: "us-east-1"
+      duration_seconds: 3600
+      permissions:
+        - "ec2:DescribeInstances"
+        - "ecs:DescribeServices"
+        - "ecs:UpdateService"
+        - "ecs:RegisterTaskDefinition"
+        - "elasticloadbalancing:DescribeTargetGroups"
+        - "elasticloadbalancing:DescribeTargetHealth"
+        - "elasticloadbalancing:RegisterTargets"
+        - "elasticloadbalancing:DeregisterTargets"
+        - "cloudwatch:PutMetricData"
+        - "cloudwatch:GetMetricStatistics"
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+        - "s3:GetObject"
+        - "s3:PutObject"
+        - "s3:ListBucket"
+    
+    azure:
+      enabled: false
+      client_id: "${{ secrets.AZURE_CLIENT_ID }}"
+      tenant_id: "${{ secrets.AZURE_TENANT_ID }}"
+      subscription_id: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      permissions:
+        - "Microsoft.Web/sites/write"
+        - "Microsoft.Web/sites/read"
+        - "Microsoft.Web/sites/deployments/write"
+        - "Microsoft.ContainerRegistry/registries/write"
+        - "Microsoft.ContainerRegistry/registries/read"
+    
+    gcp:
+      enabled: false
+      project_id: "${{ secrets.GCP_PROJECT_ID }}"
+      service_account: "${{ secrets.GCP_SERVICE_ACCOUNT }}"
+      workload_identity_provider: "${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+
+environment_protection:
+  enabled: true
+  rules:
+    production:
+      required_reviewers: 2
+      required_checks:
+        - "security-scan"
+        - "test"
+        - "build"
+      deployment_protection_rules:
+        - "Require approval from maintainers"
+        - "Require successful security scan"
+        - "Require successful tests"
+      branch_protection:
+        required_status_checks:
+          - "code-quality"
+          - "security-scan"
+          - "test"
+          - "build"
+        enforce_admins: true
+        required_pull_request_reviews:
+          required_approving_review_count: 2
+          dismiss_stale_reviews: true
+          require_code_owner_reviews: true
+    
+    staging:
+      required_reviewers: 1
+      required_checks:
+        - "security-scan"
+        - "test"
+        - "build"
+      deployment_protection_rules:
+        - "Require successful security scan"
+        - "Require successful tests"
+      branch_protection:
+        required_status_checks:
+          - "code-quality"
+          - "security-scan"
+          - "test"
+        enforce_admins: false
+        required_pull_request_reviews:
+          required_approving_review_count: 1
+          dismiss_stale_reviews: false
+          require_code_owner_reviews: false
+    
+    development:
+      required_reviewers: 0
+      required_checks:
+        - "code-quality"
+      deployment_protection_rules: []
+      branch_protection:
+        required_status_checks:
+          - "code-quality"
+        enforce_admins: false
+        required_pull_request_reviews:
+          required_approving_review_count: 0
+          dismiss_stale_reviews: false
+          require_code_owner_reviews: false
+
+secrets_management:
+  enabled: true
+  providers:
+    github_secrets:
+      enabled: true
+      secrets:
+        - AWS_ROLE_ARN
+        - AZURE_CLIENT_ID
+        - AZURE_TENANT_ID
+        - AZURE_SUBSCRIPTION_ID
+        - GCP_PROJECT_ID
+        - GCP_SERVICE_ACCOUNT
+        - GCP_WORKLOAD_IDENTITY_PROVIDER
+        - SLACK_WEBHOOK_URL
+        - PAGERDUTY_SERVICE_KEY
+        - SNYK_TOKEN
+    
+    aws_secrets_manager:
+      enabled: false
+      region: "us-east-1"
+      secrets:
+        - database_password
+        - api_keys
+        - certificates
+    
+    azure_key_vault:
+      enabled: false
+      vault_name: "my-key-vault"
+      secrets:
+        - database_password
+        - api_keys
+
+compliance:
+  enabled: true
+  requirements:
+    - "Least privilege access"
+    - "Audit logging"
+    - "Secret rotation"
+    - "Multi-factor authentication"
+  audit_logging:
+    enabled: true
+    events:
+      - "deployment_start"
+      - "deployment_success"
+      - "deployment_failure"
+      - "rollback_initiated"
+      - "secret_access"
+    retention_days: 90

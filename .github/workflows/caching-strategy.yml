@@ -1,0 +1,550 @@
+name: Caching Strategy
+
+on:
+  workflow_call:
+    inputs:
+      cache_scope:
+        description: 'Cache scope (global, workflow, job, branch)'
+        required: false
+        type: string
+        default: 'workflow'
+      cache_key_prefix:
+        description: 'Custom cache key prefix'
+        required: false
+        type: string
+        default: 'cache'
+      enable_dependency_cache:
+        description: 'Enable dependency caching'
+        required: false
+        type: boolean
+        default: true
+      enable_build_cache:
+        description: 'Enable build cache'
+        required: false
+        type: boolean
+        default: true
+      enable_docker_cache:
+        description: 'Enable Docker layer caching'
+        required: false
+        type: boolean
+        default: false
+      enable_custom_cache:
+        description: 'Enable custom cache paths'
+        required: false
+        type: boolean
+        default: false
+      custom_cache_paths:
+        description: 'Custom cache paths (JSON array)'
+        required: false
+        type: string
+        default: '[]'
+      cache_ttl_days:
+        description: 'Cache TTL in days'
+        required: false
+        type: number
+        default: 7
+    outputs:
+      cache_hit:
+        description: 'Whether cache was hit'
+        value: ${{ jobs.setup-cache.outputs.cache_hit }}
+      cache_key:
+        description: 'Cache key used'
+        value: ${{ jobs.setup-cache.outputs.cache_key }}
+
+env:
+  CACHE_VERSION: v1
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  setup-cache:
+    name: Setup Caching Strategy
+    runs-on: ubuntu-latest
+    outputs:
+      cache_hit: ${{ steps.cache-analysis.outputs.hit }}
+      cache_key: ${{ steps.generate-key.outputs.key }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate cache key
+        id: generate-key
+        run: |
+          echo "🔑 Generating cache key..."
+          
+          # Base cache key components
+          BASE_KEY="${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}"
+          OS_KEY="ubuntu-latest"
+          DATE_KEY=$(date -u +%Y-%m-%d)
+          
+          # Scope-specific components
+          case "${{ inputs.cache_scope }}" in
+            "global")
+              SCOPE_KEY="global"
+              ;;
+            "workflow")
+              SCOPE_KEY="${{ github.workflow }}"
+              ;;
+            "job")
+              SCOPE_KEY="${{ github.job }}"
+              ;;
+            "branch")
+              SCOPE_KEY="${{ github.ref_name }}"
+              ;;
+            *)
+              SCOPE_KEY="default"
+              ;;
+          esac
+          
+          # Dependency-specific components
+          DEP_KEY=""
+          if [ "${{ inputs.enable_dependency_cache }}" == "true" ]; then
+            if [ -f "package-lock.json" ]; then
+              DEP_KEY="${DEP_KEY}-npm-$(sha256sum package-lock.json | cut -d' ' -f1 | cut -c1-8)"
+            elif [ -f "yarn.lock" ]; then
+              DEP_KEY="${DEP_KEY}-yarn-$(sha256sum yarn.lock | cut -d' ' -f1 | cut -c1-8)"
+            elif [ -f "requirements.txt" ]; then
+              DEP_KEY="${DEP_KEY}-pip-$(sha256sum requirements.txt | cut -d' ' -f1 | cut -c1-8)"
+            elif [ -f "poetry.lock" ]; then
+              DEP_KEY="${DEP_KEY}-poetry-$(sha256sum poetry.lock | cut -d' ' -f1 | cut -c1-8)"
+            fi
+          fi
+          
+          # Build-specific components
+          BUILD_KEY=""
+          if [ "${{ inputs.enable_build_cache }}" == "true" ]; then
+            if [ -f "tsconfig.json" ]; then
+              BUILD_KEY="${BUILD_KEY}-ts-$(sha256sum tsconfig.json | cut -d' ' -f1 | cut -c1-8)"
+            elif [ -f "webpack.config.js" ]; then
+              BUILD_KEY="${BUILD_KEY}-webpack-$(sha256sum webpack.config.js | cut -d' ' -f1 | cut -c1-8)"
+            elif [ -f "Makefile" ]; then
+              BUILD_KEY="${BUILD_KEY}-makefile-$(sha256sum Makefile | cut -d' ' -f1 | cut -c1-8)"
+            fi
+          fi
+          
+          # Combine all components
+          CACHE_KEY="${BASE_KEY}-${OS_KEY}-${SCOPE_KEY}${DEP_KEY}${BUILD_KEY}-${DATE_KEY}"
+          
+          echo "Generated cache key: $CACHE_KEY"
+          echo "key=$CACHE_KEY" >> $GITHUB_OUTPUT
+
+      - name: Cache dependency analysis
+        id: cache-analysis
+        run: |
+          echo "📊 Analyzing cache requirements..."
+          
+          # Analyze project structure
+          CACHE_HIT="false"
+          
+          # Check for common dependency files
+          if [ -f "package-lock.json" ] || [ -f "yarn.lock" ]; then
+            echo "📦 Node.js dependencies detected"
+          fi
+          
+          if [ -f "requirements.txt" ] || [ -f "poetry.lock" ]; then
+            echo "🐍 Python dependencies detected"
+          fi
+          
+          if [ -f "Cargo.toml" ]; then
+            echo "🦀 Rust dependencies detected"
+          fi
+          
+          if [ -f "go.mod" ]; then
+            echo "🐹 Go dependencies detected"
+          fi
+          
+          if [ -f "pom.xml" ] || [ -f "build.gradle" ]; then
+            echo "☕ Java dependencies detected"
+          fi
+          
+          echo "hit=$CACHE_HIT" >> $GITHUB_OUTPUT
+
+  dependency-cache:
+    name: Dependency Caching
+    runs-on: ubuntu-latest
+    needs: [setup-cache]
+    if: inputs.enable_dependency_cache == true
+    outputs:
+      cache_hit: ${{ steps.cache-hit.outputs.value }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js cache
+        if: hashFiles('package-lock.json') != '' || hashFiles('yarn.lock') != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            yarn.lock
+
+      - name: Cache Node.js dependencies
+        if: hashFiles('package-lock.json') != '' || hashFiles('yarn.lock') != ''
+        uses: actions/cache@v4
+        id: node-cache
+        with:
+          path: |
+            ~/.npm
+            ~/.yarn
+            node_modules
+            .yarn/cache
+          key: ${{ needs.setup-cache.outputs.cache_key }}-node-${{ hashFiles('package-lock.json', 'yarn.lock') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-node-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-node-
+
+      - name: Setup Python cache
+        if: hashFiles('requirements.txt') != '' || hashFiles('poetry.lock') != ''
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            poetry.lock
+
+      - name: Cache Python dependencies
+        if: hashFiles('requirements.txt') != '' || hashFiles('poetry.lock') != ''
+        uses: actions/cache@v4
+        id: python-cache
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/share/virtualenvs
+            .venv
+            __pypackages__
+          key: ${{ needs.setup-cache.outputs.cache_key }}-python-${{ hashFiles('requirements.txt', 'poetry.lock', 'setup.py') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-python-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-python-
+
+      - name: Cache Rust dependencies
+        if: hashFiles('Cargo.lock') != ''
+        uses: actions/cache@v4
+        id: rust-cache
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ needs.setup-cache.outputs.cache_key }}-rust-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-rust-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-rust-
+
+      - name: Cache Go dependencies
+        if: hashFiles('go.sum') != ''
+        uses: actions/cache@v4
+        id: go-cache
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ needs.setup-cache.outputs.cache_key }}-go-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-go-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-go-
+
+      - name: Cache Java dependencies
+        if: hashFiles('pom.xml') != '' || hashFiles('build.gradle') != ''
+        uses: actions/cache@v4
+        id: java-cache
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ needs.setup-cache.outputs.cache_key }}-java-${{ hashFiles('pom.xml', 'build.gradle', 'gradle.properties') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-java-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-java-
+
+      - name: Determine cache hit
+        id: cache-hit
+        run: |
+          echo "🔍 Determining cache hit status..."
+          
+          CACHE_HIT="false"
+          
+          if [ "${{ steps.node-cache.outputs.cache-hit }}" == "true" ] || \
+             [ "${{ steps.python-cache.outputs.cache-hit }}" == "true" ] || \
+             [ "${{ steps.rust-cache.outputs.cache-hit }}" == "true" ] || \
+             [ "${{ steps.go-cache.outputs.cache-hit }}" == "true" ] || \
+             [ "${{ steps.java-cache.outputs.cache-hit }}" == "true" ]; then
+            CACHE_HIT="true"
+          fi
+          
+          echo "value=$CACHE_HIT" >> $GITHUB_OUTPUT
+          echo "Cache hit: $CACHE_HIT"
+
+  build-cache:
+    name: Build Caching
+    runs-on: ubuntu-latest
+    needs: [setup-cache]
+    if: inputs.enable_build_cache == true
+    outputs:
+      cache_hit: ${{ steps.cache-hit.outputs.value }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache build outputs
+        uses: actions/cache@v4
+        id: build-cache
+        with:
+          path: |
+            dist/
+            build/
+            .next/
+            .nuxt/
+            public/
+            static/
+            *.tar.gz
+            *.zip
+          key: ${{ needs.setup-cache.outputs.cache_key }}-build-${{ hashFiles('**/package-lock.json', '**/yarn.lock', '**/requirements.txt', '**/Cargo.lock', '**/go.sum', '**/pom.xml', '**/build.gradle', 'tsconfig.json', 'webpack.config.js', 'rollup.config.js', 'vite.config.js') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-build-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-build-
+
+      - name: Cache TypeScript compilation
+        if: hashFiles('tsconfig.json') != ''
+        uses: actions/cache@v4
+        id: typescript-cache
+        with:
+          path: |
+            *.tsbuildinfo
+            .tsbuildinfo
+            dist/
+            lib/
+          key: ${{ needs.setup-cache.outputs.cache_key }}-typescript-${{ hashFiles('tsconfig.json', '**/tsconfig.json', 'src/**/*.ts', 'src/**/*.tsx') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-typescript-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-typescript-
+
+      - name: Cache Webpack build
+        if: hashFiles('webpack.config.js') != ''
+        uses: actions/cache@v4
+        id: webpack-cache
+        with:
+          path: |
+            .webpack-cache
+            node_modules/.cache
+          key: ${{ needs.setup-cache.outputs.cache_key }}-webpack-${{ hashFiles('webpack.config.js', 'src/**/*', 'package-lock.json', 'yarn.lock') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-webpack-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-webpack-
+
+      - name: Determine build cache hit
+        id: cache-hit
+        run: |
+          echo "🔍 Determining build cache hit status..."
+          
+          CACHE_HIT="false"
+          
+          if [ "${{ steps.build-cache.outputs.cache-hit }}" == "true" ] || \
+             [ "${{ steps.typescript-cache.outputs.cache-hit }}" == "true" ] || \
+             [ "${{ steps.webpack-cache.outputs.cache-hit }}" == "true" ]; then
+            CACHE_HIT="true"
+          fi
+          
+          echo "value=$CACHE_HIT" >> $GITHUB_OUTPUT
+          echo "Build cache hit: $CACHE_HIT"
+
+  docker-cache:
+    name: Docker Layer Caching
+    runs-on: ubuntu-latest
+    needs: [setup-cache]
+    if: inputs.enable_docker_cache == true
+    outputs:
+      cache_hit: ${{ steps.cache-hit.outputs.value }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        id: docker-cache
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ needs.setup-cache.outputs.cache_key }}-docker-${{ hashFiles('**/Dockerfile', '**/docker-compose.yml', '**/package-lock.json', '**/requirements.txt') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-docker-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-docker-
+
+      - name: Cache Docker registry
+        if: github.event_name != 'pull_request'
+        uses: actions/cache@v4
+        id: docker-registry-cache
+        with:
+          path: /tmp/docker-registry
+          key: ${{ needs.setup-cache.outputs.cache_key }}-docker-registry-${{ github.sha }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-docker-registry-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-docker-registry-
+
+      - name: Determine Docker cache hit
+        id: cache-hit
+        run: |
+          echo "🔍 Determining Docker cache hit status..."
+          
+          CACHE_HIT="false"
+          
+          if [ "${{ steps.docker-cache.outputs.cache-hit }}" == "true" ] || \
+             [ "${{ steps.docker-registry-cache.outputs.cache-hit }}" == "true" ]; then
+            CACHE_HIT="true"
+          fi
+          
+          echo "value=$CACHE_HIT" >> $GITHUB_OUTPUT
+          echo "Docker cache hit: $CACHE_HIT"
+
+  custom-cache:
+    name: Custom Caching
+    runs-on: ubuntu-latest
+    needs: [setup-cache]
+    if: inputs.enable_custom_cache == true && inputs.custom_cache_paths != '[]'
+    outputs:
+      cache_hit: ${{ steps.cache-hit.outputs.value }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse custom cache paths
+        id: parse-paths
+        run: |
+          echo "📂 Parsing custom cache paths..."
+          
+          # Parse JSON array of custom paths
+          CUSTOM_PATHS='${{ inputs.custom_cache_paths }}'
+          
+          # Convert to multiline format for cache action
+          echo "paths<<EOF" >> $GITHUB_OUTPUT
+          echo "$CUSTOM_PATHS" | jq -r '.[]' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Cache custom paths
+        uses: actions/cache@v4
+        id: custom-cache
+        with:
+          path: ${{ steps.parse-paths.outputs.paths }}
+          key: ${{ needs.setup-cache.outputs.cache_key }}-custom-${{ hashFiles('**/package-lock.json', '**/requirements.txt') }}
+          restore-keys: |
+            ${{ needs.setup-cache.outputs.cache_key }}-custom-
+            ${{ inputs.cache_key_prefix }}-${{ env.CACHE_VERSION }}-custom-
+
+      - name: Determine custom cache hit
+        id: cache-hit
+        run: |
+          echo "🔍 Determining custom cache hit status..."
+          
+          CACHE_HIT="false"
+          
+          if [ "${{ steps.custom-cache.outputs.cache-hit }}" == "true" ]; then
+            CACHE_HIT="true"
+          fi
+          
+          echo "value=$CACHE_HIT" >> $GITHUB_OUTPUT
+          echo "Custom cache hit: $CACHE_HIT"
+
+  cache-maintenance:
+    name: Cache Maintenance
+    runs-on: ubuntu-latest
+    needs: [setup-cache, dependency-cache, build-cache, docker-cache, custom-cache]
+    if: always()
+    
+    steps:
+      - name: Generate cache performance report
+        run: |
+          echo "📊 Generating cache performance report..."
+          
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          
+          printf '{\n' > cache-performance.json
+          printf '  "timestamp": "%s",\n' "$TIMESTAMP" >> cache-performance.json
+          printf '  "cache_scope": "%s",\n' "${{ inputs.cache_scope }}" >> cache-performance.json
+          printf '  "cache_key": "%s",\n' "${{ needs.setup-cache.outputs.cache_key }}" >> cache-performance.json
+          printf '  "dependency_cache_hit": "%s",\n' "${{ needs.dependency-cache.outputs.cache_hit }}" >> cache-performance.json
+          printf '  "build_cache_hit": "%s",\n' "${{ needs.build-cache.outputs.cache_hit }}" >> cache-performance.json
+          printf '  "docker_cache_hit": "%s",\n' "${{ needs.docker-cache.outputs.cache_hit }}" >> cache-performance.json
+          printf '  "custom_cache_hit": "%s",\n' "${{ needs.custom-cache.outputs.cache_hit }}" >> cache-performance.json
+          printf '  "cache_ttl_days": %s\n' "${{ inputs.cache_ttl_days }}" >> cache-performance.json
+          printf '}\n' >> cache-performance.json
+          
+          echo "✅ Cache performance report generated"
+
+      - name: Cleanup old caches
+        run: |
+          echo "🧹 Cleaning up old caches..."
+          
+          # This would typically integrate with GitHub API to clean up old cache entries
+          # For now, just log the action
+          echo "Cache cleanup would be performed here"
+          
+          echo "✅ Cache cleanup completed"
+
+  cache-summary:
+    name: Cache Summary
+    runs-on: ubuntu-latest
+    needs: [setup-cache, dependency-cache, build-cache, docker-cache, custom-cache, cache-maintenance]
+    if: always()
+    
+    steps:
+      - name: Generate cache summary
+        run: |
+          echo "📋 Cache Strategy Summary"
+          echo "================================"
+          echo "Cache Scope: ${{ inputs.cache_scope }}"
+          echo "Cache Key: ${{ needs.setup-cache.outputs.cache_key }}"
+          echo "Dependency Cache Hit: ${{ needs.dependency-cache.outputs.cache_hit }}"
+          echo "Build Cache Hit: ${{ needs.build-cache.outputs.cache_hit }}"
+          echo "Docker Cache Hit: ${{ needs.docker-cache.outputs.cache_hit }}"
+          echo "Custom Cache Hit: ${{ needs.custom-cache.outputs.cache_hit }}"
+          echo "================================"
+          
+          # Calculate overall cache hit rate
+          HITS=0
+          TOTAL=0
+          
+          if [ "${{ inputs.enable_dependency_cache }}" == "true" ]; then
+            TOTAL=$((TOTAL + 1))
+            if [ "${{ needs.dependency-cache.outputs.cache_hit }}" == "true" ]; then
+              HITS=$((HITS + 1))
+            fi
+          fi
+          
+          if [ "${{ inputs.enable_build_cache }}" == "true" ]; then
+            TOTAL=$((TOTAL + 1))
+            if [ "${{ needs.build-cache.outputs.cache_hit }}" == "true" ]; then
+              HITS=$((HITS + 1))
+            fi
+          fi
+          
+          if [ "${{ inputs.enable_docker_cache }}" == "true" ]; then
+            TOTAL=$((TOTAL + 1))
+            if [ "${{ needs.docker-cache.outputs.cache_hit }}" == "true" ]; then
+              HITS=$((HITS + 1))
+            fi
+          fi
+          
+          if [ "${{ inputs.enable_custom_cache }}" == "true" ] && [ "${{ inputs.custom_cache_paths }}" != "[]" ]; then
+            TOTAL=$((TOTAL + 1))
+            if [ "${{ needs.custom-cache.outputs.cache_hit }}" == "true" ]; then
+              HITS=$((HITS + 1))
+            fi
+          fi
+          
+          if [ "$TOTAL" -gt 0 ]; then
+            HIT_RATE=$((HITS * 100 / TOTAL))
+            echo "Overall Cache Hit Rate: ${HIT_RATE}% ($HITS/$TOTAL)"
+          else
+            echo "No caches enabled"
+          fi

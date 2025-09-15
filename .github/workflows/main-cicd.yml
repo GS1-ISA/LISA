@@ -1,0 +1,575 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, 'release/*', 'hotfix/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+      skip_security:
+        description: 'Skip security scanning'
+        required: false
+        type: boolean
+        default: false
+      skip_build:
+        description: 'Skip build process'
+        required: false
+        type: boolean
+        default: false
+      skip_deploy:
+        description: 'Skip deployment'
+        required: false
+        type: boolean
+        default: false
+      deployment_environment:
+        description: 'Target deployment environment (development, staging, production)'
+        required: false
+        type: string
+        default: 'development'
+      deployment_strategy:
+        description: 'Deployment strategy (rolling, blue-green, canary, recreate)'
+        required: false
+        type: string
+        default: 'rolling'
+      dry_run:
+        description: 'Perform dry run without actual deployment'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+  JAVA_VERSION: '17'
+
+jobs:
+  # Phase 1: Code Quality and Validation
+  code-quality:
+    name: Code Quality & Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+      
+      - name: Install dependencies
+        run: |
+          # Install Node.js dependencies
+          if [ -f package.json ]; then
+            npm ci
+          fi
+          
+          # Install Python dependencies
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          
+          # Install Java dependencies
+          if [ -f pom.xml ]; then
+            mvn dependency:resolve
+          fi
+      
+      - name: Run linting
+        run: |
+          # ESLint for JavaScript
+          if [ -f package.json ]; then
+            npm run lint || true
+          fi
+          
+          # Flake8 for Python
+          if [ -f requirements.txt ]; then
+            flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+          fi
+          
+          # Checkstyle for Java
+          if [ -f pom.xml ]; then
+            mvn checkstyle:check || true
+          fi
+      
+      - name: Run formatting checks
+        run: |
+          # Prettier for JavaScript
+          if [ -f package.json ]; then
+            npm run format:check || true
+          fi
+          
+          # Black for Python
+          if [ -f requirements.txt ]; then
+            black --check . || true
+          fi
+
+  # Phase 2: Security Scanning
+  security-scan:
+    name: Security Scanning
+    if: github.event.inputs.skip_security != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run SAST scan
+        run: |
+          echo "🔍 Running Static Application Security Testing (SAST)"
+          # Add SAST scanning tools here
+          # Example: semgrep, sonarqube, etc.
+      
+      - name: Run SCA scan
+        run: |
+          echo "🔍 Running Software Composition Analysis (SCA)"
+          # Add SCA scanning tools here
+          # Example: snyk, safety, etc.
+      
+      - name: Run secrets scan
+        run: |
+          echo "🔍 Running secrets detection"
+          # Add secrets scanning tools here
+          # Example: gitleaks, trufflehog, etc.
+      
+      - name: Run container scan
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "🔍 Running container security scan"
+          # Add container scanning tools here
+          # Example: trivy, clair, etc.
+      
+      - name: Run infrastructure scan
+        run: |
+          echo "🔍 Running infrastructure security scan"
+          # Add infrastructure scanning tools here
+          # Example: tfsec, checkov, etc.
+
+  # Phase 3: Build and Test
+  build-and-test:
+    name: Build & Test
+    needs: [code-quality, security-scan]
+    if: |
+      always() &&
+      (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped') &&
+      (needs.security-scan.result == 'success' || needs.security-scan.result == 'skipped')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [frontend, backend, infrastructure]
+        include:
+          - component: frontend
+            language: javascript
+            build_command: npm run build
+            test_command: npm test
+            artifact_path: dist/
+          - component: backend
+            language: python
+            build_command: python -m build
+            test_command: pytest
+            artifact_path: dist/
+          - component: infrastructure
+            language: terraform
+            build_command: terraform validate
+            test_command: terraform plan
+            artifact_path: terraform/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup environment
+        run: |
+          if [ "${{ matrix.language }}" == "javascript" ]; then
+            npm ci
+          elif [ "${{ matrix.language }}" == "python" ]; then
+            pip install -r requirements.txt
+          elif [ "${{ matrix.language }}" == "terraform" ]; then
+            terraform init
+          fi
+      
+      - name: Build component
+        if: github.event.inputs.skip_build != 'true'
+        run: ${{ matrix.build_command }}
+      
+      - name: Run tests
+        if: github.event.inputs.skip_tests != 'true'
+        run: ${{ matrix.test_command }}
+      
+      - name: Upload artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.component }}-artifacts
+          path: ${{ matrix.artifact_path }}
+          retention-days: 30
+
+  # Phase 4: Container Build and Registry Push
+  container-build:
+    name: Container Build & Push
+    needs: [build-and-test]
+    if: needs.build-and-test.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request' && github.event.inputs.dry_run != 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' && github.event.inputs.dry_run != 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Phase 5: Infrastructure Validation
+  infrastructure-validate:
+    name: Infrastructure Validation
+    needs: [build-and-test]
+    if: needs.build-and-test.result == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+      
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform Validate
+        run: terraform validate
+      
+      - name: Terraform Plan
+        run: terraform plan -var="environment=${{ matrix.environment }}"
+
+  # Phase 6: Deployment Decision Matrix
+  deployment-decision:
+    name: Deployment Decision Matrix
+    needs: [container-build, infrastructure-validate]
+    if: |
+      always() && 
+      (needs.container-build.result == 'success' || needs.container-build.result == 'skipped') &&
+      (needs.infrastructure-validate.result == 'success' || needs.infrastructure-validate.result == 'skipped')
+    runs-on: ubuntu-latest
+    outputs:
+      deployment_matrix: ${{ steps.matrix.outputs.deployment_matrix }}
+      deployment_environment: ${{ steps.environment.outputs.environment }}
+      deployment_strategy: ${{ steps.strategy.outputs.strategy }}
+      should_deploy: ${{ steps.decision.outputs.should_deploy }}
+    steps:
+      - name: Determine deployment environment
+        id: environment
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.deployment_environment }}"
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            ENVIRONMENT="production"
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            ENVIRONMENT="staging"
+          else
+            ENVIRONMENT="development"
+          fi
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "🎯 Deployment environment: $ENVIRONMENT"
+      
+      - name: Determine deployment strategy
+        id: strategy
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            STRATEGY="${{ github.event.inputs.deployment_strategy }}"
+          elif [ "${{ steps.environment.outputs.environment }}" == "production" ]; then
+            STRATEGY="blue-green"
+          elif [ "${{ steps.environment.outputs.environment }}" == "staging" ]; then
+            STRATEGY="canary"
+          else
+            STRATEGY="rolling"
+          fi
+          echo "strategy=$STRATEGY" >> $GITHUB_OUTPUT
+          echo "🚀 Deployment strategy: $STRATEGY"
+      
+      - name: Generate deployment matrix
+        id: matrix
+        run: |
+          # Generate deployment matrix based on environment and available components
+          MATRIX='[]'
+          
+          if [ "${{ steps.environment.outputs.environment }}" == "development" ]; then
+            MATRIX='[
+              {
+                "component": "frontend",
+                "platform": "kubernetes",
+                "namespace": "development",
+                "deployment_name": "frontend-dev",
+                "service_name": "frontend-service-dev",
+                "release_name": "frontend-dev",
+                "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend",
+                "config_file": "k8s/development/frontend.yaml",
+                "replicas": 1,
+                "health_endpoint": "/health",
+                "smoke_test_endpoint": "/api/health",
+                "version": "${{ github.sha }}"
+              },
+              {
+                "component": "backend",
+                "platform": "kubernetes",
+                "namespace": "development",
+                "deployment_name": "backend-dev",
+                "service_name": "backend-service-dev",
+                "release_name": "backend-dev",
+                "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend",
+                "config_file": "k8s/development/backend.yaml",
+                "replicas": 1,
+                "health_endpoint": "/api/health",
+                "smoke_test_endpoint": "/api/health",
+                "version": "${{ github.sha }}"
+              }
+            ]'
+          elif [ "${{ steps.environment.outputs.environment }}" == "staging" ]; then
+            MATRIX='[
+              {
+                "component": "frontend",
+                "platform": "kubernetes",
+                "namespace": "staging",
+                "deployment_name": "frontend-staging",
+                "service_name": "frontend-service-staging",
+                "release_name": "frontend-staging",
+                "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend",
+                "config_file": "k8s/staging/frontend.yaml",
+                "replicas": 2,
+                "health_endpoint": "/health",
+                "smoke_test_endpoint": "/api/health",
+                "version": "${{ github.sha }}"
+              },
+              {
+                "component": "backend",
+                "platform": "kubernetes",
+                "namespace": "staging",
+                "deployment_name": "backend-staging",
+                "service_name": "backend-service-staging",
+                "release_name": "backend-staging",
+                "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend",
+                "config_file": "k8s/staging/backend.yaml",
+                "replicas": 2,
+                "health_endpoint": "/api/health",
+                "smoke_test_endpoint": "/api/health",
+                "version": "${{ github.sha }}"
+              }
+            ]'
+          elif [ "${{ steps.environment.outputs.environment }}" == "production" ]; then
+            MATRIX='[
+              {
+                "component": "frontend",
+                "platform": "kubernetes",
+                "namespace": "production",
+                "deployment_name": "frontend-prod",
+                "service_name": "frontend-service-prod",
+                "release_name": "frontend-prod",
+                "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend",
+                "config_file": "k8s/production/frontend.yaml",
+                "replicas": 3,
+                "health_endpoint": "/health",
+                "smoke_test_endpoint": "/api/health",
+                "version": "${{ github.sha }}"
+              },
+              {
+                "component": "backend",
+                "platform": "kubernetes",
+                "namespace": "production",
+                "deployment_name": "backend-prod",
+                "service_name": "backend-service-prod",
+                "release_name": "backend-prod",
+                "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend",
+                "config_file": "k8s/production/backend.yaml",
+                "replicas": 3,
+                "health_endpoint": "/api/health",
+                "smoke_test_endpoint": "/api/health",
+                "version": "${{ github.sha }}"
+              }
+            ]'
+          fi
+          
+          echo "deployment_matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "📋 Deployment matrix generated"
+      
+      - name: Make deployment decision
+        id: decision
+        run: |
+          SHOULD_DEPLOY="false"
+          
+          # Deployment conditions
+          if [ "${{ github.event.inputs.skip_deploy }}" == "true" ]; then
+            echo "🚫 Deployment skipped by user input"
+          elif [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            SHOULD_DEPLOY="true"
+            echo "🔍 Dry run mode enabled"
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "🚫 No deployment for pull requests"
+          elif [ "${{ needs.container-build.result }}" == "success" ] && [ "${{ needs.infrastructure-validate.result }}" == "success" ]; then
+            SHOULD_DEPLOY="true"
+            echo "✅ All prerequisites passed, proceeding with deployment"
+          elif [ "${{ needs.container-build.result }}" == "skipped" ] && [ "${{ needs.infrastructure-validate.result }}" == "success" ]; then
+            SHOULD_DEPLOY="true"
+            echo "✅ Infrastructure validation passed, proceeding with deployment"
+          else
+            echo "❌ Prerequisites not met, skipping deployment"
+          fi
+          
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+
+  # Phase 7: Deployment
+  deploy:
+    name: Deploy to ${{ needs.deployment-decision.outputs.deployment_environment }}
+    needs: [deployment-decision]
+    if: needs.deployment-decision.outputs.should_deploy == 'true'
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+    with:
+      deployment_matrix: ${{ needs.deployment-decision.outputs.deployment_matrix }}
+      environment: ${{ needs.deployment-decision.outputs.deployment_environment }}
+      deployment_strategy: ${{ needs.deployment-decision.outputs.deployment_strategy }}
+      deployment_timeout: '60'
+      rollback_on_failure: true
+      health_check_enabled: true
+      health_check_timeout: '10'
+      dry_run: ${{ github.event.inputs.dry_run == 'true' }}
+
+  # Phase 8: Post-Deployment Validation
+  post-deployment-validation:
+    name: Post-Deployment Validation
+    needs: [deploy]
+    if: always() && needs.deploy.result != 'skipped'
+    uses: ./.github/workflows/post-deployment-validation.yml
+    secrets: inherit
+    with:
+      environment: ${{ needs.deployment-decision.outputs.deployment_environment }}
+      validation_tests: '["smoke", "integration", "performance"]'
+      performance_thresholds: '{"response_time": 2000, "error_rate": 0.01, "throughput": 100}'
+
+  # Phase 9: Notification and Reporting
+  notify:
+    name: Notification & Reporting
+    needs: [deploy, post-deployment-validation]
+    if: always()
+    uses: ./.github/workflows/notify.yml
+    secrets: inherit
+    with:
+      workflow_status: ${{ job.status }}
+      deployment_status: ${{ needs.deploy.result }}
+      validation_status: ${{ needs.post-deployment-validation.result }}
+      environment: ${{ needs.deployment-decision.outputs.deployment_environment }}
+      notify_channels: '["slack", "email", "teams"]'
+      include_deployment_summary: true
+      include_test_results: true
+
+  # Phase 10: Cleanup and Optimization
+  cleanup:
+    name: Cleanup & Optimization
+    needs: [deploy, container-build]
+    if: always()
+    uses: ./.github/workflows/cleanup.yml
+    secrets: inherit
+    with:
+      cleanup_registry: ${{ github.event_name != 'pull_request' }}
+      cleanup_artifacts: true
+      cleanup_cache: false
+      retention_days: 30
+
+  # Final Status Summary
+  status-summary:
+    name: Pipeline Status Summary
+    needs: [code-quality, security-scan, build-and-test, container-build, infrastructure-validate, deployment-decision, deploy, post-deployment-validation, notify, cleanup]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate pipeline summary
+        run: |
+          echo "🚀 Main CI/CD Pipeline Summary"
+          echo "================================"
+          echo ""
+          echo "📊 **Overall Status:** ${{ job.status }}"
+          echo "🔀 **Trigger:** ${{ github.event_name }}"
+          echo "🌿 **Branch:** ${{ github.ref_name }}"
+          echo "📝 **Commit:** ${{ github.sha }}"
+          echo ""
+          echo "## Phase Results"
+          echo "| Phase | Status | Details |"
+          echo "|-------|--------|---------|"
+          echo "| Code Quality | ${{ needs.code-quality.result }} | Static analysis, linting, formatting |"
+          echo "| Security Scan | ${{ needs.security-scan.result }} | SAST, SCA, secrets, containers |"
+          echo "| Build & Test | ${{ needs.build-and-test.result }} | Multi-component build and test |"
+          echo "| Container Build | ${{ needs.container-build.result }} | Multi-platform container build |"
+          echo "| Infrastructure | ${{ needs.infrastructure-validate.result }} | Terraform validation and planning |"
+          echo "| Deployment Decision | ${{ needs.deployment-decision.result }} | Environment and strategy selection |"
+          echo "| Deployment | ${{ needs.deploy.result }} | ${{ needs.deployment-decision.outputs.deployment_environment }} via ${{ needs.deployment-decision.outputs.deployment_strategy }} |"
+          echo "| Post-Deployment | ${{ needs.post-deployment-validation.result }} | Smoke, integration, performance tests |"
+          echo "| Notification | ${{ needs.notify.result }} | Multi-channel notifications |"
+          echo "| Cleanup | ${{ needs.cleanup.result }} | Registry and artifact cleanup |"
+          echo ""
+          echo "## Key Metrics"
+          echo "- **Deployment Environment:** ${{ needs.deployment-decision.outputs.deployment_environment }}"
+          echo "- **Deployment Strategy:** ${{ needs.deployment-decision.outputs.deployment_strategy }}"
+          echo "- **Container Registry:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "- **Node Version:** ${{ env.NODE_VERSION }}"
+          echo "- **Python Version:** ${{ env.PYTHON_VERSION }}"
+          echo "- **Java Version:** ${{ env.JAVA_VERSION }}"
+          echo ""
+          echo "## Next Steps"
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Pipeline completed successfully!"
+            echo "🎯 Deployment to ${{ needs.deployment-decision.outputs.deployment_environment }} completed"
+          elif [ "${{ job.status }}" == "failure" ]; then
+            echo "❌ Pipeline failed - check individual job logs for details"
+            echo "🔧 Review failed phases and re-run if necessary"
+          else
+            echo "⚠️ Pipeline status: ${{ job.status }}"
+            echo "📋 Review pipeline execution for details"
+          fi

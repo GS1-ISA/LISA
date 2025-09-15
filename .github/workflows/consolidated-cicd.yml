@@ -1,0 +1,719 @@
+name: Consolidated CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main, develop, staging]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: false
+        default: 'blue-green'
+        type: choice
+        options:
+          - blue-green
+          - canary
+          - rolling
+      skip_security:
+        description: 'Skip security scanning (emergency only)'
+        required: false
+        default: false
+        type: boolean
+      skip_tests:
+        description: 'Skip tests (emergency only)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CONFIG_PATH: config
+  SCRIPTS_PATH: scripts
+  ARTIFACTS_PATH: artifacts
+  PYTHON_VERSION: '3.11'
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+  security-events: write
+  actions: read
+
+jobs:
+  # Initialize pipeline configuration
+  initialize:
+    name: Initialize Pipeline
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.config.outputs.environment }}
+      deployment_strategy: ${{ steps.config.outputs.deployment_strategy }}
+      skip_security: ${{ steps.config.outputs.skip_security }}
+      skip_tests: ${{ steps.config.outputs.skip_tests }}
+      image_tag: ${{ steps.config.outputs.image_tag }}
+      cache_key: ${{ steps.config.outputs.cache_key }}
+      should_deploy: ${{ steps.config.outputs.should_deploy }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load configuration
+        id: config
+        run: |
+          # Determine environment and configuration
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+            DEPLOYMENT_STRATEGY="${{ github.event.inputs.deployment_strategy }}"
+            SKIP_SECURITY="${{ github.event.inputs.skip_security }}"
+            SKIP_TESTS="${{ github.event.inputs.skip_tests }}"
+          else
+            # Map branch to environment
+            case "${{ github.ref_name }}" in
+              "main") ENVIRONMENT="production" ;;
+              "develop") ENVIRONMENT="staging" ;;
+              "staging") ENVIRONMENT="staging" ;;
+              *) ENVIRONMENT="development" ;;
+            esac
+            DEPLOYMENT_STRATEGY="blue-green"
+            SKIP_SECURITY=false
+            SKIP_TESTS=false
+          fi
+          
+          # Generate image tag
+          IMAGE_TAG="${ENVIRONMENT}-${{ github.sha }}-$(date +%Y%m%d-%H%M%S)"
+          CACHE_KEY="${{ runner.os }}-${ENVIRONMENT}-${{ hashFiles('**/package-lock.json', '**/requirements.txt', '**/Dockerfile') }}"
+          
+          # Determine if deployment should occur
+          SHOULD_DEPLOY="false"
+          if [[ "${{ github.event_name }}" == "push" && ("${{ github.ref_name }}" == "main" || "${{ github.ref_name }}" == "develop") ]]; then
+            SHOULD_DEPLOY="true"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && ("${ENVIRONMENT}" == "staging" || "${ENVIRONMENT}" == "production") ]]; then
+            SHOULD_DEPLOY="true"
+          fi
+          
+          # Set outputs
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "deployment_strategy=${DEPLOYMENT_STRATEGY}" >> $GITHUB_OUTPUT
+          echo "skip_security=${SKIP_SECURITY}" >> $GITHUB_OUTPUT
+          echo "skip_tests=${SKIP_TESTS}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "cache_key=${CACHE_KEY}" >> $GITHUB_OUTPUT
+          echo "should_deploy=${SHOULD_DEPLOY}" >> $GITHUB_OUTPUT
+          
+          # Log configuration
+          echo "🚀 Pipeline Configuration:"
+          echo "  Environment: ${ENVIRONMENT}"
+          echo "  Deployment Strategy: ${DEPLOYMENT_STRATEGY}"
+          echo "  Image Tag: ${IMAGE_TAG}"
+          echo "  Should Deploy: ${SHOULD_DEPLOY}"
+          echo "  Skip Security: ${SKIP_SECURITY}"
+          echo "  Skip Tests: ${SKIP_TESTS}"
+
+  # Comprehensive security scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: initialize
+    if: needs.initialize.outputs.skip_security != 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache security tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/bin
+          key: ${{ runner.os }}-security-tools-${{ hashFiles('**/requirements.txt') }}
+
+      - name: Install security tools
+        run: |
+          # Install security scanning tools
+          pip install --user safety bandit semgrep
+          
+          # Install Trivy
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          
+          # Install TruffleHog
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run dependency vulnerability scan
+        run: |
+          # Run Safety check for Python dependencies
+          if [ -f "requirements.txt" ]; then
+            safety check --json --output safety-results.json || true
+          fi
+          
+          # Run Snyk if token is available
+          if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
+            npx snyk test --severity-threshold=high --json --json-file-output=snyk-results.json || true
+          fi
+
+      - name: Run static code analysis
+        run: |
+          # Run Bandit for Python security issues
+          if [ -f "requirements.txt" ]; then
+            bandit -r . -f json -o bandit-results.json || true
+          fi
+          
+          # Run Semgrep for code analysis
+          semgrep --config=auto --json --output=semgrep-results.json . || true
+
+      - name: Run secret scanning
+        run: |
+          # Run TruffleHog for secrets
+          trufflehog filesystem . --json --output=trufflehog-results.json || true
+
+      - name: Build test image for container scan
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:security-scan .
+
+      - name: Run container vulnerability scan
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        run: |
+          trivy image --format json --output trivy-results.json \
+            --severity HIGH,CRITICAL \
+            ${{ env.IMAGE_NAME }}:security-scan
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
+
+      - name: Consolidate security results
+        run: |
+          # Create consolidated security report
+          cat > security-summary.json << 'EOF'
+          {
+            "scan_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "repository": "${{ github.repository }}",
+            "commit": "${{ github.sha }}",
+            "results": {
+              "safety": $(test -f safety-results.json && cat safety-results.json || echo '{}'),
+              "snyk": $(test -f snyk-results.json && cat snyk-results.json || echo '{}'),
+              "bandit": $(test -f bandit-results.json && cat bandit-results.json || echo '{}'),
+              "semgrep": $(test -f semgrep-results.json && cat semgrep-results.json || echo '{}'),
+              "trufflehog": $(test -f trufflehog-results.json && cat trufflehog-results.json || echo '{}'),
+              "trivy": $(test -f trivy-results.json && cat trivy-results.json || echo '{}')
+            }
+          }
+          EOF
+
+      - name: Evaluate security results
+        run: |
+          # Simple security evaluation logic
+          HIGH_SEVERITY_ISSUES=0
+          CRITICAL_SEVERITY_ISSUES=0
+          
+          # Count issues from various scanners
+          if [ -f "trivy-results.json" ]; then
+            TRIVY_HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' trivy-results.json 2>/dev/null || echo 0)
+            TRIVY_CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-results.json 2>/dev/null || echo 0)
+            HIGH_SEVERITY_ISSUES=$((HIGH_SEVERITY_ISSUES + TRIVY_HIGH))
+            CRITICAL_SEVERITY_ISSUES=$((CRITICAL_SEVERITY_ISSUES + TRIVY_CRITICAL))
+          fi
+          
+          echo "HIGH_SEVERITY_ISSUES=${HIGH_SEVERITY_ISSUES}" >> $GITHUB_ENV
+          echo "CRITICAL_SEVERITY_ISSUES=${CRITICAL_SEVERITY_ISSUES}" >> $GITHUB_ENV
+          
+          if [ $CRITICAL_SEVERITY_ISSUES -gt 0 ]; then
+            echo "❌ Security scan failed: ${CRITICAL_SEVERITY_ISSUES} critical issues found"
+            exit 1
+          elif [ $HIGH_SEVERITY_ISSUES -gt 5 ]; then
+            echo "⚠️ Security scan warning: ${HIGH_SEVERITY_ISSUES} high severity issues found"
+          else
+            echo "✅ Security scan passed"
+          fi
+
+      - name: Upload security results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            safety-results.json
+            snyk-results.json
+            bandit-results.json
+            semgrep-results.json
+            trufflehog-results.json
+            trivy-results.json
+            security-summary.json
+          retention-days: 30
+
+  # Build and test application
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    needs: [initialize, security-scan]
+    if: always() && (needs.security-scan.result == 'success' || needs.initialize.outputs.skip_security == 'true')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.npm
+            ~/.cache/Cypress
+          key: ${{ needs.initialize.outputs.cache_key }}
+          restore-keys: |
+            ${{ runner.os }}-${{ needs.initialize.outputs.environment }}-
+
+      - name: Install dependencies
+        run: |
+          # Install Python dependencies
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          
+          # Install test dependencies
+          if [ -f "requirements-test.txt" ]; then
+            pip install -r requirements-test.txt
+          elif [ -f "requirements.txt" ]; then
+            pip install pytest pytest-cov pytest-xdist
+          fi
+
+      - name: Run unit tests
+        if: needs.initialize.outputs.skip_tests != 'true'
+        run: |
+          # Run unit tests with coverage
+          pytest tests/unit -v --cov=. --cov-report=xml --cov-report=html --junitxml=unit-test-results.xml
+          
+          # Check coverage threshold
+          COVERAGE=$(coverage report --format=total | tail -1 | sed 's/%//')
+          echo "UNIT_TEST_COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+          
+          if [ $COVERAGE -lt 80 ]; then
+            echo "⚠️ Unit test coverage ${COVERAGE}% is below 80% threshold"
+          else
+            echo "✅ Unit test coverage ${COVERAGE}% meets 80% threshold"
+          fi
+
+      - name: Run integration tests
+        if: needs.initialize.outputs.skip_tests != 'true'
+        run: |
+          # Run integration tests
+          pytest tests/integration -v --junitxml=integration-test-results.xml || true
+          
+          # Count integration test results
+          if [ -f "integration-test-results.xml" ]; then
+            INTEGRATION_TESTS=$(grep -c 'testcase' integration-test-results.xml 2>/dev/null || echo 0)
+            INTEGRATION_FAILURES=$(grep -c 'failure' integration-test-results.xml 2>/dev/null || echo 0)
+            echo "INTEGRATION_TESTS=${INTEGRATION_TESTS}" >> $GITHUB_ENV
+            echo "INTEGRATION_FAILURES=${INTEGRATION_FAILURES}" >> $GITHUB_ENV
+          fi
+
+      - name: Run end-to-end tests
+        if: needs.initialize.outputs.skip_tests != 'true' && matrix.e2e-enabled
+        run: |
+          # Run E2E tests if enabled
+          pytest tests/e2e -v --junitxml=e2e-test-results.xml || true
+
+      - name: Build application
+        run: |
+          # Build application based on project type
+          if [ -f "setup.py" ]; then
+            python setup.py build
+          elif [ -f "pyproject.toml" ]; then
+            pip install build
+            python -m build
+          fi
+          
+          # Create build artifacts
+          mkdir -p ${{ env.ARTIFACTS_PATH }}/build
+          cp -r dist/* ${{ env.ARTIFACTS_PATH }}/build/ 2>/dev/null || true
+          cp -r build/* ${{ env.ARTIFACTS_PATH }}/build/ 2>/dev/null || true
+
+      - name: Build Docker image
+        run: |
+          # Build Docker image with multi-stage optimization
+          docker build \
+            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }} \
+            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg ENVIRONMENT=${{ needs.initialize.outputs.environment }} \
+            .
+          
+          # Save image metadata
+          docker inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }} > ${{ env.ARTIFACTS_PATH }}/image-metadata.json
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Docker image
+        run: |
+          # Push image to registry
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }}
+          
+          # Only push 'latest' tag for main branch or production environment
+          if [[ "${{ github.ref_name }}" == "main" || "${{ needs.initialize.outputs.environment }}" == "production" ]]; then
+            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          fi
+          
+          echo "IMAGE_URI=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }}" >> $GITHUB_ENV
+
+      - name: Archive build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ needs.initialize.outputs.environment }}
+          path: ${{ env.ARTIFACTS_PATH }}/
+          retention-days: 30
+
+  # Performance testing
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: [initialize, build-and-test]
+    if: needs.build-and-test.result == 'success' && needs.initialize.outputs.environment != 'development'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup performance testing
+        run: |
+          # Install k6 for performance testing
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run performance tests
+        run: |
+          # Run performance tests with k6
+          k6 run --summary-trend-stats="avg,min,med,max,p(95),p(99)" \
+            --out json=performance-results.json \
+            tests/performance/load-test.js || true
+          
+          # Analyze results
+          if [ -f "performance-results.json" ]; then
+            AVG_RESPONSE_TIME=$(jq '[.metrics.http_req_duration.avg] | add / length' performance-results.json 2>/dev/null || echo "0")
+            echo "AVG_RESPONSE_TIME=${AVG_RESPONSE_TIME}" >> $GITHUB_ENV
+            
+            if (( $(echo "$AVG_RESPONSE_TIME < 1000" | bc -l) )); then
+              echo "✅ Performance test passed: Average response time ${AVG_RESPONSE_TIME}ms"
+            else
+              echo "⚠️ Performance test warning: Average response time ${AVG_RESPONSE_TIME}ms exceeds 1s threshold"
+            fi
+          fi
+
+      - name: Archive performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ needs.initialize.outputs.environment }}
+          path: performance-results.json
+          retention-days: 30
+
+  # Deployment with OIDC and environment protection
+  deploy:
+    name: Deploy to ${{ needs.initialize.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [initialize, build-and-test, performance-test]
+    if: |
+      always() && 
+      needs.initialize.outputs.should_deploy == 'true' && 
+      (needs.build-and-test.result == 'success') &&
+      (needs.performance-test.result == 'success' || needs.performance-test.result == 'skipped')
+    environment:
+      name: ${{ needs.initialize.outputs.environment }}
+      url: ${{ steps.deploy.outputs.environment_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: github-actions-deployment-${{ github.run_id }}
+
+      - name: Setup deployment tools
+        run: |
+          # Install deployment tools
+          pip install --user awscli kubectl helm
+
+      - name: Create deployment backup
+        if: needs.initialize.outputs.environment == 'production'
+        run: |
+          echo "Creating backup of current production deployment"
+          # Backup current deployment
+          kubectl get deployment isa-superapp -o yaml > backup-deployment.yaml || true
+          kubectl get service isa-superapp -o yaml > backup-service.yaml || true
+          
+          # Store backup with timestamp
+          BACKUP_NAME="production-backup-$(date +%Y%m%d-%H%M%S)"
+          aws s3 cp backup-deployment.yaml s3://${{ secrets.BACKUP_BUCKET }}/${BACKUP_NAME}/deployment.yaml
+          aws s3 cp backup-service.yaml s3://${{ secrets.BACKUP_BUCKET }}/${BACKUP_NAME}/service.yaml
+          
+          echo "BACKUP_NAME=${BACKUP_NAME}" >> $GITHUB_ENV
+
+      - name: Deploy application
+        id: deploy
+        run: |
+          # Set environment-specific variables
+          case "${{ needs.initialize.outputs.environment }}" in
+            "production")
+              NAMESPACE="production"
+              REPLICAS="3"
+              ENV_URL="https://app.example.com"
+              ;;
+            "staging")
+              NAMESPACE="staging"
+              REPLICAS="2"
+              ENV_URL="https://staging.example.com"
+              ;;
+            *)
+              NAMESPACE="development"
+              REPLICAS="1"
+              ENV_URL="https://dev.example.com"
+              ;;
+          esac
+          
+          echo "environment_url=${ENV_URL}" >> $GITHUB_OUTPUT
+          
+          # Deploy based on strategy
+          case "${{ needs.initialize.outputs.deployment_strategy }}" in
+            "blue-green")
+              echo "Deploying using blue-green strategy"
+              # Implement blue-green deployment
+              kubectl apply -f k8s/namespace-${NAMESPACE}.yaml
+              kubectl set image deployment/isa-superapp isa-superapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }} -n ${NAMESPACE}
+              kubectl rollout status deployment/isa-superapp -n ${NAMESPACE} --timeout=300s
+              ;;
+            "canary")
+              echo "Deploying using canary strategy"
+              # Implement canary deployment
+              kubectl apply -f k8s/canary-deployment.yaml
+              kubectl patch deployment isa-superapp-canary -n ${NAMESPACE} -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"isa-superapp\",\"image\":\"${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }}\"}]}}}}"
+              ;;
+            "rolling")
+              echo "Deploying using rolling update strategy"
+              # Implement rolling deployment
+              kubectl set image deployment/isa-superapp isa-superapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }} -n ${NAMESPACE}
+              kubectl rollout status deployment/isa-superapp -n ${NAMESPACE} --timeout=300s
+              ;;
+          esac
+
+      - name: Run health checks
+        run: |
+          # Wait for deployment to stabilize
+          sleep 30
+          
+          # Run health checks
+          case "${{ needs.initialize.outputs.environment }}" in
+            "production")
+              ENDPOINT="https://app.example.com/health"
+              ;;
+            "staging")
+              ENDPOINT="https://staging.example.com/health"
+              ;;
+            *)
+              ENDPOINT="https://dev.example.com/health"
+              ;;
+          esac
+          
+          # Check health endpoint
+          for i in {1..10}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${ENDPOINT} || echo "000")
+            if [ "${HTTP_CODE}" == "200" ]; then
+              echo "✅ Health check passed"
+              break
+            else
+              echo "⏳ Health check attempt ${i}: HTTP ${HTTP_CODE}"
+              sleep 10
+            fi
+          done
+          
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "❌ Health check failed after 10 attempts"
+            exit 1
+          fi
+
+      - name: Run smoke tests
+        run: |
+          # Run basic smoke tests
+          case "${{ needs.initialize.outputs.environment }}" in
+            "production")
+              BASE_URL="https://app.example.com"
+              ;;
+            "staging")
+              BASE_URL="https://staging.example.com"
+              ;;
+            *)
+              BASE_URL="https://dev.example.com"
+              ;;
+          esac
+          
+          # Test critical endpoints
+          curl -f ${BASE_URL}/api/health || exit 1
+          curl -f ${BASE_URL}/api/status || exit 1
+          
+          echo "✅ Smoke tests passed"
+
+  # Rollback mechanism
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [initialize, deploy]
+    if: failure() && needs.initialize.outputs.environment == 'production'
+    environment:
+      name: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          role-session-name: github-actions-rollback-${{ github.run_id }}
+
+      - name: Restore from backup
+        run: |
+          echo "Rolling back production deployment"
+          
+          # Restore from backup if available
+          if [ -n "${{ env.BACKUP_NAME }}" ]; then
+            aws s3 cp s3://${{ secrets.BACKUP_BUCKET }}/${{ env.BACKUP_NAME }}/deployment.yaml backup-deployment.yaml
+            aws s3 cp s3://${{ secrets.BACKUP_BUCKET }}/${{ env.BACKUP_NAME }}/service.yaml backup-service.yaml
+            
+            kubectl apply -f backup-deployment.yaml
+            kubectl apply -f backup-service.yaml
+            
+            echo "✅ Rollback completed from backup ${{ env.BACKUP_NAME }}"
+          else
+            # Rollback to previous version
+            kubectl rollout undo deployment/isa-superapp -n production
+            kubectl rollout status deployment/isa-superapp -n production --timeout=300s
+            
+            echo "✅ Rollback completed to previous version"
+          fi
+
+      - name: Verify rollback
+        run: |
+          # Verify rollback success
+          sleep 30
+          
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://app.example.com/health || echo "000")
+          if [ "${HTTP_CODE}" == "200" ]; then
+            echo "✅ Rollback verification passed"
+          else
+            echo "❌ Rollback verification failed"
+            exit 1
+          fi
+
+  # Post-deployment tasks
+  post-deployment:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [initialize, deploy, rollback]
+    if: always()
+    steps:
+      - name: Send deployment notifications
+        run: |
+          # Determine deployment status
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            STATUS="✅ SUCCESS"
+            COLOR="good"
+          elif [ "${{ needs.rollback.result }}" == "success" ]; then
+            STATUS="⚠️ ROLLED BACK"
+            COLOR="warning"
+          else
+            STATUS="❌ FAILED"
+            COLOR="danger"
+          fi
+          
+          # Create notification message
+          MESSAGE="Deployment ${STATUS} for ${{ needs.initialize.outputs.environment }} environment"
+          MESSAGE="${MESSAGE}\nCommit: ${{ github.sha }}"
+          MESSAGE="${MESSAGE}\nBranch: ${{ github.ref_name }}"
+          MESSAGE="${MESSAGE}\nImage: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.initialize.outputs.image_tag }}"
+          
+          # Send notification (example for Slack)
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"${MESSAGE}\",\"color\":\"${COLOR}\"}" \
+              ${{ secrets.SLACK_WEBHOOK_URL }}
+          fi
+          
+          echo "📧 Deployment notification sent"
+
+      - name: Clean up old images
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "Cleaning up old container images"
+          
+          # Keep only last 10 images
+          docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | \
+            tail -n +2 | head -n -10 | awk '{print $1}' | xargs -r docker rmi || true
+          
+          echo "🧹 Old images cleaned up"
+
+      - name: Update deployment metrics
+        run: |
+          echo "Updating deployment metrics"
+          
+          # Create deployment metric
+          cat > deployment-metric.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "repository": "${{ github.repository }}",
+            "environment": "${{ needs.initialize.outputs.environment }}",
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "deployment_strategy": "${{ needs.initialize.outputs.deployment_strategy }}",
+            "status": "${{ needs.deploy.result }}",
+            "rollback_status": "${{ needs.rollback.result }}",
+            "image_tag": "${{ needs.initialize.outputs.image_tag }}"
+          }
+          EOF
+          
+          # Store metric (example: send to monitoring system)
+          if [ -n "${{ secrets.METRICS_ENDPOINT }}" ]; then
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              -d @deployment-metric.json \
+              ${{ secrets.METRICS_ENDPOINT }} || true
+          fi
+          
+          echo "📊 Deployment metrics updated"

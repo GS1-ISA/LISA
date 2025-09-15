@@ -1,0 +1,641 @@
+# Rollback Mechanisms Configuration
+# This file defines rollback strategies, triggers, and recovery procedures for deployments
+
+# Global Rollback Configuration
+global_rollback:
+  enabled: true
+  default_timeout: 1800  # 30 minutes
+  max_concurrent_rollbacks: 3
+  auto_rollback_on_failure: true
+  require_approval_for_manual_rollback: true
+  approval_timeout: 3600  # 1 hour
+  notification_channels: ["slack", "email", "pagerduty"]
+  
+  # Rollback triggers
+  triggers:
+    - name: "health_check_failure"
+      enabled: true
+      type: "health_check"
+      threshold: 3
+      consecutive_failures: true
+      time_window: 300  # 5 minutes
+      severity: "critical"
+    
+    - name: "error_rate_threshold"
+      enabled: true
+      type: "metric"
+      metric_name: "error_rate"
+      threshold: 5.0  # 5% error rate
+      duration: 300  # 5 minutes
+      severity: "critical"
+    
+    - name: "response_time_threshold"
+      enabled: true
+      type: "metric"
+      metric_name: "response_time_p95"
+      threshold: 5000  # 5000ms
+      duration: 600  # 10 minutes
+      severity: "warning"
+    
+    - name: "memory_usage_threshold"
+      enabled: true
+      type: "metric"
+      metric_name: "memory_usage"
+      threshold: 90.0  # 90%
+      duration: 300  # 5 minutes
+      severity: "warning"
+    
+    - name: "cpu_usage_threshold"
+      enabled: true
+      type: "metric"
+      metric_name: "cpu_usage"
+      threshold: 85.0  # 85%
+      duration: 300  # 5 minutes
+      severity: "warning"
+    
+    - name: "deployment_failure"
+      enabled: true
+      type: "deployment"
+      failure_types: ["timeout", "infrastructure", "application"]
+      severity: "critical"
+    
+    - name: "security_scan_failure"
+      enabled: true
+      type: "security"
+      severity_levels: ["critical", "high"]
+      auto_rollback: true
+    
+    - name: "manual_trigger"
+      enabled: true
+      type: "manual"
+      requires_approval: true
+      approval_roles: ["deployment-admin", "security-reviewer"]
+  
+  # Rollback strategies
+  strategies:
+    - name: "immediate_rollback"
+      description: "Immediate rollback to previous version"
+      enabled: true
+      priority: 1
+      conditions:
+        - "severity: critical"
+        - "health_check: failed"
+        - "error_rate: > 10%"
+      execution_time: 60  # 1 minute
+      requires_approval: false
+      notification_level: "critical"
+    
+    - name: "gradual_rollback"
+      description: "Gradual rollback with traffic shifting"
+      enabled: true
+      priority: 2
+      conditions:
+        - "severity: warning"
+        - "error_rate: 5-10%"
+        - "response_time: > threshold"
+      execution_time: 300  # 5 minutes
+      requires_approval: false
+      notification_level: "warning"
+      traffic_shifting:
+        enabled: true
+        steps:
+          - weight: 75  # 75% to previous version
+            duration: 60
+          - weight: 50  # 50% to previous version
+            duration: 60
+          - weight: 25  # 25% to previous version
+            duration: 60
+          - weight: 0   # 0% to previous version (complete rollback)
+            duration: 60
+    
+    - name: "blue_green_rollback"
+      description: "Blue-green deployment rollback"
+      enabled: true
+      priority: 3
+      conditions:
+        - "deployment_type: blue_green"
+        - "severity: any"
+      execution_time: 180  # 3 minutes
+      requires_approval: false
+      notification_level: "info"
+      steps:
+        - "switch_traffic_to_blue"
+        - "verify_health_check"
+        - "terminate_green_environment"
+    
+    - name: "canary_rollback"
+      description: "Canary deployment rollback"
+      enabled: true
+      priority: 4
+      conditions:
+        - "deployment_type: canary"
+        - "severity: any"
+      execution_time: 600  # 10 minutes
+      requires_approval: false
+      notification_level: "info"
+      steps:
+        - "reduce_canary_traffic_to_zero"
+        - "verify_stable_metrics"
+        - "remove_canary_instances"
+    
+    - name: "database_rollback"
+      description: "Database migration rollback"
+      enabled: true
+      priority: 5
+      conditions:
+        - "component: database"
+        - "migration_failure: true"
+      execution_time: 1800  # 30 minutes
+      requires_approval: true
+      approval_roles: ["deployment-admin"]
+      notification_level: "critical"
+      steps:
+        - "create_database_backup"
+        - "execute_rollback_migration"
+        - "verify_database_integrity"
+        - "update_application_configuration"
+
+# Environment-specific rollback configurations
+environment_rollbacks:
+  production:
+    enabled: true
+    auto_rollback: true
+    approval_required: true
+    approval_timeout: 1800  # 30 minutes
+    approval_roles: ["deployment-admin", "security-reviewer"]
+    notification_channels: ["slack", "email", "pagerduty"]
+    
+    # Production-specific triggers
+    triggers:
+      - name: "production_health_check"
+        enabled: true
+        type: "health_check"
+        threshold: 2
+        consecutive_failures: true
+        time_window: 180  # 3 minutes
+        severity: "critical"
+        auto_rollback: true
+      
+      - name: "production_error_rate"
+        enabled: true
+        type: "metric"
+        metric_name: "error_rate"
+        threshold: 1.0  # 1% error rate
+        duration: 180  # 3 minutes
+        severity: "critical"
+        auto_rollback: true
+      
+      - name: "production_revenue_impact"
+        enabled: true
+        type: "business_metric"
+        metric_name: "revenue_per_minute"
+        threshold: -10.0  # 10% decrease
+        duration: 300  # 5 minutes
+        severity: "critical"
+        auto_rollback: true
+    
+    # Production rollback strategies
+    strategies:
+      - name: "production_immediate"
+        enabled: true
+        priority: 1
+        execution_time: 120  # 2 minutes
+        requires_approval: false
+        conditions:
+          - "severity: critical"
+          - "health_check: failed"
+          - "error_rate: > 5%"
+      
+      - name: "production_gradual"
+        enabled: true
+        priority: 2
+        execution_time: 600  # 10 minutes
+        requires_approval: true
+        conditions:
+          - "severity: warning"
+          - "error_rate: 1-5%"
+    
+    # Production-specific configurations
+    configurations:
+      backup_retention: 30  # days
+      rollback_window: 7200  # 2 hours
+      max_rollback_attempts: 3
+      verification_timeout: 600  # 10 minutes
+      post_rollback_monitoring: 3600  # 1 hour
+
+  staging:
+    enabled: true
+    auto_rollback: true
+    approval_required: false
+    approval_timeout: 600  # 10 minutes
+    approval_roles: ["deployment-operator"]
+    notification_channels: ["slack", "email"]
+    
+    # Staging-specific triggers
+    triggers:
+      - name: "staging_health_check"
+        enabled: true
+        type: "health_check"
+        threshold: 3
+        consecutive_failures: true
+        time_window: 300  # 5 minutes
+        severity: "warning"
+        auto_rollback: true
+      
+      - name: "staging_error_rate"
+        enabled: true
+        type: "metric"
+        metric_name: "error_rate"
+        threshold: 5.0  # 5% error rate
+        duration: 300  # 5 minutes
+        severity: "warning"
+        auto_rollback: true
+    
+    # Staging rollback strategies
+    strategies:
+      - name: "staging_immediate"
+        enabled: true
+        priority: 1
+        execution_time: 60  # 1 minute
+        requires_approval: false
+        conditions:
+          - "severity: critical"
+      
+      - name: "staging_gradual"
+        enabled: true
+        priority: 2
+        execution_time: 300  # 5 minutes
+        requires_approval: false
+        conditions:
+          - "severity: warning"
+    
+    # Staging-specific configurations
+    configurations:
+      backup_retention: 7  # days
+      rollback_window: 3600  # 1 hour
+      max_rollback_attempts: 5
+      verification_timeout: 300  # 5 minutes
+      post_rollback_monitoring: 1800  # 30 minutes
+
+  development:
+    enabled: true
+    auto_rollback: false
+    approval_required: false
+    approval_timeout: 300  # 5 minutes
+    approval_roles: []
+    notification_channels: ["slack"]
+    
+    # Development-specific triggers
+    triggers:
+      - name: "dev_health_check"
+        enabled: true
+        type: "health_check"
+        threshold: 5
+        consecutive_failures: true
+        time_window: 600  # 10 minutes
+        severity: "info"
+        auto_rollback: false
+      
+      - name: "dev_deployment_failure"
+        enabled: true
+        type: "deployment"
+        failure_types: ["timeout", "infrastructure"]
+        severity: "info"
+        auto_rollback: false
+    
+    # Development rollback strategies
+    strategies:
+      - name: "dev_manual"
+        enabled: true
+        priority: 1
+        execution_time: 30  # 30 seconds
+        requires_approval: false
+        conditions:
+          - "manual_trigger: true"
+    
+    # Development-specific configurations
+    configurations:
+      backup_retention: 1  # day
+      rollback_window: 1800  # 30 minutes
+      max_rollback_attempts: 10
+      verification_timeout: 60  # 1 minute
+      post_rollback_monitoring: 300  # 5 minutes
+
+# Component-specific rollback configurations
+component_rollbacks:
+  application:
+    enabled: true
+    strategies:
+      - name: "application_rollback"
+        description: "Rollback application code"
+        enabled: true
+        priority: 1
+        execution_time: 120  # 2 minutes
+        steps:
+          - "stop_application"
+          - "restore_previous_version"
+          - "start_application"
+          - "verify_health_check"
+    
+    # Application-specific triggers
+    triggers:
+      - name: "application_health_check"
+        enabled: true
+        type: "health_check"
+        threshold: 3
+        consecutive_failures: true
+        time_window: 180  # 3 minutes
+        severity: "critical"
+      
+      - name: "application_error_rate"
+        enabled: true
+        type: "metric"
+        metric_name: "application_error_rate"
+        threshold: 5.0  # 5%
+        duration: 300  # 5 minutes
+        severity: "warning"
+
+  database:
+    enabled: true
+    strategies:
+      - name: "database_rollback"
+        description: "Rollback database changes"
+        enabled: true
+        priority: 2
+        execution_time: 1800  # 30 minutes
+        requires_approval: true
+        approval_roles: ["deployment-admin"]
+        steps:
+          - "create_backup_point"
+          - "execute_rollback_script"
+          - "verify_data_integrity"
+          - "update_application_configuration"
+          - "restart_affected_services"
+    
+    # Database-specific triggers
+    triggers:
+      - name: "database_connection_failure"
+        enabled: true
+        type: "health_check"
+        threshold: 2
+        consecutive_failures: true
+        time_window: 120  # 2 minutes
+        severity: "critical"
+      
+      - name: "database_migration_failure"
+        enabled: true
+        type: "deployment"
+        failure_types: ["migration"]
+        severity: "critical"
+    
+    # Database backup configurations
+    backup_configurations:
+      enabled: true
+      backup_before_migration: true
+      backup_retention: 30  # days
+      backup_types: ["full", "incremental"]
+      backup_storage: "s3://your-backup-bucket/database-backups/"
+      backup_encryption: true
+      backup_compression: true
+
+  infrastructure:
+    enabled: true
+    strategies:
+      - name: "infrastructure_rollback"
+        description: "Rollback infrastructure changes"
+        enabled: true
+        priority: 3
+        execution_time: 900  # 15 minutes
+        steps:
+          - "restore_infrastructure_template"
+          - "apply_infrastructure_changes"
+          - "verify_infrastructure_health"
+          - "update_dns_records"
+          - "verify_service_connectivity"
+    
+    # Infrastructure-specific triggers
+    triggers:
+      - name: "infrastructure_health_check"
+        enabled: true
+        type: "health_check"
+        threshold: 3
+        consecutive_failures: true
+        time_window: 300  # 5 minutes
+        severity: "critical"
+      
+      - name: "infrastructure_deployment_failure"
+        enabled: true
+        type: "deployment"
+        failure_types: ["infrastructure", "timeout"]
+        severity: "critical"
+    
+    # Infrastructure backup configurations
+    backup_configurations:
+      enabled: true
+      backup_before_changes: true
+      backup_types: ["cloudformation", "terraform", "kubernetes"]
+      backup_retention: 14  # days
+      backup_storage: "s3://your-backup-bucket/infrastructure-backups/"
+      backup_encryption: true
+
+# Rollback monitoring and alerting
+rollback_monitoring:
+  enabled: true
+  metrics:
+    - name: "rollback_success_rate"
+      description: "Rollback success rate"
+      threshold: 95.0  # 95%
+      alert_severity: "warning"
+    
+    - name: "rollback_duration"
+      description: "Average rollback duration"
+      threshold: 600  # 10 minutes
+      alert_severity: "warning"
+    
+    - name: "rollback_frequency"
+      description: "Rollback frequency"
+      threshold: 5  # 5 rollbacks per day
+      alert_severity: "warning"
+    
+    - name: "failed_rollbacks"
+      description: "Failed rollback count"
+      threshold: 1
+      alert_severity: "critical"
+  
+  # Rollback alerting
+  alerting:
+    enabled: true
+    channels:
+      - type: "slack"
+        webhook_url: "${{ secrets.SLACK_DEPLOYMENT_WEBHOOK }}"
+        severity_levels: ["critical", "warning"]
+        events: ["rollback_started", "rollback_completed", "rollback_failed"]
+      - type: "email"
+        recipients: ["deployment-team@example.com", "devops-team@example.com"]
+        severity_levels: ["critical", "warning", "info"]
+        events: ["rollback_started", "rollback_completed", "rollback_failed", "rollback_approved", "rollback_rejected"]
+      - type: "pagerduty"
+        integration_key: "${{ secrets.PAGERDUTY_DEPLOYMENT_KEY }}"
+        severity_levels: ["critical"]
+        events: ["rollback_failed", "rollback_timeout"]
+  
+  # Rollback dashboards
+  dashboards:
+    enabled: true
+    dashboard_urls:
+      - "https://grafana.example.com/d/rollback-metrics"
+      - "https://grafana.example.com/d/deployment-health"
+      - "https://grafana.example.com/d/application-metrics"
+
+# Rollback testing and validation
+rollback_testing:
+  enabled: true
+  test_strategies:
+    - name: "rollback_simulation"
+      description: "Simulate rollback scenarios"
+      enabled: true
+      frequency: "weekly"
+      test_cases:
+        - name: "health_check_failure"
+          description: "Test rollback on health check failure"
+          trigger: "health_check_failure"
+          expected_outcome: "successful_rollback"
+        
+        - name: "error_rate_threshold"
+          description: "Test rollback on error rate threshold"
+          trigger: "error_rate_threshold"
+          expected_outcome: "successful_rollback"
+        
+        - name: "database_migration_failure"
+          description: "Test rollback on database migration failure"
+          trigger: "database_migration_failure"
+          expected_outcome: "successful_rollback"
+    
+    - name: "rollback_drill"
+      description: "Conduct rollback drills"
+      enabled: true
+      frequency: "monthly"
+      scenarios:
+        - name: "production_emergency_rollback"
+          description: "Emergency rollback in production"
+          environment: "production"
+          expected_duration: 300  # 5 minutes
+          success_criteria:
+            - "rollback_completed_within_time"
+            - "service_restored"
+            - "no_data_loss"
+        
+        - name: "staging_gradual_rollback"
+          description: "Gradual rollback in staging"
+          environment: "staging"
+          expected_duration: 600  # 10 minutes
+          success_criteria:
+            - "gradual_traffic_shift"
+            - "metrics_stabilized"
+            - "no_service_disruption"
+  
+  # Rollback validation
+  validation:
+    enabled: true
+    validation_checks:
+      - name: "service_health"
+        description: "Validate service health after rollback"
+        enabled: true
+        checks:
+          - "health_check_passed"
+          - "error_rate_acceptable"
+          - "response_time_acceptable"
+      
+      - name: "data_integrity"
+        description: "Validate data integrity after rollback"
+        enabled: true
+        checks:
+          - "database_connectivity"
+          - "data_consistency"
+          - "no_data_loss"
+      
+      - name: "infrastructure_stability"
+        description: "Validate infrastructure stability after rollback"
+        enabled: true
+        checks:
+          - "all_services_running"
+          - "load_balancer_healthy"
+          - "dns_resolution_working"
+      
+      - name: "security_validation"
+        description: "Validate security after rollback"
+        enabled: true
+        checks:
+          - "security_scan_passed"
+          - "no_vulnerabilities_introduced"
+          - "access_controls_intact"
+
+# Rollback documentation and procedures
+rollback_documentation:
+  enabled: true
+  procedures:
+    - name: "emergency_rollback_procedure"
+      description: "Emergency rollback procedure"
+      steps:
+        - "identify_issue"
+        - "assess_impact"
+        - "trigger_rollback"
+        - "monitor_progress"
+        - "verify_recovery"
+        - "communicate_status"
+        - "post_incident_review"
+    
+    - name: "planned_rollback_procedure"
+      description: "Planned rollback procedure"
+      steps:
+        - "schedule_rollback"
+        - "notify_stakeholders"
+        - "create_backup"
+        - "execute_rollback"
+        - "verify_success"
+        - "update_documentation"
+        - "communicate_completion"
+  
+  # Rollback runbooks
+  runbooks:
+    - name: "application_rollback_runbook"
+      description: "Application rollback runbook"
+      url: "https://wiki.example.com/runbooks/application-rollback"
+    
+    - name: "database_rollback_runbook"
+      description: "Database rollback runbook"
+      url: "https://wiki.example.com/runbooks/database-rollback"
+    
+    - name: "infrastructure_rollback_runbook"
+      description: "Infrastructure rollback runbook"
+      url: "https://wiki.example.com/runbooks/infrastructure-rollback"
+    
+    - name: "emergency_rollback_runbook"
+      description: "Emergency rollback runbook"
+      url: "https://wiki.example.com/runbooks/emergency-rollback"
+  
+  # Rollback contacts
+  contacts:
+    - name: "deployment_team"
+      description: "Deployment team"
+      email: "deployment-team@example.com"
+      slack: "#deployment-team"
+      pagerduty: "deployment-team-escalation"
+    
+    - name: "security_team"
+      description: "Security team"
+      email: "security-team@example.com"
+      slack: "#security-team"
+      pagerduty: "security-team-escalation"
+    
+    - name: "devops_team"
+      description: "DevOps team"
+      email: "devops-team@example.com"
+      slack: "#devops-team"
+      pagerduty: "devops-team-escalation"
+    
+    - name: "incident_commander"
+      description: "Incident commander"
+      email: "incident-commander@example.com"
+      phone: "+1-555-0123"
+      pagerduty: "incident-commander-escalation"

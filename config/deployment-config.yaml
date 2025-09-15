@@ -1,0 +1,356 @@
+# Deployment Configuration
+# This file contains configuration settings for the deployment pipeline
+
+# Environment settings
+environments:
+  development:
+    enabled: true
+    auto_deploy: true
+    approval_required: false
+    rollback_enabled: true
+    health_check_enabled: true
+    staging_timeout: 180
+    gate_timeout: 300
+    max_wait_time: 900
+    deployment_strategy: rolling
+    replicas: 1
+    resources:
+      cpu: "100m"
+      memory: "256Mi"
+    health_check:
+      endpoint: "/health"
+      interval: 30
+      timeout: 10
+      retries: 3
+  
+  staging:
+    enabled: true
+    auto_deploy: false
+    approval_required: true
+    rollback_enabled: true
+    health_check_enabled: true
+    staging_timeout: 300
+    gate_timeout: 600
+    max_wait_time: 1800
+    deployment_strategy: blue-green
+    replicas: 2
+    resources:
+      cpu: "200m"
+      memory: "512Mi"
+    health_check:
+      endpoint: "/health"
+      interval: 30
+      timeout: 15
+      retries: 5
+  
+  production:
+    enabled: true
+    auto_deploy: false
+    approval_required: true
+    rollback_enabled: true
+    health_check_enabled: true
+    staging_timeout: 600
+    gate_timeout: 1200
+    max_wait_time: 3600
+    deployment_strategy: canary
+    replicas: 3
+    resources:
+      cpu: "500m"
+      memory: "1Gi"
+    health_check:
+      endpoint: "/health"
+      interval: 30
+      timeout: 20
+      retries: 10
+    canary:
+      initial_traffic: 5
+      step_traffic: 10
+      max_traffic: 50
+      duration: 600
+
+# Deployment strategies
+deployment_strategies:
+  rolling:
+    description: "Gradual rolling update with zero downtime"
+    max_unavailable: 1
+    max_surge: 1
+    readiness_probe:
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+  
+  blue-green:
+    description: "Blue-green deployment with instant rollback capability"
+    health_check_delay: 60
+    traffic_switch_delay: 30
+    cleanup_delay: 300
+  
+  canary:
+    description: "Canary deployment with gradual traffic shifting"
+    stages:
+      - traffic: 5
+        duration: 300
+        success_criteria:
+          - error_rate < 1%
+          - response_time < 500ms
+          - success_rate > 99%
+      - traffic: 25
+        duration: 300
+        success_criteria:
+          - error_rate < 0.5%
+          - response_time < 400ms
+          - success_rate > 99.5%
+      - traffic: 50
+        duration: 300
+        success_criteria:
+          - error_rate < 0.1%
+          - response_time < 300ms
+          - success_rate > 99.9%
+  
+  recreate:
+    description: "Recreate deployment with brief downtime"
+    grace_period: 30
+    cleanup_timeout: 60
+
+# Security settings
+security:
+  scanning:
+    enabled: true
+    tools:
+      - trivy
+      - snyk
+      - docker-bench
+    severity_threshold: "HIGH"
+    fail_on_vulnerability: true
+    timeout: 300
+  
+  image_signing:
+    enabled: true
+    cosign_enabled: true
+    keyless_signing: true
+  
+  supply_chain:
+    enabled: true
+    sbom_generation: true
+    provenance_attestation: true
+
+# Testing settings
+testing:
+  unit_tests:
+    enabled: true
+    coverage_threshold: 80
+    timeout: 300
+  
+  integration_tests:
+    enabled: true
+    timeout: 600
+    staging_required: true
+  
+  end_to_end_tests:
+    enabled: true
+    timeout: 900
+    staging_required: true
+    production_required: false
+  
+  performance_tests:
+    enabled: true
+    timeout: 1200
+    staging_required: true
+    production_required: false
+    thresholds:
+      response_time_95th: 500
+      error_rate: 0.1
+      throughput: 100
+
+# Monitoring and alerting
+monitoring:
+  health_checks:
+    enabled: true
+    interval: 30
+    timeout: 10
+    retries: 3
+    endpoints:
+      - "/health"
+      - "/health/ready"
+      - "/health/live"
+  
+  metrics:
+    enabled: true
+    prometheus_enabled: true
+    grafana_enabled: true
+    custom_metrics:
+      - deployment_duration
+      - deployment_success_rate
+      - rollback_count
+  
+  alerting:
+    enabled: true
+    channels:
+      - slack
+      - email
+      - pagerduty
+    conditions:
+      - deployment_failure
+      - health_check_failure
+      - rollback_triggered
+      - security_vulnerability_detected
+
+# Rollback settings
+rollback:
+  enabled: true
+  automatic_rollback: true
+  rollback_on_failure: true
+  rollback_on_health_check_failure: true
+  rollback_on_security_failure: true
+  max_rollback_attempts: 3
+  rollback_timeout: 300
+  preserve_volumes: true
+  backup_before_rollback: true
+
+# Caching settings
+caching:
+  enabled: true
+  docker_layer_caching: true
+  dependency_caching: true
+  build_cache_ttl: 86400
+  cache_key_prefix: "deployment-cache"
+  cache_regions:
+    - "us-east-1"
+    - "eu-west-1"
+    - "ap-southeast-1"
+
+# Notifications
+notifications:
+  enabled: true
+  channels:
+    slack:
+      enabled: true
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channels:
+        - "#deployments"
+        - "#alerts"
+    
+    email:
+      enabled: true
+      smtp_server: "${SMTP_SERVER}"
+      smtp_port: 587
+      smtp_username: "${SMTP_USERNAME}"
+      smtp_password: "${SMTP_PASSWORD}"
+      recipients:
+        - "devops@example.com"
+        - "team@example.com"
+    
+    webhook:
+      enabled: true
+      endpoints:
+        - "https://api.example.com/webhooks/deployment"
+        - "https://status.example.com/webhooks/deploy"
+
+# Environment variables
+environment_variables:
+  global:
+    - name: "NODE_ENV"
+      value: "production"
+    - name: "LOG_LEVEL"
+      value: "info"
+    - name: "HEALTH_CHECK_ENABLED"
+      value: "true"
+  
+  development:
+    - name: "DEBUG"
+      value: "true"
+    - name: "LOG_LEVEL"
+      value: "debug"
+  
+  staging:
+    - name: "DEBUG"
+      value: "false"
+    - name: "LOG_LEVEL"
+      value: "info"
+  
+  production:
+    - name: "DEBUG"
+      value: "false"
+    - name: "LOG_LEVEL"
+      value: "warn"
+
+# Feature flags
+feature_flags:
+  deployment_gating: true
+  security_scanning: true
+  automated_rollback: true
+  health_check_monitoring: true
+  performance_monitoring: true
+  canary_analysis: true
+  blue_green_switching: true
+
+# Compliance settings
+compliance:
+  audit_logging: true
+  deployment_tracking: true
+  change_approval: true
+  security_compliance: true
+  data_retention_days: 90
+
+# Performance settings
+performance:
+  parallel_builds: true
+  build_timeout: 3600
+  deployment_timeout: 1800
+  health_check_timeout: 300
+  rollback_timeout: 300
+  max_concurrent_deployments: 3
+
+# Resource limits
+resource_limits:
+  max_cpu: "2000m"
+  max_memory: "4Gi"
+  max_replicas: 10
+  min_replicas: 1
+
+# Backup settings
+backup:
+  enabled: true
+  before_deployment: true
+  before_rollback: true
+  retention_days: 30
+  backup_types:
+    - "database"
+    - "configuration"
+    - "persistent_volumes"
+
+# DNS settings
+dns:
+  enabled: true
+  health_check_dns: true
+  dns_propagation_timeout: 300
+  dns_ttl: 300
+
+# Load balancer settings
+load_balancer:
+  enabled: true
+  health_check_path: "/health"
+  health_check_interval: 30
+  health_check_timeout: 10
+  drain_timeout: 60
+  connection_draining: true
+
+# Database settings
+database:
+  migration_enabled: true
+  migration_timeout: 1800
+  backup_before_migration: true
+  rollback_on_migration_failure: true
+  connection_pooling: true
+  max_connections: 100
+
+# Secrets management
+secrets:
+  enabled: true
+  provider: "vault"
+  rotation_enabled: true
+  rotation_interval: 86400
+  encryption_enabled: true
+  access_logging: true

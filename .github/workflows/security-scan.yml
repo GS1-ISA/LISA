@@ -1,0 +1,415 @@
+name: Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      scan_matrix:
+        description: 'Scan matrix as JSON string'
+        required: true
+        type: string
+      skip_security_scan:
+        description: 'Skip security scanning'
+        required: false
+        type: boolean
+        default: false
+      scan_timeout:
+        description: 'Security scan timeout in minutes'
+        required: false
+        type: string
+        default: '30'
+      severity_threshold:
+        description: 'Minimum severity level to fail on'
+        required: false
+        type: choice
+        options: ['critical', 'high', 'medium', 'low', 'none']
+        default: 'high'
+      upload_reports:
+        description: 'Upload security scan reports'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      scan_status:
+        description: 'Overall security scan status'
+        value: ${{ jobs.security-scan.outputs.status }}
+      vulnerability_count:
+        description: 'Total vulnerability count'
+        value: ${{ jobs.security-scan.outputs.vulnerability_count }}
+      critical_vulnerabilities:
+        description: 'Critical vulnerability count'
+        value: ${{ jobs.security-scan.outputs.critical_vulnerabilities }}
+      high_vulnerabilities:
+        description: 'High vulnerability count'
+        value: ${{ jobs.security-scan.outputs.high_vulnerabilities }}
+      security_reports:
+        description: 'Security scan reports'
+        value: ${{ jobs.security-scan.outputs.reports }}
+
+env:
+  SECURITY_SCAN_TIMEOUT: ${{ inputs.scan_timeout }}
+  SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
+
+jobs:
+  security-scan:
+    name: Security Scan ${{ matrix.component }} (${{ matrix.scanner }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(inputs.scan_matrix) }}
+      fail-fast: false
+    timeout-minutes: ${{ fromJson(inputs.scan_timeout) }}
+    outputs:
+      status: ${{ steps.summary.outputs.status }}
+      vulnerability_count: ${{ steps.vulnerabilities.outputs.total }}
+      critical_vulnerabilities: ${{ steps.vulnerabilities.outputs.critical }}
+      high_vulnerabilities: ${{ steps.vulnerabilities.outputs.high }}
+      reports: ${{ steps.reports.outputs.list }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better scan results
+      
+      - name: Setup scanning environment
+        if: inputs.skip_security_scan != true
+        run: |
+          echo "Setting up security scanning environment..."
+          mkdir -p security-reports
+          echo "Scanning ${{ matrix.component }} with ${{ matrix.scanner }}"
+      
+      # SAST (Static Application Security Testing)
+      - name: Run SAST - CodeQL
+        if: matrix.scanner == 'codeql' && inputs.skip_security_scan != true
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          config-file: .github/codeql/codeql-config.yml
+          queries: security-and-quality
+      
+      - name: Perform CodeQL Analysis
+        if: matrix.scanner == 'codeql' && inputs.skip_security_scan != true
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: false
+          output: sarif-results
+      
+      - name: Run SAST - Semgrep
+        if: matrix.scanner == 'semgrep' && inputs.skip_security_scan != true
+        run: |
+          echo "Running Semgrep security scan..."
+          docker run --rm -v "${PWD}:/src" returntocorp/semgrep \
+            --config=auto \
+            --json \
+            --output=security-reports/semgrep-${{ matrix.component }}.json \
+            /src
+      
+      - name: Run SAST - SonarCloud
+        if: matrix.scanner == 'sonarcloud' && inputs.skip_security_scan != true
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ matrix.component }}
+            -Dsonar.organization=${{ github.repository_owner }}
+            -Dsonar.sources=src/
+            -Dsonar.tests=tests/
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.java.coveragePlugin=jacoco
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+      
+      # Dependency Scanning
+      - name: Run Dependency Scan - npm audit
+        if: matrix.scanner == 'npm-audit' && inputs.skip_security_scan != true
+        run: |
+          echo "Running npm audit..."
+          npm audit --audit-level=moderate --json > security-reports/npm-audit-${{ matrix.component }}.json || true
+          npm audit --audit-level=moderate
+      
+      - name: Run Dependency Scan - Snyk (Node.js)
+        if: matrix.scanner == 'snyk-node' && inputs.skip_security_scan != true
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=${{ inputs.severity_threshold }} --json-file-output=security-reports/snyk-node-${{ matrix.component }}.json
+      
+      - name: Run Dependency Scan - Safety (Python)
+        if: matrix.scanner == 'safety' && inputs.skip_security_scan != true
+        run: |
+          echo "Running Safety dependency scan..."
+          pip install safety
+          safety check --json --output security-reports/safety-${{ matrix.component }}.json || true
+          safety check
+      
+      - name: Run Dependency Scan - Snyk (Python)
+        if: matrix.scanner == 'snyk-python' && inputs.skip_security_scan != true
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=${{ inputs.severity_threshold }} --json-file-output=security-reports/snyk-python-${{ matrix.component }}.json
+      
+      - name: Run Dependency Scan - OWASP Dependency Check
+        if: matrix.scanner == 'owasp' && inputs.skip_security_scan != true
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: ${{ matrix.component }}
+          path: '.'
+          format: 'ALL'
+          args: >
+            --enableRetired
+            --enableExperimental
+            --out security-reports/owasp-${{ matrix.component }}
+      
+      - name: Run Dependency Scan - Snyk (Java)
+        if: matrix.scanner == 'snyk-java' && inputs.skip_security_scan != true
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=${{ inputs.severity_threshold }} --json-file-output=security-reports/snyk-java-${{ matrix.component }}.json
+      
+      # Container Scanning
+      - name: Run Container Scan - Trivy
+        if: matrix.scanner == 'trivy' && inputs.skip_security_scan != true
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.component }}:latest
+          format: 'sarif'
+          output: 'security-reports/trivy-${{ matrix.component }}.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'  # Don't fail the build, we'll evaluate later
+      
+      - name: Run Container Scan - Anchore
+        if: matrix.scanner == 'anchore' && inputs.skip_security_scan != true
+        uses: anchore/scan-action@v3
+        with:
+          image: ${{ matrix.component }}:latest
+          fail-build: false
+          severity-cutoff: ${{ inputs.severity_threshold }}
+      
+      - name: Run Container Scan - Snyk Container
+        if: matrix.scanner == 'snyk-container' && inputs.skip_security_scan != true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ matrix.component }}:latest
+          args: --severity-threshold=${{ inputs.severity_threshold }} --json-file-output=security-reports/snyk-container-${{ matrix.component }}.json
+      
+      # Secret Scanning
+      - name: Run Secret Scan - TruffleHog
+        if: matrix.scanner == 'trufflehog' && inputs.skip_security_scan != true
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+      
+      - name: Run Secret Scan - GitLeaks
+        if: matrix.scanner == 'gitleaks' && inputs.skip_security_scan != true
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          config-path: .gitleaks.toml
+      
+      # IaC Scanning
+      - name: Run IaC Scan - Checkov
+        if: matrix.scanner == 'checkov' && inputs.skip_security_scan != true
+        run: |
+          echo "Running Checkov IaC scan..."
+          pip install checkov
+          checkov -d . --output json --output-file security-reports/checkov-${{ matrix.component }}.json
+          checkov -d . --output cli
+      
+      - name: Run IaC Scan - tfsec
+        if: matrix.scanner == 'tfsec' && inputs.skip_security_scan != true
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          soft_fail: true
+          format: json
+          out: security-reports/tfsec-${{ matrix.component }}.json
+      
+      - name: Run IaC Scan - Terrascan
+        if: matrix.scanner == 'terrascan' && inputs.skip_security_scan != true
+        run: |
+          echo "Running Terrascan IaC scan..."
+          curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
+          tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
+          ./terrascan scan -t aws -o json > security-reports/terrascan-${{ matrix.component }}.json
+      
+      # License Scanning
+      - name: Run License Scan - FOSSA
+        if: matrix.scanner == 'fossa' && inputs.skip_security_scan != true
+        uses: fossas/fossa-action@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+      
+      - name: Run License Scan - License Finder
+        if: matrix.scanner == 'license-finder' && inputs.skip_security_scan != true
+        run: |
+          echo "Running License Finder scan..."
+          docker run --rm -v "${PWD}:/scan" licensefinder/license_finder \
+            report --format json --save /scan/security-reports/license-finder-${{ matrix.component }}.json
+      
+      # Evaluate scan results
+      - name: Evaluate security scan results
+        if: inputs.skip_security_scan != true && always()
+        id: evaluation
+        run: |
+          echo "Evaluating security scan results..."
+          
+          # Initialize counters
+          CRITICAL_COUNT=0
+          HIGH_COUNT=0
+          MEDIUM_COUNT=0
+          LOW_COUNT=0
+          
+          # Process different scan result formats
+          for report in security-reports/*.json; do
+            if [ -f "$report" ]; then
+              echo "Processing $report..."
+              
+              # Extract vulnerability counts based on scanner type
+              if [[ "$report" == *"snyk"* ]]; then
+                # Snyk format
+                CRITICAL_COUNT=$((CRITICAL_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "critical")] | length' "$report" 2>/dev/null || echo 0)))
+                HIGH_COUNT=$((HIGH_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "high")] | length' "$report" 2>/dev/null || echo 0)))
+                MEDIUM_COUNT=$((MEDIUM_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "medium")] | length' "$report" 2>/dev/null || echo 0)))
+                LOW_COUNT=$((LOW_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "low")] | length' "$report" 2>/dev/null || echo 0)))
+              elif [[ "$report" == *"npm-audit"* ]]; then
+                # npm audit format
+                CRITICAL_COUNT=$((CRITICAL_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "critical")] | length' "$report" 2>/dev/null || echo 0)))
+                HIGH_COUNT=$((HIGH_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "high")] | length' "$report" 2>/dev/null || echo 0)))
+                MEDIUM_COUNT=$((MEDIUM_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "moderate")] | length' "$report" 2>/dev/null || echo 0)))
+                LOW_COUNT=$((LOW_COUNT + $(jq '[.vulnerabilities[] | select(.severity == "low")] | length' "$report" 2>/dev/null || echo 0)))
+              fi
+            fi
+          done
+          
+          TOTAL_COUNT=$((CRITICAL_COUNT + HIGH_COUNT + MEDIUM_COUNT + LOW_COUNT))
+          
+          echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          echo "high=$HIGH_COUNT" >> $GITHUB_OUTPUT
+          echo "medium=$MEDIUM_COUNT" >> $GITHUB_OUTPUT
+          echo "low=$LOW_COUNT" >> $GITHUB_OUTPUT
+          echo "total=$TOTAL_COUNT" >> $GITHUB_OUTPUT
+          
+          echo "Security scan results:"
+          echo "Critical: $CRITICAL_COUNT"
+          echo "High: $HIGH_COUNT"
+          echo "Medium: $MEDIUM_COUNT"
+          echo "Low: $LOW_COUNT"
+          echo "Total: $TOTAL_COUNT"
+      
+      - name: Determine scan status
+        if: inputs.skip_security_scan != true && always()
+        id: status
+        run: |
+          # Determine if scan should fail based on severity threshold
+          SHOULD_FAIL="false"
+          
+          case "${{ inputs.severity_threshold }}" in
+            "critical")
+              if [ "${{ steps.evaluation.outputs.critical }}" -gt 0 ]; then
+                SHOULD_FAIL="true"
+              fi
+              ;;
+            "high")
+              if [ "${{ steps.evaluation.outputs.critical }}" -gt 0 ] || [ "${{ steps.evaluation.outputs.high }}" -gt 0 ]; then
+                SHOULD_FAIL="true"
+              fi
+              ;;
+            "medium")
+              if [ "${{ steps.evaluation.outputs.critical }}" -gt 0 ] || [ "${{ steps.evaluation.outputs.high }}" -gt 0 ] || [ "${{ steps.evaluation.outputs.medium }}" -gt 0 ]; then
+                SHOULD_FAIL="true"
+              fi
+              ;;
+            "low")
+              if [ "${{ steps.evaluation.outputs.total }}" -gt 0 ]; then
+                SHOULD_FAIL="true"
+              fi
+              ;;
+          esac
+          
+          echo "should_fail=$SHOULD_FAIL" >> $GITHUB_OUTPUT
+          
+          if [ "$SHOULD_FAIL" == "true" ]; then
+            echo "❌ Security scan failed - vulnerabilities found above threshold (${{ inputs.severity_threshold }})"
+          else
+            echo "✅ Security scan passed - no vulnerabilities above threshold"
+          fi
+      
+      - name: Upload security reports
+        if: inputs.upload_reports && inputs.skip_security_scan != true
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports-${{ matrix.component }}-${{ matrix.scanner }}
+          path: security-reports/
+          retention-days: 90
+          if-no-files-found: warn
+      
+      - name: Upload SARIF results
+        if: matrix.scanner == 'codeql' && inputs.skip_security_scan != true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sarif-results
+          category: ${{ matrix.component }}
+      
+      - name: Generate scan summary
+        id: summary
+        if: always()
+        run: |
+          if [ "${{ inputs.skip_security_scan }}" == "true" ]; then
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "⚠️ Security scan skipped"
+          elif [ "${{ job.status }}" == "success" ] && [ "${{ steps.status.outputs.should_fail }}" == "false" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "✅ Security scan completed successfully"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Security scan failed"
+          fi
+      
+      - name: List security reports
+        id: reports
+        if: inputs.upload_reports && inputs.skip_security_scan != true
+        run: |
+          REPORTS=$(find security-reports -type f 2>/dev/null | jq -R -s -c 'split("\n")[:-1]')
+          echo "list=$REPORTS" >> $GITHUB_OUTPUT
+
+  security-summary:
+    name: Security Summary
+    needs: security-scan
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate security summary
+        run: |
+          echo "Generating security summary..."
+          
+          cat > security-summary.md << EOF
+          # Security Scan Summary
+          
+          **Overall Status:** ${{ needs.security-scan.outputs.scan_status }}
+          **Total Vulnerabilities:** ${{ needs.security-scan.outputs.vulnerability_count }}
+          **Critical:** ${{ needs.security-scan.outputs.critical_vulnerabilities }}
+          **High:** ${{ needs.security-scan.outputs.high_vulnerabilities }}
+          
+          ## Scan Results
+          - **Status:** ${{ needs.security-scan.result }}
+          - **Severity Threshold:** ${{ inputs.severity_threshold }}
+          - **Scan Timeout:** ${{ inputs.scan_timeout }} minutes
+          
+          Generated on $(date)
+          EOF
+          
+          echo "Security Summary:"
+          cat security-summary.md

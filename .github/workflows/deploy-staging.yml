@@ -1,0 +1,454 @@
+
+name: Reusable Deployment Staging Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment for deployment'
+        required: true
+        type: string
+      deployment_strategy:
+        description: 'Deployment strategy (rolling, blue-green, canary)'
+        required: false
+        type: string
+        default: 'rolling'
+      staging_enabled:
+        description: 'Enable staging deployment before production'
+        required: false
+        type: boolean
+        default: true
+      approval_required:
+        description: 'Require manual approval before production deployment'
+        required: false
+        type: boolean
+        default: true
+      validation_enabled:
+        description: 'Enable post-deployment validation'
+        required: false
+        type: boolean
+        default: true
+      rollback_on_failure:
+        description: 'Enable automatic rollback on validation failure'
+        required: false
+        type: boolean
+        default: true
+      notification_channels:
+        description: 'Notification channels for deployment updates'
+        required: false
+        type: string
+        default: '["slack", "email"]'
+
+jobs:
+  staging-deployment:
+    name: Staging Deployment
+    runs-on: ubuntu-latest
+    if: inputs.staging_enabled && inputs.environment == 'production'
+    outputs:
+      staging_status: ${{ steps.staging_validation.outputs.status }}
+      staging_version: ${{ steps.staging_deployment.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup deployment tools
+        run: |
+          # Install deployment tools
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          
+          echo "✅ Deployment tools installed"
+      
+      - name: Configure staging environment
+        run: |
+          echo "🔧 Configuring staging environment..."
+          echo "${{ secrets.STAGING_KUBECONFIG }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          
+          # Configure AWS credentials for staging
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          
+          echo "✅ Staging environment configured"
+      
+      - name: Deploy to staging
+        id: staging_deployment
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          export KUBECONFIG=kubeconfig
+          
+          # Generate deployment version
+          DEPLOYMENT_VERSION="staging-$(date +%Y%m%d-%H%M%S)-${{ github.sha }}"
+          echo "version=${DEPLOYMENT_VERSION}" >> $GITHUB_OUTPUT
+          
+          case "${{ inputs.deployment_strategy }}" in
+            "rolling")
+              echo "Performing rolling deployment to staging..."
+              kubectl set image deployment/app-deployment app-container=${{ secrets.DOCKER_REGISTRY }}/app:${{ github.sha }} -n staging
+              kubectl rollout status deployment/app-deployment -n staging --timeout=300s
+              ;;
+            "blue-green")
+              echo "Performing blue-green deployment to staging..."
+              # Deploy to green environment
+              kubectl apply -f k8s/green-deployment.yaml -n staging
+              kubectl wait --for=condition=available --timeout=300s deployment/app-deployment-green -n staging
+              # Switch traffic to green
+              kubectl patch service app-service -n staging -p '{"spec":{"selector":{"version":"green"}}}'
+              # Scale down blue
+              kubectl scale deployment app-deployment-blue --replicas=0 -n staging
+              ;;
+            "canary")
+              echo "Performing canary deployment to staging..."
+              # Deploy canary version
+              kubectl apply -f k8s/canary-deployment.yaml -n staging
+              # Gradually increase traffic
+              for percentage in 10 25 50 75 100; do
+                echo "Increasing canary traffic to ${percentage}%"
+                kubectl patch virtualservice app-virtualservice -n staging --type merge -p "{\"spec\":{\"http\":[{\"match\":[{\"headers\":{\"canary\":{\"exact\":\"true\"}}}],\"route\":[{\"destination\":{\"host\":\"app-canary\",\"subset\":\"v2\"},\"weight\":${percentage}},{\"destination\":{\"host\":\"app-stable\",\"subset\":\"v1\"},\"weight\":$((100-percentage))}]}]}}"
+                sleep 30
+              done
+              ;;
+          esac
+          
+          echo "✅ Staging deployment completed"
+      
+      - name: Staging validation
+        id: staging_validation
+        run: |
+          echo "🔍 Running staging validation..."
+          export KUBECONFIG=kubeconfig
+          
+          # Wait for deployment to stabilize
+          sleep 60
+          
+          # Health check
+          STAGING_URL="https://staging.${{ secrets.DOMAIN_NAME }}"
+          MAX_RETRIES=30
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL/health" || echo "000")
+            
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Staging health check passed"
+              break
+            else
+              echo "⏳ Waiting for staging to be healthy (status: $HTTP_STATUS)..."
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              sleep 30
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "❌ Staging health check failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Run integration tests
+          echo "Running integration tests against staging..."
+          if [ -f "tests/integration/test_staging.py" ]; then
+            python -m pytest tests/integration/test_staging.py -v
+          fi
+          
+          # Performance tests
+          echo "Running performance tests against staging..."
+          if [ -f "tests/performance/test_load.py" ]; then
+            python -m pytest tests/performance/test_load.py -v
+          fi
+          
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "✅ Staging validation completed"
+      
+      - name: Staging deployment summary
+        if: always()
+        run: |
+          echo "📋 Staging Deployment Summary"
+          echo "============================="
+          echo "Status: ${{ steps.staging_validation.outputs.status }}"
+          echo "Version: ${{ steps.staging_deployment.outputs.version }}"
+          echo "Strategy: ${{ inputs.deployment_strategy }}"
+          echo "Environment: staging"
+          echo ""
+          
+          if [ "${{ steps.staging_validation.outputs.status }}" == "success" ]; then
+            echo "✅ Staging deployment successful!"
+            echo "🎯 Ready for production deployment approval"
+          else
+            echo "❌ Staging deployment failed"
+            echo "🔧 Fix issues before proceeding to production"
+          fi
+
+  production-approval:
+    name: Production Deployment Approval
+    runs-on: ubuntu-latest
+    needs: staging-deployment
+    if: inputs.approval_required && inputs.environment == 'production' && (needs.staging-deployment.result == 'success' || !inputs.staging_enabled)
+    steps:
+      - name: Wait for approval
+        run: |
+          echo "⏳ Waiting for production deployment approval..."
+          echo "Staging deployment status: ${{ needs.staging-deployment.outputs.staging_status }}"
+          echo "Staging version: ${{ needs.staging-deployment.outputs.staging_version }}"
+          echo ""
+          echo "✅ Approval received - proceeding with production deployment"
+
+  production-deployment:
+    name: Production Deployment
+    runs-on: ubuntu-latest
+    needs: [staging-deployment, production-approval]
+    if: always() && (needs.staging-deployment.result == 'success' || !inputs.staging_enabled) && (needs.production-approval.result == 'success' || !inputs.approval_required)
+    outputs:
+      deployment_status: ${{ steps.production_deployment.outputs.status }}
+      deployment_version: ${{ steps.production_deployment.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup production deployment tools
+        run: |
+          echo "🔧 Setting up production deployment tools..."
+          
+          # Install production-grade tools
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          
+          # Install additional monitoring tools
+          curl -sSL https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.linux-amd64.tar.gz | tar -xz
+          sudo mv prometheus-*/prometheus /usr/local/bin/
+          
+          echo "✅ Production deployment tools installed"
+      
+      - name: Configure production environment
+        run: |
+          echo "🔧 Configuring production environment..."
+          
+          # Configure production access with enhanced security
+          echo "${{ secrets.PROD_KUBECONFIG }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          
+          # Configure production AWS credentials
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.PROD_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          
+          # Configure monitoring credentials
+          echo "PROMETHEUS_URL=${{ secrets.PROMETHEUS_URL }}" >> $GITHUB_ENV
+          echo "GRAFANA_API_KEY=${{ secrets.GRAFANA_API_KEY }}" >> $GITHUB_ENV
+          
+          echo "✅ Production environment configured"
+      
+      - name: Pre-deployment checks
+        run: |
+          echo "🔍 Running pre-deployment checks..."
+          export KUBECONFIG=kubeconfig
+          
+          # Check cluster health
+          if ! kubectl get nodes | grep -q "Ready"; then
+            echo "❌ Cluster nodes are not ready"
+            exit 1
+          fi
+          
+          # Check resource availability
+          NODE_RESOURCES=$(kubectl top nodes --no-headers 2>/dev/null || echo "")
+          if [ -n "$NODE_RESOURCES" ]; then
+            echo "📊 Node resource usage:"
+            echo "$NODE_RESOURCES"
+          fi
+          
+          # Check existing deployments
+          EXISTING_REPLICAS=$(kubectl get deployment app-deployment -o jsonpath='{.status.replicas}' 2>/dev/null || echo "0")
+          echo "Current replicas: $EXISTING_REPLICAS"
+          
+          echo "✅ Pre-deployment checks completed"
+      
+      - name: Deploy to production
+        id: production_deployment
+        run: |
+          echo "🚀 Deploying to production environment..."
+          export KUBECONFIG=kubeconfig
+          
+          # Generate production deployment version
+          PROD_VERSION="prod-$(date +%Y%m%d-%H%M%S)-${{ github.sha }}"
+          echo "version=${PROD_VERSION}" >> $GITHUB_OUTPUT
+          
+          # Create deployment backup
+          echo "💾 Creating deployment backup..."
+          kubectl get deployment app-deployment -o yaml > deployment-backup-$(date +%Y%m%d-%H%M%S).yaml
+          
+          case "${{ inputs.deployment_strategy }}" in
+            "rolling")
+              echo "Performing rolling deployment to production..."
+              # Gradual rolling update with health checks
+              kubectl set image deployment/app-deployment app-container=${{ secrets.DOCKER_REGISTRY }}/app:${{ github.sha }}
+              
+              # Monitor rollout progress
+              kubectl rollout status deployment/app-deployment --timeout=600s
+              
+              # Verify deployment success
+              if kubectl get deployment app-deployment | grep -q "3/3"; then
+                echo "✅ Rolling deployment successful"
+              else
+                echo "❌ Rolling deployment failed"
+                exit 1
+              fi
+              ;;
+            "blue-green")
+              echo "Performing blue-green deployment to production..."
+              # Deploy to green environment
+              kubectl apply -f k8s/green-deployment.yaml
+              kubectl wait --for=condition=available --timeout=600s deployment/app-deployment-green
+              
+              # Run smoke tests on green
+              GREEN_URL="https://green.${{ secrets.DOMAIN_NAME }}"
+              if curl -s "$GREEN_URL/health" | grep -q "healthy"; then
+                echo "✅ Green environment health check passed"
+              else
+                echo "❌ Green environment health check failed"
+                exit 1
+              fi
+              
+              # Switch traffic to green
+              kubectl patch service app-service -p '{"spec":{"selector":{"version":"green"}}}'
+              
+              # Monitor traffic switch
+              sleep 60
+              
+              # Scale down blue
+              kubectl scale deployment app-deployment-blue --replicas=0
+              ;;
+            "canary")
+              echo "Performing canary deployment to production..."
+              # Deploy canary version
+              kubectl apply -f k8s/canary-deployment.yaml
+              
+              # Gradual traffic increase with monitoring
+              for percentage in 5 10 25 50 75 100; do
+                echo "Increasing canary traffic to ${percentage}%"
+                
+                # Update traffic split
+                kubectl patch virtualservice app-virtualservice --type merge -p "{\"spec\":{\"http\":[{\"match\":[{\"headers\":{\"canary\":{\"exact\":\"true\"}}}],\"route\":[{\"destination\":{\"host\":\"app-canary\",\"subset\":\"v2\"},\"weight\":${percentage}},{\"destination\":{\"host\":\"app-stable\",\"subset\":\"v1\"},\"weight\":$((100-percentage))}]}]}}"
+                
+                # Monitor metrics during canary
+                if [ -n "${{ secrets.PROMETHEUS_URL }}" ]; then
+                  ERROR_RATE=$(curl -s "${{ secrets.PROMETHEUS_URL }}/api/v1/query?query=rate(http_requests_total{status=~\"5..\"}[5m])" | jq -r '.data.result[0].value[1]' 2>/dev/null || echo "0")
+                  if (( $(echo "$ERROR_RATE > 0.05" | bc -l) )); then
+                    echo "❌ Error rate too high during canary: $ERROR_RATE"
+                    exit 1
+                  fi
+                fi
+                
+                sleep 120
+              done
+              ;;
+          esac
+          
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "✅ Production deployment completed"
+      
+      - name: Post-deployment validation
+        if: inputs.validation_enabled
+        run: |
+          echo "🔍 Running post-deployment validation..."
+          export KUBECONFIG=kubeconfig
+          
+          # Comprehensive health checks
+          PROD_URL="https://${{ secrets.DOMAIN_NAME }}"
+          
+          # Basic health check
+          MAX_RETRIES=60
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL/health" || echo "000")
+            
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Production health check passed"
+              break
+            else
+              echo "⏳ Waiting for production to be healthy (status: $HTTP_STATUS)..."
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              sleep 30
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "❌ Production health check failed"
+            exit 1
+          fi
+          
+          # Functional tests
+          echo "Running functional tests against production..."
+          if [ -f "tests/functional/test_production.py" ]; then
+            python -m pytest tests/functional/test_production.py -v
+          fi
+          
+          # Performance monitoring
+          if [ -n "${{ secrets.PROMETHEUS_URL }}" ]; then
+            echo "Monitoring production performance..."
+            sleep 300  # Wait for metrics to stabilize
+            
+            # Check key metrics
+            RESPONSE_TIME=$(curl -s "${{ secrets.PROMETHEUS_URL }}/api/v1/query?query=histogram_quantile(0.95,rate(http_request_duration_seconds_bucket[5m]))" | jq -r '.data.result[0].value[1]' 2>/dev/null || echo "0")
+            ERROR_RATE=$(curl -s "${{ secrets.PROMETHEUS_URL }}/api/v1/query?query=rate(http_requests_total{status=~\"5..\"}[5m])" | jq -r '.data.result[0].value[1]' 2>/dev/null || echo "0")
+            
+            echo "📊 Production metrics:"
+            echo "  Response time (p95): ${RESPONSE_TIME}s"
+            echo "  Error rate: ${ERROR_RATE}"
+            
+            # Alert if metrics are concerning
+            if (( $(echo "$RESPONSE_TIME > 2.0" | bc -l) )); then
+              echo "⚠️ High response time detected: ${RESPONSE_TIME}s"
+            fi
+            
+            if (( $(echo "$ERROR_RATE > 0.01" | bc -l) )); then
+              echo "⚠️ High error rate detected: ${ERROR_RATE}"
+            fi
+          fi
+          
+          echo "✅ Post-deployment validation completed"
+      
+      - name: Update deployment history
+        run: |
+          echo "📝 Updating deployment history..."
+          
+          DEPLOYMENT_HISTORY="deployment-history.json"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          if [ -f "$DEPLOYMENT_HISTORY" ]; then
+            jq --arg timestamp "$TIMESTAMP" \
+               --arg version "${{ steps.production_deployment.outputs.version }}" \
+               --arg environment "${{ inputs.environment }}" \
+               --arg strategy "${{ inputs.deployment_strategy }}" \
+               '.deployments += [{
+                 "timestamp": $timestamp,
+                 "version": $version,
+                 "environment": $environment,
+                 "strategy": $strategy,
+                 "type": "deployment",
+                 "status": "completed"
+               }]' "$DEPLOYMENT_HISTORY" > temp_history.json
+            mv temp_history.json "$DEPLOYMENT_HISTORY"
+          else
+            cat > "$DEPLOYMENT_HISTORY" <<EOF
+          {
+            "deployments": [
+              {
+                "timestamp": "$TIMESTAMP",
+                "version": "${{ steps.production_deployment.outputs.version }}",
+                "environment": "${{ inputs.environment }}",
+                "strategy": "${{ inputs.deployment_strategy }}",
+                "type": "deployment",
+                "status": "completed"
+              }
+            ]
+          }
+          EOF
+          fi
+          
+          echo "✅ Deployment history updated"

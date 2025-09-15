@@ -1,0 +1,272 @@
+# OIDC Configuration for Secure Authentication
+# This file defines OIDC providers and trust relationships
+
+# OIDC Providers configuration
+providers:
+  aws:
+    enabled: true
+    provider_url: "https://token.actions.githubusercontent.com"
+    audience: "sts.amazonaws.com"
+    thumbprint: "6938fd4d98bab03faadb97b34396831e3780aea1"
+    
+    # IAM Role configuration
+    role_configuration:
+      max_session_duration: 3600  # 1 hour
+      external_id: "${{ secrets.AWS_EXTERNAL_ID }}"
+      condition_keys:
+        - "sub"
+        - "aud"
+        - "iss"
+    
+    # Trust policy conditions
+    trust_conditions:
+      - key: "sub"
+        values:
+          - "repo:your-org/your-repo:ref:refs/heads/main"
+          - "repo:your-org/your-repo:ref:refs/heads/staging"
+          - "repo:your-org/your-repo:ref:refs/heads/production"
+          - "repo:your-org/your-repo:pull_request"
+    
+    # Permission boundaries
+    permission_boundaries:
+      - "arn:aws:iam::aws:policy/PowerUserAccess"
+      - "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:policy/GitHubActionsBoundary"
+    
+    # Session tagging
+    session_tagging:
+      enabled: true
+      tags:
+        - key: "GitHubRepo"
+          value: "${{ github.repository }}"
+        - key: "GitHubActor"
+          value: "${{ github.actor }}"
+        - key: "GitHubWorkflow"
+          value: "${{ github.workflow }}"
+        - key: "GitHubRunId"
+          value: "${{ github.run_id }}"
+
+  azure:
+    enabled: true
+    provider_url: "https://token.actions.githubusercontent.com"
+    tenant_id: "${{ secrets.AZURE_TENANT_ID }}"
+    subscription_id: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+    
+    # Service Principal configuration
+    service_principal:
+      client_id: "${{ secrets.AZURE_CLIENT_ID }}"
+      object_id: "${{ secrets.AZURE_OBJECT_ID }}"
+    
+    # Federated credentials
+    federated_credentials:
+      - name: "github-actions-main"
+        subject: "repo:your-org/your-repo:ref:refs/heads/main"
+        description: "Main branch deployment"
+      - name: "github-actions-pr"
+        subject: "repo:your-org/your-repo:pull_request"
+        description: "Pull request validation"
+    
+    # Role assignments
+    role_assignments:
+      - role: "Contributor"
+        scope: "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}"
+      - role: "User Access Administrator"
+        scope: "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+  gcp:
+    enabled: true
+    provider_url: "https://token.actions.githubusercontent.com"
+    project_id: "${{ secrets.GCP_PROJECT_ID }}"
+    
+    # Service Account configuration
+    service_account:
+      email: "${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}"
+      workload_identity_pool: "${{ secrets.GCP_WORKLOAD_IDENTITY_POOL }}"
+      provider_id: "${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+    
+    # IAM conditions
+    iam_conditions:
+      - title: "GitHub Actions Access"
+        description: "Allow GitHub Actions to impersonate service account"
+        expression: |
+          assertion.sub.startsWith('repo:your-org/your-repo:')
+    
+    # Project roles
+    project_roles:
+      - "roles/container.developer"
+      - "roles/cloudsql.admin"
+      - "roles/iam.serviceAccountUser"
+      - "roles/storage.admin"
+
+# Environment-specific OIDC configurations
+environments:
+  development:
+    aws:
+      role_arn: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsDevelopmentRole"
+      session_name: "github-actions-development"
+    
+    azure:
+      client_id: "${{ secrets.AZURE_CLIENT_ID_DEV }}"
+      subscription_id: "${{ secrets.AZURE_SUBSCRIPTION_ID_DEV }}"
+    
+    gcp:
+      service_account: "${{ secrets.GCP_SERVICE_ACCOUNT_DEV }}"
+
+  integration:
+    aws:
+      role_arn: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsIntegrationRole"
+      session_name: "github-actions-integration"
+    
+    azure:
+      client_id: "${{ secrets.AZURE_CLIENT_ID_INT }}"
+      subscription_id: "${{ secrets.AZURE_SUBSCRIPTION_ID_INT }}"
+    
+    gcp:
+      service_account: "${{ secrets.GCP_SERVICE_ACCOUNT_INT }}"
+
+  staging:
+    aws:
+      role_arn: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsStagingRole"
+      session_name: "github-actions-staging"
+    
+    azure:
+      client_id: "${{ secrets.AZURE_CLIENT_ID_STAGING }}"
+      subscription_id: "${{ secrets.AZURE_SUBSCRIPTION_ID_STAGING }}"
+    
+    gcp:
+      service_account: "${{ secrets.GCP_SERVICE_ACCOUNT_STAGING }}"
+
+  production:
+    aws:
+      role_arn: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsProductionRole"
+      session_name: "github-actions-production"
+    
+    azure:
+      client_id: "${{ secrets.AZURE_CLIENT_ID_PROD }}"
+      subscription_id: "${{ secrets.AZURE_SUBSCRIPTION_ID_PROD }}"
+    
+    gcp:
+      service_account: "${{ secrets.GCP_SERVICE_ACCOUNT_PROD }}"
+
+# Security policies
+security_policies:
+  token_validation:
+    enabled: true
+    validate_signature: true
+    validate_expiration: true
+    validate_audience: true
+    validate_issuer: true
+  
+  rate_limiting:
+    enabled: true
+    max_requests_per_minute: 100
+    burst_capacity: 20
+  
+  audit_logging:
+    enabled: true
+    log_level: "INFO"
+    include_token_claims: true
+    include_request_details: true
+
+# Multi-cloud configuration
+multi_cloud:
+  enabled: true
+  primary_provider: "aws"
+  failover_providers:
+    - "azure"
+    - "gcp"
+  
+  cross_cloud_roles:
+    - name: "cross-cloud-deployment"
+      description: "Allow deployment across multiple clouds"
+      permissions:
+        - "aws:AssumeRole"
+        - "azure:ServicePrincipal"
+        - "gcp:ServiceAccount"
+
+# Token configuration
+token_configuration:
+  jwt:
+    enabled: true
+    algorithm: "RS256"
+    key_rotation:
+      enabled: true
+      rotation_interval: "24h"
+      grace_period: "1h"
+  
+  claims_mapping:
+    - claim: "sub"
+      mapping: "repository"
+    - claim: "repository"
+      mapping: "repo"
+    - claim: "repository_owner"
+      mapping: "org"
+    - claim: "actor"
+      mapping: "user"
+    - claim: "workflow"
+      mapping: "workflow_name"
+    - claim: "run_id"
+      mapping: "run_id"
+    - claim: "run_number"
+      mapping: "run_number"
+    - claim: "ref"
+      mapping: "branch"
+    - claim: "sha"
+      mapping: "commit_sha"
+
+# Error handling and retry logic
+error_handling:
+  retry_policy:
+    enabled: true
+    max_attempts: 3
+    backoff_strategy: "exponential"
+    initial_delay: "1s"
+    max_delay: "30s"
+  
+  fallback_strategy:
+    enabled: true
+    fallback_to_previous_role: true
+    notify_on_fallback: true
+  
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    recovery_timeout: "300s"
+    half_open_max_calls: 3
+
+# Compliance and governance
+compliance:
+  enabled: true
+  require_mfa: false
+  session_recording:
+    enabled: true
+    retention_period: "30d"
+  
+  access_reviews:
+    enabled: true
+    review_interval: "90d"
+    require_approval: true
+  
+  audit_requirements:
+    - "SOX"
+    - "PCI-DSS"
+    - "HIPAA"
+    - "SOC2"
+
+# Integration with external identity providers
+external_identity_providers:
+  okta:
+    enabled: false
+    domain: "${{ secrets.OKTA_DOMAIN }}"
+    client_id: "${{ secrets.OKTA_CLIENT_ID }}"
+    audience: "api://default"
+  
+  auth0:
+    enabled: false
+    domain: "${{ secrets.AUTH0_DOMAIN }}"
+    client_id: "${{ secrets.AUTH0_CLIENT_ID }}"
+    audience: "https://api.company.com"
+  
+  ping_identity:
+    enabled: false
+    issuer: "${{ secrets.PING_ISSUER }}"
+    client_id: "${{ secrets.PING_CLIENT_ID }}"
