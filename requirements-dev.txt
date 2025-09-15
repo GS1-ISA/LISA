@@ -625,7 +625,7 @@ pillow>=10.0.0
 
 # Image processing
 pillow>=10.0.0
-pip-audit>=2.6.1
+pip-audit>=2.7.3
 
 # License checking
 pip-licenses>=4.3.3

@@ -24,6 +24,11 @@
       "enabled": false,
       "traffic": 0,
       "created_at": 1757244696.936666
+    },
+    "ISA_REF_SECURITY_20250915": {
+      "enabled": true,
+      "traffic": 100,
+      "created_at": 1726443825.973
     }
   }
 }
