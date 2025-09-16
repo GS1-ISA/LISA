@@ -124,6 +124,10 @@ def get_env_override(section: str, key: str, default_value: Any) -> Any:
             return env_value
     return default_value
 
+def get_request_timeout() -> int:
+    """Get request timeout from configuration."""
+    return API_CONFIG["timeouts"]["request_timeout"]
+
 # Performance targets (for monitoring)
 PERFORMANCE_TARGETS = {
     "agent_response_time": 30,  # seconds

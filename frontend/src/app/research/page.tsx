@@ -108,11 +108,11 @@ export default function ResearchPage() {
                   <div className="flex justify-end">
                     <button
                       type="submit"
-                      disabled={isLoading || researchMutation.isLoading}
+                      disabled={isLoading || researchMutation.isPending}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <PaperAirplaneIcon className="h-4 w-4 mr-2" />
-                      {isLoading || researchMutation.isLoading ? 'Researching...' : 'Submit Query'}
+                      {isLoading || researchMutation.isPending ? 'Researching...' : 'Submit Query'}
                     </button>
                   </div>
                 </form>

@@ -47,8 +47,8 @@ class ComplianceAttestation:
     regulation: str  # e.g., "EUDR", "CSRD", "ISO-14001"
     compliance_level: ComplianceLevel
     assessment_date: str
-    valid_until: Optional[str] = None
     assessment_method: str
+    valid_until: Optional[str] = None
     evidence: Optional[List[str]] = None
     mitigating_actions: Optional[List[str]] = None
 
@@ -57,9 +57,9 @@ class SustainabilityClaim:
     """Sustainability claim details."""
     claim_type: str  # e.g., "deforestation-free", "carbon-neutral", "fair-trade"
     scope: str  # e.g., "product", "operation", "supply-chain"
+    valid_from: str
     standard: Optional[str] = None  # e.g., "ISO-14001", "RSPO"
     verification_body: Optional[str] = None
-    valid_from: str
     valid_until: Optional[str] = None
     evidence: Optional[List[str]] = None
 

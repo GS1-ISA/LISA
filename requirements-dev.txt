@@ -349,6 +349,8 @@ faker>=19.6.1
 
 # Data anonymization
 faker>=19.6.1
+shapely>=2.0.0
+neo4j-driver>=5.0.0
 
 # API frameworks
 fastapi>=0.103.1

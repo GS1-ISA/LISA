@@ -22,6 +22,11 @@ from .webvoc_loader import GS1WebVocLoader
 from .end_to_end_traceability import EndToEndTraceabilityManager, TraceabilityCredential, ProofOfConnectedness
 from .vc_data_model_verifier import GS1VCDataModelVerifier, ValidationResult, VCType
 
+logger = logging.getLogger(__name__)
+
+class GS1IntegrationManager:
+    """Main manager for all GS1 integration capabilities in ISA."""
+
     def __init__(self,
                  epcis_tracker: Optional[EPCISTracker] = None,
                  webvoc_loader: Optional[GS1WebVocLoader] = None,
@@ -37,6 +42,17 @@ from .vc_data_model_verifier import GS1VCDataModelVerifier, ValidationResult, VC
         )
         self.traceability_manager = traceability_manager or EndToEndTraceabilityManager(self.webvoc_loader)
         self.vc_verifier = vc_verifier or GS1VCDataModelVerifier(
+            models_path=str(self.config.paths.vc_data_model_dir)
+        )
+
+        self._initialized = False
+        self.capabilities_status = {
+            "epcis": self.config.settings.enable_epcis,
+            "webvoc": self.config.settings.enable_webvoc,
+            "traceability": self.config.settings.enable_traceability,
+            "vc_verification": self.config.settings.enable_vc_validation
+        }
+
     def initialize_all_capabilities(self) -> bool:
         """Initialize all GS1 capabilities based on configuration."""
         try:
@@ -70,72 +86,6 @@ from .vc_data_model_verifier import GS1VCDataModelVerifier, ValidationResult, VC
                 self.capabilities_status["traceability"] = True
             elif self.config.settings.enable_traceability:
                 logger.warning("Traceability disabled due to missing WebVoc support")
-
-            self._initialized = True
-            logger.info("GS1 integration initialization completed")
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to initialize GS1 capabilities: {e}")
-            return False
-            models_path=str(self.config.paths.vc_data_model_dir)
-        )
-
-        self._initialized = False
-        self.capabilities_status = {
-            "epcis": self.config.settings.enable_epcis,
-            "webvoc": self.config.settings.enable_webvoc,
-            "traceability": self.config.settings.enable_traceability,
-            "vc_verification": self.config.settings.enable_vc_validation
-        }
-logger = logging.getLogger(__name__)
-
-class GS1IntegrationManager:
-    """Main manager for all GS1 integration capabilities in ISA."""
-
-    def __init__(self,
-                 epcis_tracker: Optional[EPCISTracker] = None,
-                 webvoc_loader: Optional[GS1WebVocLoader] = None,
-                 traceability_manager: Optional[EndToEndTraceabilityManager] = None,
-                 vc_verifier: Optional[GS1VCDataModelVerifier] = None):
-        """Initialize GS1 integration components."""
-        self.epcis_tracker = epcis_tracker or EPCISTracker()
-        self.webvoc_loader = webvoc_loader or GS1WebVocLoader()
-        self.traceability_manager = traceability_manager or EndToEndTraceabilityManager(self.webvoc_loader)
-        self.vc_verifier = vc_verifier or GS1VCDataModelVerifier()
-
-        self._initialized = False
-        self.capabilities_status = {
-            "epcis": False,
-            "webvoc": False,
-            "traceability": False,
-            "vc_verification": False
-        }
-
-    def initialize_all_capabilities(self) -> bool:
-        """Initialize all GS1 capabilities."""
-        try:
-            logger.info("Initializing GS1 integration capabilities...")
-
-            # Initialize WebVoc loader (needed by traceability manager)
-            if self.webvoc_loader.load_vocabulary():
-                self.capabilities_status["webvoc"] = True
-                logger.info("WebVoc loader initialized successfully")
-            else:
-                logger.warning("WebVoc loader initialization failed")
-
-            # Initialize VC verifier
-            if self.vc_verifier.load_data_models():
-                self.capabilities_status["vc_verification"] = True
-                logger.info("VC data model verifier initialized successfully")
-            else:
-                logger.warning("VC data model verifier initialization failed")
-
-            # EPCIS tracker doesn't need initialization
-            self.capabilities_status["epcis"] = True
-
-            # Traceability manager is ready (depends on WebVoc)
-            self.capabilities_status["traceability"] = True
 
             self._initialized = True
             logger.info("GS1 integration initialization completed")
@@ -267,19 +217,6 @@ class GS1IntegrationManager:
         5. Returns comprehensive traceability information
         """
         if not self._initialized:
-    def get_gs1_capabilities_summary(self) -> Dict[str, Any]:
-        """Get a comprehensive summary of GS1 capabilities and their status."""
-        return {
-            "initialized": self._initialized,
-            "capabilities": self.get_capabilities_status(),
-            "supported_vc_types": [vc_type.value for vc_type in self.get_supported_vc_types()],
-            "webvoc_classes_count": len(self.webvoc_loader.classes) if self.capabilities_status["webvoc"] else 0,
-            "webvoc_properties_count": len(self.webvoc_loader.properties) if self.capabilities_status["webvoc"] else 0,
-            "active_traceability_credentials": len(self.traceability_manager.traceability_credentials),
-            "active_proofs_of_connectedness": len(self.traceability_manager.proofs_of_connectedness),
-            "configuration": self.config.get_config_summary(),
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
             raise RuntimeError("GS1 integration not initialized. Call initialize_all_capabilities() first.")
 
         try:

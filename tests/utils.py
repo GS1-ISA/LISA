@@ -15,7 +15,7 @@ import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
@@ -262,7 +262,7 @@ class AsyncTestHelpers:
     """Helpers for async testing."""
 
     @staticmethod
-    async def run_with_timeout(coro: asyncio.Coroutine, timeout: float = 5.0) -> Any:
+    async def run_with_timeout(coro: Awaitable[Any], timeout: float = 5.0) -> Any:
         """Run a coroutine with timeout."""
         return await asyncio.wait_for(coro, timeout=timeout)
 
@@ -276,13 +276,13 @@ class AsyncTestHelpers:
 
     @staticmethod
     async def gather_with_concurrency(
-        coros: List[asyncio.Coroutine],
+        coros: List[Awaitable[Any]],
         max_concurrent: int = 10,
     ) -> List[Any]:
         """Run coroutines with limited concurrency."""
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def sem_coro(coro: asyncio.Coroutine) -> Any:
+        async def sem_coro(coro: Awaitable[Any]) -> Any:
             async with semaphore:
                 return await coro
 
@@ -461,7 +461,7 @@ def measure_execution_time(func: Callable, *args, **kwargs) -> tuple[Any, float]
 
 
 async def measure_async_execution_time(
-    coro: asyncio.Coroutine,
+    coro: Awaitable[Any],
     *args,
     **kwargs,
 ) -> tuple[Any, float]:
