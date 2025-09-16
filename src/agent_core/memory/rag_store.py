@@ -126,6 +126,9 @@ class RAGMemory:
         self._conversation_history: List[ConversationEntry] = []
         self._load_conversation_history()
 
+        # Optimize ChromaDB settings for better performance
+        # Note: ChromaDB settings are configured via client initialization
+
         logging.info(
             f"Enhanced RAGMemory initialized. Collection '{self.collection_name}' loaded/created. "
             f"Conversation history: {'enabled' if self.enable_conversation_history else 'disabled'}"
@@ -245,6 +248,93 @@ class RAGMemory:
                 logging.error(f"Failed to add document '{doc_id}': {e}")
                 return False
 
+    def batch_add(self, documents: List[Dict[str, Any]], batch_size: int = 100) -> bool:
+        """
+        Add multiple documents in batches for better performance.
+
+        Args:
+            documents: List of document dictionaries with keys: text, source, doc_id, etc.
+            batch_size: Size of each batch to process.
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        with self._lock:
+            try:
+                successful_adds = 0
+                for i in range(0, len(documents), batch_size):
+                    batch = documents[i:i + batch_size]
+                    batch_documents = []
+                    batch_metadatas = []
+                    batch_ids = []
+
+                    now = datetime.now(timezone.utc).isoformat()
+
+                    for doc in batch:
+                        text = doc.get("text", "")
+                        source = doc.get("source", "")
+                        doc_id = doc.get("doc_id", "")
+                        extra_metadata = doc.get("extra_metadata", {})
+
+                        if not text or not source or not doc_id:
+                            logging.warning(f"Skipping invalid document in batch: missing required fields")
+                            continue
+
+                        # Chunk the text
+                        chunks = self._chunk_text(text, chunk_size=1000, overlap=200)
+                        if not chunks:
+                            chunks = [text]
+
+                        for idx, chunk in enumerate(chunks):
+                            chunk_id = f"{doc_id}--chunk-{idx}"
+                            checksum = "sha256:" + hashlib.sha256(chunk.encode("utf-8")).hexdigest()
+
+                            # Create metadata
+                            md = {
+                                "document_id": doc_id,
+                                "document_version": extra_metadata.get("document_version"),
+                                "source": source,
+                                "page": doc.get("page"),
+                                "chunk_id": chunk_id,
+                                "chunk_text": chunk,
+                                "created_at": now,
+                                "embedding_model": self.embedding_model_name,
+                                "language": self._detect_language(chunk),
+                                "checksum": checksum,
+                                "provenance": extra_metadata.get("provenance"),
+                                "chunk_index": idx,
+                                "total_chunks": len(chunks),
+                            }
+
+                            if extra_metadata:
+                                filtered_extra = {k: v for k, v in extra_metadata.items()
+                                                if k not in ["document_id", "chunk_id", "created_at", "checksum"]}
+                                md.update(filtered_extra)
+
+                            # Filter out None values
+                            md_filtered = {k: v for k, v in md.items() if v is not None}
+
+                            batch_documents.append(chunk)
+                            batch_metadatas.append(md_filtered)
+                            batch_ids.append(chunk_id)
+
+                    # Add batch to collection
+                    if batch_documents:
+                        self.collection.add(
+                            documents=batch_documents,
+                            metadatas=batch_metadatas,
+                            ids=batch_ids
+                        )
+                        successful_adds += len(batch_ids)
+                        logging.info(f"Added batch of {len(batch_ids)} chunks")
+
+                logging.info(f"Batch add completed. Total chunks added: {successful_adds}")
+                return True
+
+            except Exception as e:
+                logging.error(f"Failed to batch add documents: {e}")
+                return False
+
     def add_conversation_entry(self, role: str, content: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Adds a conversation entry to the conversation history.
@@ -346,7 +436,7 @@ class RAGMemory:
                 logging.error(f"Failed to retrieve conversation history: {e}")
                 return []
 
-    def query(self, query_text: str, n_results: int = 5, filters: Optional[SearchFilters] = None) -> list[dict]:
+    def query(self, query_text: str, n_results: int = 5, filters: Optional[SearchFilters] = None, use_cache: bool = True) -> list[dict]:
         """
         Queries the vector store for documents semantically similar to the query text.
 
@@ -354,11 +444,22 @@ class RAGMemory:
             query_text: The text to search for.
             n_results: The number of results to return.
             filters: Optional search filters.
+            use_cache: Whether to use query caching.
 
         Returns:
             A list of dictionaries, each containing the retrieved document and its metadata.
         """
         try:
+            # Check cache first
+            cache_key = None
+            if use_cache:
+                cache_key = self._get_cache_key(query_text, n_results, filters)
+                if cache_key in self._query_cache:
+                    cached_result, cache_time = self._query_cache[cache_key]
+                    if time.time() - cache_time < self.cache_ttl:
+                        logging.info(f"Query cache hit for '{query_text}'")
+                        return cached_result
+
             # Build where clause from filters
             where_clause = None
             if filters:
@@ -369,7 +470,7 @@ class RAGMemory:
                     where_conditions["source"] = filters.source
                 if filters.language:
                     where_conditions["language"] = filters.language
-                
+
                 if where_conditions:
                     where_clause = where_conditions
 
@@ -384,14 +485,14 @@ class RAGMemory:
                 for i, doc in enumerate(results["documents"][0]):
                     metadata = results["metadatas"][0][i]
                     distance = results["distances"][0][i]
-                    
+
                     # Apply distance filters if specified
                     if filters:
                         if filters.min_distance is not None and distance < filters.min_distance:
                             continue
                         if filters.max_distance is not None and distance > filters.max_distance:
                             continue
-                    
+
                     retrieved.append(
                         {
                             "document": doc,
@@ -399,6 +500,13 @@ class RAGMemory:
                             "distance": distance,
                         }
                     )
+
+            # Cache the result
+            if use_cache and cache_key:
+                self._query_cache[cache_key] = (retrieved.copy(), time.time())
+                # Clean up old cache entries
+                self._cleanup_cache()
+
             logging.info(f"Query for '{query_text}' returned {len(retrieved)} results.")
             return retrieved
         except Exception as e:
@@ -680,6 +788,44 @@ class RAGMemory:
                 "total_chunks": self.collection.count(),
                 "error": str(e)
             }
+
+    def _get_cache_key(self, query_text: str, n_results: int, filters: Optional[SearchFilters]) -> str:
+        """Generate a cache key for query parameters."""
+        import hashlib
+        key_parts = [query_text, str(n_results)]
+        if filters:
+            key_parts.extend([
+                filters.document_id or "",
+                filters.source or "",
+                filters.language or "",
+                str(filters.start_date or ""),
+                str(filters.end_date or ""),
+                str(filters.min_distance or ""),
+                str(filters.max_distance or "")
+            ])
+        key_string = "|".join(key_parts)
+        return hashlib.md5(key_string.encode()).hexdigest()
+
+    def _cleanup_cache(self) -> None:
+        """Clean up expired cache entries."""
+        current_time = time.time()
+        expired_keys = [
+            key for key, (_, cache_time) in self._query_cache.items()
+            if current_time - cache_time > self.cache_ttl
+        ]
+        for key in expired_keys:
+            del self._query_cache[key]
+
+        # Also limit cache size
+        if len(self._query_cache) > self.cache_size:
+            # Remove oldest entries
+            sorted_keys = sorted(
+                self._query_cache.keys(),
+                key=lambda k: self._query_cache[k][1]
+            )
+            keys_to_remove = sorted_keys[:len(self._query_cache) - self.cache_size]
+            for key in keys_to_remove:
+                del self._query_cache[key]
 
     def clear_cache(self) -> None:
         """Clears the query cache."""

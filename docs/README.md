@@ -30,7 +30,9 @@ Last updated: 2025-09-02
 - Healthcheck: `make healthcheck` (see `docs/audit/healthcheck.md`)
 
 ## Notes
-- This repository variant is CLI‑first; no FastAPI server is included. Container workflows that curl `/metrics` are advisory until an API is added.
+- This repository supports both CLI and API access; FastAPI server is available and running on http://localhost:8001
+- Container workflows can now access `/metrics` endpoint for monitoring
+- See README.md for server setup and API documentation
 
 ## Additional Ops Docs
 - TECH_DEBT: docs/TECH_DEBT.md

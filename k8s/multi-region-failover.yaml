@@ -1,0 +1,306 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: failover-config
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: failover
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: failover
+data:
+  failover.sh: |
+    #!/bin/bash
+    set -e
+
+    # Configuration
+    PRIMARY_REGION="${PRIMARY_REGION:-us-east-1}"
+    BACKUP_REGION="${BACKUP_REGION:-us-west-2}"
+    CLUSTER_NAME="${CLUSTER_NAME:-isa-superapp}"
+
+    echo "Starting multi-region failover from ${PRIMARY_REGION} to ${BACKUP_REGION}"
+
+    # Health check primary region
+    PRIMARY_HEALTH=$(aws eks describe-cluster --region "${PRIMARY_REGION}" --name "${CLUSTER_NAME}" --query 'cluster.status' --output text 2>/dev/null || echo "UNHEALTHY")
+
+    if [ "${PRIMARY_HEALTH}" = "ACTIVE" ]; then
+      echo "Primary region is still healthy. Checking service availability..."
+
+      # Check if services are responding
+      PRIMARY_SERVICES_OK=$(kubectl get pods -A --context "${PRIMARY_REGION}" 2>/dev/null | grep -c "Running" || echo "0")
+
+      if [ "${PRIMARY_SERVICES_OK}" -gt "10" ]; then
+        echo "Primary region services are operational. No failover needed."
+        exit 0
+      fi
+    fi
+
+    echo "Primary region is unhealthy. Initiating failover to ${BACKUP_REGION}..."
+
+    # Update kubeconfig to backup region
+    aws eks update-kubeconfig --region "${BACKUP_REGION}" --name "${CLUSTER_NAME}"
+
+    # Scale up backup region deployments
+    echo "Scaling up backup region deployments..."
+    kubectl scale deployment isa-superapp --replicas=10 -n isa-superapp
+    kubectl scale deployment isa-frontend --replicas=8 -n isa-superapp
+    kubectl scale statefulset isa-postgres --replicas=2 -n isa-database
+    kubectl scale statefulset isa-redis --replicas=3 -n isa-database
+
+    # Wait for services to be ready
+    echo "Waiting for services to be ready..."
+    kubectl wait --for=condition=available --timeout=300s deployment/isa-superapp -n isa-superapp
+    kubectl wait --for=condition=available --timeout=300s deployment/isa-frontend -n isa-superapp
+
+    # Update DNS to point to backup region
+    echo "Updating DNS records..."
+    BACKUP_LB=$(kubectl get svc isa-frontend -n isa-superapp -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+    # Update Route53
+    aws route53 change-resource-record-sets \
+      --hosted-zone-id "${HOSTED_ZONE_ID}" \
+      --change-batch "{
+        \"Changes\": [{
+          \"Action\": \"UPSERT\",
+          \"ResourceRecordSet\": {
+            \"Name\": \"app.isa-superapp.com\",
+            \"Type\": \"CNAME\",
+            \"TTL\": 60,
+            \"ResourceRecords\": [{\"Value\": \"${BACKUP_LB}\"}]
+          }
+        }]
+      }"
+
+    # Update API DNS
+    API_LB=$(kubectl get svc isa-superapp -n isa-superapp -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+    aws route53 change-resource-record-sets \
+      --hosted-zone-id "${HOSTED_ZONE_ID}" \
+      --change-batch "{
+        \"Changes\": [{
+          \"Action\": \"UPSERT\",
+          \"ResourceRecordSet\": {
+            \"Name\": \"api.isa-superapp.com\",
+            \"Type\": \"CNAME\",
+            \"TTL\": 60,
+            \"ResourceRecords\": [{\"Value\": \"${API_LB}\"}]
+          }
+        }]
+      }"
+
+    # Send notifications
+    echo "Sending failover notifications..."
+    curl -X POST "${SLACK_WEBHOOK_URL}" \
+      -H 'Content-type: application/json' \
+      -d "{\"text\":\"🚨 FAILOVER ACTIVATED: Switched to backup region ${BACKUP_REGION}\"}"
+
+    # Update monitoring
+    echo "Failover completed successfully"
+
+  failback.sh: |
+    #!/bin/bash
+    set -e
+
+    # Configuration
+    PRIMARY_REGION="${PRIMARY_REGION:-us-east-1}"
+    BACKUP_REGION="${BACKUP_REGION:-us-west-2}"
+    CLUSTER_NAME="${CLUSTER_NAME:-isa-superapp}"
+
+    echo "Starting failback from ${BACKUP_REGION} to ${PRIMARY_REGION}"
+
+    # Health check primary region
+    PRIMARY_HEALTH=$(aws eks describe-cluster --region "${PRIMARY_REGION}" --name "${CLUSTER_NAME}" --query 'cluster.status' --output text 2>/dev/null || echo "UNHEALTHY")
+
+    if [ "${PRIMARY_HEALTH}" != "ACTIVE" ]; then
+      echo "Primary region is not yet healthy. Cannot perform failback."
+      exit 1
+    fi
+
+    # Update kubeconfig to primary region
+    aws eks update-kubeconfig --region "${PRIMARY_REGION}" --name "${CLUSTER_NAME}"
+
+    # Perform data synchronization if needed
+    echo "Synchronizing data from backup to primary region..."
+
+    # Scale up primary region deployments
+    echo "Scaling up primary region deployments..."
+    kubectl scale deployment isa-superapp --replicas=10 -n isa-superapp
+    kubectl scale deployment isa-frontend --replicas=8 -n isa-superapp
+    kubectl scale statefulset isa-postgres --replicas=2 -n isa-database
+    kubectl scale statefulset isa-redis --replicas=3 -n isa-database
+
+    # Wait for services to be ready
+    echo "Waiting for primary region services to be ready..."
+    kubectl wait --for=condition=available --timeout=300s deployment/isa-superapp -n isa-superapp
+    kubectl wait --for=condition=available --timeout=300s deployment/isa-frontend -n isa-superapp
+
+    # Perform health checks
+    echo "Performing health checks..."
+    # Add health check logic here
+
+    # Update DNS back to primary region
+    echo "Updating DNS records back to primary region..."
+    PRIMARY_LB=$(kubectl get svc isa-frontend -n isa-superapp -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+    aws route53 change-resource-record-sets \
+      --hosted-zone-id "${HOSTED_ZONE_ID}" \
+      --change-batch "{
+        \"Changes\": [{
+          \"Action\": \"UPSERT\",
+          \"ResourceRecordSet\": {
+            \"Name\": \"app.isa-superapp.com\",
+            \"Type\": \"CNAME\",
+            \"TTL\": 60,
+            \"ResourceRecords\": [{\"Value\": \"${PRIMARY_LB}\"}]
+          }
+        }]
+      }"
+
+    # Scale down backup region
+    echo "Scaling down backup region..."
+    aws eks update-kubeconfig --region "${BACKUP_REGION}" --name "${CLUSTER_NAME}"
+    kubectl scale deployment isa-superapp --replicas=1 -n isa-superapp
+    kubectl scale deployment isa-frontend --replicas=1 -n isa-superapp
+
+    # Send notifications
+    echo "Sending failback notifications..."
+    curl -X POST "${SLACK_WEBHOOK_URL}" \
+      -H 'Content-type: application/json' \
+      -d "{\"text\":\"✅ FAILBACK COMPLETED: Switched back to primary region ${PRIMARY_REGION}\"}"
+
+    echo "Failback completed successfully"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: failover-secret
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: failover
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: failover
+type: Opaque
+data:
+  # These should be base64 encoded
+  # slack-webhook-url: <base64-encoded-url>
+  # aws-access-key-id: <base64-encoded-key>
+  # aws-secret-access-key: <base64-encoded-secret>
+  # hosted-zone-id: <base64-encoded-zone-id>
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: region-health-check
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: failover
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: failover
+spec:
+  schedule: "*/5 * * * *"  # Every 5 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: failover-sa
+          containers:
+          - name: health-check
+            image: amazonlinux:2
+            command:
+            - /bin/bash
+            - -c
+            - |
+              # Install AWS CLI
+              yum update -y && yum install -y awscli jq
+
+              # Check primary region health
+              PRIMARY_HEALTH=$(aws eks describe-cluster --region us-east-1 --name isa-superapp --query 'cluster.status' --output text 2>/dev/null || echo "UNHEALTHY")
+
+              if [ "$PRIMARY_HEALTH" != "ACTIVE" ]; then
+                echo "Primary region unhealthy, triggering failover..."
+                /scripts/failover.sh
+              else
+                echo "Primary region healthy"
+              fi
+            env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: failover-secret
+                  key: aws-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: failover-secret
+                  key: aws-secret-access-key
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: failover-secret
+                  key: slack-webhook-url
+            volumeMounts:
+            - name: failover-scripts
+              mountPath: /scripts
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 200m
+                memory: 512Mi
+          volumes:
+          - name: failover-scripts
+            configMap:
+              name: failover-config
+              defaultMode: 0755
+          restartPolicy: OnFailure
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: failover-sa
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: failover
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: failover
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: failover-role
+  labels:
+    app.kubernetes.io/name: failover
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: failover
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: failover-binding
+  labels:
+    app.kubernetes.io/name: failover
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: failover
+subjects:
+- kind: ServiceAccount
+  name: failover-sa
+  namespace: isa-superapp
+roleRef:
+  kind: ClusterRole
+  name: failover-role
+  apiGroup: rbac.authorization.k8s.io

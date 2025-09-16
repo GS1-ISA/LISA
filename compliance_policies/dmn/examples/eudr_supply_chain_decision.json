@@ -1,0 +1,145 @@
+{
+  "dmnTable": {
+    "id": "eudr_supply_chain_table",
+    "name": "EUDR Supply Chain Compliance Decision Table",
+    "namespace": "http://www.omg.org/spec/DMN/20191111/MODEL/",
+    "description": "Decision table for evaluating EUDR supply chain compliance",
+    "version": "1.0",
+    "decisionTables": [
+      {
+        "id": "dt_eudr_supply_chain_check",
+        "name": "EUDR Supply Chain Compliance Check",
+        "hitPolicy": "FIRST",
+        "description": "Determine EUDR compliance for supply chain due diligence",
+        "inputClauses": [
+          {
+            "id": "input_supplier_country",
+            "label": "Supplier Country",
+            "expression": "supplier_country",
+            "typeRef": "string"
+          },
+          {
+            "id": "input_product_category",
+            "label": "Product Category",
+            "expression": "product_category",
+            "typeRef": "string"
+          },
+          {
+            "id": "input_risk_assessment_score",
+            "label": "Risk Assessment Score",
+            "expression": "risk_assessment_score",
+            "typeRef": "number"
+          },
+          {
+            "id": "input_due_diligence_completed",
+            "label": "Due Diligence Completed",
+            "expression": "due_diligence_completed",
+            "typeRef": "boolean"
+          }
+        ],
+        "outputClauses": [
+          {
+            "id": "output_compliance_decision",
+            "label": "Compliance Decision",
+            "name": "compliance_decision",
+            "typeRef": "string"
+          },
+          {
+            "id": "output_required_mitigation",
+            "label": "Required Mitigation",
+            "name": "required_mitigation",
+            "typeRef": "string"
+          },
+          {
+            "id": "output_risk_priority",
+            "label": "Risk Priority",
+            "name": "risk_priority",
+            "typeRef": "string"
+          }
+        ],
+        "rules": [
+          {
+            "id": "rule_high_risk_country",
+            "description": "High-risk country requires enhanced due diligence",
+            "priority": 1,
+            "inputEntries": {
+              "input_supplier_country": "Brazil,Cambodia,Indonesia",
+              "input_product_category": "-",
+              "input_risk_assessment_score": ">= 0.7",
+              "input_due_diligence_completed": false
+            },
+            "outputEntries": {
+              "output_compliance_decision": "REQUIRES_ENHANCED_DUE_DILIGENCE",
+              "output_required_mitigation": "Complete comprehensive risk assessment and traceability system",
+              "output_risk_priority": "CRITICAL"
+            }
+          },
+          {
+            "id": "rule_standard_risk",
+            "description": "Standard risk level with completed due diligence",
+            "priority": 2,
+            "inputEntries": {
+              "input_supplier_country": "-",
+              "input_product_category": "cattle,soy,palm_oil,coffee,cocoa,wood,rubber",
+              "input_risk_assessment_score": "< 0.7",
+              "input_due_diligence_completed": true
+            },
+            "outputEntries": {
+              "output_compliance_decision": "COMPLIANT",
+              "output_required_mitigation": "Continue standard monitoring",
+              "output_risk_priority": "LOW"
+            }
+          },
+          {
+            "id": "rule_medium_risk",
+            "description": "Medium risk requiring additional verification",
+            "priority": 3,
+            "inputEntries": {
+              "input_supplier_country": "-",
+              "input_product_category": "-",
+              "input_risk_assessment_score": ">= 0.4",
+              "input_due_diligence_completed": true
+            },
+            "outputEntries": {
+              "output_compliance_decision": "REQUIRES_VERIFICATION",
+              "output_required_mitigation": "Verify supplier information and conduct spot checks",
+              "output_risk_priority": "MEDIUM"
+            }
+          },
+          {
+            "id": "rule_low_risk",
+            "description": "Low risk with basic compliance",
+            "priority": 4,
+            "inputEntries": {
+              "input_supplier_country": "-",
+              "input_product_category": "-",
+              "input_risk_assessment_score": "< 0.4",
+              "input_due_diligence_completed": true
+            },
+            "outputEntries": {
+              "output_compliance_decision": "COMPLIANT",
+              "output_required_mitigation": "Maintain basic supplier records",
+              "output_risk_priority": "LOW"
+            }
+          },
+          {
+            "id": "rule_missing_due_diligence",
+            "description": "Missing due diligence for any risk level",
+            "priority": 5,
+            "inputEntries": {
+              "input_supplier_country": "-",
+              "input_product_category": "-",
+              "input_risk_assessment_score": "-",
+              "input_due_diligence_completed": false
+            },
+            "outputEntries": {
+              "output_compliance_decision": "NON_COMPLIANT",
+              "output_required_mitigation": "Complete due diligence process immediately",
+              "output_risk_priority": "HIGH"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

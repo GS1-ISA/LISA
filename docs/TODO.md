@@ -1,6 +1,6 @@
 # Master TODO — Agentic Monorepo Program (All Plans)
 
-Last updated: 2025-09-09
+Last updated: 2025-09-16
 
 Status Legend: [ ] pending  [~] in-progress  [x] done  [!] blocked
 
@@ -99,6 +99,27 @@ These are the current developer-prioritized milestones distilled from the Roadma
 
 - [x] Cost telemetry artifact + 80% alert (owner: eng-lead) — ETA: 2025-09-20
   - Acceptance: monthly spend artifact present; CI prints alert test at 80% threshold.
+
+- [x] Server fixes and deployment (owner: eng-lead) — Completed: 2025-09-16
+  - Acceptance: FastAPI server running successfully on http://localhost:8001; HTTPS redirect middleware fixed; dotenv loading implemented; import errors resolved; Socket.io integration cleaned up.
+
+- [ ] Authentication login endpoint fix (owner: eng-lead) — ETA: 2025-09-18
+  - Acceptance: Login endpoint working with proper log_auth_event signature; authentication flow functional.
+
+- [ ] GS1 integration endpoints implementation (owner: eng-lead) — ETA: 2025-09-20
+  - Acceptance: GS1 endpoints uncommented and functional; imports resolved; basic GS1 integration working.
+
+- [ ] Compliance workflow endpoints implementation (owner: eng-lead) — ETA: 2025-09-20
+  - Acceptance: Compliance workflow endpoints uncommented and functional; imports resolved; basic compliance workflows operational.
+
+- [ ] LLM/agent backend integration fixes (owner: eng-lead) — ETA: 2025-09-22
+  - Acceptance: Async/await patterns fixed; JSON serialization working; agent backend integration stable.
+
+- [ ] System monitoring permissions fix (owner: eng-lead) — ETA: 2025-09-18
+  - Acceptance: psutil access granted; system health metrics collection working without errors.
+
+- [ ] Integration features completion (owner: eng-lead) — ETA: 2025-09-25
+  - Acceptance: All commented integration features implemented; system fully functional.
 
 - [ ] Weekly meta risk loop (owner: eng-lead) — recurring, Fridays
   - Acceptance: `meta_inventory.md` + `meta_risk_xray.md` updated; exactly one top‑risk issue open with ETA; session JSONL appended.

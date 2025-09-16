@@ -1,6 +1,8 @@
 import logging
+import asyncio
 
 from src.agent_core.memory.rag_store import RAGMemory
+from src.agent_core.llm_client import get_openrouter_free_client
 
 # Configure logging
 logging.basicConfig(
@@ -15,44 +17,80 @@ class SynthesizerAgent:
     """
 
     def __init__(self):
-        self.llm_client = None  # Placeholder for an LLM client
-        logging.info("SynthesizerAgent initialized.")
+        self.llm_client = get_openrouter_free_client()
+        logging.info("SynthesizerAgent initialized with OpenRouter free models.")
 
-    def _reason_and_synthesize(self, query: str, research_data: list[dict]) -> str:
+    async def _reason_and_synthesize(self, query: str, research_data: list[dict]) -> str:
         """
-        Simulates an LLM call to synthesize the final report.
-        In a real implementation, this would use a prompt to ask the LLM
-        to write a report based on the provided context, citing sources.
+        Uses LLM to synthesize research findings into a coherent report.
         """
         logging.info(f"Synthesizing report for query: {query}")
 
-        report = f"# Research Report: {query}\n\n"
-        report += "This report summarizes the findings from the research process.\n\n"
-
         if not research_data:
-            report += "No information was found during the research process.\n"
-            return report
+            return f"# Research Report: {query}\n\nNo information was found during the research process.\n"
 
-        report += "## Key Findings\n\n"
-
-        # Placeholder logic to simulate LLM synthesis
+        # Prepare context from research data
+        context_parts = []
         seen_sources = set()
+
         for item in research_data:
             doc = item.get("document", "")
             source = item.get("metadata", {}).get("source", "N/A")
+            if doc and source != "N/A":
+                context_parts.append(f"Source: {source}\nContent: {doc[:500]}...")
+                seen_sources.add(source)
 
-            # Create a summary snippet (in reality, an LLM would do this)
-            summary_snippet = " ".join(doc.split()[:50]) + "..."
-            report += f"- From source [{source}]({source}): {summary_snippet}\n"
-            seen_sources.add(source)
+        context = "\n\n".join(context_parts)
 
-        report += "\n## Sources Consulted\n\n"
-        for source in sorted(list(seen_sources)):
-            report += f"- {source}\n"
+        system_prompt = """You are a research synthesis expert. Create a comprehensive, well-structured report based on the provided research data.
 
-        return report
+Guidelines:
+- Organize the report with clear sections and headings
+- Synthesize information from multiple sources
+- Cite sources appropriately
+- Be objective and evidence-based
+- Include key findings, implications, and conclusions
+- Use Markdown formatting for readability"""
 
-    def run(self, query: str, rag_memory: RAGMemory) -> str:
+        prompt = f"""Research Query: {query}
+
+Research Data:
+{context}
+
+Please synthesize this information into a comprehensive research report."""
+
+        try:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+
+            result = await self.llm_client.async_chat_completion(messages)
+
+            report = result['content']
+            logging.info(f"Generated synthesis report using {result['model_used']}")
+            return report
+
+        except Exception as e:
+            logging.error(f"Failed to synthesize with LLM: {e}")
+            # Fallback to basic report
+            report = f"# Research Report: {query}\n\n"
+            report += "This report summarizes the findings from the research process.\n\n"
+
+            report += "## Key Findings\n\n"
+            for item in research_data[:5]:  # Limit to 5 items
+                doc = item.get("document", "")
+                source = item.get("metadata", {}).get("source", "N/A")
+                summary_snippet = " ".join(doc.split()[:50]) + "..."
+                report += f"- From source [{source}]({source}): {summary_snippet}\n"
+
+            report += "\n## Sources Consulted\n\n"
+            for source in sorted(list(seen_sources)):
+                report += f"- {source}\n"
+
+            return report
+
+    async def run(self, query: str, rag_memory: RAGMemory) -> str:
         """
         Runs the synthesis process.
 
@@ -66,11 +104,17 @@ class SynthesizerAgent:
         # Retrieve all relevant information from the memory
         # For simplicity, we query with the original query to get top results.
         # A more advanced approach might use multiple queries based on the plan.
-        research_data = rag_memory.query(query, n_results=20)
+        research_data = await asyncio.to_thread(rag_memory.query, query, n_results=20)
 
         if not research_data:
             logging.warning("No data found in RAG memory to synthesize.")
 
-        final_report = self._reason_and_synthesize(query, research_data)
+        final_report = await self._reason_and_synthesize(query, research_data)
         logging.info("Successfully synthesized the final report.")
         return final_report
+
+    def run_sync(self, query: str, rag_memory) -> str:
+        """
+        Synchronous wrapper for the run method.
+        """
+        return asyncio.run(self.run(query, rag_memory))

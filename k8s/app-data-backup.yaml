@@ -1,0 +1,252 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-data-backup-config
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: app-data-backup
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+data:
+  backup.sh: |
+    #!/bin/bash
+    set -e
+
+    # Configuration
+    BACKUP_DIR="/backup"
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    BACKUP_NAME="isa_app_data_${TIMESTAMP}"
+    RETENTION_DAYS=30
+
+    echo "Starting application data backup: ${BACKUP_NAME}"
+
+    # Create backup directory if it doesn't exist
+    mkdir -p "${BACKUP_DIR}/${BACKUP_NAME}"
+
+    # Backup application logs
+    echo "Backing up application logs..."
+    if [ -d "/var/log/isa-superapp" ]; then
+      cp -r /var/log/isa-superapp "${BACKUP_DIR}/${BACKUP_NAME}/"
+    fi
+
+    # Backup Grafana data
+    echo "Backing up Grafana data..."
+    if [ -d "/var/lib/grafana" ]; then
+      tar -czf "${BACKUP_DIR}/${BACKUP_NAME}/grafana_data.tar.gz" -C / var/lib/grafana
+    fi
+
+    # Backup Loki data
+    echo "Backing up Loki data..."
+    if [ -d "/loki" ]; then
+      tar -czf "${BACKUP_DIR}/${BACKUP_NAME}/loki_data.tar.gz" -C / loki
+    fi
+
+    # Backup Prometheus data
+    echo "Backing up Prometheus data..."
+    if [ -d "/prometheus" ]; then
+      tar -czf "${BACKUP_DIR}/${BACKUP_NAME}/prometheus_data.tar.gz" -C / prometheus
+    fi
+
+    # Backup any uploaded files or user data
+    echo "Backing up user data..."
+    if [ -d "/app/uploads" ]; then
+      cp -r /app/uploads "${BACKUP_DIR}/${BACKUP_NAME}/"
+    fi
+
+    if [ -d "/app/data" ]; then
+      cp -r /app/data "${BACKUP_DIR}/${BACKUP_NAME}/"
+    fi
+
+    # Create compressed archive of everything
+    tar -czf "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" \
+      -C "${BACKUP_DIR}" \
+      "${BACKUP_NAME}"
+
+    # Remove uncompressed backup
+    rm -rf "${BACKUP_DIR}/${BACKUP_NAME}"
+
+    # Calculate checksum
+    sha256sum "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" > "${BACKUP_DIR}/${BACKUP_NAME}.sha256"
+
+    echo "Application data backup completed: ${BACKUP_NAME}"
+
+    # Clean up old backups
+    find "${BACKUP_DIR}" -name "isa_app_data_*.tar.gz" -mtime +${RETENTION_DAYS} -delete
+    find "${BACKUP_DIR}" -name "isa_app_data_*.sha256" -mtime +${RETENTION_DAYS} -delete
+
+    echo "Cleanup completed"
+
+  restore.sh: |
+    #!/bin/bash
+    set -e
+
+    # Configuration
+    BACKUP_DIR="/backup"
+
+    if [ -z "$1" ]; then
+      echo "Usage: $0 <backup_file>"
+      echo "Available backups:"
+      ls -la "${BACKUP_DIR}"/isa_app_data_*.tar.gz
+      exit 1
+    fi
+
+    BACKUP_FILE="$1"
+
+    if [ ! -f "${BACKUP_DIR}/${BACKUP_FILE}" ]; then
+      echo "Backup file not found: ${BACKUP_DIR}/${BACKUP_FILE}"
+      exit 1
+    fi
+
+    echo "Starting application data restore from: ${BACKUP_FILE}"
+
+    # Verify checksum if available
+    CHECKSUM_FILE="${BACKUP_DIR}/${BACKUP_FILE%.tar.gz}.sha256"
+    if [ -f "${CHECKSUM_FILE}" ]; then
+      echo "Verifying backup integrity..."
+      cd "${BACKUP_DIR}" && sha256sum -c "${CHECKSUM_FILE}"
+    fi
+
+    # Extract backup
+    TEMP_DIR=$(mktemp -d)
+    tar -xzf "${BACKUP_DIR}/${BACKUP_FILE}" -C "${TEMP_DIR}"
+
+    BACKUP_DIR_EXTRACTED="${TEMP_DIR}/$(basename "${BACKUP_FILE}" .tar.gz)"
+
+    # Restore Grafana data
+    if [ -f "${BACKUP_DIR_EXTRACTED}/grafana_data.tar.gz" ]; then
+      echo "Restoring Grafana data..."
+      mkdir -p /var/lib/grafana
+      tar -xzf "${BACKUP_DIR_EXTRACTED}/grafana_data.tar.gz" -C /
+    fi
+
+    # Restore Loki data
+    if [ -f "${BACKUP_DIR_EXTRACTED}/loki_data.tar.gz" ]; then
+      echo "Restoring Loki data..."
+      mkdir -p /loki
+      tar -xzf "${BACKUP_DIR_EXTRACTED}/loki_data.tar.gz" -C /
+    fi
+
+    # Restore Prometheus data
+    if [ -f "${BACKUP_DIR_EXTRACTED}/prometheus_data.tar.gz" ]; then
+      echo "Restoring Prometheus data..."
+      mkdir -p /prometheus
+      tar -xzf "${BACKUP_DIR_EXTRACTED}/prometheus_data.tar.gz" -C /
+    fi
+
+    # Restore application logs
+    if [ -d "${BACKUP_DIR_EXTRACTED}/isa-superapp" ]; then
+      echo "Restoring application logs..."
+      mkdir -p /var/log
+      cp -r "${BACKUP_DIR_EXTRACTED}/isa-superapp" /var/log/
+    fi
+
+    # Restore user data
+    if [ -d "${BACKUP_DIR_EXTRACTED}/uploads" ]; then
+      echo "Restoring user uploads..."
+      mkdir -p /app
+      cp -r "${BACKUP_DIR_EXTRACTED}/uploads" /app/
+    fi
+
+    if [ -d "${BACKUP_DIR_EXTRACTED}/data" ]; then
+      echo "Restoring application data..."
+      mkdir -p /app
+      cp -r "${BACKUP_DIR_EXTRACTED}/data" /app/
+    fi
+
+    # Cleanup
+    rm -rf "${TEMP_DIR}"
+
+    echo "Application data restore completed successfully"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-data-backup-pvc
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: app-data-backup
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: gp3
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: app-data-backup
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: app-data-backup
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 6 * * *"  # Daily at 6 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: app-data-backup
+            image: alpine:latest
+            command:
+            - /bin/bash
+            - -c
+            - /scripts/backup.sh
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backup
+            - name: app-logs
+              mountPath: /var/log/isa-superapp
+            - name: grafana-data
+              mountPath: /var/lib/grafana
+            - name: loki-data
+              mountPath: /loki
+            - name: prometheus-data
+              mountPath: /prometheus
+            - name: app-data
+              mountPath: /app
+            resources:
+              requests:
+                cpu: 200m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: app-data-backup-config
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: app-data-backup-pvc
+          - name: app-logs
+            hostPath:
+              path: /var/log/isa-superapp
+              type: DirectoryOrCreate
+          - name: grafana-data
+            hostPath:
+              path: /var/lib/grafana
+              type: DirectoryOrCreate
+          - name: loki-data
+            hostPath:
+              path: /loki
+              type: DirectoryOrCreate
+          - name: prometheus-data
+            hostPath:
+              path: /prometheus
+              type: DirectoryOrCreate
+          - name: app-data
+            hostPath:
+              path: /app
+              type: DirectoryOrCreate
+          restartPolicy: OnFailure

@@ -4,12 +4,40 @@ import hashlib
 import json
 import os
 import time
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
 
 import requests
+
+# Global rate limiter: domain -> last request time
+_last_request_times = defaultdict(float)
+_RATE_LIMIT_DELAY = 1.0  # Minimum delay between requests to same domain (seconds)
+
+
+def _rate_limit_domain(domain: str) -> None:
+    """Apply rate limiting for a domain."""
+    now = time.time()
+    last_time = _last_request_times[domain]
+    if now - last_time < _RATE_LIMIT_DELAY:
+        sleep_time = _RATE_LIMIT_DELAY - (now - last_time)
+        time.sleep(sleep_time)
+    _last_request_times[domain] = time.time()
+
+
+def _is_domain_allowed(url: str) -> bool:
+    """Check if the domain is in the allowlist."""
+    allowed_domains = os.getenv("RESEARCH_DOMAIN_ALLOWLIST", "").split(",")
+    allowed_domains = [d.strip() for d in allowed_domains if d.strip()]
+
+    if not allowed_domains:
+        return True  # No allowlist means all domains allowed
+
+    parsed = urlparse(url)
+    domain = parsed.netloc.lower()
+    return any(domain.endswith(allowed.lower()) for allowed in allowed_domains)
 
 
 @dataclass
@@ -59,6 +87,7 @@ def fetch(
     - If url is a local path or file://, read locally (no network).
     - If allow_network is False, only return from cache (or None).
     - When network is allowed, honor robots.txt (fail-closed if not allowed).
+    - Apply domain allowlist and rate limiting for live research.
     """
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -123,6 +152,22 @@ def fetch(
             f.write(json.dumps(asdict(rec)) + "\n")
         return None, rec
 
+    # Domain allowlist check
+    if not _is_domain_allowed(url):
+        rec = FetchRecord(
+            url=url,
+            ok=False,
+            status=0,
+            bytes=0,
+            sha256="",
+            fetched_at=time.time(),
+            from_cache=False,
+            note="domain-disallow",
+        )
+        with audit_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(asdict(rec)) + "\n")
+        return None, rec
+
     # Robots check
     if not _robots_allowed(url, user_agent=user_agent):
         rec = FetchRecord(
@@ -138,6 +183,10 @@ def fetch(
         with audit_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(asdict(rec)) + "\n")
         return None, rec
+
+    # Apply rate limiting
+    domain = parsed.netloc
+    _rate_limit_domain(domain)
 
     headers = {"User-Agent": user_agent}
     try:

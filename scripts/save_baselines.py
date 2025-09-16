@@ -3,8 +3,15 @@ from __future__ import annotations
 
 import json
 import subprocess
-import xml.etree.ElementTree as ET
 from pathlib import Path
+
+try:
+    from src.xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+    from xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
 
 COVERAGE_XML = Path("ISA_SuperApp/coverage.xml")
 COVERAGE_BASELINE = Path("docs/audit/coverage_baseline.json")
@@ -14,10 +21,15 @@ SIZE_BASELINE = Path("docs/audit/size_baseline.json")
 def parse_coverage_pct(xml_path: Path) -> float:
     if not xml_path.exists():
         return 0.0
-    root = ET.parse(xml_path).getroot()
-    lines_valid = float(root.attrib.get("lines-valid", 0))
-    lines_covered = float(root.attrib.get("lines-covered", 0))
-    return (lines_covered / lines_valid * 100.0) if lines_valid else 0.0
+    try:
+        data = parse_coverage_xml(xml_path)
+        return data['coverage_pct']
+    except (XMLParseError, XMLValidationError) as e:
+        print(f"Error parsing coverage XML {xml_path}: {e}")
+        return 0.0
+    except Exception as e:
+        print(f"Unexpected error parsing coverage XML {xml_path}: {e}")
+        return 0.0
 
 
 def repo_disk_usage() -> int:

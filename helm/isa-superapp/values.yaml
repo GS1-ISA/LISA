@@ -1,0 +1,254 @@
+# Default values for isa-superapp
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global configuration
+global:
+  imageRegistry: "ghcr.io"
+  imagePullSecrets: []
+  storageClass: "gp3"
+  environment: "production"
+
+# ISA SuperApp configuration
+isaSuperapp:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: "your-org/isa-superapp"
+    tag: ""
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - isa-superapp
+          topologyKey: kubernetes.io/hostname
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: "your-org/isa-frontend"
+    tag: ""
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: ""
+    username: "isa_user"
+    password: ""
+    database: "isa_superapp"
+  architecture: "standalone"
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    password: ""
+  architecture: "standalone"
+  master:
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Neo4j configuration
+neo4j:
+  enabled: true
+  name: "isa-neo4j"
+  acceptLicenseAgreement: "yes"
+  neo4jPassword: ""
+  neo4jEdition: "enterprise"
+  volumes:
+    data:
+      mode: "defaultStorageClass"
+      defaultStorageClass:
+        requests:
+          storage: 100Gi
+    logs:
+      mode: "defaultStorageClass"
+      defaultStorageClass:
+        requests:
+          storage: 20Gi
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+    limits:
+      cpu: 2000m
+      memory: 8Gi
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 50Gi
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+  grafana:
+    enabled: true
+    adminPassword: ""
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+    alb.ingress.kubernetes.io/certificate-arn: ""
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+  hosts:
+    - host: api.isa-superapp.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: isa-superapp
+              port:
+                number: 8000
+    - host: app.isa-superapp.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: isa-frontend
+              port:
+                number: 80
+  tls:
+    - secretName: isa-tls-secret
+      hosts:
+        - api.isa-superapp.com
+        - app.isa-superapp.com
+
+# Security configuration
+security:
+  networkPolicy:
+    enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    capabilities:
+      drop:
+      - ALL
+
+# AWS configuration
+aws:
+  region: "us-east-1"
+  accountId: ""
+  eks:
+    clusterName: ""
+  iam:
+    serviceAccountAnnotations:
+      eks.amazonaws.com/role-arn: ""
+
+# External secrets configuration
+externalSecrets:
+  enabled: false
+  secretStore:
+    name: "aws-secretsmanager"
+    region: "us-east-1"
+  secrets:
+    - name: "isa-superapp-secrets"
+      secretName: "isa-superapp-secrets"
+      refreshInterval: "15s"
+      secretStoreRef:
+        name: "aws-secretsmanager"
+        kind: "SecretStore"
+      target:
+        name: "isa-superapp-secrets"
+        creationPolicy: "Owner"
+      dataFrom:
+        - "isa-superapp/*"

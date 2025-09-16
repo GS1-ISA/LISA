@@ -1,430 +1,185 @@
-name: Reusable Security Scanning Workflow
+name: Reusable Security Scan
 
 on:
   workflow_call:
     inputs:
-      scan_level:
-        description: 'Security scan level (basic, comprehensive, critical)'
-        required: true
-        type: string
-        default: 'comprehensive'
-      image_tag:
-        description: 'Docker image tag to scan'
-        required: true
-        type: string
-      environment:
-        description: 'Target environment'
+      scan-type:
+        description: 'Type of security scan to perform'
         required: false
+        default: 'full'
         type: string
-        default: 'unknown'
-      fail_on_critical:
-        description: 'Fail workflow on critical vulnerabilities'
+      severity-threshold:
+        description: 'Minimum severity threshold for blocking'
         required: false
-        type: boolean
+        default: 'HIGH'
+        type: string
+      upload-results:
+        description: 'Upload scan results as artifacts'
+        required: false
         default: true
-      upload_results:
-        description: 'Upload scan results to security dashboard'
-        required: false
         type: boolean
+      fail-on-findings:
+        description: 'Fail the workflow if security findings are found'
+        required: false
         default: true
-    secrets:
-      SNYK_TOKEN:
-        required: false
-      SONAR_TOKEN:
-        required: false
-      SECURITY_SLACK_WEBHOOK:
-        required: false
-    outputs:
-      scan_status:
-        description: 'Overall scan status (success, warning, failure)'
-        value: ${{ jobs.security-scan.outputs.scan_status }}
-      critical_issues:
-        description: 'Number of critical vulnerabilities found'
-        value: ${{ jobs.security-scan.outputs.critical_issues }}
-      high_issues:
-        description: 'Number of high vulnerabilities found'
-        value: ${{ jobs.security-scan.outputs.high_issues }}
-      medium_issues:
-        description: 'Number of medium vulnerabilities found'
-        value: ${{ jobs.security-scan.outputs.medium_issues }}
-      low_issues:
-        description: 'Number of low vulnerabilities found'
-        value: ${{ jobs.security-scan.outputs.low_issues }}
-
-env:
-  SCAN_TIMEOUT: 600
+        type: boolean
 
 jobs:
   security-scan:
-    name: Security Scan - ${{ inputs.scan_level }}
+    name: Security Scan (${{ inputs.scan-type }})
     runs-on: ubuntu-latest
     outputs:
-      scan_status: ${{ steps.aggregate-results.outputs.scan_status }}
-      critical_issues: ${{ steps.aggregate-results.outputs.critical_issues }}
-      high_issues: ${{ steps.aggregate-results.outputs.high_issues }}
-      medium_issues: ${{ steps.aggregate-results.outputs.medium_issues }}
-      low_issues: ${{ steps.aggregate-results.outputs.low_issues }}
-    
+      scan-results: ${{ steps.scan-results.outputs.results }}
+      critical-count: ${{ steps.scan-results.outputs.critical }}
+      high-count: ${{ steps.scan-results.outputs.high }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0
 
-      - name: Setup security tools
-        run: |
-          echo "🔧 Setting up security scanning tools..."
-          
-          # Install Trivy
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-          trivy --version
-          
-          # Install Grype
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
-          grype --version
-          
-          # Install Syft for SBOM generation
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-          syft --version
-          
-          echo "✅ Security tools installed"
-
-      - name: Docker image vulnerability scan (Trivy)
-        id: trivy-scan
-        continue-on-error: true
-        run: |
-          echo "🔍 Scanning Docker image with Trivy..."
-          
-          # Pull the image if not available locally
-          docker pull ghcr.io/${{ github.repository }}:${{ inputs.image_tag }} || true
-          
-          # Run Trivy scan
-          trivy image \
-            --severity HIGH,CRITICAL \
-            --format json \
-            --output trivy-results.json \
-            --timeout ${{ env.SCAN_TIMEOUT }}s \
-            ghcr.io/${{ github.repository }}:${{ inputs.image_tag }} || true
-          
-          # Parse results
-          if [ -f trivy-results.json ]; then
-            CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-results.json 2>/dev/null || echo "0")
-            HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' trivy-results.json 2>/dev/null || echo "0")
-            MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' trivy-results.json 2>/dev/null || echo "0")
-            LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "LOW")] | length' trivy-results.json 2>/dev/null || echo "0")
-            
-            echo "TRIVY_CRITICAL=${CRITICAL}" >> $GITHUB_ENV
-            echo "TRIVY_HIGH=${HIGH}" >> $GITHUB_ENV
-            echo "TRIVY_MEDIUM=${MEDIUM}" >> $GITHUB_ENV
-            echo "TRIVY_LOW=${LOW}" >> $GITHUB_ENV
-            
-            echo "📊 Trivy scan results:"
-            echo "- Critical: ${CRITICAL}"
-            echo "- High: ${HIGH}"
-            echo "- Medium: ${MEDIUM}"
-            echo "- Low: ${LOW}"
-          else
-            echo "TRIVY_CRITICAL=0" >> $GITHUB_ENV
-            echo "TRIVY_HIGH=0" >> $GITHUB_ENV
-            echo "TRIVY_MEDIUM=0" >> $GITHUB_ENV
-            echo "TRIVY_LOW=0" >> $GITHUB_ENV
-            echo "⚠️ Trivy scan failed or produced no results"
-          fi
-
-      - name: Container vulnerability scan (Grype)
-        id: grype-scan
-        continue-on-error: true
-        run: |
-          echo "🔍 Scanning container with Grype..."
-          
-          # Generate SBOM with Syft
-          syft ghcr.io/${{ github.repository }}:${{ inputs.image_tag }} -o json > sbom.json || true
-          
-          # Run Grype scan
-          if [ -f sbom.json ]; then
-            grype sbom.json -o json > grype-results.json || true
-            
-            # Parse results
-            if [ -f grype-results.json ]; then
-              CRITICAL=$(jq '[.matches[]? | select(.vulnerability.severity == "Critical")] | length' grype-results.json 2>/dev/null || echo "0")
-              HIGH=$(jq '[.matches[]? | select(.vulnerability.severity == "High")] | length' grype-results.json 2>/dev/null || echo "0")
-              MEDIUM=$(jq '[.matches[]? | select(.vulnerability.severity == "Medium")] | length' grype-results.json 2>/dev/null || echo "0")
-              LOW=$(jq '[.matches[]? | select(.vulnerability.severity == "Low")] | length' grype-results.json 2>/dev/null || echo "0")
-              
-              echo "GRYPE_CRITICAL=${CRITICAL}" >> $GITHUB_ENV
-              echo "GRYPE_HIGH=${HIGH}" >> $GITHUB_ENV
-              echo "GRYPE_MEDIUM=${MEDIUM}" >> $GITHUB_ENV
-              echo "GRYPE_LOW=${LOW}" >> $GITHUB_ENV
-              
-              echo "📊 Grype scan results:"
-              echo "- Critical: ${CRITICAL}"
-              echo "- High: ${HIGH}"
-              echo "- Medium: ${MEDIUM}"
-              echo "- Low: ${LOW}"
-            else
-              echo "GRYPE_CRITICAL=0" >> $GITHUB_ENV
-              echo "GRYPE_HIGH=0" >> $GITHUB_ENV
-              echo "GRYPE_MEDIUM=0" >> $GITHUB_ENV
-              echo "GRYPE_LOW=0" >> $GITHUB_ENV
-              echo "⚠️ Grype scan failed"
-            fi
-          else
-            echo "GRYPE_CRITICAL=0" >> $GITHUB_ENV
-            echo "GRYPE_HIGH=0" >> $GITHUB_ENV
-            echo "GRYPE_MEDIUM=0" >> $GITHUB_ENV
-            echo "GRYPE_LOW=0" >> $GITHUB_ENV
-            echo "⚠️ SBOM generation failed"
-          fi
-
-      - name: Code security scan (SonarCloud)
-        if: inputs.scan_level != 'basic'
-        id: sonar-scan
-        continue-on-error: true
-        uses: SonarSource/sonarcloud-github-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          args: >
-            -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
-            -Dsonar.organization=${{ github.repository_owner }}
-            -Dsonar.qualitygate.wait=true
+          python-version: '3.11'
 
-      - name: Dependency vulnerability scan (Snyk)
-        if: inputs.scan_level != 'basic'
-        id: snyk-scan
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-security-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-security-
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety semgrep
+          npm install -g eslint eslint-plugin-security
+
+      - name: Run Bandit (Python security scanner)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'python'
+        run: |
+          bandit -r src -f json -o bandit-report.json
+
+      - name: Run Safety (Python vulnerability scanner)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'python'
+        run: |
+          safety check --output json > safety-report.json || true
+
+      - name: Run Trivy (container vulnerability scanner)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'container'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Run Semgrep (semantic code analysis)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'code'
+        run: |
+          semgrep --config p/security-audit --json > semgrep-results.json || true
+
+      - name: Run npm audit
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'javascript'
+        run: |
+          cd frontend
+          npm audit --audit-level moderate --json > npm-audit.json || true
+
+      - name: Run ESLint security rules
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'javascript'
+        run: |
+          cd frontend
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-security.json || true
+
+      - name: Run CodeQL Analysis
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'code'
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python,javascript,typescript
+          queries: security-and-quality
+
+      - name: Run CodeQL Analysis
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'code'
+        uses: github/codeql-action/analyze@v2
+
+      - name: Analyze scan results
+        id: scan-results
+        run: |
+          # Initialize counters
+          CRITICAL=0
+          HIGH=0
+          MEDIUM=0
+          LOW=0
+
+          # Count Trivy vulnerabilities
+          if [ -f trivy-results.sarif ]; then
+            CRITICAL=$((CRITICAL + $(jq '.runs[0].results[] | select(.level == "error") | .message.text' trivy-results.sarif 2>/dev/null | wc -l || echo "0")))
+            HIGH=$((HIGH + $(jq '.runs[0].results[] | select(.level == "warning") | .message.text' trivy-results.sarif 2>/dev/null | wc -l || echo "0")))
+          fi
+
+          # Count Bandit issues
+          if [ -f bandit-report.json ]; then
+            CRITICAL=$((CRITICAL + $(jq '.results[] | select(.issue_severity == "HIGH") | .filename' bandit-report.json 2>/dev/null | wc -l || echo "0")))
+            HIGH=$((HIGH + $(jq '.results[] | select(.issue_severity == "MEDIUM") | .filename' bandit-report.json 2>/dev/null | wc -l || echo "0")))
+          fi
+
+          # Count Semgrep findings
+          if [ -f semgrep-results.json ]; then
+            CRITICAL=$((CRITICAL + $(jq '.results[] | select(.extra.severity == "ERROR") | .path' semgrep-results.json 2>/dev/null | wc -l || echo "0")))
+            HIGH=$((HIGH + $(jq '.results[] | select(.extra.severity == "WARNING") | .path' semgrep-results.json 2>/dev/null | wc -l || echo "0")))
+          fi
+
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "results={\"critical\": $CRITICAL, \"high\": $HIGH, \"medium\": $MEDIUM, \"low\": $LOW}" >> $GITHUB_OUTPUT
+
+          # Check severity threshold
+          if [ "${{ inputs.severity-threshold }}" == "CRITICAL" ] && [ "$CRITICAL" -gt 0 ]; then
+            echo "Blocking due to critical severity findings"
+            if [ "${{ inputs.fail-on-findings }}" == "true" ]; then
+              exit 1
+            fi
+          elif [ "${{ inputs.severity-threshold }}" == "HIGH" ] && [ "$HIGH" -gt 0 ]; then
+            echo "Blocking due to high severity findings"
+            if [ "${{ inputs.fail-on-findings }}" == "true" ]; then
+              exit 1
+            fi
+          fi
+
+      - name: Upload security scan results
+        if: inputs.upload-results == true
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
         continue-on-error: true
-        run: |
-          echo "🔍 Scanning dependencies with Snyk..."
-          
-          # Install Snyk CLI
-          npm install -g snyk || true
-          
-          # Authenticate with Snyk
-          snyk auth ${{ secrets.SNYK_TOKEN }} || true
-          
-          # Run Snyk test
-          snyk test --json > snyk-results.json || true
-          
-          # Parse results
-          if [ -f snyk-results.json ]; then
-            CRITICAL=$(jq '[.vulnerabilities[]? | select(.severity == "critical")] | length' snyk-results.json 2>/dev/null || echo "0")
-            HIGH=$(jq '[.vulnerabilities[]? | select(.severity == "high")] | length' snyk-results.json 2>/dev/null || echo "0")
-            MEDIUM=$(jq '[.vulnerabilities[]? | select(.severity == "medium")] | length' snyk-results.json 2>/dev/null || echo "0")
-            LOW=$(jq '[.vulnerabilities[]? | select(.severity == "low")] | length' snyk-results.json 2>/dev/null || echo "0")
-            
-            echo "SNYK_CRITICAL=${CRITICAL}" >> $GITHUB_ENV
-            echo "SNYK_HIGH=${HIGH}" >> $GITHUB_ENV
-            echo "SNYK_MEDIUM=${MEDIUM}" >> $GITHUB_ENV
-            echo "SNYK_LOW=${LOW}" >> $GITHUB_ENV
-            
-            echo "📊 Snyk scan results:"
-            echo "- Critical: ${CRITICAL}"
-            echo "- High: ${HIGH}"
-            echo "- Medium: ${MEDIUM}"
-            echo "- Low: ${LOW}"
-          else
-            echo "SNYK_CRITICAL=0" >> $GITHUB_ENV
-            echo "SNYK_HIGH=0" >> $GITHUB_ENV
-            echo "SNYK_MEDIUM=0" >> $GITHUB_ENV
-            echo "SNYK_LOW=0" >> $GITHUB_ENV
-            echo "⚠️ Snyk scan failed"
-          fi
 
-      - name: Secret scanning
-        id: secret-scan
+      - name: Upload security artifacts
+        if: inputs.upload-results == true
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-scan-results-${{ inputs.scan-type }}
+          path: |
+            bandit-report.json
+            safety-report.json
+            trivy-results.sarif
+            npm-audit.json
+            eslint-security.json
+            semgrep-results.json
         continue-on-error: true
-        run: |
-          echo "🔍 Scanning for secrets..."
-          
-          # Install gitleaks
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
-          chmod +x gitleaks
-          sudo mv gitleaks /usr/local/bin/
-          
-          # Run gitleaks scan
-          gitleaks detect --source . --report-format json --report-path gitleaks-results.json --no-git || true
-          
-          # Parse results
-          if [ -f gitleaks-results.json ] && [ -s gitleaks-results.json ]; then
-            SECRETS_FOUND=$(jq '. | length' gitleaks-results.json 2>/dev/null || echo "0")
-            echo "SECRETS_FOUND=${SECRETS_FOUND}" >> $GITHUB_ENV
-            echo "🚨 Secrets found: ${SECRETS_FOUND}"
-          else
-            echo "SECRETS_FOUND=0" >> $GITHUB_ENV
-            echo "✅ No secrets detected"
-          fi
 
-      - name: Infrastructure as Code scanning
-        if: inputs.scan_level == 'comprehensive'
-        id: iac-scan
-        continue-on-error: true
+      - name: Generate security report
         run: |
-          echo "🔍 Scanning infrastructure as code..."
-          
-          # Install Checkov
-          pip install checkov || true
-          
-          # Run Checkov scan on Kubernetes manifests and workflows
-          checkov -d . --framework kubernetes,github_actions --output json --output-file checkov-results.json || true
-          
-          # Parse results
-          if [ -f checkov-results.json ]; then
-            FAILED_CHECKS=$(jq '.summary.failed // 0' checkov-results.json 2>/dev/null || echo "0")
-            echo "IAC_ISSUES=${FAILED_CHECKS}" >> $GITHUB_ENV
-            echo "📊 IaC scan results:"
-            echo "- Failed checks: ${FAILED_CHECKS}"
-          else
-            echo "IAC_ISSUES=0" >> $GITHUB_ENV
-            echo "⚠️ IaC scan failed"
-          fi
-
-      - name: Aggregate scan results
-        id: aggregate-results
-        run: |
-          echo "📊 Aggregating security scan results..."
-          
-          # Aggregate vulnerability counts
-          CRITICAL_VULNS=$(( ${TRIVY_CRITICAL:-0} + ${GRYPE_CRITICAL:-0} + ${SNYK_CRITICAL:-0} ))
-          HIGH_VULNS=$(( ${TRIVY_HIGH:-0} + ${GRYPE_HIGH:-0} + ${SNYK_HIGH:-0} ))
-          MEDIUM_VULNS=$(( ${TRIVY_MEDIUM:-0} + ${GRYPE_MEDIUM:-0} + ${SNYK_MEDIUM:-0} ))
-          LOW_VULNS=$(( ${TRIVY_LOW:-0} + ${GRYPE_LOW:-0} + ${SNYK_LOW:-0} ))
-          
-          # Add other security issues
-          TOTAL_ISSUES=$(( CRITICAL_VULNS + HIGH_VULNS + MEDIUM_VULNS + LOW_VULNS + ${SECRETS_FOUND:-0} + ${IAC_ISSUES:-0} ))
-          
-          # Determine overall status
-          if [ "${CRITICAL_VULNS}" -gt 0 ] && [ "${{ inputs.fail_on_critical }}" == "true" ]; then
-            SCAN_STATUS="failure"
-          elif [ "${HIGH_VULNS}" -gt 5 ] || [ "${CRITICAL_VULNS}" -gt 0 ]; then
-            SCAN_STATUS="warning"
-          elif [ "${TOTAL_ISSUES}" -eq 0 ]; then
-            SCAN_STATUS="success"
-          else
-            SCAN_STATUS="warning"
-          fi
-          
-          # Set outputs
-          echo "scan_status=${SCAN_STATUS}" >> $GITHUB_OUTPUT
-          echo "critical_issues=${CRITICAL_VULNS}" >> $GITHUB_OUTPUT
-          echo "high_issues=${HIGH_VULNS}" >> $GITHUB_OUTPUT
-          echo "medium_issues=${MEDIUM_VULNS}" >> $GITHUB_OUTPUT
-          echo "low_issues=${LOW_VULNS}" >> $GITHUB_OUTPUT
-          
-          echo "📋 Security Scan Summary"
-          echo "======================"
-          echo "Environment: ${{ inputs.environment }}"
-          echo "Scan Level: ${{ inputs.scan_level }}"
-          echo "Overall Status: ${SCAN_STATUS}"
-          echo "Critical Issues: ${CRITICAL_VULNS}"
-          echo "High Issues: ${HIGH_VULNS}"
-          echo "Medium Issues: ${MEDIUM_VULNS}"
-          echo "Low Issues: ${LOW_VULNS}"
-          echo "Secrets Found: ${SECRETS_FOUND:-0}"
-          echo "IaC Issues: ${IAC_ISSUES:-0}"
-          echo "Total Issues: ${TOTAL_ISSUES}"
-          echo "====================="
-
-      - name: Upload scan results
-        if: inputs.upload_results == true
-        run: |
-          echo "📤 Uploading scan results..."
-          
-          # Create comprehensive report
-          cat > security-report.json << EOF
-          {
-            "scan_metadata": {
-              "repository": "${{ github.repository }}",
-              "workflow": "${{ github.workflow }}",
-              "run_id": "${{ github.run_id }}",
-              "environment": "${{ inputs.environment }}",
-              "scan_level": "${{ inputs.scan_level }}",
-              "image_tag": "${{ inputs.image_tag }}",
-              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-              "triggered_by": "${{ github.actor }}"
-            },
-            "summary": {
-              "overall_status": "${{ steps.aggregate-results.outputs.scan_status }}",
-              "critical_issues": ${{ steps.aggregate-results.outputs.critical_issues }},
-              "high_issues": ${{ steps.aggregate-results.outputs.high_issues }},
-              "medium_issues": ${{ steps.aggregate-results.outputs.medium_issues }},
-              "low_issues": ${{ steps.aggregate-results.outputs.low_issues }},
-              "secrets_found": ${SECRETS_FOUND:-0},
-              "iac_issues": ${IAC_ISSUES:-0}
-            },
-            "detailed_results": {
-              "trivy": {
-                "critical": ${TRIVY_CRITICAL:-0},
-                "high": ${TRIVY_HIGH:-0},
-                "medium": ${TRIVY_MEDIUM:-0},
-                "low": ${TRIVY_LOW:-0}
-              },
-              "grype": {
-                "critical": ${GRYPE_CRITICAL:-0},
-                "high": ${GRYPE_HIGH:-0},
-                "medium": ${GRYPE_MEDIUM:-0},
-                "low": ${GRYPE_LOW:-0}
-              },
-              "snyk": {
-                "critical": ${SNYK_CRITICAL:-0},
-                "high": ${SNYK_HIGH:-0},
-                "medium": ${SNYK_MEDIUM:-0},
-                "low": ${SNYK_LOW:-0}
-              }
-            }
-          }
-          EOF
-          
-          # Upload as artifact
-          echo "SECURITY_REPORT<<EOF" >> $GITHUB_ENV
-          cat security-report.json >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Send security notification
-        if: always()
-        run: |
-          SCAN_STATUS="${{ steps.aggregate-results.outputs.scan_status }}"
-          CRITICAL_ISSUES="${{ steps.aggregate-results.outputs.critical_issues }}"
-          HIGH_ISSUES="${{ steps.aggregate-results.outputs.high_issues }}"
-          
-          # Determine color based on status
-          if [ "${SCAN_STATUS}" == "success" ]; then
-            COLOR="good"
-            EMOJI="✅"
-          elif [ "${SCAN_STATUS}" == "warning" ]; then
-            COLOR="warning"
-            EMOJI="⚠️"
-          else
-            COLOR="danger"
-            EMOJI="🚨"
-          fi
-          
-          # Send notification if webhook is configured
-          if [ -n "${{ secrets.SECURITY_SLACK_WEBHOOK }}" ]; then
-            curl -X POST ${{ secrets.SECURITY_SLACK_WEBHOOK }} \
-              -H 'Content-Type: application/json' \
-              -d '{
-                "attachments": [{
-                  "color": "'"${COLOR}"'",
-                  "title": "'"${EMOJI} Security Scan ${SCAN_STATUS}"'",
-                  "fields": [
-                    {"title": "Environment", "value": "${{ inputs.environment }}", "short": true},
-                    {"title": "Scan Level", "value": "${{ inputs.scan_level }}", "short": true},
-                    {"title": "Image Tag", "value": "${{ inputs.image_tag }}", "short": true},
-                    {"title": "Critical Issues", "value": "'"${CRITICAL_ISSUES}"'", "short": true},
-                    {"title": "High Issues", "value": "'"${HIGH_ISSUES}"'", "short": true},
-                    {"title": "Triggered by", "value": "${{ github.actor }}", "short": true}
-                  ],
-                  "footer": "Security Scanner",
-                  "ts": '$(date +%s)'
-                }]
-              }' || true
-          fi
-
-      - name: Fail workflow if critical issues found
-        if: inputs.fail_on_critical == true && steps.aggregate-results.outputs.critical_issues > 0
-        run: |
-          echo "🚨 Critical security issues found!"
-          echo "Critical issues: ${{ steps.aggregate-results.outputs.critical_issues }}"
-          echo "Failing workflow due to critical vulnerabilities"
-          exit 1
+          echo "## Security Scan Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scan Type:** ${{ inputs.scan-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Severity Threshold:** ${{ inputs.severity-threshold }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Critical Findings:** ${{ steps.scan-results.outputs.critical }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **High Findings:** ${{ steps.scan-results.outputs.high }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY

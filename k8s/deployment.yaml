@@ -28,8 +28,12 @@ spec:
         app.kubernetes.io/version: "1.0.0"
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
+        prometheus.io/port: "8000"
         prometheus.io/path: "/metrics"
+        # AWS X-Ray tracing
+        xray.amazonaws.com/tracing-enabled: "true"
+        # Fluent Bit logging
+        fluentbit.io/parser: "json"
     spec:
       serviceAccountName: isa-superapp
       securityContext:
@@ -39,16 +43,45 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:15-alpine
+        command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h isa-postgresql.isa-database.svc.cluster.local -p 5432 -U $(POSTGRES_USER); do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: isa-database-secrets
+              key: POSTGRES_USER
+      - name: wait-for-redis
+        image: redis:7-alpine
+        command:
+        - sh
+        - -c
+        - |
+          until redis-cli -h isa-redis.isa-database.svc.cluster.local -p 6379 ping; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+          echo "Redis is ready!"
       containers:
       - name: isa-superapp
-        image: isa-superapp:latest
+        image: ghcr.io/your-org/isa-superapp:latest
         imagePullPolicy: Always
         ports:
         - name: http
-          containerPort: 8080
+          containerPort: 8000
           protocol: TCP
         - name: metrics
-          containerPort: 8080
+          containerPort: 8000
           protocol: TCP
         env:
         - name: POD_NAME
@@ -77,9 +110,9 @@ spec:
             path: /health
             port: http
             scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
           successThreshold: 1
           failureThreshold: 3
         readinessProbe:
@@ -87,9 +120,9 @@ spec:
             path: /ready
             port: http
             scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
         startupProbe:
@@ -97,18 +130,18 @@ spec:
             path: /startup
             port: http
             scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 30
         resources:
           requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
             cpu: 500m
-            memory: 512Mi
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -144,4 +177,21 @@ spec:
                   values:
                   - isa-superapp
               topologyKey: kubernetes.io/hostname
-      terminationGracePeriodSeconds: 30
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: node.kubernetes.io/instance-type
+                operator: In
+                values:
+                - c5.large
+                - c5.xlarge
+                - c6i.large
+                - c6i.xlarge
+      tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "application"
+        effect: "NoSchedule"
+      terminationGracePeriodSeconds: 60

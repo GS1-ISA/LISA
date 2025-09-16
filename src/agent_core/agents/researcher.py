@@ -1,6 +1,8 @@
 import logging
+import asyncio
 
 from src.agent_core.memory.rag_store import RAGMemory
+from src.agent_core.llm_client import get_openrouter_free_client
 from src.tools.web_research import WebResearchTool
 
 # Configure logging
@@ -26,26 +28,54 @@ class ResearcherAgent:
         """
         self.web_tool = web_tool
         self.rag_memory = rag_memory
-        # This would be replaced by a proper call to an LLM in a real scenario
-        self.llm_client = None  # Placeholder for an LLM client
-        logging.info("ResearcherAgent initialized.")
+        self.llm_client = get_openrouter_free_client()
+        logging.info("ResearcherAgent initialized with OpenRouter free models.")
 
-    def _reason(self, prompt: str) -> str:
+    async def _reason(self, prompt: str) -> str:
         """
-        A placeholder for the reasoning step. In a real implementation, this
-        would involve calling a large language model (LLM) to decide the next action.
+        Uses LLM to reason about the next action in the ReAct pattern.
         """
-        # For this placeholder, we'll use simple logic.
-        # This is where the ReAct (Reason-Act) prompt would be sent to an LLM.
         logging.info(f"Reasoning based on prompt: {prompt[:100]}...")
-        if "search for" in prompt.lower():
-            return f"Action: search('{prompt.split('search for')[-1].strip()}')"
-        if "read url" in prompt.lower():
-            url = prompt.split("read url")[-1].strip()
-            return f"Action: read_url('{url}')"
-        return "Action: finish()"
 
-    def run(self, initial_task: str, max_steps: int = 5) -> str:
+        system_prompt = """You are a research agent following the ReAct (Reason-Act) pattern. Based on the current working memory and task progress, decide the next actions.
+
+Available actions:
+- search('query'): Search the web for information
+- read_url('url'): Read content from a specific URL
+- finish(): Complete the research task
+
+Guidelines:
+- You can suggest multiple actions separated by semicolons, e.g., Action: search('query1'); search('query2'); read_url('url')
+- If you need more information, use search() with specific queries
+- If you have promising URLs from search results, use read_url() for each
+- If you have sufficient information to complete the task, use finish()
+- Return only the actions in the format: Action: action1('param'); action2('param')
+- Do not include any other text or explanation"""
+
+        try:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+
+            result = await self.llm_client.async_chat_completion(messages)
+
+            action = result['content'].strip()
+            logging.info(f"LLM decided action: {action} using {result['model_used']}")
+            return action
+
+        except Exception as e:
+            logging.error(f"Failed to reason with LLM: {e}")
+            # Fallback logic
+            if "search for" in prompt.lower():
+                query = prompt.split('search for')[-1].strip()
+                return f"Action: search('{query}')"
+            if "read url" in prompt.lower():
+                url = prompt.split("read url")[-1].strip()
+                return f"Action: read_url('{url}')"
+            return "Action: finish()"
+
+    async def run(self, initial_task: str, max_steps: int = 5) -> str:
         """
         Runs the research process for a given task.
 
@@ -65,52 +95,91 @@ class ResearcherAgent:
 
             # 1. Reason
             # In a real agent, context from RAG memory would also be added here.
-            llm_decision = self._reason(working_memory)
+            llm_decision = await self._reason(working_memory)
             logging.info(f"LLM Decision: {llm_decision}")
 
-            # 2. Act
-            if llm_decision.startswith("Action: search"):
-                query = llm_decision.split("('")[-1].split("')")[0]
-                search_results = self.web_tool.search(query)
+            # 2. Act - Parse multiple actions
+            actions = [action.strip() for action in llm_decision.replace("Action: ", "").split(";") if action.strip()]
+
+            async def execute_search(query):
+                search_results = await asyncio.to_thread(self.web_tool.search, query)
                 observation = f"Observation: The search for '{query}' returned the following results:\n"
                 for res in search_results:
                     observation += f"- {res['title']}: {res['href']}\n"
-                working_memory += observation
+                return observation
 
-            elif llm_decision.startswith("Action: read_url"):
-                # Extract URL inside Action: read_url('...')
-                try:
-                    url_s = llm_decision.split("('")[-1].split("')")[0]
-                except Exception:
-                    url_s = llm_decision
-                content = self.web_tool.read_url(url_s)
+            async def execute_read_url(url_s):
+                content = await asyncio.to_thread(self.web_tool.read_url, url_s)
 
                 # Self-Correction/Critique Step
                 critique_prompt = f"Is the following content relevant to the task '{initial_task}'? Content: {content[:500]}..."
-                critique_decision = self._reason(critique_prompt)
+                critique_decision = await self._reason(critique_prompt)
 
-                if (
-                    "Action: finish()" in critique_decision
-                ):  # Using finish() as a proxy for "irrelevant"
+                if "Action: finish()" in critique_decision:  # Using finish() as a proxy for "irrelevant"
                     observation = f"Observation: Content from {url_s} was deemed irrelevant and was not stored.\n"
                 else:
                     # In a real agent, we would summarize before adding to memory.
-                    self.rag_memory.add(text=content, source=url_s, doc_id=url_s)
-                    observation = (
-                        f"Observation: Read and stored relevant content from {url_s}.\n"
-                    )
-                working_memory += observation
+                    await asyncio.to_thread(self.rag_memory.add, text=content, source=url_s, doc_id=url_s)
+                    observation = f"Observation: Read and stored relevant content from {url_s}.\n"
+                return observation
 
-            elif llm_decision.startswith("Action: finish"):
-                logging.info("Agent decided to finish the task.")
-                break
-            else:
-                logging.warning(f"Unknown action: {llm_decision}")
+            tasks = []
+            for action in actions:
+                if action.startswith("search("):
+                    query = action.split("('")[-1].split("')")[0]
+                    tasks.append(execute_search(query))
+                elif action.startswith("read_url("):
+                    try:
+                        url_s = action.split("('")[-1].split("')")[0]
+                        tasks.append(execute_read_url(url_s))
+                    except Exception:
+                        logging.warning(f"Failed to parse URL from action: {action}")
+                elif action == "finish()":
+                    logging.info("Agent decided to finish the task.")
+                    break
+                else:
+                    logging.warning(f"Unknown action: {action}")
+
+            if tasks:
+                observations = await asyncio.gather(*tasks, return_exceptions=True)
+                for obs in observations:
+                    if isinstance(obs, Exception):
+                        logging.error(f"Error executing action: {obs}")
+                    else:
+                        working_memory += obs
+
+            if "finish()" in actions:
                 break
 
         logging.info("Research task finished.")
-        # In a real agent, this summary would be generated by an LLM call
-        # using the content stored in the RAG memory.
-        final_summary = f"Completed research for task: '{initial_task}'.\n"
-        final_summary += f"Found {self.rag_memory.get_collection_count()} documents."
+
+        # Generate final summary using LLM
+        try:
+            # Get some content from RAG memory for context
+            research_data = await asyncio.to_thread(self.rag_memory.query, initial_task, n_results=5)
+            context = "\n".join([item.get("document", "")[:200] for item in research_data])
+
+            summary_prompt = f"Summarize the research findings for the task: '{initial_task}'\n\nResearch data:\n{context}"
+
+            messages = [
+                {"role": "system", "content": "You are a research summarizer. Create a concise but comprehensive summary of the research findings."},
+                {"role": "user", "content": summary_prompt}
+            ]
+
+            summary_result = await self.llm_client.async_chat_completion(messages)
+
+            final_summary = summary_result['content']
+
+        except Exception as e:
+            logging.error(f"Failed to generate summary with LLM: {e}")
+            # Fallback summary
+            final_summary = f"Completed research for task: '{initial_task}'.\n"
+            final_summary += f"Found {await asyncio.to_thread(self.rag_memory.get_collection_count)} documents."
+
         return final_summary
+
+    def run_sync(self, initial_task: str, max_steps: int = 5) -> str:
+        """
+        Synchronous wrapper for the run method.
+        """
+        return asyncio.run(self.run(initial_task, max_steps))

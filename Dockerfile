@@ -33,46 +33,38 @@ RUN poetry config virtualenvs.create false \
 # Install dependencies
 RUN poetry install --no-dev --no-interaction --no-ansi
 
-# Production stage
-FROM python:3.11-slim as production
+# Production stage with distroless for minimal attack surface
+FROM gcr.io/distroless/python3-debian11:nonroot as production
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PATH="/usr/local/bin:$PATH"
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Copy installed packages from builder stage
+COPY --from=builder --chown=nonroot:nonroot /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder --chown=nonroot:nonroot /usr/local/bin /usr/local/bin
 
-# Create non-root user
-RUN groupadd -r isauser && useradd -r -g isauser isauser
+# Copy application code with minimal permissions
+COPY --chown=nonroot:nonroot . /app
 
 # Set working directory
 WORKDIR /app
 
-# Copy installed packages from builder stage
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Create necessary directories with proper ownership
+RUN mkdir -p /app/logs /app/data /app/static /app/media
 
-# Copy application code
-COPY --chown=isauser:isauser . .
-
-# Create necessary directories
-RUN mkdir -p /app/logs /app/data /app/static /app/media \
-    && chown -R isauser:isauser /app
-
-# Switch to non-root user
-USER isauser
+# Switch to non-root user (distroless nonroot uid=65532)
+USER 65532:65532
 
 # Expose port
 EXPOSE 8000
 
-# Health check
+# Health check with proper command for distroless
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD ["/usr/bin/python3", "-c", "import requests; requests.get('http://localhost:8000/health')"]
 
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "--access-logfile", "-", "--error-logfile", "-", "isa_superapp.main:app"]
+# Run the application with optimized settings for ISA workloads
+CMD ["/usr/bin/python3", "-m", "gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "--access-logfile", "-", "--error-logfile", "-", "isa_superapp.main:app"]

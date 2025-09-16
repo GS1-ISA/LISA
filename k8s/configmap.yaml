@@ -5,58 +5,59 @@ metadata:
   namespace: isa-superapp
   labels:
     app.kubernetes.io/name: isa-superapp
-    app.kubernetes.io/instance: production
-    app.kubernetes.io/component: config
+    app.kubernetes.io/component: configmap
 data:
-  # Application Configuration
-  APP_NAME: "ISA SuperApp"
-  APP_ENV: "production"
-  APP_DEBUG: "false"
-  APP_LOG_LEVEL: "INFO"
-  APP_TIMEZONE: "UTC"
-  
-  # Server Configuration
-  SERVER_HOST: "0.0.0.0"
-  SERVER_PORT: "8080"
-  SERVER_WORKERS: "4"
-  SERVER_TIMEOUT: "30"
-  
-  # Database Configuration (non-sensitive)
-  DB_HOST: "postgres.database.svc.cluster.local"
-  DB_PORT: "5432"
-  DB_NAME: "isa_superapp"
-  DB_POOL_SIZE: "20"
-  DB_POOL_MAX_OVERFLOW: "10"
-  DB_POOL_TIMEOUT: "30"
-  
-  # Redis Configuration (non-sensitive)
-  REDIS_HOST: "redis.cache.svc.cluster.local"
-  REDIS_PORT: "6379"
-  REDIS_DB: "0"
-  REDIS_DECODE_RESPONSES: "true"
-  
-  # Monitoring Configuration
-  METRICS_ENABLED: "true"
-  METRICS_PORT: "8080"
-  METRICS_PATH: "/metrics"
-  HEALTH_CHECK_PATH: "/health"
-  READINESS_CHECK_PATH: "/ready"
-  STARTUP_CHECK_PATH: "/startup"
-  
-  # Security Configuration
-  SECURITY_CORS_ENABLED: "true"
-  SECURITY_CORS_ORIGINS: "*"
-  SECURITY_RATE_LIMIT_ENABLED: "true"
-  SECURITY_RATE_LIMIT_REQUESTS: "100"
-  SECURITY_RATE_LIMIT_WINDOW: "60"
-  
-  # Feature Flags
-  FEATURE_ANALYTICS_ENABLED: "true"
-  FEATURE_CACHE_ENABLED: "true"
-  FEATURE_BACKGROUND_TASKS_ENABLED: "true"
-  FEATURE_WEBHOOKS_ENABLED: "true"
-  
-  # External Services
-  EXTERNAL_API_TIMEOUT: "30"
-  EXTERNAL_API_RETRY_ATTEMPTS: "3"
-  EXTERNAL_API_RETRY_DELAY: "1"
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  DATABASE_URL: "postgresql://isa_user:$(DB_PASSWORD)@isa-postgresql.isa-database.svc.cluster.local:5432/isa_superapp"
+  REDIS_URL: "redis://isa-redis.isa-database.svc.cluster.local:6379/0"
+  NEO4J_URI: "bolt://isa-neo4j.isa-database.svc.cluster.local:7687"
+  NEO4J_USER: "neo4j"
+  PROMETHEUS_URL: "http://prometheus.isa-monitoring.svc.cluster.local:9090"
+  GRAFANA_URL: "http://grafana.isa-monitoring.svc.cluster.local:3000"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.isa-monitoring.svc.cluster.local:4317"
+  OTEL_SERVICE_NAME: "isa-superapp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_LOGS_EXPORTER: "otlp"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isa-frontend-config
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: isa-frontend
+    app.kubernetes.io/component: configmap
+data:
+  NEXT_PUBLIC_API_URL: "https://api.isa-superapp.com"
+  NEXT_PUBLIC_ENVIRONMENT: "production"
+  NEXT_PUBLIC_GRAFANA_URL: "https://grafana.isa-superapp.com"
+  NEXT_PUBLIC_VERSION: "1.0.0"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isa-monitoring-config
+  namespace: isa-monitoring
+  labels:
+    app.kubernetes.io/name: isa-monitoring
+    app.kubernetes.io/component: configmap
+data:
+  PROMETHEUS_RETENTION_TIME: "30d"
+  PROMETHEUS_RETENTION_SIZE: "50GB"
+  GRAFANA_ADMIN_USER: "admin"
+  ALERTMANAGER_CONFIG: |
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alerts@isa-superapp.com'
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'isa-alerts'
+    receivers:
+    - name: 'isa-alerts'
+      email_configs:
+      - to: 'alerts@isa-superapp.com'

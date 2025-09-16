@@ -1,0 +1,77 @@
+{
+  "esrs_taxonomy": {
+    "version": "1.0",
+    "standards": [
+      {
+        "code": "ESRS E1",
+        "name": "Climate change",
+        "disclosure_requirements": [
+          "E1-1 Transition plan",
+          "E1-2 Policies",
+          "E1-3 Actions and resources",
+          "E1-4 Targets",
+          "E1-5 Energy consumption and mix",
+          "E1-6 GHG emissions",
+          "E1-7 GHG removals and storage",
+          "E1-8 Internal carbon pricing",
+          "E1-9 Anticipated financial effects"
+        ]
+      },
+      {
+        "code": "ESRS E2",
+        "name": "Pollution",
+        "disclosure_requirements": [
+          "E2-1 Policies",
+          "E2-2 Actions and resources",
+          "E2-3 Pollution of air, water and soil",
+          "E2-4 Water and marine resources",
+          "E2-5 Biodiversity and ecosystems"
+        ]
+      },
+      {
+        "code": "ESRS E3",
+        "name": "Water and marine resources",
+        "disclosure_requirements": [
+          "E3-1 Policies",
+          "E3-2 Actions and resources",
+          "E3-3 Water consumption",
+          "E3-4 Water recycling and reuse"
+        ]
+      },
+      {
+        "code": "ESRS E4",
+        "name": "Biodiversity and ecosystems",
+        "disclosure_requirements": [
+          "E4-1 Policies",
+          "E4-2 Actions and resources",
+          "E4-3 Biodiversity and ecosystems",
+          "E4-4 Restoration plans"
+        ]
+      },
+      {
+        "code": "ESRS S1",
+        "name": "Own workforce",
+        "disclosure_requirements": [
+          "S1-1 Policies",
+          "S1-2 Actions and resources",
+          "S1-3 Workers representation",
+          "S1-4 Diversity metrics",
+          "S1-5 Pay gap",
+          "S1-6 Internal mobility",
+          "S1-7 Work-life balance",
+          "S1-8 Health and safety",
+          "S1-9 Skills and lifelong learning"
+        ]
+      }
+    ]
+  },
+  "mandatory_disclosures": [
+    "ESRS 2 General disclosures",
+    "ESRS E1 Climate change",
+    "ESRS S1 Own workforce"
+  ],
+  "reporting_periods": {
+    "large_companies": "2025 onwards",
+    "small_medium": "2026 onwards"
+  }
+}

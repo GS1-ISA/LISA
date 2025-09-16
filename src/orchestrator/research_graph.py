@@ -33,19 +33,22 @@ class ResearchGraph:
         self.docs_provider = docs_provider
         logging.info("ResearchGraph initialized with a 3-agent crew.")
 
-    def run(self, initial_query: str) -> str:
+    async def run(self, initial_query: str, user_id: int = None, username: str = None, session_id: str = None) -> str:
         """
         Runs the full research process from planning to synthesis.
 
         Args:
             initial_query: The high-level research query.
+            user_id: ID of the user performing the operation.
+            username: Username of the user performing the operation.
+            session_id: Session ID for tracking.
 
         Returns:
             The final, synthesized report in Markdown format.
         """
         # 1. Planning Step
         logging.info("--- Kicking off Planning Step ---")
-        research_plan = self.planner.run(initial_query)
+        research_plan = await self.planner.run(initial_query, user_id, username, session_id)
         if not research_plan:
             logging.error("Planning failed. Aborting research.")
             return "Error: Could not generate a research plan."
@@ -53,12 +56,30 @@ class ResearchGraph:
 
         # 2. Research Step
         logging.info("--- Kicking off Research Step ---")
-        for i, task in enumerate(research_plan):
+        import asyncio
+
+        async def run_research_task(task_idx: int, task: str):
+            """Run a single research task asynchronously."""
             logging.info(
-                f"Executing research task {i + 1}/{len(research_plan)}: {task}"
+                f"Executing research task {task_idx + 1}/{len(research_plan)}: {task}"
             )
             # The researcher runs a sub-loop for each task in the plan
             self.researcher.run(initial_task=task, max_steps=3)  # Limit steps per task
+
+        # Run research tasks in parallel with concurrency limit
+        semaphore = asyncio.Semaphore(3)  # Limit concurrent tasks to 3
+
+        async def limited_run(task_idx: int, task: str):
+            async with semaphore:
+                return await run_research_task(task_idx, task)
+
+        # Create tasks for parallel execution
+        tasks = [
+            limited_run(i, task) for i, task in enumerate(research_plan)
+        ]
+
+        # Run all tasks concurrently
+        await asyncio.gather(*tasks)
 
         logging.info(
             f"Research step complete. Total documents in memory: {self.rag_memory.get_collection_count()}"

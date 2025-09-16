@@ -31,6 +31,14 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+try:
+    from src.xml_utils import collect_coverage_gaps, XMLParseError, XMLValidationError
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+    from xml_utils import collect_coverage_gaps, XMLParseError, XMLValidationError
+
 ARTIFACTS_DIR = Path("artifacts/refactor_guard")
 BOARD_FILE = ARTIFACTS_DIR / "board.json"
 LOG_FILE = ARTIFACTS_DIR / "run.log"
@@ -158,26 +166,12 @@ def _parse_pytest_output_for_failures(out: str) -> List[str]:
 
 def _collect_coverage_gaps(cov_xml: Path, threshold: float = 80.0) -> List[str]:
     try:
-        import xml.etree.ElementTree as ET
-
-        tree = ET.parse(str(cov_xml))
-        root = tree.getroot()
-        gaps: List[str] = []
-        for cls in root.iterfind(".//class"):
-            fname = cls.attrib.get("filename", "")
-            if not fname.startswith("src/"):
-                continue
-            lines_valid = 0
-            lines_covered = 0
-            for ln in cls.findall("lines/line"):
-                lines_valid += 1
-                if ln.attrib.get("hits") not in (None, "0"):
-                    lines_covered += 1
-            pct = (lines_covered / lines_valid * 100.0) if lines_valid else 0.0
-            if pct < threshold:
-                gaps.append(f"{fname} ({pct:.1f}%)")
-        return sorted(gaps)
-    except Exception:
+        return collect_coverage_gaps(cov_xml, threshold)
+    except (XMLParseError, XMLValidationError) as e:
+        log(f"Error parsing coverage XML {cov_xml}: {e}")
+        return []
+    except Exception as e:
+        log(f"Unexpected error collecting coverage gaps from {cov_xml}: {e}")
         return []
 
 

@@ -1,0 +1,55 @@
+# ISA_D ETL Configuration
+
+# Database Configuration
+database:
+  url: ${DATABASE_URL:-sqlite:///isa_etl.db}
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+
+# Eurostat API Configuration
+eurostat:
+  base_url: "https://ec.europa.eu/eurostat/api/dissemination"
+  timeout: 30
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# ESMA API Configuration
+esma:
+  base_url: "https://registers.esma.europa.eu"
+  timeout: 30
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# OpenLineage Configuration
+openlineage:
+  url: ${OPENLINEAGE_URL:-http://localhost:5000}
+  endpoint: "api/v1/lineage"
+  api_key: ${OPENLINEAGE_API_KEY}
+
+# Vector Store Configuration
+vector_store:
+  provider: "chroma"
+  collection_name: "isa_etl_data"
+  dimension: 384
+  persist_directory: "./chroma_db"
+
+# Monitoring Configuration
+monitoring:
+  datadog_api_key: ${DATADOG_API_KEY}
+  sentry_dsn: ${SENTRY_DSN}
+  prometheus_gateway: ${PROMETHEUS_GATEWAY}
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  file: ${LOG_FILE}
+
+# ETL Pipeline Configuration
+etl:
+  batch_size: 1000
+  max_retries: 3
+  retry_delay: 1.0
+  enable_quality_checks: true
+  enable_lineage_tracking: true

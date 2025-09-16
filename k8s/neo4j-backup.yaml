@@ -1,0 +1,196 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neo4j-backup-config
+  namespace: isa-database
+  labels:
+    app.kubernetes.io/name: neo4j-backup
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+data:
+  backup.sh: |
+    #!/bin/bash
+    set -e
+
+    # Configuration
+    BACKUP_DIR="/backup"
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    BACKUP_NAME="isa_neo4j_${TIMESTAMP}"
+    RETENTION_DAYS=30
+
+    # Neo4j connection details
+    NEO4J_HOST="${NEO4J_HOST:-neo4j}"
+    NEO4J_PORT="${NEO4J_PORT:-7687}"
+    NEO4J_USER="${NEO4J_USER:-neo4j}"
+
+    echo "Starting Neo4j backup: ${BACKUP_NAME}"
+
+    # Create backup directory if it doesn't exist
+    mkdir -p "${BACKUP_DIR}"
+
+    # Perform Neo4j backup using neo4j-admin
+    neo4j-admin database backup \
+      --to-path="${BACKUP_DIR}" \
+      --database=neo4j \
+      --verbose \
+      "neo4j://${NEO4J_HOST}:${NEO4J_PORT}"
+
+    # Rename backup directory
+    mv "${BACKUP_DIR}/neo4j" "${BACKUP_DIR}/${BACKUP_NAME}"
+
+    # Create compressed archive
+    tar -czf "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" \
+      -C "${BACKUP_DIR}" \
+      "${BACKUP_NAME}"
+
+    # Remove uncompressed backup
+    rm -rf "${BACKUP_DIR}/${BACKUP_NAME}"
+
+    # Calculate checksum
+    sha256sum "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" > "${BACKUP_DIR}/${BACKUP_NAME}.sha256"
+
+    echo "Backup completed: ${BACKUP_NAME}"
+
+    # Clean up old backups
+    find "${BACKUP_DIR}" -name "isa_neo4j_*.tar.gz" -mtime +${RETENTION_DAYS} -delete
+    find "${BACKUP_DIR}" -name "isa_neo4j_*.sha256" -mtime +${RETENTION_DAYS} -delete
+
+    echo "Cleanup completed"
+
+  restore.sh: |
+    #!/bin/bash
+    set -e
+
+    # Configuration
+    BACKUP_DIR="/backup"
+    NEO4J_HOST="${NEO4J_HOST:-neo4j}"
+    NEO4J_PORT="${NEO4J_PORT:-7687}"
+    NEO4J_USER="${NEO4J_USER:-neo4j}"
+
+    if [ -z "$1" ]; then
+      echo "Usage: $0 <backup_file>"
+      echo "Available backups:"
+      ls -la "${BACKUP_DIR}"/isa_neo4j_*.tar.gz
+      exit 1
+    fi
+
+    BACKUP_FILE="$1"
+
+    if [ ! -f "${BACKUP_DIR}/${BACKUP_FILE}" ]; then
+      echo "Backup file not found: ${BACKUP_DIR}/${BACKUP_FILE}"
+      exit 1
+    fi
+
+    echo "Starting Neo4j restore from: ${BACKUP_FILE}"
+
+    # Verify checksum if available
+    CHECKSUM_FILE="${BACKUP_DIR}/${BACKUP_FILE%.tar.gz}.sha256"
+    if [ -f "${CHECKSUM_FILE}" ]; then
+      echo "Verifying backup integrity..."
+      cd "${BACKUP_DIR}" && sha256sum -c "${CHECKSUM_FILE}"
+    fi
+
+    # Extract backup
+    TEMP_DIR=$(mktemp -d)
+    tar -xzf "${BACKUP_DIR}/${BACKUP_FILE}" -C "${TEMP_DIR}"
+
+    BACKUP_DIR_EXTRACTED="${TEMP_DIR}/$(basename "${BACKUP_FILE}" .tar.gz)"
+
+    # Stop Neo4j temporarily for restore
+    echo "Stopping Neo4j for restore..."
+    neo4j stop
+
+    # Wait for Neo4j to stop
+    sleep 10
+
+    # Perform restore
+    neo4j-admin database restore \
+      --from-path="${BACKUP_DIR_EXTRACTED}" \
+      --database=neo4j \
+      --verbose \
+      --overwrite-destination=true \
+      --force
+
+    # Start Neo4j again
+    echo "Starting Neo4j after restore..."
+    neo4j start
+
+    # Cleanup
+    rm -rf "${TEMP_DIR}"
+
+    echo "Restore completed successfully"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: neo4j-backup-pvc
+  namespace: isa-database
+  labels:
+    app.kubernetes.io/name: neo4j-backup
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: gp3
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: neo4j-backup
+  namespace: isa-database
+  labels:
+    app.kubernetes.io/name: neo4j-backup
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 4 * * *"  # Daily at 4 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: neo4j-backup
+            image: neo4j:5.20-enterprise
+            command:
+            - /bin/bash
+            - -c
+            - /scripts/backup.sh
+            env:
+            - name: NEO4J_HOST
+              value: "neo4j"
+            - name: NEO4J_PORT
+              value: "7687"
+            - name: NEO4J_USER
+              value: "neo4j"
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-backup-secret
+                  key: neo4j-password
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backup
+            resources:
+              requests:
+                cpu: 500m
+                memory: 1Gi
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: neo4j-backup-config
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: neo4j-backup-pvc
+          restartPolicy: OnFailure

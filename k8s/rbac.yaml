@@ -5,96 +5,90 @@ metadata:
   namespace: isa-superapp
   labels:
     app.kubernetes.io/name: isa-superapp
-    app.kubernetes.io/instance: production
     app.kubernetes.io/component: serviceaccount
-automountServiceAccountToken: false
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: isa-superapp
+  name: isa-frontend
   namespace: isa-superapp
   labels:
+    app.kubernetes.io/name: isa-frontend
+    app.kubernetes.io/component: serviceaccount
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: isa-monitoring
+  namespace: isa-monitoring
+  labels:
+    app.kubernetes.io/name: isa-monitoring
+    app.kubernetes.io/component: serviceaccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: isa-superapp-role
+  labels:
     app.kubernetes.io/name: isa-superapp
-    app.kubernetes.io/instance: production
-    app.kubernetes.io/component: role
+    app.kubernetes.io/component: clusterrole
 rules:
-# Read access to configmaps and secrets in the same namespace
 - apiGroups: [""]
-  resources: ["configmaps", "secrets"]
+  resources: ["pods", "services", "endpoints", "configmaps", "secrets"]
   verbs: ["get", "list", "watch"]
-# Read access to pods for health checks
-- apiGroups: [""]
-  resources: ["pods"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
   verbs: ["get", "list", "watch"]
-# Read access to services for service discovery
-- apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list", "watch"]
-# Read access to endpoints for service discovery
-- apiGroups: [""]
-  resources: ["endpoints"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: isa-superapp
-  namespace: isa-superapp
+  name: isa-superapp-binding
   labels:
     app.kubernetes.io/name: isa-superapp
-    app.kubernetes.io/instance: production
-    app.kubernetes.io/component: rolebinding
+    app.kubernetes.io/component: clusterrolebinding
 subjects:
 - kind: ServiceAccount
   name: isa-superapp
   namespace: isa-superapp
 roleRef:
-  kind: Role
-  name: isa-superapp
+  kind: ClusterRole
+  name: isa-superapp-role
   apiGroup: rbac.authorization.k8s.io
 ---
-# NetworkPolicy for RBAC enforcement (additional security layer)
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
-  name: isa-superapp-rbac
-  namespace: isa-superapp
+  name: isa-monitoring-role
   labels:
-    app.kubernetes.io/name: isa-superapp
-    app.kubernetes.io/instance: production
-    app.kubernetes.io/component: rbac-networkpolicy
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: isa-superapp
-      app.kubernetes.io/instance: production
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  # Only allow traffic from authenticated service accounts
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: ingress-nginx
-    - namespaceSelector:
-        matchLabels:
-          name: monitoring
-    - podSelector:
-        matchLabels:
-          app.kubernetes.io/name: isa-superapp
-  egress:
-  # Allow DNS resolution
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          name: kube-system
-    ports:
-    - protocol: UDP
-      port: 53
-  # Allow HTTPS to external services
-  - to: []
-    ports:
-    - protocol: TCP
-      port: 443
+    app.kubernetes.io/name: isa-monitoring
+    app.kubernetes.io/component: clusterrole
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "nodes", "namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "daemonsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: isa-monitoring-binding
+  labels:
+    app.kubernetes.io/name: isa-monitoring
+    app.kubernetes.io/component: clusterrolebinding
+subjects:
+- kind: ServiceAccount
+  name: isa-monitoring
+  namespace: isa-monitoring
+roleRef:
+  kind: ClusterRole
+  name: isa-monitoring-role
+  apiGroup: rbac.authorization.k8s.io

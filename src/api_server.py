@@ -54,7 +54,7 @@ from src.audit_logger import (
     log_auth_event, log_data_access, log_security_event, log_admin_action,
     AuditEventType, AuditEventSeverity, get_audit_logger
 )
-from src.database_manager import get_db
+from src.database_manager import get_db, get_db_dependency
 from infra.monitoring.monitoring_system import monitoring_system, ResearchWorkflowStatus
 # from src.gs1_integration import get_gs1_integration, initialize_gs1_capabilities
 from src.docs_provider.pymupdf_processor import PyMuPDFProcessor, create_pymupdf_processor
@@ -62,7 +62,7 @@ from src.taxonomy.efrag_esrs_loader import EFRAGESRSTaxonomyLoader, create_esrs_
 # from src.langgraph_agents.compliance_workflow import ComplianceWorkflowAgent, create_compliance_workflow
 # from src.langgraph_agents.document_analyzer import DocumentAnalyzerAgent, create_document_analyzer
 # from src.langgraph_agents.risk_assessor import RiskAssessorAgent, create_risk_assessor
-from src.database_manager import get_db_manager
+from src.database_manager import get_db, get_db_dependency
 
 # Redis cache setup
 redis_client = None
@@ -344,7 +344,7 @@ async def check_rate_limit(request: Request, user_id: Optional[int] = None):
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ) -> Optional[User]:
     """Get current authenticated user from JWT token or API key"""
     if credentials:
@@ -540,7 +540,7 @@ def monitoring_summary():
 
 # Authentication endpoints
 @app.post("/auth/register", response_model=Token)
-async def register(user_data: UserCreate, db: Session = Depends(get_db)):
+async def register(user_data: UserCreate, db: Session = Depends(get_db_dependency)):
     """Register a new user"""
     # Check if user already exists
     existing_user = get_user_by_username(db, user_data.username)
@@ -572,7 +572,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 async def login(
     login_data: LoginRequest,
     request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ):
     """Authenticate user and return access token"""
     user = authenticate_user(db, login_data.username, login_data.password)
@@ -620,7 +620,7 @@ async def get_current_user_profile(current_user: User = Depends(get_current_acti
 async def update_user_profile(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ):
     """Update current user profile"""
     for field, value in user_update.dict(exclude_unset=True).items():
@@ -640,7 +640,7 @@ async def change_password(
     old_password: str = Form(...),
     new_password: str = Form(..., min_length=8),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ):
     """Change user password"""
     if not verify_password(old_password, current_user.hashed_password):
@@ -654,7 +654,7 @@ async def change_password(
     return {"message": "Password changed successfully"}
 
 @app.post("/auth/forgot-password")
-async def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
+async def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db_dependency)):
     """Request password reset"""
     user = get_user_by_email(db, request.email)
     if not user:
@@ -670,7 +670,7 @@ async def forgot_password(request: PasswordResetRequest, db: Session = Depends(g
     return {"message": "If the email exists, a reset link has been sent"}
 
 @app.post("/auth/reset-password")
-async def reset_password(request: PasswordResetConfirm, db: Session = Depends(get_db)):
+async def reset_password(request: PasswordResetConfirm, db: Session = Depends(get_db_dependency)):
     """Reset password with token"""
     # In a real implementation, you would:
     # 1. Verify the reset token
@@ -700,7 +700,7 @@ async def reset_password(request: PasswordResetConfirm, db: Session = Depends(ge
 
 # OAuth2/OIDC endpoints
 @app.post("/auth/oauth2/login")
-async def oauth2_login(request: OAuth2LoginRequest, db: Session = Depends(get_db)):
+async def oauth2_login(request: OAuth2LoginRequest, db: Session = Depends(get_db_dependency)):
     """Initiate OAuth2/OIDC login flow"""
     provider = get_oauth2_provider_by_name(db, request.provider)
     if not provider:
@@ -722,7 +722,7 @@ async def oauth2_login(request: OAuth2LoginRequest, db: Session = Depends(get_db
         raise HTTPException(status_code=500, detail=f"OAuth2 login failed: {str(e)}")
 
 @app.post("/auth/oauth2/callback")
-async def oauth2_callback(request: OAuth2CallbackRequest, db: Session = Depends(get_db)):
+async def oauth2_callback(request: OAuth2CallbackRequest, db: Session = Depends(get_db_dependency)):
     """Handle OAuth2/OIDC callback"""
     provider = get_oauth2_provider_by_name(db, request.provider)
     if not provider:
@@ -758,7 +758,7 @@ async def oauth2_callback(request: OAuth2CallbackRequest, db: Session = Depends(
 async def create_oauth2_provider_endpoint(
     provider_data: OAuth2ProviderCreate,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ):
     """Create OAuth2/OIDC provider (admin only)"""
     # Check if provider already exists
@@ -776,7 +776,7 @@ async def create_oauth2_provider_endpoint(
 @app.get("/admin/oauth2/providers")
 async def list_oauth2_providers(
     current_user: User = Depends(require_role(UserRole.ADMIN)),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ):
     """List OAuth2/OIDC providers (admin only)"""
     providers = db.query(OAuth2Provider).filter(OAuth2Provider.is_active == True).all()
@@ -888,7 +888,7 @@ async def list_users(
     skip: int = 0,
     limit: int = 100,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ):
     """List all users (admin only)"""
     users = db.query(User).offset(skip).limit(limit).all()
@@ -909,7 +909,7 @@ async def update_user_role(
     user_id: int,
     new_role: UserRole,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ):
     """Update user role (admin only)"""
     user = db.query(User).filter(User.id == user_id).first()
@@ -1104,7 +1104,7 @@ async def research(
     query: str = Query(..., description="High-level research query"),
     request: Request = None,
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_dependency)
 ) -> JSONResponse:
     """Run the multi-agent research flow and return the final Markdown report."""
     # Check rate limit

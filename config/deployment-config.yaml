@@ -354,3 +354,51 @@ secrets:
   rotation_interval: 86400
   encryption_enabled: true
   access_logging: true
+
+# GS1 Integration Configuration
+gs1:
+  enabled: true
+  resolver:
+    infrastructure: "GS1_DigitalLink_Resolver_CE"
+    deployment_method: "docker-compose"
+    endpoints:
+      resolver: "http://localhost:8080"
+      api: "http://localhost:8080/api"
+      test_suite: "http://localhost:4001"
+    configuration:
+      fqdn: "id.isa.local"
+      mongo_uri: "mongodb://gs1resolver:gs1resolver@database-service:27017"
+      session_token: "secret"
+  tools:
+    resolver_testsuite:
+      enabled: true
+      path: "/src/gs1_resolver_test.html"
+      description: "GS1 Resolver Conformance Testing"
+    eudr_tool:
+      enabled: true
+      path: "/src/eudr_compliance_tool.html"
+      description: "EUDR Compliance Reporting Tool"
+    scan_interpreter:
+      enabled: true
+      path: "/src/gs1_scan_interpreter.html"
+      description: "GS1 Barcode Scan Interpreter"
+  compliance:
+    eudr_enabled: true
+    deforestation_regulation: "EU 2023/1115"
+    reporting_format: "GS1 Web Vocabulary JSON-LD"
+  testing:
+    conformance_testing: true
+    automated_validation: true
+    test_coverage:
+      - resolver_functionality
+      - linkset_validation
+      - digital_link_formats
+      - eudr_compliance
+  monitoring:
+    resolver_health_check: true
+    conformance_test_results: true
+    eudr_report_generation: true
+  security:
+    resolver_authentication: true
+    secure_endpoints: true
+    audit_logging: true

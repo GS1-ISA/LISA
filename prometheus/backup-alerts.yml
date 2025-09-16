@@ -1,0 +1,199 @@
+groups:
+  - name: backup.alerts
+    rules:
+      # Backup job failure alerts
+      - alert: BackupJobFailed
+        expr: kube_job_status_failed{job_name=~".*backup.*"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+          alert_type: backup_failure
+        annotations:
+          summary: "Backup job failed"
+          description: "Backup job {{ $labels.job_name }} in namespace {{ $labels.namespace }} has failed"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-failures"
+
+      - alert: BackupJobNotRun
+        expr: |
+          (
+            time() - kube_job_status_completion_time{job_name=~".*backup.*"}
+          ) / 3600 > 25
+        for: 10m
+        labels:
+          severity: warning
+          service: backup
+          alert_type: backup_missed
+        annotations:
+          summary: "Backup job not run recently"
+          description: "Backup job {{ $labels.job_name }} has not completed successfully in the last 25 hours"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-scheduling"
+
+      # Backup storage alerts
+      - alert: BackupStorageLow
+        expr: |
+          (
+            kubelet_volume_stats_available_bytes{persistentvolumeclaim=~".*backup.*"}
+            / kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~".*backup.*"}
+          ) * 100 < 20
+        for: 15m
+        labels:
+          severity: warning
+          service: backup
+          alert_type: storage_low
+        annotations:
+          summary: "Backup storage running low"
+          description: "Backup storage {{ $labels.persistentvolumeclaim }} has less than 20% space remaining"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/storage-management"
+
+      - alert: BackupStorageCritical
+        expr: |
+          (
+            kubelet_volume_stats_available_bytes{persistentvolumeclaim=~".*backup.*"}
+            / kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~".*backup.*"}
+          ) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+          alert_type: storage_critical
+        annotations:
+          summary: "Backup storage critically low"
+          description: "Backup storage {{ $labels.persistentvolumeclaim }} has less than 10% space remaining"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/storage-management"
+
+      # Backup validation alerts
+      - alert: BackupValidationFailed
+        expr: |
+          rate(backup_validation_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+          alert_type: validation_failure
+        annotations:
+          summary: "Backup validation failed"
+          description: "Backup validation has failed for one or more backup types"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-validation"
+
+      # Database backup size alerts
+      - alert: DatabaseBackupSizeAnomaly
+        expr: |
+          (
+            kube_job_status_completion_time{job_name=~".*postgres.*backup.*"}
+            - kube_job_status_completion_time{job_name=~".*postgres.*backup.*"} offset 24h
+          ) > 0
+          and
+          (
+            backup_file_size_bytes{job_name=~".*postgres.*backup.*"}
+            / backup_file_size_bytes{job_name=~".*postgres.*backup.*"} offset 24h
+          ) < 0.8
+        for: 1h
+        labels:
+          severity: warning
+          service: database
+          alert_type: backup_size_anomaly
+        annotations:
+          summary: "Database backup size anomaly"
+          description: "PostgreSQL backup size has decreased by more than 20% compared to yesterday"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-monitoring"
+
+      # Backup age alerts
+      - alert: BackupTooOld
+        expr: |
+          (
+            time() - backup_creation_timestamp{backup_type=~".*"}
+          ) / 86400 > 2
+        for: 1h
+        labels:
+          severity: warning
+          service: backup
+          alert_type: backup_age
+        annotations:
+          summary: "Backup is too old"
+          description: "Backup {{ $labels.backup_name }} of type {{ $labels.backup_type }} is more than 2 days old"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-retention"
+
+      # Restore test alerts
+      - alert: RestoreTestFailed
+        expr: |
+          rate(restore_test_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+          alert_type: restore_test_failure
+        annotations:
+          summary: "Restore test failed"
+          description: "Automated restore test has failed for {{ $labels.restore_type }}"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/restore-testing"
+
+      # Cross-region backup sync alerts
+      - alert: CrossRegionBackupSyncFailed
+        expr: |
+          rate(cross_region_sync_failures_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+          service: backup
+          alert_type: sync_failure
+        annotations:
+          summary: "Cross-region backup sync failed"
+          description: "Failed to sync backups to secondary region {{ $labels.region }}"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/multi-region-backup"
+
+      # Backup encryption alerts
+      - alert: BackupEncryptionFailed
+        expr: |
+          rate(backup_encryption_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+          alert_type: encryption_failure
+        annotations:
+          summary: "Backup encryption failed"
+          description: "Failed to encrypt backup {{ $labels.backup_name }}"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-encryption"
+
+      # Backup integrity alerts
+      - alert: BackupIntegrityCheckFailed
+        expr: |
+          rate(backup_integrity_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: backup
+          alert_type: integrity_failure
+        annotations:
+          summary: "Backup integrity check failed"
+          description: "Integrity check failed for backup {{ $labels.backup_name }}"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-validation"
+
+      # Backup SLA alerts
+      - alert: BackupSLABreached
+        expr: |
+          backup_sla_breach_duration_seconds > 3600
+        for: 5m
+        labels:
+          severity: warning
+          service: backup
+          alert_type: sla_breach
+        annotations:
+          summary: "Backup SLA breached"
+          description: "Backup SLA has been breached for {{ $labels.backup_type }} by {{ $value }} seconds"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/backup-sla"
+
+      # Backup cost alerts
+      - alert: BackupCostAnomaly
+        expr: |
+          increase(backup_storage_cost_usd[7d]) / increase(backup_storage_cost_usd[7d] offset 7d) > 1.5
+        for: 1h
+        labels:
+          severity: warning
+          service: backup
+          alert_type: cost_anomaly
+        annotations:
+          summary: "Backup cost anomaly"
+          description: "Backup storage costs have increased by more than 50% compared to last week"
+          runbook_url: "https://docs.isa-superapp.com/disaster-recovery/cost-optimization"

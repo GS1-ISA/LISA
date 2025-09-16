@@ -1,4 +1,4 @@
-# Meta-Inventory – generated on 2025-09-11T13:13:51Z
+# Meta-Inventory – generated on 2025-09-15T08:55:06Z
 
 ## 1. Meta-Folders
 | Folder | Depth | File Count | Human Description |
@@ -6,7 +6,7 @@
 | .agent | 1 | 3 | Files: bashrc_telemetry.sh |
 | .cache/research | 2 | 0 | Files:  |
 | .devcontainer | 1 | 1 | Files: devcontainer.json |
-| .git/objects/c4 | 3 | 5 | Files: a253594802c1066c646bfd2393f3c36a875deb |
+| .git/objects/c4 | 3 | 6 | Files: 70accd417fe7a556d0da5062cca8ac3946dacb |
 | agent | 1 | 7 | Files: outcomes |
 | agent/memory | 2 | 1 | Files: memory_log.jsonl |
 | agent/outcomes | 2 | 3 | Files: research_report.md |
@@ -29,11 +29,12 @@
 | scripts/research | 2 | 20 | Files: tests |
 | scripts/research/connectors | 3 | 4 | Files: federal_register_live.py |
 | scripts/research/tests | 3 | 9 | Files: test_research_offline.py |
-| src/agent_core | 2 | 23 | Files: tests |
+| src/agent_core | 2 | 34 | Files: tests |
 | src/agent_core/.pytest_cache | 3 | 5 | Files: v |
-| src/agent_core/agent_core | 3 | 8 | Files: builder.py |
+| src/agent_core/__pycache__ | 3 | 1 | Files: __init__.cpython-313.pyc |
+| src/agent_core/agent_core | 3 | 17 | Files: __init__.py |
 | src/agent_core/agents | 3 | 3 | Files: researcher.py |
-| src/agent_core/memory | 3 | 1 | Files: rag_store.py |
+| src/agent_core/memory | 3 | 2 | Files: __pycache__ |
 | src/agent_core/tests | 3 | 2 | Files: test_rag_memory_schema.py |
 | src/llm | 2 | 7 | Files: src |
 | src/llm/src | 3 | 2 | Files: llm_runtime |
@@ -42,41 +43,62 @@
 | src/orchestrator/.pytest_cache | 3 | 4 | Files: v |
 | src/orchestrator/src | 3 | 4 | Files: orchestrator |
 | src/orchestrator/tests | 3 | 6 | Files: test_agent_core_adapter.py |
-| storage | 1 | 1 | Files: index.json |
+| storage | 1 | 2 | Files: index.json |
+| storage/vector_store | 2 | 1 | Files: research_db |
+| storage/vector_store/research_db | 3 | 1 | Files: chroma.sqlite3 |
 
 ## 2. Meta-Files
 | File | SHA256 | Lines | Keyword Hits | Excerpt Proving Implementation |
 |---|---|---:|---:|---|
-| meta_inventory.md | f23f1e78874b78a137d162d8b19557fbbab70d377329ff57e9b76387ecb8ceb1 | 5152 | 7563 | # Meta-Inventory – generated on 2025-09-10T16:55:37Z  ## 1. Meta-Folders |
+| meta_inventory.md | 3a9f78a0bb14924e59282658e506b3770d66f1a0213738a375d4a0fe9d27af05 | 5152 | 7563 | # Meta-Inventory – generated on 2025-09-11T13:13:51Z  ## 1. Meta-Folders |
 | coherence_graph.json | 3f58d71494af45ef45dad64518d5d8cfe41b329d5c12d96a32c27edb433f6ed1 | 11674 | 545 |     },     {       "path": "memory.json",       "type": "other",       "mtime": 1757349262.4704006 |
 | bandit-report.json | ba4ee2feb1cb9f595df7e689533db54d7e83f543a98ad52f66c438985c790875 | 1494 | 82 |       "skipped_tests": 0     },     "isa_superapp/core/agent_system.py": {       "CONFIDENCE.HIGH": 0,       "CONFIDENCE.LOW": 0, |
 | MAINTENANCE_SUMMARY.md | 30d9e34930480b42664671bc496a6d96437cb60c3714be4f1aef93d65b01b075 | 25 | 7 |  Changed - Memory system hardened (router/logs/drift/nap-time, privacy delete APIs, adapter flags) - CI extended (memory coherence gate, nightly/weekly schedules) - Docs expanded (orchestration, RAG,  |
 | .pre-commit-config.yaml | 9c999c817f47c76aa291698c09dd3d8b583649d51334fec558448b91e14ba857 | 192 | 2 |         args: [--ignore-missing-imports]         files: ^(src\|scripts\|isa_superapp)/.*\.py$         exclude: ^scripts/research/\|^scripts/tests/\|^src/orchestrator/src/\|^src/docs_provider/src/docs_provi |
+| docker-compose.monitoring.yml | 1a2e0a828fe3d1c92f1d9e12d61fa8d72412849685038162c92436a6f2c20f50 | 344 | 1 |       start_period: 30s    # Promtail - Log collection agent   promtail:     image: grafana/promtail:2.9.0 |
 | pyproject.toml | a1b160f4aec584f0b8a33a2529450b7d25a5d626d63855d6fc1e360f2c2d6d8c | 257 | 2 |     "I",  # isort     "B",  # flake8-bugbear     "C4", # flake8-comprehensions     "UP", # pyupgrade     "ARG001", # unused-function-args |
+| deployment-config.yaml | 6c8900e0bb912a64ceebd8aad7958565a045b66a8f405e13e459551960bc4506 | 503 | 8 |       replicas: 1       cpu: "500m"       memory: "512Mi"     scaling:       min_replicas: 1 |
 | MAINTENANCE_LOG.md | f5b028adcb8eb76837845f2f8b0a5af633cfb51d505cd3996405605b90e8f6cd | 17 | 1 | - Phase 7 (Documentation Integrity): Completed. MkDocs site builds, docs lint clean, cross-links updated. - Phase 7.5 (Coherence & Interconnection Audit): New artifacts generated (graph, orphans, term |
 | QUALITY_SCORECARD.md | bfedfd39ec1e1803e7044e02760836b86d0b7a1d66212e7808aac874ea782d31 | 16 | 1 | - Performance: 70 — Perf benches exist (Q11/Q12); broader profiling pending. - Security: 70 — Bandit/pip-audit advisory; SBOM/Trivy weekly workflows configured. - Maintainability: 80 — Type-check clea |
 | orphans_and_dead_ends.md | 4c4a2b836b797d6bf77cd5cbfe054727b4512a058fec7035edbd52860d880581 | 408 | 60 | - ISA_SuperApp/cli.py - ISA_SuperApp/core/__init__.py - ISA_SuperApp/core/agent_system.py - ISA_SuperApp/core/app.py - ISA_SuperApp/core/base_agent.py |
 | run_research_crew.py | e4094b5db0f3dbc7b97c24965f8a411507be40ee9434808689e541a0bf04317c | 67 | 27 | sys.path.insert(0, str(project_root))  from src.agent_core.agents.planner import PlannerAgent from src.agent_core.agents.researcher import ResearcherAgent from src.agent_core.agents.synthesizer import |
-| README.md | 8ea7d4fd83282bbb71e9eba8257ac67e746cebc00c82ffec79497e5657fad011 | 473 | 38 | ![Audit Score](audit-badge.svg)  **Intelligent System Architecture SuperApp** - A comprehensive AI-powered research and analysis platform that combines vector databases, large language models, and int |
+| alert_rules.yml | 1b9dce6a7a5a5595a39755a2a3954f05d5e220f0d92708bbb87d9ecd7af74130 | 493 | 32 |           description: "Redis has been down for more than 1 minute. Instance: {{ $labels.instance }}"        - alert: RedisHighMemoryUsage         expr: redis_memory_used_bytes / redis_memory_max_byte |
 | setup.py | 9271036b72bb2c64a6dfa7e1c365836edfb08592028dc7d950d586cf24cca6f6 | 125 | 4 |     author="ISA SuperApp Team",     author_email="team@isa-superapp.com",     description="Intelligent System Architecture SuperApp - A comprehensive AI-powered research and analysis platform",     lo |
 | CONTRIBUTING.md | fe47bc844075837de97ccffce0aa94e06e5509dc48eabe95b59d844bdbcc52d8 | 37 | 2 | - Docs references: `make docs-lint` (inspect `docs/audit/docs_ref_report.md`) - Healthcheck (consolidated): `make healthcheck` (see `docs/audit/healthcheck.md`) - PR Notes: `make pr-notes` (attach `ag |
+| ruff.toml | 27c78098578e70feb2e3ef338a60a9127ad0c39b417238713e6860161b0f9929 | 50 | 1 |     "I",  # isort     "B",  # flake8-bugbear     "C4", # flake8-comprehensions     "UP", # pyupgrade     "ARG001", # unused-function-args |
+| loki-config.yml | 6eb16f69547be51d3b79aaaa7012bca8dc38152d53344d6a3c7fe21bf95df28f | 50 | 1 |     instance_addr: 127.0.0.1     kvstore:       store: inmemory  query_range: |
 | TERMS.md | 00c7aeffb983cb068d38fa43c0656577a69655e86f503826427fdf98d578c319 | 363 | 20 | Env/Identifiers (frequency) - ISA: 75 - LLM: 54 - API: 49 - ROOT: 49 |
 | gemini.md | 997c2360ffece54720f1a4762ef7395ce346b5ba6abab43f311772153a1b23a0 | 37 | 13 | ### Persona  You are Gemini Code Assist, a world-class software engineering partner for the ISA_D project. Your primary directive is to leverage your deep understanding of the entire codebase and docu |
-| meta_risk_xray.md | 5fe26d419ae3ee08c37318747c43f06985f318fffb89d2f03285e55555371aaf | 13 | 18 | \| Concept \| Risk Score \| Evidence Snippet (≤ 120 chars) \| Recommended Owner \| Max Acceptable Age (days) \| \|---\|---:\|---\|---\|---:\| \| Agent \| 10 \| Agent: folders=11, files=452, Risk=DUPLICATE; max_age=8 |
+| meta_risk_xray.md | 2c4eb3f9e9ce27847789139241d3482ff0fb263bdf29ab9ecc9c4a4ff230d189 | 13 | 18 | \| Concept \| Risk Score \| Evidence Snippet (≤ 120 chars) \| Recommended Owner \| Max Acceptable Age (days) \| \|---\|---:\|---\|---\|---:\| \| Agent \| 10 \| Agent: folders=11, files=452, Risk=DUPLICATE; max_age=9 |
+| prometheus.yml | 3f1f2892af16c6e9eca663e8a4984d692c2f058b72df3ae6dfbf8f0e235da6c5 | 196 | 1 | enable_feature:   - exemplar-storage   - memory-snapshot-on-shutdown   - promql-at-modifier   - promql-negative-offset |
 | ISA_SuperApp/__init__.py | df88330a854c26c6303b1d6b85a3ad1e6f64fcc9b5a8ce52eebd956506c4f23f | 128 | 4 | try:     from .ai import (         ISAAgent,         ISAEmbedding,         ISAModel, |
 | ISA_SuperApp/cli.py | 9db603e0bd751f85c685c204846fdb9459950ffb106d0ed9a387f7f63e0417d6 | 475 | 6 |     timeout: Optional[int], ):     """Execute a task using the agent system."""     config_path = ctx.obj.get("config_path")  |
+| ISA_SuperApp/core/rerank.py | 0e6f8a14e8d92be02657e49ae06303a464768f2eee90ebe8a6607bab6fc72cfe | 501 | 4 |                 if score >= self.config.similarity_threshold:                     reranked_result = SearchResult(                         vector=result.vector,                         score=float(scor |
 | ISA_SuperApp/core/config.py | 9e41abf08e7265b33752408f056cf7228f4339f6f9ba75aa4aedc2c021db6559 | 738 | 75 |  @dataclass class VectorStoreConfig:     """Vector store configuration."""  |
 | ISA_SuperApp/core/models.py | 56d184e6540d47c422c7f8dd8a2207c9bc45d8c5232abba671632eeae3853117 | 662 | 26 |  This module defines the core data models used throughout the application for representing documents, vectors, metadata, and other entities. """  |
 | ISA_SuperApp/core/embedding.py | 847293aa443be3e44da93ba65cfedc483b8a9e07ef060fa1df5e7df4420b95b5 | 637 | 193 | """ Embedding service for ISA SuperApp.  This module provides text embedding capabilities using various |
 | ISA_SuperApp/core/vector_store.py | 7fc3205257b04924d6ecb73172a5cfd5b6b3d765ecc828b0d830959b1e060ec1 | 754 | 381 | """ Vector store for ISA SuperApp.  This module provides vector storage and similarity search capabilities |
 | ISA_SuperApp/core/base_agent.py | 4ef682310d352a919155a5a05fb778fac571f36aff5dc240745db07b3c758c32 | 640 | 225 | """ Base agent class for ISA SuperApp.  This module provides the foundational agent infrastructure with common functionality |
 | ISA_SuperApp/core/agent_system.py | 241a73103f519533ccfcdeb5546bcae2c4958b56cd7408f312a795eae29a5f98 | 893 | 303 | """ Agent system for ISA SuperApp.  This module provides the core agent system functionality including |
+| ISA_SuperApp/core/__init__.py | 9486502fd755cda25ca0889c6f66355aadb35da647caf5d82f3abb05f174cb2e | 78 | 26 | - Retrieval systems with dense and hybrid search capabilities - Reranking functionality for improved search result quality - Vector store integrations - Embedding providers - Configuration management |
 | ISA_SuperApp/core/logger.py | ad87ba0f6802ddd75802f321a1c31739aaaeaca545344e262f5a6ff7b04cae8f | 361 | 6 |         status_code: int,         duration_ms: float,         user_agent: Optional[str] = None,         client_ip: Optional[str] = None,         **kwargs: Any, |
-| ISA_SuperApp/core/retrieval.py | 519363b6f65e4ee706572981377a121160274d958ecfafc9069ff047248be530 | 774 | 153 | Retrieval system for ISA SuperApp.  This module provides document retrieval capabilities using vector search and hybrid retrieval strategies. """ |
+| ISA_SuperApp/core/retrieval.py | 1fb0a1e7b7792f6bb8c544aef8df16b3cf2ad4d099401e8e14426d068c20bbfe | 791 | 153 | Retrieval system for ISA SuperApp.  This module provides document retrieval capabilities using vector search and hybrid retrieval strategies. """ |
 | ISA_SuperApp/core/app.py | b8105c09534a83c85e867a4dd0b3d2fa958755ee8a86ebe063747b55c6ba3acb | 490 | 103 | Main ISA SuperApp application module.  This module provides the core application class that orchestrates all components of the ISA SuperApp system. """ |
 | ISA_SuperApp/core/exceptions.py | c8acbfada7c49815ff455ecbedf749d31607555b4dc1280d7ac154fd65c3d908 | 306 | 1 |  class ISAResourceError(ISAException):     """Exception raised for resource-related errors (memory, disk, etc.)."""      def __init__( |
 | ISA_SuperApp/core/workflow.py | e4e76fbed9223df0a7a282ff50737d965553d030c8a2488b6698975aa8be6386 | 1002 | 96 | from typing import Any, Callable, Dict, List, Optional, Set, Union  from .agent_system import AgentOrchestrator, BaseAgent, ResearchAgent from .exceptions import ISAConfigurationError, ISANotFoundErro |
 | infra/feature_flags/local_flags.json | 0952e6f9862805e36f1fcc5a8571b953dfa8ccec2493483141d06176d928d7e2 | 30 | 2 |       "created_at": 1757242946.951872     },     "ISA_REF_LLM_RUNTIME_20250906": {       "enabled": false,       "traffic": 0, |
+| config/deployment-config.yml | 7e16ae15db39b791eea003ec2270b43fd02ada16be67e3a5779df434f2a3a3c7 | 160 | 1 |       - response_time       - cpu_usage       - memory_usage        recreate: |
+| config/deployment-config.yaml | 23fb8374adf311da4b876d2a8589081f9616281b1a8d73c305a359279285ba23 | 356 | 4 |     resources:       cpu: "100m"       memory: "256Mi"     health_check:       endpoint: "/health" |
+| k8s/deployment.yaml | b476e5cab98ba785aaf5246124bf1913e74e8af6e0708b32ef3a237f68d4a66a | 147 | 2 |           requests:             cpu: 100m             memory: 256Mi           limits:             cpu: 500m |
+| k8s/vpa.yaml | bfd75315c16eaa6c4e81331dcdc85db69c9e0395abb5948023626c280f792b34 | 27 | 3 |       minAllowed:         cpu: 100m         memory: 128Mi       maxAllowed:         cpu: 2 |
+| k8s/kustomization.yaml | 959fc8a160f271b527065240b67344f4616f6b23e74ec463150de4453e42a3b5 | 76 | 2 |             requests:               cpu: 200m               memory: 256Mi             limits:               cpu: 1 |
+| k8s/hpa.yaml | 9d805a40b4ba791bbf277d2adff22d0df12ea1a0735b74f905c5e69b4ed466be | 53 | 1 |   - type: Resource     resource:       name: memory       target:         type: Utilization |
+| k8s/README.md | 80a23ccebf0e70e51673785bf21207ead513b29b03aff1f587fe4061d11575fb | 206 | 4 | Default resource allocations: - **CPU**: 200m requests, 1 core limits - **Memory**: 256Mi requests, 1Gi limits - **Replicas**: 3 minimum, 10 maximum  |
+| k8s/overlays/staging/deployment-patch.yaml | 43ab23ea2b346041b937f379a33a32065b75187ac40d2d24334016f532e5519f | 33 | 2 |           requests:             cpu: 50m             memory: 64Mi           limits:             cpu: 200m |
+| k8s/overlays/development/deployment-patch.yaml | 54ed991c0f6976285f9a935a6b8983bff516f85c312cba98f30bde8ced7bf132 | 45 | 2 |           requests:             cpu: 100m             memory: 128Mi           limits:             cpu: 500m |
+| k8s/overlays/production/hpa.yaml | 18340674fe61e875a86fa2c0e6bd942943da01c67467d1a9d70f113ca658a00b | 37 | 1 |   - type: Resource     resource:       name: memory       target:         type: Utilization |
+| k8s/overlays/production/deployment-patch.yaml | 39b9b7b0cd224025cd2a5b7a8443129e3ced410529af84840124c5b5d57d6980 | 33 | 2 |           requests:             cpu: 100m             memory: 128Mi           limits:             cpu: 500m |
+| k8s/base/hpa.yaml | 0d2aa21b5c034e729c841f77f3582768d5e21c1dc867cb70a140ca88a200ea09 | 41 | 1 |   - type: Resource     resource:       name: memory       target:         type: Utilization |
 | experiments/isa_docs_v1_20250908/manifest_copy.yaml | 891944d6c5688866393a2fad852a8c84857239b84033ae7441c218bef3cf8e97 | 27 | 4 | # Ingestion manifest example for isa_docs_v1 # Connects canonical doc sources to the vector store schema.  id: isa_docs_v1_manifest |
 | experiments/isa_docs_v1_20250908/processed/processed.yaml | 43c1117fa77745580f250e95e831d408b0581e87565d6572383ed0764453c533 | 10 | 3 |   chunk_size: 500   method: token embedding_model: text-embedding-3-small items_processed: 0 manifest_id: isa_docs_v1_manifest |
 | tests/conftest.py | 80e3530e0c68ab2f29741c2f565783a965597cccfe17edbb6c893fd543b5eb2d | 471 | 34 |         "ENVIRONMENT": "test",         "LOG_LEVEL": "DEBUG",         "DATABASE_URL": "sqlite:///:memory:",         "REDIS_URL": "redis://localhost:6379/15",  # Use database 15 for tests         "CHROM |
@@ -101,25 +123,30 @@
 | docs/VECTOR_STORE_SCHEMA.md | 461e9cfa08875b51c34c1e4c104d453b9441a42eab9c03c268fc8ddec2160086 | 85 | 24 | # Vector Store Schema  This document defines the canonical schema, chunking strategy, and metadata fields for vector store entries used by the ISA project. |
 | docs/RESEARCH_OPERATIONS.md | 161d879cb7e23abb89025c2a4def6ee1141c9136326cfd5bfab1c8ba7d72f5bd | 73 | 4 | Last updated: 2025-09-02  Goal: Convert research into high‑impact, low‑bloat improvements via a repeatable Research‑to‑Production (R2P) pipeline with strong evidence standards and measurable ROI.  R2P |
 | docs/AI_AGENT_ONBOARDING.md | 89901ba3cf07a420dda345607ffd3211f9f97e133725edeb157a3d11f11314e0 | 54 | 26 | # AI Agent Onboarding Guide  This document serves as the central onboarding guide for any AI agent (e.g., Gemini Code Assist, ChatGPT, etc.) working on the ISA_D project. Its purpose is to ensure cons |
+| docs/unified-workflow-architecture.md | 53d9b747677cb4b11263b32a56cd01535a6a92baae39f43b4fc15f8faba95db1 | 307 | 3 | │       └── action.yml                # Reusable rollback action └── scripts/     └── deploy_orchestrator.py        # Deployment orchestration script ```  |
 | docs/AGENTIC_ARCHITECTURE.md | a4e9d95ee35cb376513aefc77550e6013a30862310fa5e2be4a4a1892c2b75bf | 146 | 97 | # Agentic Architecture — Roles, Loops, Safety, Rewards Last updated: 2025-09-02  |
 | docs/ULTIMATE_PLAN.md | 5414810dc601bcb7b3017fa6b1d8b6eae042bc21e98fac3bf43a98a971bcf9a8 | 151 | 16 | # Ultimate Agentic Development Plan — Checklists and Acceptance Criteria Last updated: 2025-09-02  |
-| docs/AI_PROJECT_CHARTER.md | de5b2cf58733e694d89b5cf88d51f83762bc23d24344d8dcfe4e934ae8dda65e | 55 | 5 | - Reduce average time-to-find relevant standards content by 50% for core user scenarios (pilot metric). - Achieve a human-evaluated answer relevance score ≥ 4.5/5 on an internal evaluation set for cov |
+| docs/AI_PROJECT_CHARTER.md | ceecb59769c276692cff86e14c1bbd9ef7f3fe38ace0a0a1dea92cd60b0f678f | 215 | 37 | ## Project Overview  The ISA (Intelligent Systems Architecture) project is designed to create a robust, scalable, and governable AI system that integrates multiple AI agents, memory management, vector |
 | docs/RESEARCH_CAPABILITIES.md | 0ed395e3372cd0e73a80796d818a2b834486b47955302b293a101aa8ca20f6f6 | 54 | 16 | - Extractor (`scripts/research/extract.py`): bs4+lxml extraction, boilerplate removal, whitespace normalization. - Offline tests: `scripts/research/tests/` ensures deterministic behavior without netwo |
 | docs/TODO_NeSy.md | e646f81bcdd3ce337ca03a887ff267910b93b08d7f6ece28fc3713d17d109edd | 99 | 2 | Status Legend: [ ] pending  [~] in-progress  [x] done  [!] blocked  Scope: All NeSy integrations for GS1 ESG gap-analysis. Keep adapters modular, feature-flagged, and evaluated via A/B before promotio |
 | docs/ISA_VISION_OUTCOMES.md | e060d45737e717d017938bc6bed4ca7cde44da7575df847a33e0df3014bcc4be | 49 | 7 |  ## Vision (Purpose) Build an Intelligent Standards Architect for GS1: an AI‑augmented expert system that anticipates regulatory and market change, codifies knowledge into standards‑native data and on |
 | docs/TODO.md | 524fcf37fca3e768d00ce9b63839ff622c8715e0d857deb2bb4500aca442d0e6 | 574 | 113 | # Master TODO — Agentic Monorepo Program (All Plans)  Last updated: 2025-09-09 |
-| docs/AGENTIC_SCORECARD.md | 4c2eb7408cecd47b6ed8958d7c0a4c79c296910cf8f52193d393013eb41ab927 | 36 | 7 | # Agentic Scorecard — Dimensions, Rubric, and Status Last updated: 2025-09-02  |
+| docs/github-environments-setup.md | 5f1778769a8abb179cbfac59e647f4dd872ff62ff0f88c21572f08a7a1a6707e | 195 | 1 |    aws iam create-open-id-connect-provider \      --url https://token.actions.githubusercontent.com \      --thumbprint a031c46782e6b6c2c2bb7b8b0b8b0b8b0b8b0b8b0 \      --client-id-list sts.amazonaws. |
+| docs/AGENTIC_SCORECARD.md | 5a2636970f4d467302c01f452e54444d9eac5ca932eb9f3525b4bbfdf43bdaf4 | 36 | 7 | # Agentic Scorecard — Dimensions, Rubric, and Status Last updated: 2025-09-02  |
 | docs/README.md | 1a3ae4ca9113a4b496e9bd630579c7ab956e763b1f8b1fee70adba3974fbc98c | 39 | 15 | ## Quick Links - Roadmap: docs/ROADMAP.md - Agentic Architecture: docs/AGENTIC_ARCHITECTURE.md - CLI Quickstart: README.md (Run the Research Crew) - Orchestration & Interop: docs/agents/ORCHESTRATION_ |
 | docs/DEFINITION_OF_DONE.md | 1cf2ea897f7c9a37dc74fefd6acddf9ff5dc48c32da49d514a40aa6945fc9d5b | 41 | 2 | Last updated: 2025-09-02  Purpose: Ensure every change ships with quality, performance, safety, and documentation, aligned with the agentic, evidence-first philosophy.  Applies To: All PRs and changes |
 | docs/ROADMAP.md | 1bc6621ae7ad4652998142d8426dcaf7a44045607e465343f9076da451e32c6b | 404 | 93 | Last updated: 2025-09-10  Purpose: Provide a holistic roadmap for building a self-improving, production-grade agentic platform and ESG/ISA_C data system. Organized by tracks and phased milestones with |
 | docs/CI_WORKFLOWS.md | b22e560bd67e00335ca60bd53eb842f3b68eab13ee1afa3ce131a56ca81e3f82 | 100 | 38 | - Artifacts/signals (advisory):   - Combined Coverage: `coverage-total.xml`; no‑regression check.   - Memory coherence: drift check (advisory) + memory log snapshot (artifact).   - Latency Histogram:  |
-| docs/QUALITY_GATES.md | d3094b222ce0d9cba827a8c3580a0641ed4d6f22d0660f9c6e917ee0a8b3c074 | 82 | 8 | ## Source Code Governance  All Python source files (`**/*.py`) within the `src/`, `scripts/`, and `agent/` directories are governed by the following standard quality gates as defined in the `ci.yml` w |
+| docs/CI_CD_ARCHITECTURE.md | a60b4e5bbf1f5a9ab40f9dd1b8154b87357e98f9b43813c52a3ff5c74f35711e | 320 | 2 | ### 1. Unified CI/CD Pipeline ([`unified-cicd.yml`](.github/workflows/unified-cicd.yml))  The main entry point that orchestrates the entire CI/CD process:  - **Triggers**: Push to main/develop, PRs, r |
+| docs/unified-cicd-architecture.md | d0e908329b068e5715a991c51878688ddb11f5f457e61bde02bd63ec7ca3b186 | 645 | 13 |  #### 1. Unified Workflow Engine The central orchestrator that manages the entire CI/CD pipeline execution. It handles: - Event processing and workflow triggering - Configuration loading and validatio |
+| docs/QUALITY_GATES.md | ebe72d53241251a83ca7939f0350b0a77143ff805e6982bde283e7ed31b1a64f | 82 | 10 | - Determinism: enforced (deterministic, offline test). Cross‑OS matrix runs daily (advisory). - Typecheck (mypy): advisory → enforced after 7 clean runs on target modules. - Tests + coverage: core cov |
 | docs/DATA_FLOW.md | 5ded052be07fc6319d144bfce3f111a55fc76a84c4ef16dccd0d9b2cdd001b77 | 29 | 18 | # Research Data Flow — CLI, Agents, Tools, Memory Last updated: 2025-09-06  |
-| docs/QUALITY_METHODS.md | 51573cb3d3f810b2a5be00773e752156abf54caf00fcaa5c45e2a0b5306861a7 | 26 | 14 | Core Methods - Determinism: Canonical JSON writer + snapshot tests; cross‑OS matrix for parity. - Gates: Lint (enforced), Types/Tests/Security (advisory → enforced after 7 green days), Memory Coherenc |
+| docs/QUALITY_METHODS.md | 83c95fbb6f5a5c0520067dbe06d98ad23ae8a030408243aa29d87b9156144b1f | 26 | 14 | Core Methods - Determinism: Canonical JSON writer + snapshot tests; cross‑OS matrix for parity. - Gates: Lint (enforced), Types/Tests/Security (advisory → enforced after 7 green days), Memory Coherenc |
 | docs/COST_TELEMETRY.md | 5f214fbe4b5b88d838b563ce21c6d73d3ad710a0a833e2be936fa640e6cad452 | 19 | 3 | Last updated: 2025-09-02  Goal: Track and reduce spend for APIs/LLMs/storage/compute with minimal overhead.  Principles |
 | docs/AGENTIC_GOALS.md | 37aa10c07b97f742078e6fc86719a1e87d56fb5c6bf8c761337e6520f9d97a9c | 68 | 12 | # Agentic Goals, Behaviors, and Strategy — 12–18 Month Plan Last updated: 2025-09-02  |
 | docs/ADOPTION_PLAN.md | 7e0a62734af40a7ff390f98c0aef5e333a94165c9cb0c7315703b7e2d927626e | 42 | 7 | # Adoption Plan — Agentic Enhancements (Step-by-Step, With Acceptance) Last updated: 2025-09-02  |
 | docs/IMPLEMENTATION_PLAN.md | 27c936c6f4eca8bdaf17717d44c53da3360d6b9dbe090d7fba580fcc918b8223 | 78 | 8 | - [ ] Deliver AI Project Charter ({doc}`AI_PROJECT_CHARTER`) — owner: eng-lead — Acceptance: charter reviewed by core team, linked from README  - [ ] Deliver Vector Store Schema ({doc}`VECTOR_STORE_SC |
+| docs/CI_CD_MIGRATION_GUIDE.md | 92f3fe5b723edff8a12e390ae4d915cda4c9f09e82f4a447540593a11177acae | 509 | 1 | aws iam create-open-id-connect-provider \   --url https://token.actions.githubusercontent.com \   --thumbprint a031c46782e6e6c662c2c87c76da9aa62ccabd8e \   --client-id-list sts.amazonaws.com  |
 | docs/research/q13_polars_vs_pandas/search_ledger.md | 04edc87d15502aa011858ba578f4c30cbec411328f473870fc16a5419f7d0d19 | 13 | 1 | Question: Q13 — Dataframes: performance and rewrite cost for our transforms Date Range: Queries & Keywords: polars pandas benchmark join groupby memory Sources Searched: docs/RESEARCH_SOURCES.md; Pola |
 | docs/research/q13_polars_vs_pandas/poc_protocol.md | 61f188b95ae35b4f938ab7233b276d20404785aaa5523b526235fa322a70a1c7 | 14 | 2 | Last updated: 2025-09-02  Question/Hypothesis: Polars (or hybrid) reduces runtime and memory for heavy joins/aggregations by ≥30%. Success Metrics: ≥30% speedup; reduced peak RSS; acceptable rewrite c |
 | docs/ADR/0001-tooling-choice.md | 6138bab278eece90a479d5d8724a74d82b66a5684ba4ace6486a95afe00332c7 | 20 | 2 |  Context - Aim to maximize signal, minimize bloat. - Prefer single tools that cover multiple concerns where quality is high.  |
@@ -134,14 +161,17 @@
 | docs/agents/CODEGENESIS.md | 1faa125f2198487874dfbeee7ba84f83070732ae8f0ed37a772ddc18c21525f4 | 66 | 24 | # CodeGenesis — Autonomous, Self‑Improving Software Agent (Operating Manual) Last updated: 2025-09-02  |
 | docs/agents/MEMORY_ARCHITECTURE.md | f10a31f0f4401f6fb81815cc855b4a7b421f52c2ad31ec317e4c635f6a491209 | 51 | 19 | # ISA Memory Architecture — Modular, Multi-Backend, CI-Gated Last updated: 2025-09-02  |
 | docs/rag/PINECONE_RAG.md | 21b783715f8c2406731fcec7c3ab49a0b33cb2004cf334cce8659459cbb5ef5c | 17 | 5 |  Scope - Build ingestion (splitters), embeddings, Pinecone indexing, and retrieval utilities with eval harness.  Plan |
+| docs/model_cards/TEMPLATE.md | 4b61f86b3995cb67f99100d627624de42a02c68e878bbbee483e6529b3bd8bae | 230 | 1 | **Model Name**: *[Your model name]*   **Model Version**: *[Version number]*   **Model Type**: *[e.g., Language Model, Embedding Model, Classification Model]*   **Architecture**: *[e.g., Transformer, C |
+| docs/model_cards/EXAMPLE.md | 36033420fa90724b7ac96a7bfd8288a23ed27d3ffe866ccdb45649642f16049e | 250 | 33 | # Model Card: text-embedding-3-large  ## Model Details |
 | docs/audit/docs_ref_report.md | 8ade83f2615746f96375ebba2b8414ab4ed29f5f9cba1e0a700202af4b47091f | 11 | 2 |  ## link — 3 - docs/AI_PROJECT_CHARTER.md: broken link -> docs/AGENTIC_ARCHITECTURE.md - docs/AI_PROJECT_CHARTER.md: broken link -> docs/AGENTIC_GOALS.md - docs/AI_PROJECT_CHARTER.md: broken link -> d |
-| docs/audit/QUALITY_SCORECARD.md | 7788ef65949ff89e88535ee074bb9724a5377559af76e6deb4b2ed750b98d3da | 295 | 19 |  **Current State:** - Agentic architecture: Well documented - Repository structure: Monorepo approach implemented - Design patterns: Established and documented |
+| docs/audit/QUALITY_SCORECARD.md | 443c3a74c464fb7505ec7ce79d0fd7f9367345946d00a6f15294491a0ab59328 | 295 | 19 |  **Current State:** - Agentic architecture: Well documented - Repository structure: Monorepo approach implemented - Design patterns: Established and documented |
 | docs/audit/remediation_plan.md | ff080e4779a9aeb502592a99837f185115c85e79779ac827762c0cef86068440 | 13 | 1 | - [ ] Reduce completeness gaps by referencing key docs in ROADMAP/TODO/DoD (2 pts)  Owner: Project (You + Agent) — single-owner model |
 | docs/audit/completeness_gap.yaml | fc95398dfe200a40500ba448ae4c94114c52c3f965f7242c1e07bf920603ccef | 650 | 79 | gaps: - path: .agent/policy.yaml   reason: Artefact not linked to any rule   suggestion: Add appropriate governance in docs and CI |
 | docs/audit/audit_report.md | 78465d324b7f11e2cf324b64e946143d0e03dcaa67b96b6e5f1fc6690de13210 | 17 | 1 | - Lint/Type/Tests/Sec: present (promotion pending for some gates) - Observability: /metrics and histograms present (api_server.py sha=) - Container: non-root + healthcheck present (Dockerfile sha=9ddd |
 | docs/audit/agent_outcomes_summary.md | 2a823bf8dbd5e480f819ff6858ff4ca2f0c799d4918cded5ed8577f732800e19 | 7 | 1 | # Agent Outcomes Summary Last updated: 2025-09-02  |
 | docs/audit/healthcheck.md | a32dd3c22022445bcd49e16d83321831792a85a905b2b2d4152be0e8ecef3581 | 11993 | 1554 |  99 \| \|     "ISAValidationError", 100 \| \|     # AI/ML 101 \| \|     "ISAAgent", 102 \| \|     "ISAModel", 103 \| \|     "ISAEmbedding", |
 | docs/audit/scenario_simulation.md | 5473656d75982583742d716db01cb9ed4dd6f348ee799a002d41c40b727c5f17 | 47 | 3 |   - ISA_SuperApp/src/api_server.py:112 (sha256=9e8ca6db32717b42a053880777bcf24018f0ab7eb2a57940b9fd334d982e0fd9) `@app.get("/metrics")`   - ISA_SuperApp/src/api_server.py:75,79–84,92,105–106 (metrics  |
+| docs/deployment/UNIFIED_DEPLOYMENT_SYSTEM.md | 9f036e21c8ae162fee998a6454399f693ccd3312fa7ce1503b7d31aa208879b8 | 392 | 5 |    - Provides automated rollback capabilities  2. **Deployment Orchestrator** (`scripts/deploy-orchestrator.sh`)    - Central deployment coordination script    - Handles environment protection rules |
 | docs/templates/retrospective_template.md | 08c8297d7f5426e440c6424e8b7de08d36cfd3172b91f6bb187063e7fd748cad | 12 | 1 | Top Risks & Mitigations: Improvements to R2P/Process: Updates to Agent Reward Priors: Next Experiments: |
 | docs/ops/memory_privacy_dsr.md | e9eeed684db1e6ed110874734c8a2458683b8bb2f60ec9ed498da0dfef99e94f | 26 | 19 | # Memory Privacy — DSR (Access/Delete/Export) Runbook Last updated: 2025-09-02  |
 | docs/guilds/DIPLOMACY_STANDARDS_GUILDS.md | 6ca3a1bef121abb7fb978e89b3859a0ccd8e2e2b58436790c17e8b459953b339 | 56 | 1 |  Executive Summary The global supply chain is shifting under simultaneous pressures: rapid digitalization and rising regulatory complexity. GS1 Netherlands should evolve from reactive standards admini |
@@ -4979,20 +5009,23 @@
 | scripts/evaluate_research.py | fb84571b2c61e10cfd71c4c75bbbcac77900d4f1ced3203a2c1753768a15427f | 104 | 7 |   def simulate_llm_as_judge(query: str, report_content: str) -> dict:     """     Simulates an LLM call to evaluate the relevance and quality of a report. |
 | scripts/memory_coherence_gate.py | a89c30abe164c7157305e12d7fbc1ded44e683ae3821824c0af56cd156d738b7 | 66 | 14 |   def compute_drift(a: str, b: str) -> float:     """Return a simple drift score in [0,1], higher = more drift.  |
 | scripts/docs_parity_check.py | d1b4fc6d6e36edcff06620a271b27e35921494688634925fdf3eb0bd6968b735 | 26 | 2 |     2. Use the DocsProvider to fetch the documentation for those functions.     3. Compare the function signatures (e.g., argument names, types) from the code        with the documentation to detect d |
+| scripts/r2p_check.py | d14defffeb3dd122b6d3fa7b13a0aa52b1380107c9bd7dc5e2fea44d47d20dd5 | 72 | 5 |  TOUCH_PATHS = (     "src/agent_core/",     "src/orchestrator/",     "src/mapping/", |
 | scripts/perf_hist.py | 3b94d16e35eee132c157f0c357a70d02f97bc812d9fd9771059342da873bc66e | 77 | 3 | def run_once(goal: str) -> None:     # Import inside to avoid startup overhead in arg parsing     from orchestrator.graph import PlanToolReflect      runner = PlanToolReflect() |
 | scripts/audit_synthesis.py | cec60ab86c263244c4c7bdd7b3fc56e8c4d6630d28b384f5b7043e47d0d5ea77 | 187 | 1 |     )     plan.append("")     plan.append("Owner: Project (You + Agent) — single-owner model")     out.write_text("\n".join(plan) + "\n", encoding="utf-8")  |
 | scripts/virtue_log.py | 04dab00131c9459a64998aa55d7155ae9cf9fc2e3767e1364f14d4515f05c5fc | 35 | 1 |   OUT = Path("agent/outcomes/virtue_log.jsonl") OUT.parent.mkdir(parents=True, exist_ok=True)  |
-| scripts/inspect_vector_store.py | bdd27716619380592fa090601bcd7c822179e3e0b5a0993ef016706678f1434f | 99 | 4 |     "chunk_text",     "created_at",     "embedding_model",     "language",     "checksum", |
+| scripts/inspect_vector_store.py | f789ce013615a782f82a37cd95f61da0bed803154b6641b19f7c80022840808a | 262 | 32 | #!/usr/bin/env python3 """ Vector Store Inspection Tool  This script connects to the ChromaDB vector store and validates that entries |
 | scripts/audit_agent_loops.py | 7b4af28b7f7812604c8852620bd45a12dfa771eee500e3232dbceb22a2d827a2 | 119 | 24 |     (         "Planner",         "packages/agent_core/agent_core/planner.py",         ["planner", "plan", "operational loop"],     ), |
 | scripts/fix_coherence.py | 23d3bf300917edc0b78af03df1e7f7b6532377664be0bc634d3b113a442883cb | 51 | 4 |     repo = Path(__file__).resolve().parents[1]     insert_link(         repo / "docs/AGENTIC_ARCHITECTURE.md",         "agents/ORCHESTRATION_ARCHITECTURE.md",         "Orchestration & Interop", |
 | scripts/audit_best_practice.py | 085ea198f08eec8366742ab87720cb825e43d347bdb192bc6d2e3db8831b1ffa | 64 | 1 |     "Data": ["GDPR/DPIA", "Data Lineage (OpenLineage)"],     "Docs": ["Docs-as-code"],     "Agentic": ["NIST AI RMF", "Safe Autonomy Policies"],     "Process": ["Lean/Agile"], } |
 | scripts/audit_rule_normalize.py | a6e5070b20b358900021da580e0c893fe26f6af73a4dc55b322cd7517fadc2ff | 88 | 3 |     ):         cat = "CI/CD"     elif any(k in source for k in ["AGENTIC_ARCHITECTURE", "ADR/0002"]) or "agent" in t:         cat = "Agentic"     elif any(k in source for k in ["SECURITY", "ADR/"]) or |
 | scripts/policy_lint.py | 3765c7f10739e9f224d05299a1d202b68b2e71c965aa96d9977c6203f0b04729 | 67 | 1 | import yaml  POLICY = Path(".agent/policy.yaml")   |
+| scripts/test_rag_functionality.py | bf186f65a4fd2568881058a631bc81e07327aefa715db2c9b901c54126b901e8 | 109 | 7 | sys.path.insert(0, str(Path(__file__).parent.parent / "src"))  from agent_core.memory.rag_store import RAGMemory  def test_rag_functionality(): |
 | scripts/meta_audit.py | ddee5c5390a46c205949ab8d1040e1ffc910c1f935a0b68af046c7c3470c4739 | 376 | 86 | FILE_EXTS = {".py", ".md", ".yml", ".yaml", ".json", ".toml"} META_DIR_RX = re.compile(     r"(ai\|meta\|agent\|gpt\|llm\|auto\|bot\|orchestrat\|reflect\|memory\|embed\|vector\|knowledge\|graph\|rule\|dsl\|c4\|structu |
 | scripts/suggest_past_fixes.py | 6d1135a1d954c7d162e415dd4c857b0f6da7b7c5c685425a42b6db3fa8278fe0 | 57 | 1 | from typing import Iterable  OUT_DIR = Path("agent/outcomes")   |
 | scripts/agent_outcomes.py | 71d548e4bbb9d735dbbd830fe9c3e599aa4d78eb9ec1a72f7d88cc5c59459ef7 | 66 | 2 | from pathlib import Path  OUT_DIR = Path("agent/outcomes") OUT_DIR.mkdir(parents=True, exist_ok=True)  |
 | scripts/outcomes_summary.py | 89f1b60ef847b503384ef4b405c2ca451b2e77884cc666261832624d43594ec7 | 75 | 3 | from typing import Iterable  OUT_DIR = Path("agent/outcomes") REPORT = Path("docs/audit/agent_outcomes_summary.md")  |
 | scripts/refactor_guard.py | e09326e6795e459d27201a83221e0d905976af4ee39a1b3980b7b076b7e34ba4 | 619 | 1 |     failed: List[str] = []     for line in out.splitlines():         # Example: FAILED src/orchestrator/tests/test_api_server_smoke.py::test_metrics_endpoint - AssertionError         if line.startswit |
+| scripts/deploy_orchestrator.py | eb86b5527ac37191bae5e77d86523ff01852b057ad7e0013558b9f4c09048a0a | 707 | 10 | #!/usr/bin/env python3 """ Deployment Orchestrator  This script orchestrates deployments across different environments using |
 | scripts/prepare_pr_notes.py | 7d2517fd9d5bce1a39659de865102f2c75da18bcb62678b9fb917ef424b5ccb0 | 99 | 1 | from pathlib import Path  OUT = Path("agent/outcomes/PR_NOTES.md") OUT.parent.mkdir(parents=True, exist_ok=True)  |
 | scripts/import_guard.py | 159696b91175e7d3a4a751eb0a2f38f49d50ae850a912e941407f35b26dcc242 | 43 | 8 |   DISALLOWED = re.compile(r"^\s*from\s+src\.agent_core\.\|^\s*import\s+src\.agent_core\.") ALLOWLIST = {     ROOT / "src" / "orchestrator" / "src" / "orchestrator" / "agent_core_adapter.py", |
 | scripts/ingest_text.py | 7907bcc15dfa60cdfc6d0a4c5063bdf7f86fa3f963dece058a31bb012ec6414b | 66 | 7 | from pathlib import Path  from src.agent_core.memory.rag_store import RAGMemory   |
@@ -5006,8 +5039,8 @@
 | scripts/tests/test_ingest_text.py | c6d5ebc2fee8fadf0582178fc4e4ab5990c229b2fa0b6e4183232e806071e9af | 50 | 1 |  def test_ingest_text_writes_manifest(tmp_path, monkeypatch):     # Work in a temp directory so vector store persistence is isolated     monkeypatch.chdir(tmp_path)  |
 | .agent/policy.yaml | 2394f1d1868e97d6f16d3501662e1353d485ea78e6711477461cd43a0249e8a3 | 43 | 2 |  kill_switch:   label: policy/agent-blocked   endpoint: /agent/kill  |
 | .agent/virtuous_cycle.md | b507453ed638786235f7496424262bbef93ab7eebfb460989fb9209e67b6138f | 106 | 13 | # 🌀 Virtuous-Cycle Meta-Prompt – ISA_D Perpetual OODA Loop Version: 2025-W38   Reasoning: HIGH   |
-| .vscode/settings.json | 3604e621ae9829808bef893a05ee3b40c67ddb75f75ccd2e0f356b238b66dbf0 | 44 | 7 |     "python.testing.pytestEnabled": true,     "python.testing.pytestArgs": [         "src/agent_core/tests",         "src/orchestrator/tests",         "infra/rag/tests" |
-| data/data_catalog.yaml | daeb7a516de09da18e47fd06df574d45ddab934ddfdcd9d808b45fef069b0a42 | 29 | 9 | # Lightweight data catalog (stub) # Add entries for important data sources, vector indexes, and golden datasets. # Fields: id, name, description, owner, path, schema_version, created_at, last_updated, |
+| .vscode/settings.json | acad9a908ce96223d37d722866f233658204893ffae54f87270a1ab003bc900a | 13 | 1 |         }     },     "chatgpt.config": {} } |
+| data/data_catalog.yaml | e87c0b044d381c64078fc03362270a153243d83ad4c106c0c10de8d66a039de7 | 279 | 30 |   last_updated: "2025-09-14T19:45:00Z"   maintainer: "ISA Data Team"   description: "Central catalog for all data sources ingested into the ISA vector store"  # Data sources are organized by category |
 | data/ingestion_manifests/isa_docs_v1_manifest.yaml | 891944d6c5688866393a2fad852a8c84857239b84033ae7441c218bef3cf8e97 | 27 | 4 | # Ingestion manifest example for isa_docs_v1 # Connects canonical doc sources to the vector store schema.  id: isa_docs_v1_manifest |
 | data/ingestion_manifests/isa_goals_pdfs_manifest.yaml | ece097513225e144d4cae2cb328d52cb70675656aa3b4339b3f63dc0aed7fc50 | 27 | 7 | # Ingestion manifest for ISA goals PDFs (advisory) # Connects historical ISA goals/vision PDFs to the vector store schema for research memory.  id: isa_goals_pdfs_manifest |
 | orchestrator/__init__.py | 9aae761380c11a0beea7be5e976b52f942af108fcd3f104d177fd7249d3ca446 | 35 | 4 | """Lightweight orchestrator shims for tests.  This repo variant keeps the full orchestrator graphs elsewhere. To satisfy |
@@ -5021,7 +5054,7 @@
 | src/docs_provider/src/docs_provider/context7.py | 7eb07e015e4cef99d775e68a85f3550f8f07448ae14d6a3121dcb361dcecc975 | 176 | 6 |         ]      def _log_memory_event(self, query: str, libs: List[str], cache_hit: bool):         """Logs a memory event for the API call."""         try: |
 | src/agent_core/pyproject.toml | 0fb4c8d5f0f23b11991af189480db5588dbdd2d0ed4909ab2059a1369c64435f | 12 | 3 |  [project] name = "agent_core" version = "0.0.1" description = "Core primitives for planner/builder/verifier/critic agents with policy and rewards." |
 | src/agent_core/README.md | b05b5dee350d418bf8441a2889864abc9ff301f150ae43c2d9ad6571d03d8002 | 16 | 3 | Last updated: 2025-09-02 Agent Core (Skeleton)  Purpose: Provide minimal, typed modules for the agent roles and policies. |
-| src/agent_core/memory/rag_store.py | 93ca1897b4c9df083f34b398d701e8d17fd0df44e4a1ed5587972085645b4368 | 181 | 23 |  import chromadb from chromadb.utils import embedding_functions  # Configure logging |
+| src/agent_core/memory/rag_store.py | 433910e5d2298af6cb01cadd671345e01b90e75341331c80303d6447d7259cfe | 769 | 35 |  import chromadb from chromadb.utils import embedding_functions from pydantic import BaseModel, Field, validator  |
 | src/agent_core/tests/test_agent_parity.py | a28d61e2743ac4b280259d75f0cc5b605ee79b8894f9688983fc7f95346ef134 | 77 | 25 | import typing as t  from src.agent_core.agents.planner import PlannerAgent from src.agent_core.agents.researcher import ResearcherAgent from src.agent_core.agents.synthesizer import SynthesizerAgent |
 | src/agent_core/tests/test_rag_memory_schema.py | 3bed9688200c712f0348c4fbb3c305f3efd194543633cde6d7acdb126c96d60d | 45 | 8 | from pathlib import Path  from src.agent_core.memory.rag_store import RAGMemory   |
 | src/agent_core/agents/planner.py | 7c214b4f052c48ab542f540c61f140044908f6d7b61d5736851e99c7f3122f72 | 76 | 9 |   class PlannerAgent:     """     An agent that takes a high-level research goal and breaks it down into |
@@ -5029,6 +5062,7 @@
 | src/agent_core/agents/researcher.py | eeae017d44714b8eadc8692cd3792384ef97a8a4d8496f45f694b55259a33b9a | 117 | 43 | import logging  from src.agent_core.memory.rag_store import RAGMemory from src.tools.web_research import WebResearchTool  |
 | src/agent_core/agent_core/memory.py | a0ba143666f294b1a90f196bbbac0a2d518f303679d5f5cf8eabcc2c3063f953 | 16 | 1 |     """Appends JSONL events to a trace file (skeleton)."""      def __init__(self, path: str = ".agent_traces.jsonl"):         self.path = Path(path)  |
 | src/agent_core/agent_core/__init__.py | a1f81e9773ffb67242162fb06b120a8b406da0cfcc777757bfec9baf2f2238e0 | 20 | 2 | """Agent Core public API (skeleton)."""  from .builder import Builder |
+| src/agent_core/agent_core/memory/rag_store.py | 69cd271aa82d2f1c1ce900258a298bb26ca084320150dac43a2c5b327803c402 | 344 | 34 | import chromadb from chromadb.config import Settings from chromadb.utils import embedding_functions from langchain.text_splitter import RecursiveCharacterTextSplitter  |
 | src/orchestrator/research_graph.py | 87a65a96223fb6af66120e827e80383d3b86b5a1fc74064999c767d69e8b5ce1 | 74 | 27 | import logging  from src.agent_core.agents.planner import PlannerAgent from src.agent_core.agents.researcher import ResearcherAgent from src.agent_core.agents.synthesizer import SynthesizerAgent |
 | src/orchestrator/pyproject.toml | 115fb4c8066778e3516ec24ab7bddd372d5a6967ce1c1db2e3a4db59f7317b7b | 18 | 3 |  [project] name = "isa-orchestrator-stub" version = "0.0.0" description = "ISA Orchestrator stub package" |
 | src/orchestrator/README.md | 8582dd92ccbbbfb625aec299c8ed81f43c61a56de086df72cacdd0c3ff5f2079 | 8 | 2 | Title: Orchestrator Package — Minimal Graph Stubs Last updated: 2025-09-02  |
@@ -5038,7 +5072,7 @@
 | src/orchestrator/tests/test_agent_core_adapter.py | 781bafe46303b3b7fe391958d2b3242f5bc86bc2d4278fcf0eb8b8a60b598f38 | 14 | 7 | import os  from orchestrator.agent_core_adapter import OrchestratorAgentRunner   |
 | src/orchestrator/tests/test_langgraph_graph.py | 3ceb005f6837508360e54f4bed648942b3ca2558eddf8f424367035d4bee666a | 9 | 1 | from orchestrator import GraphRunner   |
 | src/orchestrator/src/orchestrator/agent_core_adapter.py | af069dcffd433b9c5fe5108787250a5ab43f8628f15f728b37e4e1889253eab5 | 66 | 32 |  """ Adapter bridging the orchestrator package to agent_core agents.  Defaults to lightweight stubs if agent_core or external deps are unavailable so |
-| src/orchestrator/src/orchestrator/graph.py | 229bd4292dcf8788e96d0e1033229011d2f883cabae7fcdaad49f0f7ed6408ad | 50 | 13 |  @dataclass class OrchestratorResult:     steps: List[str]     final: str |
+| src/orchestrator/src/orchestrator/graph.py | cfc4b43f5dc5b357d8424f9d5cd5bb01bcd31cbb6b79a6c0e693bd95e5cee118 | 74 | 14 |  @dataclass class OrchestratorResult:     steps: List[str]     final: str |
 | src/orchestrator/src/orchestrator/__init__.py | fc7928bde08f977f4db32de95f284d381273ce328e99afabd27e7b1b270eef3a | 3 | 1 | from .graph import OrchestratorResult, PlanToolReflect  # noqa: F401 from .langgraph_graph import GraphRunner  # noqa: F401 |
 
 ## 3. Meta-Commits (last 20)
@@ -5087,66 +5121,97 @@
 ## 5. Meta-CI/CD Integration
 | Workflow/File | Note | 
 |---|---|
+| .github/workflows/reusable-security-scan.yml | mentions meta keywords |
+| .github/workflows/caching.yml | mentions meta keywords |
 | .github/workflows/format_autocommit.yml | mentions meta keywords |
+| .github/workflows/security.yml | mentions meta keywords |
+| .github/workflows/deployment-staging.yml | mentions meta keywords |
+| .github/workflows/oidc-environment-protection.yml | mentions meta keywords |
 | .github/workflows/determinism_matrix.yml | mentions meta keywords |
+| .github/workflows/main-cicd.yml | mentions meta keywords |
+| .github/workflows/deployment.yml | mentions meta keywords |
+| .github/workflows/rollback-deployment.yml | mentions meta keywords |
 | .github/workflows/labeler.yml | mentions meta keywords |
 | .github/workflows/virtue_cycle.yml | mentions meta keywords |
+| .github/workflows/deploy-production.yml | mentions meta keywords |
 | .github/workflows/pr_metric_guard.yml | mentions meta keywords |
 | .github/workflows/research_seed.yml | mentions meta keywords |
 | .github/workflows/nightly.yml | mentions meta keywords |
+| .github/workflows/post-deployment-validation.yml | mentions meta keywords |
 | .github/workflows/nightly_audit.yml | mentions meta keywords |
 | .github/workflows/meta_audit.yml | mentions meta keywords |
 | .github/workflows/poc_bench.yml | mentions meta keywords |
 | .github/workflows/context7.yml | mentions meta keywords |
 | .github/workflows/validate_docs.yml | mentions meta keywords |
+| .github/workflows/unified-deployment.yml | mentions meta keywords |
+| .github/workflows/ci-cd.yml | mentions meta keywords |
+| .github/workflows/setup-environment.yml | mentions meta keywords |
 | .github/workflows/test.yml | mentions meta keywords |
+| .github/workflows/main-ci-cd.yml | mentions meta keywords |
+| .github/workflows/security-scanning.yml | mentions meta keywords |
+| .github/workflows/notify.yml | mentions meta keywords |
+| .github/workflows/reusable-build-test.yml | mentions meta keywords |
 | .github/workflows/repo_index.yml | mentions meta keywords |
+| .github/workflows/caching-strategy.yml | mentions meta keywords |
 | .github/workflows/docs_auto_sync.yml | mentions meta keywords |
+| .github/workflows/example-usage.yml | mentions meta keywords |
+| .github/workflows/reusable-deploy.yml | mentions meta keywords |
+| .github/workflows/deploy.yml | mentions meta keywords |
 | .github/workflows/agent_check.yml | mentions meta keywords |
+| .github/workflows/ci-cd-optimized.yml | mentions meta keywords |
 | .github/workflows/release-please.yml | mentions meta keywords |
+| .github/workflows/unified-cicd.yml | mentions meta keywords |
+| .github/workflows/unified-cicd-pipeline.yml | mentions meta keywords |
 | .github/workflows/automerge.yml | mentions meta keywords |
 | .github/workflows/context_pack.yml | mentions meta keywords |
 | .github/workflows/auto_update.yml | mentions meta keywords |
+| .github/workflows/deploy-staging.yml | mentions meta keywords |
+| .github/workflows/unified-ci-cd.yml | mentions meta keywords |
+| .github/workflows/rollback.yml | mentions meta keywords |
+| .github/workflows/security-scan.yml | mentions meta keywords |
 | .github/workflows/auto_pr.yml | mentions meta keywords |
 | .github/workflows/mutation.yml | mentions meta keywords |
 | .github/workflows/weekly.yml | mentions meta keywords |
+| .github/workflows/build-test.yml | mentions meta keywords |
 | .github/workflows/ci.yml | mentions meta keywords |
+| .github/workflows/deployment-validation.yml | mentions meta keywords |
+| .github/workflows/consolidated-cicd.yml | mentions meta keywords |
 
 ## 6. Meta-Runtime Services
 | Compose/Helm Service | Image | Meta-Related Command |
 |---|---|---|
 
 ## 7. Conceptual Taxonomy (auto-generated)
-- Agent: folders=11, files=452, deps=0, ci_steps=6, Risk=DUPLICATE
-- Memory: folders=2, files=1800, deps=1, ci_steps=1, Risk=
-- Embedding: folders=0, files=1630, deps=1, ci_steps=0, Risk=
-- Drift: folders=0, files=29, deps=0, ci_steps=0, Risk=
-- Bloat: folders=0, files=23, deps=0, ci_steps=1, Risk=
+- Agent: folders=12, files=458, deps=0, ci_steps=5, Risk=DUPLICATE
+- Memory: folders=2, files=1822, deps=1, ci_steps=1, Risk=
+- Embedding: folders=0, files=1635, deps=1, ci_steps=0, Risk=MISSING
+- Drift: folders=0, files=32, deps=0, ci_steps=0, Risk=MISSING
+- Bloat: folders=0, files=23, deps=0, ci_steps=0, Risk=
 - Guard-rail: folders=0, files=14, deps=0, ci_steps=0, Risk=
 - DSL: folders=0, files=69, deps=1, ci_steps=0, Risk=
-- C4: folders=1, files=314, deps=0, ci_steps=0, Risk=SINGLETON
-- Orchestration: folders=5, files=66, deps=1, ci_steps=3, Risk=DUPLICATE
-- Self-improve: folders=0, files=22, deps=0, ci_steps=0, Risk=
+- C4: folders=1, files=317, deps=0, ci_steps=2, Risk=SINGLETON
+- Orchestration: folders=5, files=72, deps=1, ci_steps=2, Risk=DUPLICATE
+- Self-improve: folders=0, files=21, deps=0, ci_steps=0, Risk=
 
 ## 8. Redundancy Matrix
 | Concept | Agent | Memory | Embedding | Drift | Bloat | Guard-rail | DSL | C4 | Orchestration | Self-improve |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Agent | HOTSPOT:452 | HOTSPOT:92 | HOTSPOT:59 | HOTSPOT:18 | 12 | 12 | 7 | HOTSPOT:23 | HOTSPOT:39 | 9 |
-| Memory | HOTSPOT:92 | HOTSPOT:1800 | HOTSPOT:418 | HOTSPOT:17 | 14 | 9 | HOTSPOT:23 | HOTSPOT:52 | HOTSPOT:32 | 13 |
-| Embedding | HOTSPOT:59 | HOTSPOT:418 | HOTSPOT:1630 | 9 | 7 | 4 | HOTSPOT:20 | HOTSPOT:47 | HOTSPOT:17 | 5 |
-| Drift | HOTSPOT:18 | HOTSPOT:17 | 9 | HOTSPOT:29 | 9 | 8 | 3 | 3 | 12 | 5 |
+| Agent | HOTSPOT:458 | HOTSPOT:97 | HOTSPOT:63 | HOTSPOT:20 | 12 | 12 | 7 | HOTSPOT:23 | HOTSPOT:40 | 8 |
+| Memory | HOTSPOT:97 | HOTSPOT:1822 | HOTSPOT:423 | HOTSPOT:19 | 14 | 9 | HOTSPOT:23 | HOTSPOT:52 | HOTSPOT:34 | 13 |
+| Embedding | HOTSPOT:63 | HOTSPOT:423 | HOTSPOT:1635 | 11 | 7 | 4 | HOTSPOT:20 | HOTSPOT:47 | HOTSPOT:18 | 4 |
+| Drift | HOTSPOT:20 | HOTSPOT:19 | 11 | HOTSPOT:32 | 9 | 8 | 3 | 3 | 14 | 5 |
 | Bloat | 12 | 14 | 7 | 9 | HOTSPOT:23 | 5 | 3 | 4 | 8 | 4 |
 | Guard-rail | 12 | 9 | 4 | 8 | 5 | 14 | 3 | 3 | 5 | 5 |
 | DSL | 7 | HOTSPOT:23 | HOTSPOT:20 | 3 | 3 | 3 | HOTSPOT:69 | 6 | 4 | 3 |
-| C4 | HOTSPOT:23 | HOTSPOT:52 | HOTSPOT:47 | 3 | 4 | 3 | 6 | HOTSPOT:314 | 7 | 4 |
-| Orchestration | HOTSPOT:39 | HOTSPOT:32 | HOTSPOT:17 | 12 | 8 | 5 | 4 | 7 | HOTSPOT:66 | 5 |
-| Self-improve | 9 | 13 | 5 | 5 | 4 | 5 | 3 | 4 | 5 | HOTSPOT:22 |
+| C4 | HOTSPOT:23 | HOTSPOT:52 | HOTSPOT:47 | 3 | 4 | 3 | 6 | HOTSPOT:317 | 7 | 4 |
+| Orchestration | HOTSPOT:40 | HOTSPOT:34 | HOTSPOT:18 | 14 | 8 | 5 | 4 | 7 | HOTSPOT:72 | 5 |
+| Self-improve | 8 | 13 | 4 | 5 | 4 | 5 | 3 | 4 | 5 | HOTSPOT:21 |
 
 ## 9. Drift Indicator
-- Last commit touching any meta-file: 95bc86d4 2025-09-10
-- Days since last meta-change: 1
+- Last commit touching any meta-file: 95bc86d4 2025-09-15
+- Days since last meta-change: 0
 
 ## 10. Exit Signature
-- SHA256 of this inventory file: 9b1b3a0cf1be5a92da59536e8d65e6c8e6257baa55a42648273d11282aa739cb
+- SHA256 of this inventory file: 58d098be4855505ed84e7f78b06a8c583001912026db24f6a16c454da6415167
 - Agent session UUID: (n/a)
 - Human reviewer action: **NONE** – this file is read-only reconnaissance.

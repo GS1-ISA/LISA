@@ -47,3 +47,4 @@ agents-towards-production-main/
 *.zip
 coverage-total.xml
 docs/_build/
+node_modules

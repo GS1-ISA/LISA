@@ -3,20 +3,29 @@ from __future__ import annotations
 
 import argparse
 import json
-import xml.etree.ElementTree as ET
 from pathlib import Path
+
+try:
+    from src.xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+    from xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
 
 BASELINE = Path("docs/audit/coverage_baseline.json")
 
 
 def parse_coverage(path: Path) -> float:
-    tree = ET.parse(path)
-    root = tree.getroot()
-    lines_valid = float(root.attrib.get("lines-valid", 0))
-    lines_covered = float(root.attrib.get("lines-covered", 0))
-    if lines_valid <= 0:
+    try:
+        data = parse_coverage_xml(path)
+        return data['coverage_pct']
+    except (XMLParseError, XMLValidationError) as e:
+        print(f"Error parsing coverage XML {path}: {e}")
         return 0.0
-    return lines_covered / lines_valid * 100.0
+    except Exception as e:
+        print(f"Unexpected error parsing coverage XML {path}: {e}")
+        return 0.0
 
 
 def main() -> int:

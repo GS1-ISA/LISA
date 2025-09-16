@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "isa-superapp.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "isa-superapp.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.isaSuperapp.autoscaling.enabled }}
+  replicas: {{ .Values.isaSuperapp.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "isa-superapp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "isa-superapp.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+        xray.amazonaws.com/tracing-enabled: "true"
+        fluentbit.io/parser: "json"
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.isaSuperapp.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.isaSuperapp.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.isaSuperapp.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "isa-superapp.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:15-alpine
+        command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h {{ include "isa-superapp.postgresql.fullname" . }} -p 5432 -U {{ .Values.postgresql.auth.username }}; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "isa-superapp.postgresql.fullname" . }}
+              key: password
+      - name: wait-for-redis
+        image: redis:7-alpine
+        command:
+        - sh
+        - -c
+        - |
+          until redis-cli -h {{ include "isa-superapp.redis.fullname" . }} -p 6379 ping; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+          echo "Redis is ready!"
+      containers:
+      - name: isa-superapp
+        image: {{ .Values.global.imageRegistry }}/{{ .Values.isaSuperapp.image.repository }}:{{ .Values.isaSuperapp.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.isaSuperapp.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.isaSuperapp.service.targetPort }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.isaSuperapp.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: ENVIRONMENT
+          value: {{ .Values.global.environment }}
+        - name: DATABASE_URL
+          value: postgresql://{{ .Values.postgresql.auth.username }}:$(DB_PASSWORD)@{{ include "isa-superapp.postgresql.fullname" . }}:5432/{{ .Values.postgresql.auth.database }}
+        - name: REDIS_URL
+          value: redis://{{ include "isa-superapp.redis.fullname" . }}:6379/0
+        - name: NEO4J_URI
+          value: bolt://{{ include "isa-superapp.neo4j.fullname" . }}:7687
+        - name: PROMETHEUS_URL
+          value: http://{{ include "isa-superapp.prometheus.fullname" . }}:9090
+        - name: GRAFANA_URL
+          value: http://{{ include "isa-superapp.grafana.fullname" . }}:3000
+        envFrom:
+        - configMapRef:
+            name: {{ include "isa-superapp.fullname" . }}-config
+        - secretRef:
+            name: {{ include "isa-superapp.fullname" . }}-secrets
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 30
+        resources:
+          {{- toYaml .Values.isaSuperapp.resources | nindent 10 }}
+        securityContext:
+          {{- toYaml .Values.security.securityContext | nindent 10 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/.cache
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      terminationGracePeriodSeconds: 60

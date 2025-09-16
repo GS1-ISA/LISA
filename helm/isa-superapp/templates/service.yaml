@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "isa-superapp.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "isa-superapp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.isaSuperapp.service.type }}
+  ports:
+    - port: {{ .Values.isaSuperapp.service.port }}
+      targetPort: {{ .Values.isaSuperapp.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "isa-superapp.selectorLabels" . | nindent 4 }}

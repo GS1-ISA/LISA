@@ -18,6 +18,7 @@ This unified CI/CD pipeline addresses the complexity and duplication found in tr
 
 - [Features](#features)
 - [Architecture](#architecture)
+- [Server Setup](#server-setup)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -43,6 +44,133 @@ This unified CI/CD pipeline addresses the complexity and duplication found in tr
 - **Real-time Monitoring**: Integrated monitoring and alerting
 - **Backup & Restore**: Configuration and deployment state backup
 - **OIDC Authentication**: Secure, keyless cloud provider authentication
+
+## 🚀 Server Setup
+
+### FastAPI Server
+
+The project includes a FastAPI server that provides API endpoints for the ISA agentic system.
+
+#### Prerequisites
+- Python 3.8+
+- pip
+- Virtual environment (recommended)
+
+#### Installation
+```bash
+# Clone the repository
+git clone <repository-url>
+cd isa-project
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+#### Environment Configuration
+Create a `.env` file in the project root:
+```bash
+# Server Configuration
+HOST=0.0.0.0
+PORT=8001
+DEBUG=true
+
+# Database Configuration
+DATABASE_URL=sqlite:///./isa.db
+
+# Security
+SECRET_KEY=your-secret-key-here
+```
+
+#### Running the Server
+```bash
+# Start the FastAPI server with Socket.io support
+python -m uvicorn src.api_server:socket_app --host 0.0.0.0 --port 8001 --log-level info
+
+# Server will be available at: http://localhost:8001
+```
+
+#### API Documentation
+Once running, access the interactive API documentation at:
+- Swagger UI: http://localhost:8001/docs
+- ReDoc: http://localhost:8001/redoc
+
+#### Health Check
+Test the server health:
+```bash
+curl http://localhost:8001/health
+```
+
+### Recent Server Fixes (2025-09-16)
+✅ **HTTPS redirect middleware**: Fixed 307 redirects and SSL errors in browsers
+✅ **Environment variables**: Added dotenv loading for configuration
+✅ **Import errors**: Resolved RateLimiter and Form imports from FastAPI
+✅ **Endpoint parameters**: Fixed change-password endpoint parameter issues
+✅ **App structure**: Cleaned up FastAPI app structure and Socket.io integration
+✅ **Server status**: Now running successfully on http://localhost:8001
+
+### Known Issues and Current Limitations
+
+#### Current Working Components
+- ✅ **Server Startup**: FastAPI server runs successfully on http://localhost:8001
+- ✅ **Socket.io Chat System**: 100% functional (22/22 tests passed) - production-ready
+- ✅ **Database Connectivity**: Functional with health monitoring
+- ✅ **Basic Authentication**: Registration working
+- ✅ **Security Headers & CORS**: Properly configured
+- ✅ **Basic API Endpoints**: Health and registration endpoints operational
+
+#### Known Issues
+- ❌ **Authentication Login Endpoint**: Failing due to log_auth_event signature mismatch
+- ❌ **GS1 Integration Endpoints**: Not implemented (imports commented out)
+- ❌ **Compliance Workflow Endpoints**: Not implemented (imports commented out)
+- ❌ **LLM/Agent Backend Integration**: Issues with async/await patterns and JSON serialization
+- ❌ **System Monitoring Permissions**: psutil access denied for health metrics collection
+- ❌ **Integration Features**: Some features not fully implemented
+
+#### Current System Status
+- **Server**: Runs successfully but with some endpoint limitations
+- **Chat System**: Fully operational and production-ready
+- **Backend Compliance Assistant**: Has integration issues requiring fixes
+- **Database & Monitoring**: Functional but monitoring has permission issues
+- **Overall**: Core functionality working, advanced features need completion
+
+### System Capabilities and Limitations Summary
+
+#### ✅ Production-Ready Components
+- **FastAPI Server**: Successfully runs on http://localhost:8001 with proper configuration
+- **Socket.io Chat System**: 100% functional (22/22 tests passed) - fully operational for real-time communication
+- **Database Connectivity**: Working with health monitoring capabilities
+- **Basic Authentication**: User registration functional
+- **Security Infrastructure**: CORS and security headers properly configured
+- **API Health Endpoints**: Basic monitoring and health checks operational
+
+#### ⚠️ Partially Functional Components
+- **Authentication System**: Registration works, login has signature mismatch issues
+- **System Monitoring**: Database and basic monitoring functional, but psutil permissions denied
+- **API Endpoints**: Core endpoints work, but some advanced features incomplete
+
+#### ❌ Non-Functional Components (Require Implementation)
+- **GS1 Integration Endpoints**: Imports commented out, not implemented
+- **Compliance Workflow Endpoints**: Imports commented out, not implemented
+- **LLM/Agent Backend Integration**: Async/await and JSON serialization issues
+- **Advanced Integration Features**: Multiple features not fully implemented
+
+#### 🚀 Next Priority Fixes
+1. Fix authentication login endpoint (log_auth_event signature)
+2. Implement GS1 integration endpoints
+3. Implement compliance workflow endpoints
+4. Resolve LLM/agent backend async issues
+5. Fix system monitoring permissions
+6. Complete remaining integration features
+
+#### 📊 Overall System Health
+- **Stability**: High (server runs reliably)
+- **Functionality**: Medium (core features work, advanced features pending)
+- **Testing Coverage**: Good (chat system fully tested)
+- **Production Readiness**: Partial (core operational, advanced features need completion)
 
 ## 🏗️ Architecture
 

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GS1 Resolver Conformance Test Suite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        #gs1ResolverTests {
+            margin-top: 20px;
+        }
+
+        .pass { background-color: #27ae60; color: white; }
+        .fail { background-color: #e74c3c; color: white; }
+        .warn { background-color: #f39c12; color: white; }
+        .lightWarn { background-color: #f1c40f; color: black; }
+
+        dl {
+            margin-top: 20px;
+        }
+
+        dt {
+            font-weight: bold;
+            margin-top: 15px;
+            color: #2c3e50;
+        }
+
+        dd {
+            margin-left: 20px;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        #resultsGrid {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        #resultsGrid a {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+        }
+
+        #rotatingcircle {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .example-links {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .example-links a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+
+        .example-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GS1 Resolver Conformance Test Suite</h1>
+
+        <div class="input-section">
+            <label for="dlInput">Enter GS1 Digital Link URI to test:</label>
+            <input type="text" id="dlInput" placeholder="https://example.com/01/12345678901231"
+                   value="https://id.gs1.org/01/09506000164908">
+            <div class="example-links">
+                Example test URIs:
+                <a href="#" onclick="setExample('https://id.gs1.org/01/09506000164908')">Basic GTIN</a>
+                <a href="#" onclick="setExample('https://id.gs1.org/01/09506000164908/10/ABC123')">GTIN + Batch</a>
+                <a href="#" onclick="setExample('https://id.gs1.org/01/09506000164908/21/XYZ987')">GTIN + Serial</a>
+                <a href="#" onclick="setExample('https://example.com/01/09506000134352/10/ABC12345')">Custom Domain</a>
+            </div>
+        </div>
+
+        <button onclick="runTests()" id="testButton">Run Conformance Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+
+        <div class="loading" id="loadingIndicator">
+            <p>Running tests... <span id="rotatingcircle">⟳</span></p>
+        </div>
+    </div>
+
+    <div class="container results-section">
+        <h2>Test Results</h2>
+        <div id="gs1ResolverTests"></div>
+    </div>
+
+    <!-- GS1 Digital Link Toolkit -->
+    <script src="https://cdn.jsdelivr.net/npm/gs1-digital-link-toolkit@1.3.0/dist/GS1DigitalLinkToolkit.js"></script>
+
+    <!-- GS1 Resolver Test Suite -->
+    <script src="GS1DigitalLinkResolverTestSuite.js"></script>
+
+    <script>
+        function setExample(uri) {
+            document.getElementById('dlInput').value = uri;
+        }
+
+        function runTests() {
+            const dlUri = document.getElementById('dlInput').value.trim();
+            if (!dlUri) {
+                alert('Please enter a GS1 Digital Link URI');
+                return;
+            }
+
+            const testButton = document.getElementById('testButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            testButton.disabled = true;
+            loadingIndicator.style.display = 'block';
+
+            // Clear previous results
+            clearGrid();
+
+            // Run the test suite
+            testDL(dlUri).finally(() => {
+                testButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+            });
+        }
+
+        function clearResults() {
+            clearGrid();
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('GS1 Resolver Test Suite initialized');
+        });
+    </script>
+</body>
+</html>

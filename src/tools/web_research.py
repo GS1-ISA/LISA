@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import os
 from pathlib import Path
 
 import httpx
@@ -24,6 +25,10 @@ class WebResearchTool:
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
+    def _is_live_research_allowed(self) -> bool:
+        """Check if live research is allowed via environment variable."""
+        return os.getenv("ALLOW_RESEARCH_LIVE", "0") == "1"
+
     def _get_cache_path(self, key: str) -> Path:
         """Generates a file path for a given cache key."""
         hashed_key = hashlib.sha256(key.encode()).hexdigest()
@@ -32,6 +37,7 @@ class WebResearchTool:
     def search(self, query: str, max_results: int = 5) -> list[dict]:
         """
         Performs a web search using DuckDuckGo and returns the results.
+        Falls back to cached results if live research is disabled.
 
         Args:
             query: The search query.
@@ -47,6 +53,10 @@ class WebResearchTool:
             logging.info(f"Cache hit for search query: {query}")
             with open(cache_path, "r") as f:
                 return json.load(f)
+
+        if not self._is_live_research_allowed():
+            logging.info(f"Live research disabled, no cached results for search query: {query}")
+            return []
 
         logging.info(f"Performing web search for: {query}")
         try:
@@ -64,6 +74,7 @@ class WebResearchTool:
     def read_url(self, url: str) -> str:
         """
         Reads the content of a URL and returns the clean text.
+        Falls back to cached results if live research is disabled.
 
         Args:
             url: The URL to read.
@@ -78,6 +89,10 @@ class WebResearchTool:
             logging.info(f"Cache hit for URL: {url}")
             with open(cache_path, "r") as f:
                 return f.read()
+
+        if not self._is_live_research_allowed():
+            logging.info(f"Live research disabled, no cached content for URL: {url}")
+            return ""
 
         logging.info(f"Reading URL: {url}")
         try:

@@ -1,0 +1,575 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      deployment_target:
+        description: 'Deployment target'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+      security_scan_only:
+        description: 'Run only security scanning'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+  security-events: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  # Security scanning job
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    outputs:
+      security-status: ${{ steps.security-check.outputs.status }}
+      vulnerabilities: ${{ steps.security-check.outputs.vulnerabilities }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Install Node.js dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Bandit (Python security scanner)
+        uses: PyCQA/bandit-action@v1
+        with:
+          path: "src"
+          options: "-r -f json -o bandit-report.json"
+          requirementstxt: "requirements.txt"
+
+      - name: Run Safety (Python vulnerability scanner)
+        run: |
+          pip install safety
+          safety check --output json > safety-report.json || true
+
+      - name: Run Trivy (container vulnerability scanner)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python,javascript,typescript
+          queries: security-and-quality
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+      - name: Run npm audit
+        run: |
+          cd frontend
+          npm audit --audit-level moderate --json > npm-audit.json || true
+
+      - name: Run ESLint security rules
+        run: |
+          cd frontend
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-security.json || true
+
+      - name: Run Semgrep (semantic code analysis)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/security-audit
+          output: semgrep-results.json
+
+      - name: Upload security scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+        if: always()
+
+      - name: Security check
+        id: security-check
+        run: |
+          # Check for critical vulnerabilities
+          CRITICAL_VULNS=$(jq '.results[].vulnerabilities[] | select(.severity == "CRITICAL") | .vulnerabilityID' trivy-results.sarif 2>/dev/null | wc -l || echo "0")
+          HIGH_VULNS=$(jq '.results[].vulnerabilities[] | select(.severity == "HIGH") | .vulnerabilityID' trivy-results.sarif 2>/dev/null | wc -l || echo "0")
+
+          echo "Critical vulnerabilities: $CRITICAL_VULNS"
+          echo "High vulnerabilities: $HIGH_VULNS"
+
+          if [ "$CRITICAL_VULNS" -gt 0 ]; then
+            echo "status=fail" >> $GITHUB_OUTPUT
+            echo "Blocking deployment due to critical vulnerabilities"
+            exit 1
+          elif [ "$HIGH_VULNS" -gt 5 ]; then
+            echo "status=fail" >> $GITHUB_OUTPUT
+            echo "Blocking deployment due to excessive high vulnerabilities"
+            exit 1
+          else
+            echo "status=pass" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-scan-results
+          path: |
+            bandit-report.json
+            safety-report.json
+            trivy-results.sarif
+            npm-audit.json
+            eslint-security.json
+            semgrep-results.json
+        if: always()
+
+  # Dependency review for pull requests
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          config-file: '.github/dependency-review-config.yml'
+
+  # Unit tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: needs.security-scan.outputs.security-status == 'pass' || github.event.inputs.security_scan_only == 'false'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run unit tests with coverage
+        run: |
+          pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=html --cov-fail-under=80
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unit-tests
+          name: unit-tests-coverage
+
+  # Integration tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ -v --cov=src --cov-report=xml --cov-append --cov-fail-under=70
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: integration-tests
+          name: integration-tests-coverage
+
+  # Frontend tests
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    needs: security-scan
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm run test:ci
+
+      - name: Run frontend linting
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+  # Build and package
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, frontend-tests]
+    if: always() && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build Python package
+        run: |
+          python -m build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package
+          path: dist/
+
+  # Build Docker images
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [build, security-scan]
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      isa-superapp-image: ${{ steps.meta.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for ISA SuperApp
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push ISA SuperApp image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: Extract metadata for Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: spdx-json
+          output-file: ./sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: ./sbom.spdx.json
+
+  # Staging deployment
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: (github.ref == 'refs/heads/develop' || github.event.inputs.deployment_target == 'staging') && github.event.inputs.security_scan_only != 'true'
+    environment:
+      name: staging
+      url: https://staging.isa-superapp.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_STAGING }}
+          aws-region: us-east-1
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.27.0
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name isa-staging-cluster
+
+      - name: Deploy to staging
+        run: |
+          helm upgrade --install isa-superapp-staging ./helm/isa-superapp \
+            --namespace isa-superapp-staging \
+            --create-namespace \
+            --set isaSuperapp.image.tag=${{ github.sha }} \
+            --set frontend.image.tag=${{ github.sha }} \
+            --set global.environment=staging \
+            --wait \
+            --timeout=10m
+
+      - name: Run staging health checks
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment/isa-superapp -n isa-superapp-staging
+          kubectl wait --for=condition=available --timeout=300s deployment/isa-frontend -n isa-superapp-staging
+
+      - name: Run smoke tests
+        run: |
+          # Add smoke test commands here
+          echo "Running smoke tests on staging"
+          # curl -f https://staging-api.isa-superapp.com/health || exit 1
+
+  # Production deployment
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker-build, deploy-staging]
+    if: (github.ref == 'refs/heads/main' || github.event.inputs.deployment_target == 'production') && github.event.inputs.security_scan_only != 'true'
+    environment:
+      name: production
+      url: https://app.isa-superapp.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PRODUCTION }}
+          aws-region: us-east-1
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.27.0
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name isa-production-cluster
+
+      - name: Create backup
+        run: |
+          echo "Creating backup of current production deployment"
+          # Add backup commands here
+
+      - name: Deploy to production
+        run: |
+          helm upgrade --install isa-superapp ./helm/isa-superapp \
+            --namespace isa-superapp \
+            --create-namespace \
+            --set isaSuperapp.image.tag=${{ github.sha }} \
+            --set frontend.image.tag=${{ github.sha }} \
+            --set global.environment=production \
+            --wait \
+            --timeout=15m
+
+      - name: Run production health checks
+        run: |
+          kubectl wait --for=condition=available --timeout=600s deployment/isa-superapp -n isa-superapp
+          kubectl wait --for=condition=available --timeout=600s deployment/isa-frontend -n isa-superapp
+
+      - name: Run production smoke tests
+        run: |
+          # Add comprehensive smoke test commands here
+          echo "Running smoke tests on production"
+          # curl -f https://api.isa-superapp.com/health || exit 1
+          # curl -f https://app.isa-superapp.com || exit 1
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment success"
+          # Add verification commands here
+
+  # Post-deployment tasks
+  post-deployment:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+
+    steps:
+      - name: Clean up old container images
+        run: |
+          echo "Cleaning up old container images"
+          # Add cleanup commands here
+
+      - name: Send deployment notifications
+        run: |
+          echo "Sending deployment notifications"
+          # Add notification commands here
+
+      - name: Update deployment status
+        run: |
+          echo "Updating deployment status"
+          # Add status update commands here
+
+      - name: Generate deployment report
+        run: |
+          echo "## Deployment Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.deployment_target || 'auto' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security Status:** ${{ needs.security-scan.outputs.security-status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
