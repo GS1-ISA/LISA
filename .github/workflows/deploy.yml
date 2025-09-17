@@ -1,0 +1,206 @@
+name: Reusable Deployment Workflow
+
+on:
+  workflow_call:
+    inputs:
+      deployment_matrix:
+        description: 'JSON array of deployment configurations'
+        required: true
+        type: string
+      environment:
+        description: 'Target deployment environment'
+        required: true
+        type: string
+      deployment_strategy:
+        description: 'Deployment strategy (rolling, blue-green, canary, recreate)'
+        required: true
+        type: string
+        default: 'rolling'
+      deployment_timeout:
+        description: 'Deployment timeout in minutes'
+        required: false
+        type: string
+        default: '60'
+      rollback_on_failure:
+        description: 'Enable automatic rollback on failure'
+        required: false
+        type: boolean
+        default: true
+      health_check_enabled:
+        description: 'Enable health checks after deployment'
+        required: false
+        type: boolean
+        default: true
+      health_check_timeout:
+        description: 'Health check timeout in minutes'
+        required: false
+        type: string
+        default: '10'
+      dry_run:
+        description: 'Perform dry run without actual deployment'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        deployment: ${{ fromJson(inputs.deployment_matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup deployment tools
+        run: |
+          # Install kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          
+          # Install Helm
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          
+          echo "✅ Deployment tools installed"
+      
+      - name: Configure Kubernetes access
+        run: |
+          # Configure kubeconfig for the target environment
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          
+          # Verify cluster access
+          kubectl cluster-info
+          echo "✅ Kubernetes cluster access configured"
+      
+      - name: Pre-deployment validation
+        run: |
+          echo "🔍 Validating deployment prerequisites for ${{ matrix.deployment.component }}"
+          
+          # Check if namespace exists
+          kubectl get namespace ${{ matrix.deployment.namespace }} || \
+            kubectl create namespace ${{ matrix.deployment.namespace }}
+          
+          # Validate configuration files exist
+          if [ ! -f "${{ matrix.deployment.config_file }}" ]; then
+            echo "❌ Configuration file not found: ${{ matrix.deployment.config_file }}"
+            exit 1
+          fi
+          
+          echo "✅ Pre-deployment validation passed"
+      
+      - name: Deploy application
+        if: inputs.dry_run != true
+        run: |
+          echo "🚀 Deploying ${{ matrix.deployment.component }} to ${{ inputs.environment }}"
+          echo "Strategy: ${{ inputs.deployment_strategy }}"
+          
+          export KUBECONFIG=kubeconfig
+          
+          # Apply deployment configuration
+          case "${{ inputs.deployment_strategy }}" in
+            "rolling")
+              echo "📈 Performing rolling deployment"
+              kubectl apply -f ${{ matrix.deployment.config_file }} --namespace=${{ matrix.deployment.namespace }}
+              kubectl rollout status deployment/${{ matrix.deployment.deployment_name }} \
+                --namespace=${{ matrix.deployment.namespace }} \
+                --timeout=${{ inputs.deployment_timeout }}m
+              ;;
+            "blue-green")
+              echo "🔵🟢 Performing blue-green deployment"
+              # Implement blue-green deployment logic
+              kubectl apply -f ${{ matrix.deployment.config_file }} --namespace=${{ matrix.deployment.namespace }}
+              # Add blue-green specific logic here
+              ;;
+            "canary")
+              echo "🟡 Performing canary deployment"
+              # Implement canary deployment logic
+              kubectl apply -f ${{ matrix.deployment.config_file }} --namespace=${{ matrix.deployment.namespace }}
+              # Add canary specific logic here
+              ;;
+            "recreate")
+              echo "🔄 Performing recreate deployment"
+              kubectl delete deployment ${{ matrix.deployment.deployment_name }} --namespace=${{ matrix.deployment.namespace }} || true
+              kubectl apply -f ${{ matrix.deployment.config_file }} --namespace=${{ matrix.deployment.namespace }}
+              ;;
+            *)
+              echo "❌ Unknown deployment strategy: ${{ inputs.deployment_strategy }}"
+              exit 1
+              ;;
+          esac
+          
+          echo "✅ Deployment completed for ${{ matrix.deployment.component }}"
+      
+      - name: Dry run deployment
+        if: inputs.dry_run == true
+        run: |
+          echo "🔍 Dry run mode - showing what would be deployed"
+          echo "Component: ${{ matrix.deployment.component }}"
+          echo "Namespace: ${{ matrix.deployment.namespace }}"
+          echo "Deployment: ${{ matrix.deployment.deployment_name }}"
+          echo "Strategy: ${{ inputs.deployment_strategy }}"
+          
+          # Show the configuration that would be applied
+          echo "Configuration to be applied:"
+          cat ${{ matrix.deployment.config_file }}
+      
+      - name: Health check
+        if: inputs.health_check_enabled == true && inputs.dry_run != true
+        run: |
+          echo "🏥 Running health checks for ${{ matrix.deployment.component }}"
+          
+          export KUBECONFIG=kubeconfig
+          
+          # Wait for deployment to be ready
+          kubectl wait --for=condition=available \
+            --timeout=${{ inputs.health_check_timeout }}m \
+            deployment/${{ matrix.deployment.deployment_name }} \
+            --namespace=${{ matrix.deployment.namespace }}
+          
+          # Check pod status
+          kubectl get pods --namespace=${{ matrix.deployment.namespace }} \
+            -l app=${{ matrix.deployment.component }} \
+            --field-selector=status.phase=Running
+          
+          # Test service endpoint if available
+          if [ -n "${{ matrix.deployment.health_endpoint }}" ]; then
+            echo "Testing health endpoint: ${{ matrix.deployment.health_endpoint }}"
+            # Add health endpoint testing logic here
+          fi
+          
+          echo "✅ Health checks passed for ${{ matrix.deployment.component }}"
+      
+      - name: Rollback on failure
+        if: failure() && inputs.rollback_on_failure == true && inputs.dry_run != true
+        run: |
+          echo "⚠️ Deployment failed, initiating rollback for ${{ matrix.deployment.component }}"
+          
+          export KUBECONFIG=kubeconfig
+          
+          # Rollback deployment
+          kubectl rollout undo deployment/${{ matrix.deployment.deployment_name }} \
+            --namespace=${{ matrix.deployment.namespace }} || \
+            echo "⚠️ Rollback failed or no previous revision available"
+          
+          echo "🔄 Rollback completed for ${{ matrix.deployment.component }}"
+      
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "📋 Deployment Summary for ${{ matrix.deployment.component }}"
+          echo "=============================================="
+          echo "Component: ${{ matrix.deployment.component }}"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Strategy: ${{ inputs.deployment_strategy }}"
+          echo "Status: ${{ job.status }}"
+          echo "Dry Run: ${{ inputs.dry_run }}"
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment completed successfully"
+          else
+            echo "❌ Deployment failed"
+          fi

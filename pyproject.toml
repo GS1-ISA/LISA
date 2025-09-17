@@ -1,16 +1,259 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project]
+name = "isa-superapp"
+version = "0.1.0"
+description = "ISA SuperApp - Intelligent System Architecture"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "ISA Team", email = "team@isa-superapp.com"},
+]
+maintainers = [
+    {name = "ISA Team", email = "team@isa-superapp.com"},
+]
+keywords = ["ai", "ml", "architecture", "intelligent-systems"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/isa-superapp/isa-superapp"
+Documentation = "https://isa-superapp.readthedocs.io"
+Repository = "https://github.com/isa-superapp/isa-superapp.git"
+Issues = "https://github.com/isa-superapp/isa-superapp/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "black>=23.7.0",
+    "ruff>=0.0.285",
+    "mypy>=1.5.1",
+    "isort>=5.12.0",
+    "pre-commit>=3.4.0",
+    "bandit>=1.7.5",
+    "pip-audit>=2.6.1",
+    "detect-secrets>=1.4.0",
+    "radon>=6.0.1",
+    "xenon>=0.9.1",
+    "sphinx>=7.1.2",
+    "sphinx-rtd-theme>=1.3.0",
+    "coverage>=7.3.1",
+    "pylint>=2.17.5",
+    "flake8>=6.1.0",
+    "safety>=2.3.5",
+    "pip-licenses>=4.3.3",
+    "commitizen>=3.6.0",
+    "yamllint>=1.32.0",
+    "toml-sort>=0.23.1",
+    "codespell>=2.2.5",
+    "lizard>=1.17.10",
+]
+
 [tool.ruff]
-line-length = 100
-target-version = "py311"
-select = ["E","F","W","I","UP"]
-ignore = ["E203","E501"]
-fix = true
+target-version = "py38"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "ARG001", # unused-function-args
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "Q",   # flake8-quotes
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate
+    "PD",  # pandas-vet
+    "NPY", # numpy-specific rules
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "RUF012", # mutable class attributes should be annotated with `typing.ClassVar`
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["ARG001"]
+
+[tool.ruff.isort]
+known-first-party = ["isa_superapp"]
+
+[tool.black]
+target-version = ['py38']
+include = '\.pyi?$'
+line-length = 88
 
 [tool.mypy]
 python_version = "3.11"
-strict = false
+exclude = "(^src/docs_provider/src/|^src/orchestrator/src/|^scripts/research/|^scripts/tests/|^scripts/audit_|gen_docs_index.py|suggest_past_fixes.py|evaluate_research.py|audit_md_rules.py|audit_coherence.py)"
+follow_imports = "skip"
+check_untyped_defs = true
+ignore_missing_imports = true
 warn_unused_ignores = true
 warn_redundant_casts = true
-no_implicit_optional = true
-namespace_packages = true
-mypy_path = ["ISA_SuperApp/src"]
+warn_unused_configs = true
+strict_equality = true
+strict_optional = true
 
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+    "*_test.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["isa_superapp"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/env/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101", "B601"]
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "too-many-locals",
+    "too-many-branches",
+    "too-many-statements",
+    "too-many-nested-blocks",
+    "too-many-return-statements",
+    "too-many-public-methods",
+    "invalid-name",
+    "line-too-long",
+]
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["isa_superapp"]
+
+[tool.commitizen]
+version = "0.1.0"
+version_files = [
+    "pyproject.toml:version",
+    "isa_superapp/__init__.py",
+]
+style = [
+    ["qmark", "fg:#ff9d00 bold"],
+    ["question", "bold"],
+    ["answer", "fg:#ff9d00 bold"],
+    ["pointer", "fg:#ff9d00 bold"],
+    ["highlighted", "fg:#ff9d00 bold"],
+    ["selected", "fg:#cc5454"],
+    ["separator", "fg:#cc5454"],
+    ["instruction", ""],
+    ["text", ""],
+    ["disabled", "fg:#858585 italic"],
+]
+
+[tool.yamllint]
+extends = "default"
+rules = {"line-length" = {"max" = 88}, "truthy" = {"allowed-values" = ["true", "false", "yes", "no", "on", "off"]}, "comments" = {"min-spaces-from-content" = 1}, "document-start" = "disable", "empty-lines" = {"max-end" = 1}}
+
+[tool.tomlsort]
+all = true
+in_place = true
+sort_table_keys = true
+sort_inline_tables = true
+
+[tool.codespell]
+skip = "*.git*,*.png,*.jpg,*.jpeg,*.svg,*.ico,*.pdf,*.zip,*.tar.gz,*.whl,*.egg-info,build,dist,.tox,.venv,venv"
+ignore-words = ".codespell-ignore"
+quiet-level = 2
+check-filenames = true
+check-hidden = true
+
+[tool.lizard]
+exclude_paths = ["tests", "venv", ".venv", "build", "dist"]
+sorting = ["cyclomatic_complexity", "nloc"]
+warnings = ["cyclomatic_complexity > 10", "nloc > 50"]
+
+[tool.jscpd]
+threshold = 0
+reporters = ["console", "html"]
+ignore = ["**/*.git/**", "**/node_modules/**", "**/venv/**", "**/.venv/**"]
+format = ["python", "yaml", "json", "toml", "markdown"]
+output = "reports/jscpd-report.html"
+
+[tool.radon]
+exclude = "tests,venv,.venv,build,dist"
+ignore = "test_*,*_test.py"
+no_assert = true
+show_closures = true
+min = "B"
+
+[tool.xenon]
+max-absolute = "B"
+max-modules = "B"
+max-average = "A"
+exclude = "tests,venv,.venv,build,dist"
+ignore = "test_*,*_test.py"

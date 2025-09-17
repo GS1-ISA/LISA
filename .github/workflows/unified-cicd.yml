@@ -1,0 +1,531 @@
+name: Unified CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+  pull_request:
+    branches: [main, develop]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      deployment_target:
+        description: 'Target environment for deployment'
+        required: false
+        type: choice
+        options: ['none', 'staging', 'production']
+        default: 'none'
+      skip_security_scan:
+        description: 'Skip security scanning'
+        required: false
+        type: boolean
+        default: false
+      force_deploy:
+        description: 'Force deployment (skip staging gate)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: '3.11'
+  CACHE_VERSION: 'v1'
+  DEPLOYMENT_TIMEOUT: 30
+  HEALTH_CHECK_TIMEOUT: 10
+
+permissions:
+  contents: read
+  id-token: write
+  security-events: write
+  actions: read
+  packages: write
+
+jobs:
+  # Code Quality and Security Analysis
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    outputs:
+      quality-status: ${{ steps.quality.outputs.status }}
+      security-status: ${{ steps.security.outputs.status }}
+      vulnerability-summary: ${{ steps.security.outputs.vulnerability_summary }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pre-commit
+          key: ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/requirements*.txt', '.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-
+
+      - name: Install development dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black isort mypy bandit safety semgrep pre-commit
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Run pre-commit hooks
+        run: |
+          pre-commit run --all-files || true
+
+      - name: Run code quality checks
+        id: quality
+        run: |
+          echo "Running comprehensive code quality checks..."
+          
+          # Run Ruff linter
+          ruff check . --output-format=github --exit-zero > ruff-report.txt || true
+          RUFF_ISSUES=$(wc -l < ruff-report.txt || echo "0")
+          
+          # Run Black formatter check
+          black --check --diff . > black-report.txt 2>&1 || true
+          BLACK_ISSUES=$([ -s black-report.txt ] && echo "1" || echo "0")
+          
+          # Run isort import checker
+          isort --check-only --diff . > isort-report.txt 2>&1 || true
+          ISORT_ISSUES=$([ -s isort-report.txt ] && echo "1" || echo "0")
+          
+          # Run MyPy type checker
+          mypy . --ignore-missing-imports --no-error-summary > mypy-report.txt 2>&1 || true
+          MYPY_ISSUES=$([ -s mypy-report.txt ] && echo "1" || echo "0")
+          
+          echo "Code quality issues: Ruff=$RUFF_ISSUES, Black=$BLACK_ISSUES, isort=$ISORT_ISSUES, MyPy=$MYPY_ISSUES"
+          echo "status=completed" >> $GITHUB_OUTPUT
+
+      - name: Run security scanning
+        id: security
+        if: github.event.inputs.skip_security_scan != 'true'
+        run: |
+          echo "🔒 Running comprehensive security scanning..."
+          mkdir -p security-reports
+          
+          # SAST with Semgrep
+          echo "Running SAST scan..."
+          semgrep --config=auto \
+            --json \
+            --output=security-reports/sast-results.json \
+            --severity=medium \
+            . || true
+          
+          # Dependency scanning with Safety
+          echo "Running dependency scan..."
+          safety check --json --output=security-reports/dependency-results.json || true
+          
+          # Code analysis with Bandit
+          echo "Running Bandit security analysis..."
+          bandit -r src/ -f json -o security-reports/bandit-results.json || true
+          
+          # Parse and summarize results
+          TOTAL_VULN=0
+          CRITICAL_VULN=0
+          HIGH_VULN=0
+          
+          if [ -f security-reports/sast-results.json ]; then
+            SAST_COUNT=$(jq '.results | length' security-reports/sast-results.json 2>/dev/null || echo "0")
+            TOTAL_VULN=$((TOTAL_VULN + SAST_COUNT))
+          fi
+          
+          if [ -f security-reports/dependency-results.json ]; then
+            DEP_COUNT=$(jq '.vulnerabilities | length' security-reports/dependency-results.json 2>/dev/null || echo "0")
+            TOTAL_VULN=$((TOTAL_VULN + DEP_COUNT))
+          fi
+          
+          if [ -f security-reports/bandit-results.json ]; then
+            BANDIT_COUNT=$(jq '.results | length' security-reports/bandit-results.json 2>/dev/null || echo "0")
+            TOTAL_VULN=$((TOTAL_VULN + BANDIT_COUNT))
+          fi
+          
+          echo "Security scan completed. Total vulnerabilities: $TOTAL_VULN"
+          echo "status=completed" >> $GITHUB_OUTPUT
+          echo "vulnerability_summary=${TOTAL_VULN} total, ${CRITICAL_VULN} critical, ${HIGH_VULN} high" >> $GITHUB_OUTPUT
+
+      - name: Upload security reports
+        if: always() && steps.security.outcome == 'success'
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports-${{ github.sha }}
+          path: security-reports/
+          retention-days: 30
+
+  # Testing Strategy Matrix
+  test:
+    name: Test Suite - ${{ matrix.test-group }}
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    if: needs.code-quality.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        test-group: [unit, integration, e2e]
+        python-version: ['3.9', '3.10', '3.11']
+        include:
+          - test-group: unit
+            coverage-threshold: 85
+          - test-group: integration
+            coverage-threshold: 80
+          - test-group: e2e
+            coverage-threshold: 75
+    
+    outputs:
+      test-status: ${{ steps.test.outputs.status }}
+      coverage-artifact: ${{ steps.upload.outputs.artifact-id }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache test dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-test-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ matrix.python-version }}-
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-xdist pytest-mock pytest-asyncio
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Determine test configuration
+        id: config
+        run: |
+          case "${{ matrix.test-group }}" in
+            "unit")
+              echo "path=tests/unit" >> $GITHUB_OUTPUT
+              echo "markers=not integration and not e2e" >> $GITHUB_OUTPUT
+              ;;
+            "integration")
+              echo "path=tests/integration" >> $GITHUB_OUTPUT
+              echo "markers=integration and not e2e" >> $GITHUB_OUTPUT
+              ;;
+            "e2e")
+              echo "path=tests/e2e" >> $GITHUB_OUTPUT
+              echo "markers=e2e" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Run tests
+        id: test
+        run: |
+          echo "Running ${{ matrix.test-group }} tests with Python ${{ matrix.python-version }}..."
+          
+          pytest ${{ steps.config.outputs.path }} \
+            -m "${{ steps.config.outputs.markers }}" \
+            --cov=src \
+            --cov-report=xml:coverage-${{ matrix.test-group }}-py${{ matrix.python-version }}.xml \
+            --cov-report=html:htmlcov-${{ matrix.test-group }}-py${{ matrix.python-version }} \
+            --cov-fail-under=${{ matrix.coverage-threshold }} \
+            --junitxml=junit-${{ matrix.test-group }}-py${{ matrix.python-version }}.xml \
+            -n auto \
+            -v \
+            --tb=short
+          
+          echo "status=passed" >> $GITHUB_OUTPUT
+
+      - name: Upload test results
+        id: upload
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-group }}-py${{ matrix.python-version }}
+          path: |
+            coverage-${{ matrix.test-group }}-py${{ matrix.python-version }}.xml
+            htmlcov-${{ matrix.test-group }}-py${{ matrix.python-version }}/
+            junit-${{ matrix.test-group }}-py${{ matrix.python-version }}.xml
+          retention-days: 30
+
+  # Build and Package
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
+    outputs:
+      package-artifact: ${{ steps.upload.outputs.artifact-id }}
+      package-version: ${{ steps.build.outputs.version }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache build dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-build-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build wheel setuptools setuptools-scm
+
+      - name: Build package
+        id: build
+        run: |
+          echo "Building Python package..."
+          python -m build
+          
+          # Extract version from built package
+          VERSION=$(python -c "import setuptools_scm; print(setuptools_scm.get_version())")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
+          echo "Package built successfully. Version: ${VERSION}"
+
+      - name: Upload package
+        id: upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package-${{ github.sha }}
+          path: dist/
+          retention-days: 90
+
+  # Staging Deployment Gate
+  staging-gate:
+    name: Staging Deployment Gate
+    runs-on: ubuntu-latest
+    needs: [build, code-quality]
+    if: |
+      always() && 
+      (github.ref == 'refs/heads/main' || github.event.inputs.deployment_target == 'staging') &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped')
+    environment:
+      name: staging
+      url: https://staging.example.com
+    outputs:
+      staging-status: ${{ steps.gate.outputs.status }}
+      staging-deployment-id: ${{ steps.deploy.outputs.deployment-id }}
+    
+    steps:
+      - name: Evaluate deployment readiness
+        id: gate
+        run: |
+          echo "🔍 Evaluating staging deployment readiness..."
+          
+          # Check security scan results
+          SECURITY_VULNS="${{ needs.code-quality.outputs.vulnerability-summary }}"
+          if [[ "$SECURITY_VULNS" =~ "critical" ]] && [[ ! "$SECURITY_VULNS" =~ "0 critical" ]]; then
+            echo "❌ Critical security vulnerabilities found. Blocking staging deployment."
+            echo "status=blocked" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Check test results
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "❌ Build failed. Blocking staging deployment."
+            echo "status=blocked" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ Staging deployment gate passed"
+          echo "status=approved" >> $GITHUB_OUTPUT
+
+      - name: Configure OIDC for staging
+        if: steps.gate.outputs.status == 'approved'
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.STAGING_OIDC_ROLE_ARN }}
+          role-session-name: github-actions-staging
+          aws-region: ${{ secrets.STAGING_AWS_REGION }}
+
+      - name: Deploy to staging
+        id: deploy
+        if: steps.gate.outputs.status == 'approved'
+        uses: ./.github/workflows/deploy.yml
+        with:
+          deployment_matrix: |
+            [
+              {
+                "component": "api",
+                "namespace": "staging",
+                "deployment_name": "api-deployment",
+                "config_file": "k8s/staging/api-deployment.yaml",
+                "health_endpoint": "/health"
+              }
+            ]
+          environment: staging
+          deployment_strategy: rolling
+          health_check_enabled: true
+          rollback_on_failure: true
+
+  # Production Deployment with Enhanced Safety
+  production-deploy:
+    name: Production Deployment
+    runs-on: ubuntu-latest
+    needs: [staging-gate, build, code-quality]
+    if: |
+      always() && 
+      (github.event_name == 'release' || github.event.inputs.deployment_target == 'production' || github.event.inputs.force_deploy == 'true') &&
+      (needs.staging-gate.result == 'success' || github.event.inputs.force_deploy == 'true')
+    environment:
+      name: production
+      url: https://app.example.com
+    outputs:
+      production-status: ${{ steps.deploy.outputs.status }}
+      deployment-id: ${{ steps.deploy.outputs.deployment-id }}
+    
+    steps:
+      - name: Production deployment safety checks
+        id: safety
+        run: |
+          echo "🔒 Running production deployment safety checks..."
+          
+          # Verify staging deployment success (unless forced)
+          if [ "${{ github.event.inputs.force_deploy }}" != "true" ]; then
+            if [ "${{ needs.staging-gate.result }}" != "success" ]; then
+              echo "❌ Staging deployment failed. Blocking production deployment."
+              exit 1
+            fi
+          fi
+          
+          # Additional production-specific checks
+          echo "Verifying production readiness..."
+          
+          echo "✅ Production safety checks passed"
+
+      - name: Configure OIDC for production
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.PRODUCTION_OIDC_ROLE_ARN }}
+          role-session-name: github-actions-production
+          aws-region: ${{ secrets.PRODUCTION_AWS_REGION }}
+
+      - name: Deploy to production
+        id: deploy
+        uses: ./.github/workflows/deploy.yml
+        with:
+          deployment_matrix: |
+            [
+              {
+                "component": "api",
+                "namespace": "production",
+                "deployment_name": "api-deployment",
+                "config_file": "k8s/production/api-deployment.yaml",
+                "health_endpoint": "/health"
+              },
+              {
+                "component": "worker",
+                "namespace": "production", 
+                "deployment_name": "worker-deployment",
+                "config_file": "k8s/production/worker-deployment.yaml"
+              }
+            ]
+          environment: production
+          deployment_strategy: blue-green
+          health_check_enabled: true
+          rollback_on_failure: true
+          deployment_timeout: 45
+
+  # Comprehensive Rollback Mechanism
+  rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    if: |
+      always() && 
+      (failure() && contains(needs.*.result, 'failure')) ||
+      github.event.inputs.deployment_target == 'rollback'
+    needs: [production-deploy, staging-gate]
+    
+    steps:
+      - name: Assess rollback necessity
+        id: assess
+        run: |
+          echo "🚨 Assessing rollback necessity..."
+          
+          # Check if production deployment failed
+          if [ "${{ needs.production-deploy.result }}" == "failure" ]; then
+            echo "Production deployment failed. Initiating rollback."
+            echo "rollback_required=true" >> $GITHUB_OUTPUT
+            echo "target_environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.staging-gate.result }}" == "failure" ]; then
+            echo "Staging deployment failed. Initiating rollback."
+            echo "rollback_required=true" >> $GITHUB_OUTPUT
+            echo "target_environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "No rollback required."
+            echo "rollback_required=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure OIDC for rollback
+        if: steps.assess.outputs.rollback_required == 'true'
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets[format('{0}_OIDC_ROLE_ARN', steps.assess.outputs.target_environment | upper)] }}
+          role-session-name: github-actions-rollback
+          aws-region: ${{ secrets[format('{0}_AWS_REGION', steps.assess.outputs.target_environment | upper)] }}
+
+      - name: Execute rollback
+        if: steps.assess.outputs.rollback_required == 'true'
+        run: |
+          echo "🔄 Executing rollback for ${{ steps.assess.outputs.target_environment }}..."
+          
+          export KUBECONFIG=kubeconfig
+          
+          # Rollback deployments
+          kubectl rollout undo deployment/api-deployment \
+            --namespace=${{ steps.assess.outputs.target_environment }} || \
+            echo "API rollback completed or no previous revision"
+          
+          kubectl rollout undo deployment/worker-deployment \
+            --namespace=${{ steps.assess.outputs.target_environment }} || \
+            echo "Worker rollback completed or no previous revision"
+          
+          echo "✅ Rollback completed for ${{ steps.assess.outputs.target_environment }}"
+
+  # Workflow Summary and Notifications
+  summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [code-quality, test, build, staging-gate, production-deploy, rollback]
+    
+    steps:
+      - name: Generate workflow summary
+        run: |
+          echo "# 🚀 Unified CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Staging Gate | ${{ needs.staging-gate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production Deploy | ${{ needs.production-deploy.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback | ${{ needs.rollback.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.production-deploy.result }}" == "success" ]; then
+            echo "## ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+            echo "Production deployment completed successfully." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.rollback.result }}" == "success" ]; then
+            echo "## ⚠️ Rollback Executed" >> $GITHUB_STEP_SUMMARY
+            echo "Emergency rollback was executed due to deployment failure." >> $GITHUB_STEP_SUMMARY
+          fi

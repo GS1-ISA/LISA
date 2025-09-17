@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: isa-superapp-dev
+
+bases:
+- ../../base
+
+patchesStrategicMerge:
+- deployment-patch.yaml
+- configmap-patch.yaml
+
+configMapGenerator:
+- name: isa-superapp-config
+  behavior: merge
+  literals:
+  - LOG_LEVEL=DEBUG
+  - APP_ENV=development
+  - DEBUG=true
+  - ENABLE_PROFILING=true
+
+images:
+- name: isa-superapp
+  newTag: dev-latest
+
+replicas:
+- name: isa-superapp
+  count: 1
+
+patches:
+- target:
+    kind: HorizontalPodAutoscaler
+    name: isa-superapp
+  patch: |-
+    - op: replace
+      path: /spec/minReplicas
+      value: 1
+    - op: replace
+      path: /spec/maxReplicas
+      value: 3

@@ -1,0 +1,500 @@
+name: Deployment Staging
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: string
+      deployment_id:
+        description: 'Unique deployment identifier'
+        required: true
+        type: string
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        type: string
+      version:
+        description: 'Application version'
+        required: true
+        type: string
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: false
+        type: string
+        default: 'rolling'
+      skip_validation:
+        description: 'Skip validation steps'
+        required: false
+        type: boolean
+        default: false
+      rollback_enabled:
+        description: 'Enable automatic rollback on failure'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      deployment_status:
+        description: 'Final deployment status'
+        value: ${{ jobs.deploy.outputs.status }}
+      deployment_url:
+        description: 'Deployment URL'
+        value: ${{ jobs.deploy.outputs.deployment_url }}
+      deployment_version:
+        description: 'Deployed version'
+        value: ${{ jobs.deploy.outputs.deployment_version }}
+      rollback_triggered:
+        description: 'Whether rollback was triggered'
+        value: ${{ jobs.deploy.outputs.rollback_triggered }}
+
+env:
+  DEPLOYMENT_TIMEOUT: 600  # 10 minutes
+  VALIDATION_TIMEOUT: 300  # 5 minutes
+  ROLLBACK_TIMEOUT: 300    # 5 minutes
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+  actions: read
+
+jobs:
+  # Pre-deployment validation
+  pre-deployment-validation:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    if: inputs.skip_validation != 'true'
+    
+    outputs:
+      validation_status: ${{ steps.validation.outputs.status }}
+      validation_report: ${{ steps.validation.outputs.report }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate deployment request
+        id: validation
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          VERSION="${{ inputs.version }}"
+          
+          echo "Validating deployment request for $ENVIRONMENT"
+          echo "Deployment ID: $DEPLOYMENT_ID"
+          echo "Image Tag: $IMAGE_TAG"
+          echo "Version: $VERSION"
+          
+          # Validate environment
+          case $ENVIRONMENT in
+            development|integration|staging|production)
+              echo "Environment $ENVIRONMENT is valid"
+              ;;
+            *)
+              echo "::error::Invalid environment: $ENVIRONMENT"
+              exit 1
+              ;;
+          esac
+          
+          # Validate image tag format
+          if [[ ! "$IMAGE_TAG" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+            echo "::error::Invalid image tag format: $IMAGE_TAG"
+            exit 1
+          fi
+          
+          # Validate version format
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$ ]]; then
+            echo "::error::Invalid version format: $VERSION"
+            exit 1
+          fi
+          
+          # Check deployment window (for production)
+          if [ "$ENVIRONMENT" == "production" ]; then
+            CURRENT_HOUR=$(date +%H)
+            if [ $CURRENT_HOUR -lt 9 ] || [ $CURRENT_HOUR -gt 17 ]; then
+              echo "::warning::Production deployment outside business hours (9 AM - 5 PM)"
+              # Could enforce this with: exit 1
+            fi
+          fi
+          
+          echo "status=passed" >> $GITHUB_OUTPUT
+          
+          # Generate validation report
+          cat > validation-report.json << EOF
+          {
+            "deployment_id": "$DEPLOYMENT_ID",
+            "environment": "$ENVIRONMENT",
+            "image_tag": "$IMAGE_TAG",
+            "version": "$VERSION",
+            "validation_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "validation_status": "passed",
+            "checks": [
+              "Environment validation",
+              "Image tag format validation",
+              "Version format validation",
+              "Deployment window check"
+            ]
+          }
+          EOF
+          
+          echo "report=$(cat validation-report.json)" >> $GITHUB_OUTPUT
+
+  # Deploy application
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: pre-deployment-validation
+    if: ${{ !cancelled() && (needs.pre-deployment-validation.result == 'success' || inputs.skip_validation == 'true') }}
+    
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.deployment.outputs.deployment_url }}
+    
+    outputs:
+      status: ${{ steps.deployment.outputs.status }}
+      deployment_url: ${{ steps.deployment.outputs.deployment_url }}
+      deployment_version: ${{ steps.deployment.outputs.deployment_version }}
+      rollback_triggered: ${{ steps.deployment.outputs.rollback_triggered }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure cloud credentials
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          
+          case $ENVIRONMENT in
+            development)
+              # Configure GCP credentials
+              echo "Configuring GCP credentials for development"
+              echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > gcp-key.json
+              gcloud auth activate-service-account --key-file=gcp-key.json
+              gcloud config set project ${{ vars.GCP_PROJECT_ID }}
+              ;;
+            integration)
+              # Configure Azure credentials
+              echo "Configuring Azure credentials for integration"
+              az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+              az account set --subscription ${{ vars.AZURE_SUBSCRIPTION_ID }}
+              ;;
+            staging|production)
+              # Configure AWS credentials
+              echo "Configuring AWS credentials for $ENVIRONMENT"
+              aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws configure set region ${{ vars.AWS_REGION }}
+              ;;
+          esac
+      
+      - name: Deploy application
+        id: deployment
+        timeout-minutes: 10
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          VERSION="${{ inputs.version }}"
+          STRATEGY="${{ inputs.deployment_strategy }}"
+          
+          echo "Deploying to $ENVIRONMENT environment"
+          echo "Deployment ID: $DEPLOYMENT_ID"
+          echo "Image Tag: $IMAGE_TAG"
+          echo "Version: $VERSION"
+          echo "Strategy: $STRATEGY"
+          
+          # Set deployment URL based on environment
+          case $ENVIRONMENT in
+            development)
+              DEPLOYMENT_URL="https://dev.example.com"
+              ;;
+            integration)
+              DEPLOYMENT_URL="https://int.example.com"
+              ;;
+            staging)
+              DEPLOYMENT_URL="https://staging.example.com"
+              ;;
+            production)
+              DEPLOYMENT_URL="https://app.example.com"
+              ;;
+          esac
+          
+          # Execute deployment based on strategy
+          case $STRATEGY in
+            rolling)
+              echo "Executing rolling deployment..."
+              # Rolling deployment logic
+              # - Gradually replace instances
+              # - Maintain availability
+              # - Monitor health during deployment
+              ;;
+            blue-green)
+              echo "Executing blue-green deployment..."
+              # Blue-green deployment logic
+              # - Deploy to green environment
+              # - Validate green environment
+              # - Switch traffic to green
+              # - Keep blue as backup
+              ;;
+            canary)
+              echo "Executing canary deployment..."
+              # Canary deployment logic
+              # - Deploy to small subset
+              # - Monitor metrics
+              # - Gradually increase traffic
+              # - Full deployment if successful
+              ;;
+            *)
+              echo "Unknown deployment strategy: $STRATEGY"
+              exit 1
+              ;;
+          esac
+          
+          # Simulate deployment process
+          echo "Starting deployment process..."
+          sleep 10
+          
+          # Check deployment health
+          echo "Checking deployment health..."
+          HEALTH_CHECK_URL="$DEPLOYMENT_URL/health"
+          
+          for i in {1..30}; do
+            if curl -f -s -o /dev/null -w "%{http_code}" "$HEALTH_CHECK_URL" | grep -q "200"; then
+              echo "Health check passed"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
+          
+          if [ $i -eq 30 ]; then
+            echo "::error::Health check failed after 30 attempts"
+            echo "rollback_triggered=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "deployment_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "rollback_triggered=false" >> $GITHUB_OUTPUT
+          
+          echo "Deployment completed successfully"
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          echo "Deployment Version: $VERSION"
+
+  # Post-deployment validation
+  post-deployment-validation:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: ${{ !cancelled() && needs.deploy.result == 'success' && inputs.skip_validation != 'true' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate deployment
+        timeout-minutes: 5
+        run: |
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          DEPLOYMENT_VERSION="${{ needs.deploy.outputs.deployment_version }}"
+          ENVIRONMENT="${{ inputs.environment }}"
+          
+          echo "Validating deployment at $DEPLOYMENT_URL"
+          echo "Version: $DEPLOYMENT_VERSION"
+          echo "Environment: $ENVIRONMENT"
+          
+          # Health check validation
+          echo "Performing health checks..."
+          for i in {1..10}; do
+            if curl -f -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/health" | grep -q "200"; then
+              echo "Health check passed"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
+          
+          # Functional validation
+          echo "Running functional validation..."
+          
+          # API endpoint validation
+          API_ENDPOINTS=("/api/v1/status" "/api/v1/health" "/api/v1/version")
+          for endpoint in "${API_ENDPOINTS[@]}"; do
+            if curl -f -s "$DEPLOYMENT_URL$endpoint" > /dev/null; then
+              echo "API endpoint $endpoint is responding"
+            else
+              echo "::warning::API endpoint $endpoint is not responding"
+            fi
+          done
+          
+          # Version validation
+          echo "Validating deployed version..."
+          DEPLOYED_VERSION=$(curl -s "$DEPLOYMENT_URL/api/v1/version" | jq -r '.version' 2>/dev/null || echo "unknown")
+          if [ "$DEPLOYED_VERSION" == "$DEPLOYMENT_VERSION" ]; then
+            echo "Version validation passed: $DEPLOYED_VERSION"
+          else
+            echo "::warning::Version mismatch: expected $DEPLOYMENT_VERSION, got $DEPLOYED_VERSION"
+          fi
+          
+          # Performance validation
+          echo "Running performance validation..."
+          RESPONSE_TIME=$(curl -o /dev/null -s -w "%{time_total}" "$DEPLOYMENT_URL/health")
+          echo "Response time: ${RESPONSE_TIME}s"
+          
+          if (( $(echo "$RESPONSE_TIME > 2.0" | bc -l) )); then
+            echo "::warning::Response time is high: ${RESPONSE_TIME}s"
+          fi
+          
+          echo "Post-deployment validation completed"
+
+  # Automatic rollback on failure
+  auto-rollback:
+    name: Automatic Rollback
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-validation]
+    if: ${{ always() && needs.deploy.result == 'failure' && inputs.rollback_enabled == 'true' }}
+    
+    steps:
+      - name: Trigger automatic rollback
+        run: |
+          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
+          ENVIRONMENT="${{ inputs.environment }}"
+          REASON="Automatic rollback due to deployment failure"
+          
+          echo "Triggering automatic rollback for deployment $DEPLOYMENT_ID"
+          echo "Environment: $ENVIRONMENT"
+          echo "Reason: $REASON"
+          
+          # Trigger rollback workflow
+          gh workflow run rollback-deployment.yml \
+            --ref "${{ github.ref_name }}" \
+            -f deployment_id="$DEPLOYMENT_ID" \
+            -f environment="$ENVIRONMENT" \
+            -f reason="$REASON" \
+            -f rollback_strategy="immediate" \
+            -f skip_validation="true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Update deployment records
+  update-records:
+    name: Update Deployment Records
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-validation]
+    if: always()
+    
+    steps:
+      - name: Update deployment history
+        run: |
+          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
+          ENVIRONMENT="${{ inputs.environment }}"
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          DEPLOYMENT_VERSION="${{ needs.deploy.outputs.deployment_version }}"
+          DEPLOYMENT_STATUS="${{ needs.deploy.outputs.status }}"
+          ROLLBACK_TRIGGERED="${{ needs.deploy.outputs.rollback_triggered }}"
+          
+          echo "Updating deployment records for $DEPLOYMENT_ID"
+          echo "Status: $DEPLOYMENT_STATUS"
+          echo "URL: $DEPLOYMENT_URL"
+          echo "Version: $DEPLOYMENT_VERSION"
+          echo "Rollback triggered: $ROLLBACK_TRIGGERED"
+          
+          # Create deployment record
+          cat > deployment-record.json << EOF
+          {
+            "deployment_id": "$DEPLOYMENT_ID",
+            "environment": "$ENVIRONMENT",
+            "deployment_url": "$DEPLOYMENT_URL",
+            "deployment_version": "$DEPLOYMENT_VERSION",
+            "deployment_status": "$DEPLOYMENT_STATUS",
+            "rollback_triggered": $ROLLBACK_TRIGGERED,
+            "deployment_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "deployed_by": "${{ github.actor }}",
+            "workflow_run_id": "${{ github.run_id }}",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "image_tag": "${{ inputs.image_tag }}",
+            "deployment_strategy": "${{ inputs.deployment_strategy }}"
+          }
+          EOF
+          
+          echo "Deployment record created:"
+          cat deployment-record.json
+      
+      - name: Upload deployment record
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-record-${{ inputs.deployment_id }}
+          path: deployment-record.json
+
+  # Notification
+  notify:
+    name: Notify Stakeholders
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-validation, update-records]
+    if: always()
+    
+    steps:
+      - name: Prepare notification
+        run: |
+          DEPLOYMENT_STATUS="${{ needs.deploy.outputs.status }}"
+          ENVIRONMENT="${{ inputs.environment }}"
+          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
+          ROLLBACK_TRIGGERED="${{ needs.deploy.outputs.rollback_triggered }}"
+          
+          if [ "$DEPLOYMENT_STATUS" == "success" ]; then
+            MESSAGE="✅ Deployment completed successfully"
+            COLOR="good"
+          else
+            MESSAGE="❌ Deployment failed"
+            COLOR="danger"
+          fi
+          
+          if [ "$ROLLBACK_TRIGGERED" == "true" ]; then
+            MESSAGE="$MESSAGE (Rollback triggered)"
+          fi
+          
+          echo "NOTIFICATION_MESSAGE=$MESSAGE" >> $GITHUB_ENV
+          echo "NOTIFICATION_COLOR=$COLOR" >> $GITHUB_ENV
+      
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          custom_payload: |
+            {
+              attachments: [{
+                color: '${{ env.NOTIFICATION_COLOR }}',
+                fields: [{
+                  title: 'Deployment Status',
+                  value: '${{ env.NOTIFICATION_MESSAGE }}',
+                  short: false
+                }, {
+                  title: 'Environment',
+                  value: '${{ inputs.environment }}',
+                  short: true
+                }, {
+                  title: 'Deployment ID',
+                  value: '${{ inputs.deployment_id }}',
+                  short: true
+                }, {
+                  title: 'Version',
+                  value: '${{ inputs.version }}',
+                  short: true
+                }, {
+                  title: 'Strategy',
+                  value: '${{ inputs.deployment_strategy }}',
+                  short: true
+                }, {
+                  title: 'Triggered By',
+                  value: '${{ github.actor }}',
+                  short: true
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,0 +1,30 @@
+name: Repo Index (Docs)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build repo index
+        run: |
+          python scripts/index_repo.py
+      - name: Create PR with index updates
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "docs(audit): refresh repo inventory and search index"
+          title: "docs(audit): refresh repo inventory and search index"
+          body: "Automated inventory and search index refresh."
+          branch: docs/reindex
+          labels: documentation

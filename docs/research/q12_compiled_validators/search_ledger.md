@@ -1,4 +1,5 @@
 Title: Search Ledger — Q12 Compiled Validation (Pydantic v2 vs fastjsonschema)
+Last updated: 2025-09-02
 
 Question: Q12 — Compiled validators speedup and parity
 Date Range:
@@ -9,4 +10,3 @@ Notes & Relevance:
 Bias/COI:
 Shortlist Candidates: Pydantic v2 compiled; fastjsonschema; jsonschema
 Next Actions: pre-register POC; parity tests on edge cases
-

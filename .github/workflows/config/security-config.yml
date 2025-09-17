@@ -1,0 +1,160 @@
+# Security Configuration for Unified CI/CD Pipeline
+# This file defines security scanning rules and thresholds
+
+# Vulnerability scanning configuration
+vulnerability_scanning:
+  enabled: true
+  severity_threshold: "HIGH"  # CRITICAL, HIGH, MEDIUM, LOW
+  fail_on_severity: "CRITICAL"
+  timeout: 300s
+  
+  # Trivy configuration
+  trivy:
+    enabled: true
+    scan_types:
+      - "fs"
+      - "config"
+      - "secret"
+    severity_levels:
+      - "CRITICAL"
+      - "HIGH"
+      - "MEDIUM"
+    ignore_unfixed: false
+    security_checks:
+      - "vuln"
+      - "secret"
+      - "config"
+  
+  # Snyk configuration
+  snyk:
+    enabled: true
+    severity_threshold: "high"
+    fail_on_issues: true
+    monitor: true
+
+# Static Application Security Testing (SAST)
+sast:
+  enabled: true
+  tools:
+    semgrep:
+      enabled: true
+      configs:
+        - "p/security-audit"
+        - "p/secrets"
+        - "p/ci"
+        - "p/javascript"
+        - "p/typescript"
+        - "p/python"
+      severity: "ERROR"
+      timeout: 600s
+    
+    codeql:
+      enabled: true
+      languages:
+        - "javascript"
+        - "typescript"
+        - "python"
+      queries:
+        - "security-extended"
+        - "security-and-quality"
+
+# Dependency scanning
+dependency_scanning:
+  enabled: true
+  tools:
+    npm_audit:
+      enabled: true
+      production_only: true
+      audit_level: "high"
+    
+    pip_audit:
+      enabled: true
+      format: "json"
+      output: "pip-audit-results.json"
+    
+    safety:
+      enabled: true
+      full_report: true
+
+# Container security
+container_security:
+  enabled: true
+  image_scanning:
+    enabled: true
+    severity_threshold: "HIGH"
+    fail_on_severity: "CRITICAL"
+  
+  # Base image validation
+  base_image_validation:
+    enabled: true
+    allowed_registries:
+      - "docker.io"
+      - "ghcr.io"
+      - "registry.access.redhat.com"
+    deny_list:
+      - "ubuntu:14.04"
+      - "centos:6"
+      - "alpine:3.9"
+
+# Secret scanning
+secret_scanning:
+  enabled: true
+  tools:
+    gitleaks:
+      enabled: true
+      config: ".gitleaks.toml"
+      verbose: true
+      redact: true
+    
+    trufflehog:
+      enabled: true
+      branch: "main"
+      max_depth: 50
+
+# Compliance and policy enforcement
+compliance:
+  enabled: true
+  policies:
+    - name: "no_hardcoded_secrets"
+      description: "Prevent hardcoded secrets in code"
+      severity: "CRITICAL"
+    
+    - name: "secure_coding_practices"
+      description: "Enforce secure coding practices"
+      severity: "HIGH"
+    
+    - name: "dependency_vulnerabilities"
+      description: "Check for known vulnerabilities in dependencies"
+      severity: "HIGH"
+
+# Reporting and notifications
+reporting:
+  enabled: true
+  formats:
+    - "sarif"
+    - "json"
+    - "html"
+  
+  upload_to_github_security:
+    enabled: true
+    
+  notifications:
+    slack:
+      enabled: true
+      channel: "#security-alerts"
+      severity_threshold: "HIGH"
+    
+    email:
+      enabled: true
+      recipients:
+        - "security-team@company.com"
+      severity_threshold: "CRITICAL"
+
+# Exception handling
+exceptions:
+  enabled: true
+  require_approval: true
+  max_duration: "30d"
+  approval_required_for:
+    - "CRITICAL"
+    - "HIGH"

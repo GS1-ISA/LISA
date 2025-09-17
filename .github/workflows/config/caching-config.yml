@@ -1,0 +1,580 @@
+# Caching Configuration for GitHub Actions
+# This file defines caching strategies to optimize build performance across all workflows
+
+# Global caching configuration
+global_caching:
+  enabled: true
+  default_ttl: 86400  # 24 hours in seconds
+  max_cache_size: "5GB"
+  compression_enabled: true
+  compression_level: 6
+  cache_key_prefix: "v1"
+  
+  # Cache eviction policies
+  eviction_policy:
+    enabled: true
+    strategy: "lru"  # Least Recently Used
+    max_age_days: 7
+    cleanup_schedule: "0 2 * * *"  # Daily at 2 AM
+  
+  # Cache warming
+  cache_warming:
+    enabled: true
+    schedule: "0 1 * * *"  # Daily at 1 AM
+    branches: ["main", "develop"]
+    prefetch_dependencies: true
+
+# Language-specific caching configurations
+language_caching:
+  # Python caching
+  python:
+    enabled: true
+    cache_dependencies: true
+    cache_virtualenv: true
+    cache_pip_cache: true
+    cache_pipenv: true
+    cache_poetry: true
+    cache_conda: true
+    
+    # Python cache keys
+    cache_keys:
+      primary: |
+        python-${{ runner.os }}-${{ hashFiles('**/requirements*.txt', '**/setup.py', '**/pyproject.toml', '**/Pipfile.lock', '**/poetry.lock', '**/conda-lock.yml') }}
+      restore_keys: |
+        python-${{ runner.os }}-
+        python-
+    
+    # Python cache paths
+    cache_paths:
+      - "~/.cache/pip"
+      - "~/.local/share/virtualenvs"
+      - "~/.pipenv"
+      - "~/.conda"
+      - "~/.poetry"
+      - "venv/"
+      - ".venv/"
+      - "__pycache__/"
+      - "*.pyc"
+      - "*.pyo"
+      - "*.pyd"
+      - ".pytest_cache/"
+      - ".mypy_cache/"
+      - ".coverage"
+      - "htmlcov/"
+      - ".tox/"
+      - ".nox/"
+    
+    # Python optimization settings
+    optimization:
+      precompile_bytecode: true
+      optimize_imports: true
+      parallel_install: true
+      use_wheel_cache: true
+  
+  # Node.js caching
+  nodejs:
+    enabled: true
+    cache_dependencies: true
+    cache_node_modules: true
+    cache_npm_cache: true
+    cache_yarn_cache: true
+    cache_pnpm_cache: true
+    
+    # Node.js cache keys
+    cache_keys:
+      primary: |
+        node-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock', '**/pnpm-lock.yaml', '**/npm-shrinkwrap.json') }}
+      restore_keys: |
+        node-${{ runner.os }}-
+        node-
+    
+    # Node.js cache paths
+    cache_paths:
+      - "~/.npm"
+      - "~/.yarn"
+      - "~/.pnpm"
+      - "~/.cache/yarn"
+      - "~/.cache/pnpm"
+      - "node_modules/"
+      - "**/node_modules/"
+      - ".npm/"
+      - ".yarn/"
+      - ".pnpm/"
+      - "package-lock.json"
+      - "yarn.lock"
+      - "pnpm-lock.yaml"
+    
+    # Node.js optimization settings
+    optimization:
+      prefer_offline: true
+      audit_level: "moderate"
+      fund: false
+      progress: false
+      prefer_dedupe: true
+  
+  # Java caching
+  java:
+    enabled: true
+    cache_gradle: true
+    cache_maven: true
+    cache_sbt: true
+    cache_ant: true
+    
+    # Java cache keys
+    cache_keys:
+      primary: |
+        java-${{ runner.os }}-${{ hashFiles('**/pom.xml', '**/build.gradle*', '**/gradle.properties', '**/settings.gradle*', '**/build.sbt', '**/project/build.properties') }}
+      restore_keys: |
+        java-${{ runner.os }}-
+        java-
+    
+    # Java cache paths
+    cache_paths:
+      - "~/.gradle"
+      - "~/.m2"
+      - "~/.sbt"
+      - "~/.ivy2"
+      - "gradle/"
+      - ".gradle/"
+      - "build/"
+      - "target/"
+      - "out/"
+      - "*.jar"
+      - "*.war"
+      - "*.ear"
+      - "project/target/"
+      - "project/project/target/"
+    
+    # Java optimization settings
+    optimization:
+      parallel_build: true
+      daemon_enabled: true
+      configure_on_demand: true
+      build_cache_enabled: true
+  
+  # Go caching
+  go:
+    enabled: true
+    cache_go_mod: true
+    cache_go_build: true
+    cache_go_pkg: true
+    
+    # Go cache keys
+    cache_keys:
+      primary: |
+        go-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum', '**/go.work', '**/go.work.sum') }}
+      restore_keys: |
+        go-${{ runner.os }}-
+        go-
+    
+    # Go cache paths
+    cache_paths:
+      - "~/.cache/go-build"
+      - "~/go/pkg/mod"
+      - "~/go/bin"
+      - "~/go/src"
+      - "vendor/"
+      - ".go-cache/"
+      - "bin/"
+      - "dist/"
+    
+    # Go optimization settings
+    optimization:
+      mod_download_mode: "readonly"
+      build_flags: "-trimpath"
+      ldflags: "-s -w"
+      parallel_build: true
+  
+  # Rust caching
+  rust:
+    enabled: true
+    cache_cargo: true
+    cache_cargo_registry: true
+    cache_cargo_git: true
+    cache_cargo_target: true
+    
+    # Rust cache keys
+    cache_keys:
+      primary: |
+        rust-${{ runner.os }}-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml', '**/rust-toolchain*') }}
+      restore_keys: |
+        rust-${{ runner.os }}-
+        rust-
+    
+    # Rust cache paths
+    cache_paths:
+      - "~/.cargo"
+      - "~/.rustup"
+      - "target/"
+      - "**/target/"
+      - "Cargo.lock"
+      - ".cargo/"
+    
+    # Rust optimization settings
+    optimization:
+      incremental_compilation: true
+      parallel_jobs: 0  # Use all available cores
+      codegen_units: 16
+      lto: "thin"
+  
+  # .NET caching
+  dotnet:
+    enabled: true
+    cache_nuget: true
+    cache_packages: true
+    
+    # .NET cache keys
+    cache_keys:
+      primary: |
+        dotnet-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/*.fsproj', '**/*.vbproj', '**/packages.lock.json', '**/global.json') }}
+      restore_keys: |
+        dotnet-${{ runner.os }}-
+        dotnet-
+    
+    # .NET cache paths
+    cache_paths:
+      - "~/.nuget"
+      - "~/.dotnet"
+      - "packages/"
+      - "**/packages/"
+      - "**/bin/"
+      - "**/obj/"
+      - "**/.nuget/"
+      - "global-packages/"
+    
+    # .NET optimization settings
+    optimization:
+      no_logo: true
+      verbosity: "minimal"
+      parallel: true
+      node_reuse: true
+
+# Tool-specific caching configurations
+tool_caching:
+  # Docker layer caching
+  docker:
+    enabled: true
+    cache_image_layers: true
+    cache_buildx: true
+    cache_registry: true
+    
+    # Docker cache keys
+    cache_keys:
+      primary: |
+        docker-${{ runner.os }}-${{ hashFiles('**/Dockerfile*', '**/docker-compose*.yml', '**/.dockerignore') }}
+      restore_keys: |
+        docker-${{ runner.os }}-
+        docker-
+    
+    # Docker cache paths
+    cache_paths:
+      - "~/.docker"
+      - "/var/lib/docker"
+      - "docker-cache/"
+      - ".buildx-cache/"
+    
+    # Docker optimization settings
+    optimization:
+      buildkit_enabled: true
+      inline_cache: true
+      cache_to_registry: true
+      cache_from_registry: true
+      squash_layers: false
+  
+  # Terraform caching
+  terraform:
+    enabled: true
+    cache_plugins: true
+    cache_providers: true
+    cache_modules: true
+    
+    # Terraform cache keys
+    cache_keys:
+      primary: |
+        terraform-${{ runner.os }}-${{ hashFiles('**/*.tf', '**/*.tfvars', '**/versions.tf', '**/.terraform.lock.hcl') }}
+      restore_keys: |
+        terraform-${{ runner.os }}-
+        terraform-
+    
+    # Terraform cache paths
+    cache_paths:
+      - "~/.terraform.d"
+      - ".terraform/"
+      - "**/.terraform/"
+      - ".terraform.lock.hcl"
+      - "terraform.tfstate.d/"
+    
+    # Terraform optimization settings
+    optimization:
+      plugin_cache_dir: "~/.terraform.d/plugin-cache"
+      provider_network_mirror: false
+      parallel_downloads: true
+  
+  # Kubernetes caching
+  kubernetes:
+    enabled: true
+    cache_kubectl: true
+    cache_helm: true
+    cache_kustomize: true
+    
+    # Kubernetes cache keys
+    cache_keys:
+      primary: |
+        k8s-${{ runner.os }}-${{ hashFiles('**/k8s/**/*.yml', '**/k8s/**/*.yaml', '**/helm/**/*.yml', '**/helm/**/*.yaml', '**/kustomization.yml', '**/kustomization.yaml') }}
+      restore_keys: |
+        k8s-${{ runner.os }}-
+        k8s-
+    
+    # Kubernetes cache paths
+    cache_paths:
+      - "~/.kube"
+      - "~/.helm"
+      - "~/.kustomize"
+      - "charts/"
+      - "manifests/"
+      - "k8s/"
+      - "kubernetes/"
+    
+    # Kubernetes optimization settings
+    optimization:
+      helm_stable_repo: "https://charts.helm.sh/stable"
+      kustomize_build_options: "--load_restrictor LoadRestrictionsNone"
+  
+  # Database caching
+  database:
+    enabled: true
+    cache_database_drivers: true
+    cache_migration_files: true
+    
+    # Database cache keys
+    cache_keys:
+      primary: |
+        db-${{ runner.os }}-${{ hashFiles('**/migrations/**/*', '**/seeds/**/*', '**/schema.sql', '**/database.yml', '**/database.yaml') }}
+      restore_keys: |
+        db-${{ runner.os }}-
+        db-
+    
+    # Database cache paths
+    cache_paths:
+      - "~/.cache/pip"
+      - "migrations/"
+      - "seeds/"
+      - "schema/"
+      - "*.sql"
+      - "*.dump"
+    
+    # Database optimization settings
+    optimization:
+      parallel_migrations: true
+      migration_cache: true
+
+# Build artifact caching
+artifact_caching:
+  enabled: true
+  cache_build_artifacts: true
+  cache_test_results: true
+  cache_coverage_reports: true
+  
+  # Build artifact cache keys
+  cache_keys:
+    primary: |
+      artifacts-${{ runner.os }}-${{ github.sha }}
+    restore_keys: |
+      artifacts-${{ runner.os }}-
+      artifacts-
+  
+  # Build artifact cache paths
+  cache_paths:
+    - "build/"
+    - "dist/"
+    - "target/"
+    - "out/"
+    - "coverage/"
+    - "htmlcov/"
+    - ".coverage"
+    - "coverage.xml"
+    - "test-results/"
+    - "test-reports/"
+    - "junit.xml"
+    - "*.tar.gz"
+    - "*.zip"
+    - "*.jar"
+    - "*.war"
+    - "*.ear"
+    - "*.deb"
+    - "*.rpm"
+    - "*.apk"
+  
+  # Build artifact optimization settings
+  optimization:
+    compression: true
+    compression_level: 6
+    deduplication: true
+    incremental_uploads: true
+
+# Cache management and maintenance
+cache_management:
+  # Cache cleanup
+  cleanup:
+    enabled: true
+    schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+    max_age_days: 30
+    min_free_space: "10GB"
+    cleanup_strategy: "lru"
+  
+  # Cache validation
+  validation:
+    enabled: true
+    validate_on_restore: true
+    validate_on_save: true
+    checksum_validation: true
+    corruption_detection: true
+  
+  # Cache monitoring
+  monitoring:
+    enabled: true
+    track_hit_rate: true
+    track_miss_rate: true
+    track_save_time: true
+    track_restore_time: true
+    alert_on_low_hit_rate: true
+    hit_rate_threshold: 0.7
+  
+  # Cache optimization
+  optimization:
+    enabled: true
+    auto_optimize: true
+    compression_ratio_target: 0.3
+    deduplication_target: 0.2
+    defragmentation_schedule: "0 4 * * 0"  # Weekly on Sunday at 4 AM
+
+# Performance monitoring and metrics
+performance_monitoring:
+  # Cache performance metrics
+  metrics:
+    enabled: true
+    collect_hit_rate: true
+    collect_miss_rate: true
+    collect_save_time: true
+    collect_restore_time: true
+    collect_cache_size: true
+    collect_compression_ratio: true
+  
+  # Performance alerts
+  alerts:
+    enabled: true
+    thresholds:
+      hit_rate_warning: 0.7
+      hit_rate_critical: 0.5
+      save_time_warning: 300  # 5 minutes
+      save_time_critical: 600  # 10 minutes
+      restore_time_warning: 120  # 2 minutes
+      restore_time_critical: 300  # 5 minutes
+      cache_size_warning: "4GB"
+      cache_size_critical: "4.5GB"
+  
+  # Performance optimization
+  optimization:
+    enabled: true
+    auto_tune: true
+    adaptive_cache_size: true
+    predictive_caching: true
+    machine_learning_optimization: false
+
+# Error handling and fallback strategies
+error_handling:
+  # Cache failure handling
+  cache_failures:
+    enabled: true
+    fallback_to_fresh_install: true
+    continue_on_cache_miss: true
+    retry_on_cache_failure: true
+    max_retry_attempts: 3
+  
+  # Cache corruption handling
+  cache_corruption:
+    enabled: true
+    detect_corruption: true
+    auto_rebuild_corrupted: true
+    validate_checksums: true
+    backup_corrupted_cache: true
+  
+  # Fallback strategies
+  fallback_strategies:
+    enabled: true
+    strategies:
+      - "fresh_install"
+      - "partial_cache"
+      - "alternative_cache_key"
+      - "network_fallback"
+      - "local_mirror"
+
+# Testing and validation
+testing:
+  # Cache validation tests
+  validation_tests:
+    enabled: true
+    test_scenarios:
+      - name: "cache_hit_test"
+        description: "Test cache hit scenario"
+        expected_result: "cache_hit"
+      - name: "cache_miss_test"
+        description: "Test cache miss scenario"
+        expected_result: "cache_miss"
+      - name: "cache_corruption_test"
+        description: "Test cache corruption handling"
+        expected_result: "cache_rebuilt"
+      - name: "cache_performance_test"
+        description: "Test cache performance"
+        expected_result: "performance_acceptable"
+  
+  # Performance benchmarks
+  benchmarks:
+    enabled: true
+    benchmark_scenarios:
+      - name: "cache_save_benchmark"
+        description: "Benchmark cache save performance"
+        metric: "save_time"
+      - name: "cache_restore_benchmark"
+        description: "Benchmark cache restore performance"
+        metric: "restore_time"
+      - name: "cache_hit_rate_benchmark"
+        description: "Benchmark cache hit rate"
+        metric: "hit_rate"
+      - name: "cache_size_benchmark"
+        description: "Benchmark cache size efficiency"
+        metric: "compression_ratio"
+
+# Documentation and troubleshooting
+documentation:
+  # Cache usage guides
+  usage_guides:
+    - title: "Cache Configuration Guide"
+      path: "docs/caching/configuration.md"
+      description: "How to configure caching for different scenarios"
+    - title: "Cache Optimization Guide"
+      path: "docs/caching/optimization.md"
+      description: "How to optimize cache performance"
+    - title: "Cache Troubleshooting Guide"
+      path: "docs/caching/troubleshooting.md"
+      description: "How to troubleshoot common cache issues"
+  
+  # Best practices
+  best_practices:
+    - title: "Cache Key Best Practices"
+      path: "docs/caching/best-practices.md"
+      description: "Best practices for cache key generation"
+    - title: "Cache Security Best Practices"
+      path: "docs/caching/security.md"
+      description: "Security considerations for caching"
+  
+  # FAQ
+  faq:
+    - question: "What should I cache?"
+      answer: "Cache dependencies, build artifacts, and any files that don't change frequently between builds."
+    - question: "How often should I update cache keys?"
+      answer: "Update cache keys when dependency files change or when you want to invalidate the cache."
+    - question: "What if my cache is corrupted?"
+      answer: "The system will automatically detect and rebuild corrupted caches. You can also manually invalidate caches."
+    - question: "How can I improve cache hit rates?"
+      answer: "Use consistent cache keys, cache frequently used files, and optimize your build process to reduce cache misses."

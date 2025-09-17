@@ -1,4 +1,5 @@
-Title: Ultimate Agentic Development Plan — Checklists and Acceptance Criteria
+# Ultimate Agentic Development Plan — Checklists and Acceptance Criteria
+Last updated: 2025-09-02
 
 Purpose: Deliver a self-improving, high-quality, reproducible monorepo and agent system. This document encodes atomic checklists, acceptance criteria, success metrics, and review gates.
 
@@ -147,4 +148,3 @@ Appendix A — Success Metrics
 - Perf: ≥30% speedup; CI perf budgets enforced
 - Data: ≥99% expectations; zero unapproved schema drifts
 - Agent: Tier-1 win-rate ≥70%; Tier-2 ≥85% low-risk; <1% revert
-

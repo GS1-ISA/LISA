@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 EXCLUDE_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
@@ -38,7 +37,7 @@ def main() -> int:
         for p in iter_files(root):
             try:
                 stat = p.stat()
-                mtime = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat()
+                mtime = datetime.fromtimestamp(stat.st_mtime, tz=UTC).isoformat()
                 size = stat.st_size
                 digest = sha256_file(p)
                 w.writerow([str(p), digest, mtime, size])
@@ -51,4 +50,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

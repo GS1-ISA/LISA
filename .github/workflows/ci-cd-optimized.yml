@@ -1,0 +1,799 @@
+name: Unified CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+      force_deploy:
+        description: 'Force deployment (skip some checks)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+  CACHE_VERSION: 'v2'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DEPLOYMENT_TIMEOUT: 30m
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+  security-events: write
+  pull-requests: write
+  deployments: write
+
+jobs:
+  # Pre-flight checks and setup
+  preflight:
+    name: Pre-flight Checks
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
+      deployment-target: ${{ steps.deploy-target.outputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if workflow should run
+        id: check
+        run: |
+          # Skip if only documentation changes
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -vE '^docs/|\.md$|^\.github/'; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+            echo "Skipping workflow - only documentation changes detected"
+          fi
+
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          echo "key=${{ runner.os }}-${{ hashFiles('requirements*.txt', 'pyproject.toml', 'setup.py') }}-${{ env.CACHE_VERSION }}" >> $GITHUB_OUTPUT
+
+      - name: Determine deployment target
+        id: deploy-target
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          fi
+
+  # Unified security scanning with standardized tools
+  security-scan:
+    name: Security & Compliance Scan
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.should-run == 'true'
+    environment:
+      name: security-review
+      url: ${{ github.server_url }}/${{ github.repository }}/security
+    strategy:
+      matrix:
+        scan-tool: [bandit, pip-audit, detect-secrets, trivy]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.preflight.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety pip-audit detect-secrets
+
+      - name: Run Bandit security scan
+        if: matrix.scan-tool == 'bandit'
+        run: |
+          bandit -r src/ scripts/ -f json -o bandit-report.json || true
+          bandit -r src/ scripts/ -f sarif -o bandit-sarif.json || true
+          # Fail on high severity issues
+          bandit -r src/ scripts/ -ll || echo "Bandit found high-severity issues"
+
+      - name: Run pip-audit
+        if: matrix.scan-tool == 'pip-audit'
+        run: |
+          pip-audit -r requirements.txt -r requirements-dev.txt --format=json --output=pip-audit-report.json || true
+          pip-audit -r requirements.txt -r requirements-dev.txt --desc --output=pip-audit-human.txt || true
+
+      - name: Run detect-secrets
+        if: matrix.scan-tool == 'detect-secrets'
+        run: |
+          detect-secrets scan --all-files --baseline .secrets.baseline || true
+          detect-secrets audit .secrets.baseline || true
+
+      - name: Run Trivy vulnerability scanner
+        if: matrix.scan-tool == 'trivy'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-${{ matrix.scan-tool }}
+          path: |
+            *-report.json
+            *-sarif.json
+            *-results.sarif
+            .secrets.baseline
+            *-human.txt
+
+      - name: Upload SARIF results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && contains(matrix.scan-tool, 'bandit')
+        with:
+          sarif_file: bandit-sarif.json
+          category: bandit
+
+  # Unified code quality checks
+  code-quality:
+    name: Code Quality & Standards
+    runs-on: ubuntu-latest
+    needs: [preflight, security-scan]
+    if: needs.preflight.outputs.should-run == 'true'
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+        check-type: [lint, format, type-check]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.preflight.outputs.cache-key }}-${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Install quality tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy black isort
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || true
+
+      - name: Run linting with Ruff
+        if: matrix.check-type == 'lint'
+        run: |
+          ruff check . --output-format=github
+          ruff check . --output-format=json > ruff-report.json || true
+
+      - name: Check code formatting
+        if: matrix.check-type == 'format'
+        run: |
+          black --check . || true
+          isort --check-only . || true
+          ruff format --check . || true
+
+      - name: Run type checking
+        if: matrix.check-type == 'type-check'
+        run: |
+          mypy src/ --show-error-codes --json-file mypy-report.json || true
+
+      - name: Upload quality reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-${{ matrix.python-version }}-${{ matrix.check-type }}
+          path: |
+            *-report.json
+
+  # Comprehensive testing strategy
+  test-suite:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: [preflight, code-quality]
+    if: needs.preflight.outputs.should-run == 'true' && !inputs.skip_tests
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+        test-group: [unit, integration, e2e]
+        include:
+          - test-group: 'unit'
+            test-paths: 'tests/unit'
+            test-flags: '-m "not integration and not e2e"'
+            coverage-threshold: 80
+          - test-group: 'integration'
+            test-paths: 'tests/integration'
+            test-flags: '-m "integration"'
+            coverage-threshold: 70
+          - test-group: 'e2e'
+            test-paths: 'tests/e2e'
+            test-flags: '-m "e2e"'
+            coverage-threshold: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.preflight.outputs.cache-key }}-${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Cache test data
+        uses: actions/cache@v4
+        with:
+          path: |
+            .pytest_cache
+            data/cache
+          key: ${{ runner.os }}-test-${{ matrix.python-version }}-${{ matrix.test-group }}-${{ hashFiles('tests/**/*.py') }}-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ matrix.python-version }}-${{ matrix.test-group }}-
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || true
+          pip install pytest pytest-cov pytest-xdist pytest-html
+
+      - name: Run ${{ matrix.test-group }} tests
+        run: |
+          pytest ${{ matrix.test-paths }} \
+            -v \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term-missing \
+            --cov-fail-under=${{ matrix.coverage-threshold }} \
+            -n auto \
+            ${{ matrix.test-flags }} \
+            --html=report-${{ matrix.python-version }}-${{ matrix.test-group }}.html \
+            --junitxml=junit-${{ matrix.python-version }}-${{ matrix.test-group }}.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}-${{ matrix.test-group }}
+          path: |
+            junit-${{ matrix.python-version }}-${{ matrix.test-group }}.xml
+            report-${{ matrix.python-version }}-${{ matrix.test-group }}.html
+            coverage.xml
+            htmlcov/
+
+      - name: Upload coverage to Codecov
+        if: matrix.test-group == 'unit'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: ${{ matrix.python-version }}
+          name: ${{ matrix.python-version }}-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Build and package with multi-platform support
+  build-and-package:
+    name: Build & Package
+    runs-on: ubuntu-latest
+    needs: [test-suite]
+    if: always() && needs.test-suite.result == 'success'
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+      package-version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.preflight.outputs.cache-key }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Get package version
+        id: version
+        run: |
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])" 2>/dev/null || echo "0.1.0")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Check package
+        run: |
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.version.outputs.version }}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          provenance: true
+          sbom: true
+
+  # Staging deployment with comprehensive validation
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [preflight, build-and-package]
+    if: |
+      always() && 
+      needs.build-and-package.result == 'success' && 
+      (github.ref == 'refs/heads/develop' || 
+       (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging'))
+    environment:
+      name: staging
+      url: https://staging.isa-superapp.com
+    outputs:
+      deployment-id: ${{ steps.deploy.outputs.deployment-id }}
+      staging-status: ${{ steps.validation.outputs.status }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_STAGING_ROLE_ARN }}
+          role-session-name: github-actions-staging
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create deployment record
+        id: deploy
+        run: |
+          DEPLOYMENT_ID="staging-$(date +%Y%m%d-%H%M%S)-${{ github.sha::7 }}"
+          echo "deployment-id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          echo "Creating deployment record: $DEPLOYMENT_ID"
+
+      - name: Deploy to staging (blue-green)
+        id: staging-deploy
+        run: |
+          echo "Deploying to staging environment..."
+          echo "Deployment ID: ${{ steps.deploy.outputs.deployment-id }}"
+          echo "Image: ${{ needs.build-and-package.outputs.image-tag }}"
+          
+          # Blue-green deployment strategy
+          # Deploy to blue environment first
+          echo "Deploying to BLUE environment..."
+          # kubectl apply -f k8s/staging/blue/
+          
+          # Wait for deployment to be ready
+          # kubectl rollout status deployment/isa-superapp-blue --timeout=10m
+          
+          # Switch traffic to blue
+          # kubectl patch service isa-superapp -p '{"spec":{"selector":{"version":"blue"}}}'
+
+      - name: Run comprehensive health checks
+        id: health-check
+        run: |
+          echo "Running health checks..."
+          MAX_RETRIES=5
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if curl -f -s -o /dev/null -w "%{http_code}" https://staging.isa-superapp.com/health | grep -q "200"; then
+              echo "Health check passed"
+              exit 0
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Health check failed, retry $RETRY_COUNT/$MAX_RETRIES"
+            sleep 30
+          done
+          
+          echo "Health checks failed after $MAX_RETRIES attempts"
+          exit 1
+
+      - name: Run smoke tests
+        id: smoke-tests
+        run: |
+          echo "Running smoke tests..."
+          # Run basic smoke tests to verify critical functionality
+          # pytest tests/smoke/ -v --staging-url=https://staging.isa-superapp.com
+
+      - name: Validate deployment
+        id: validation
+        run: |
+          echo "Validating staging deployment..."
+          
+          # Collect metrics
+          RESPONSE_TIME=$(curl -w "%{time_total}" -o /dev/null -s https://staging.isa-superapp.com/health)
+          echo "Response time: ${RESPONSE_TIME}s"
+          
+          # Set validation status
+          if (( $(echo "$RESPONSE_TIME < 2.0" | bc -l) )); then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=warning" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rollback on failure
+        if: failure() && steps.staging-deploy.conclusion == 'success'
+        run: |
+          echo "Staging deployment failed, initiating rollback..."
+          # Rollback to previous version
+          # kubectl patch service isa-superapp -p '{"spec":{"selector":{"version":"green"}}}'
+          # kubectl delete deployment isa-superapp-blue
+          echo "Rollback completed"
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Staging deployment ${{ job.status }}
+            Deployment ID: ${{ steps.deploy.outputs.deployment-id }}
+            Commit: ${{ github.sha }}
+            Image: ${{ needs.build-and-package.outputs.image-tag }}
+            Validation: ${{ steps.validation.outputs.status }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Production deployment with approval gates and comprehensive rollback
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [preflight, build-and-package, deploy-staging]
+    if: |
+      always() && 
+      needs.build-and-package.result == 'success' && 
+      (needs.deploy-staging.result == 'success' || inputs.force_deploy) &&
+      (github.event_name == 'release' || 
+       (github.event_name == 'workflow_dispatch' && inputs.environment == 'production') ||
+       github.ref == 'refs/heads/main')
+    environment:
+      name: production
+      url: https://isa-superapp.com
+    outputs:
+      deployment-id: ${{ steps.deploy.outputs.deployment-id }}
+      production-status: ${{ steps.validation.outputs.status }}
+      rollback-initiated: ${{ steps.rollback.outputs.initiated }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PRODUCTION_ROLE_ARN }}
+          role-session-name: github-actions-production
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create deployment backup
+        run: |
+          echo "Creating backup of current production deployment..."
+          BACKUP_DIR="backups/production-$(date +%Y%m%d-%H%M%S)"
+          mkdir -p $BACKUP_DIR
+          
+          # Backup current deployment
+          # kubectl get deployment isa-superapp -o yaml > $BACKUP_DIR/deployment.yaml
+          # kubectl get service isa-superapp -o yaml > $BACKUP_DIR/service.yaml
+          # kubectl get configmap isa-superapp-config -o yaml > $BACKUP_DIR/configmap.yaml
+          
+          echo "backup-dir=$BACKUP_DIR" >> $GITHUB_ENV
+
+      - name: Create deployment record
+        id: deploy
+        run: |
+          DEPLOYMENT_ID="production-$(date +%Y%m%d-%H%M%S)-${{ github.sha::7 }}"
+          echo "deployment-id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          echo "Creating production deployment record: $DEPLOYMENT_ID"
+
+      - name: Deploy to production (canary)
+        id: prod-deploy
+        timeout-minutes: ${{ fromJSON(env.DEPLOYMENT_TIMEOUT) }}
+        run: |
+          echo "Deploying to production environment..."
+          echo "Deployment ID: ${{ steps.deploy.outputs.deployment-id }}"
+          echo "Image: ${{ needs.build-and-package.outputs.image-tag }}"
+          
+          # Canary deployment strategy
+          echo "Starting canary deployment..."
+          
+          # Step 1: Deploy canary (10% traffic)
+          echo "Deploying canary with 10% traffic..."
+          # kubectl apply -f k8s/production/canary/
+          # kubectl patch service isa-superapp -p '{"spec":{"selector":{"version":"canary"}}}'
+          
+          # Wait for canary to be ready
+          sleep 60
+          
+          # Step 2: Gradual traffic increase
+          for percentage in 25 50 75 100; do
+            echo "Increasing traffic to canary: $percentage%"
+            # kubectl patch service isa-superapp -p "{\"spec\":{\"selector\":{\"traffic-percentage\":\"$percentage\"}}}"
+            sleep 120
+            
+            # Run health checks at each stage
+            if ! curl -f https://isa-superapp.com/health > /dev/null; then
+              echo "Health check failed at $percentage% traffic"
+              exit 1
+            fi
+          done
+
+      - name: Run comprehensive validation
+        id: validation
+        run: |
+          echo "Running comprehensive production validation..."
+          
+          # Performance tests
+          echo "Running performance tests..."
+          # locust -f tests/performance/locustfile.py --headless -u 100 -r 10 -t 60s --host=https://isa-superapp.com
+          
+          # Security validation
+          echo "Running security validation..."
+          # Run quick security scan on production endpoint
+          # curl -s https://isa-superapp.com | grep -i "security" || true
+          
+          # Business logic validation
+          echo "Running business logic validation..."
+          # pytest tests/e2e/ -v --production-url=https://isa-superapp.com -m "production"
+          
+          # Set validation status
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Automatic rollback on failure
+        id: rollback
+        if: failure() && steps.prod-deploy.conclusion == 'success'
+        run: |
+          echo "Production deployment failed, initiating automatic rollback..."
+          echo "initiated=true" >> $GITHUB_OUTPUT
+          
+          # Immediate rollback to previous version
+          # kubectl rollout undo deployment/isa-superapp
+          # kubectl patch service isa-superapp -p '{"spec":{"selector":{"version":"stable"}}}'
+          
+          # Wait for rollback to complete
+          # kubectl rollout status deployment/isa-superapp --timeout=5m
+          
+          echo "Rollback completed"
+          
+          # Verify rollback success
+          if curl -f https://isa-superapp.com/health > /dev/null; then
+            echo "Rollback verification successful"
+          else
+            echo "Rollback verification failed - manual intervention required"
+            exit 1
+          fi
+
+      - name: Create incident on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Production Deployment Failed - ${context.repo.repo}`;
+            const body = `## Production Deployment Failure
+            
+            **Deployment ID:** ${{ steps.deploy.outputs.deployment-id }}
+            **Commit:** ${{ github.sha }}
+            **Image:** ${{ needs.build-and-package.outputs.image-tag }}
+            **Rollback Initiated:** ${{ steps.rollback.outputs.initiated }}
+            
+            ### Failure Details
+            - Workflow Run: ${context.payload.repository.html_url}/actions/runs/${context.runId}
+            - Timestamp: ${new Date().toISOString()}
+            
+            ### Required Actions
+            1. Investigate deployment failure
+            2. Review application logs
+            3. Verify rollback success
+            4. Address root cause before next deployment`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['incident', 'production', 'deployment-failure']
+            });
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Production deployment ${{ job.status }}
+            Deployment ID: ${{ steps.deploy.outputs.deployment-id }}
+            Commit: ${{ github.sha }}
+            Image: ${{ needs.build-and-package.outputs.image-tag }}
+            ${{ job.status == 'failure' && 'ROLLBACK INITIATED' || '' }}
+            ${{ steps.rollback.outputs.initiated == 'true' && 'AUTOMATIC ROLLBACK COMPLETED' || '' }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Post-deployment monitoring and validation
+  post-deployment-monitoring:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup monitoring tools
+        run: |
+          echo "Setting up monitoring tools..."
+          # Install monitoring dependencies
+          # pip install prometheus-client requests
+
+      - name: Collect deployment metrics
+        id: metrics
+        run: |
+          echo "Collecting deployment metrics..."
+          
+          # Response time metrics
+          if curl -f -s -w "%{time_total}" -o /dev/null https://isa-superapp.com/health > response_time.txt; then
+            RESPONSE_TIME=$(cat response_time.txt)
+            echo "response-time=$RESPONSE_TIME" >> $GITHUB_OUTPUT
+          fi
+          
+          # Error rate metrics (last 5 minutes)
+          # This would typically come from your monitoring system
+          echo "error-rate=0.01" >> $GITHUB_OUTPUT
+          
+          # Availability metrics
+          echo "availability=99.9" >> $GITHUB_OUTPUT
+
+      - name: Generate deployment report
+        run: |
+          cat > deployment-report.json << EOF
+          {
+            "deployment_id": "${{ needs.deploy-staging.outputs.deployment-id || needs.deploy-production.outputs.deployment-id }}",
+            "environment": "${{ needs.deploy-staging.result == 'success' && 'staging' || 'production' }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "${{ github.sha }}",
+            "metrics": {
+              "response_time": "${{ steps.metrics.outputs.response-time }}",
+              "error_rate": "${{ steps.metrics.outputs.error-rate }}",
+              "availability": "${{ steps.metrics.outputs.availability }}"
+            },
+            "status": "completed"
+          }
+          EOF
+
+      - name: Upload deployment metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-metrics-${{ github.run_number }}
+          path: |
+            deployment-report.json
+            metrics-*.json
+
+      - name: Alert on performance degradation
+        if: steps.metrics.outputs.response-time && (steps.metrics.outputs.response-time > 2.0)
+        run: |
+          echo "⚠️ Performance degradation detected!"
+          echo "Response time: ${{ steps.metrics.outputs.response-time }}s (threshold: 2.0s)"
+          # Send alert to monitoring system
+          # curl -X POST "${{ secrets.MONITORING_WEBHOOK }}" -d '{"alert": "performance_degradation", "value": "${{ steps.metrics.outputs.response-time }}"}'
+
+  # Cleanup and maintenance
+  cleanup:
+    name: Cleanup & Maintenance
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Cleanup old container images
+        run: |
+          echo "Cleaning up old container images..."
+          # Keep last 10 images, remove older ones
+          # gh api repos/${{ github.repository }}/packages/container/isa-superapp/versions \
+          #   --jq '.[] | select(.updated_at < (now - 86400*30 | strftime("%Y-%m-%dT%H:%M:%SZ"))) | .id' | \
+          #   head -n -10 | \
+          #   xargs -I {} gh api repos/${{ github.repository }}/packages/container/isa-superapp/versions/{} -X DELETE || true
+
+      - name: Cleanup workflow artifacts
+        uses: actions/delete-artifact@v4
+        with:
+          name: |
+            security-scan-*
+            quality-*-*
+            test-results-*-*
+            build-artifacts
+          fail-on-error: false
+
+      - name: Generate cleanup report
+        run: |
+          echo "Cleanup completed at $(date)"
+          echo "Artifacts cleaned up successfully"

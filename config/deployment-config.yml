@@ -1,0 +1,160 @@
+# Deployment Configuration for Unified CI/CD Pipeline
+
+environments:
+  development:
+    enabled: true
+    auto_deploy: true
+    approval_required: false
+    rollback_enabled: true
+    health_check_url: "https://dev.example.com/health"
+    smoke_test_url: "https://dev.example.com/smoke-test"
+    deployment_timeout: 300
+    strategies:
+      - rolling
+      - recreate
+    
+  staging:
+    enabled: true
+    auto_deploy: true
+    approval_required: false
+    rollback_enabled: true
+    health_check_url: "https://staging.example.com/health"
+    smoke_test_url: "https://staging.example.com/smoke-test"
+    deployment_timeout: 600
+    strategies:
+      - rolling
+      - blue-green
+      - canary
+    
+  production:
+    enabled: true
+    auto_deploy: false
+    approval_required: true
+    rollback_enabled: true
+    health_check_url: "https://app.example.com/health"
+    smoke_test_url: "https://app.example.com/smoke-test"
+    deployment_timeout: 900
+    strategies:
+      - blue-green
+      - canary
+      - rolling
+
+deployment_strategies:
+  rolling:
+    enabled: true
+    max_surge: 1
+    max_unavailable: 0
+    readiness_probe:
+      enabled: true
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+    
+  blue_green:
+    enabled: true
+    traffic_split: 100
+    health_check_grace_period: 300
+    rollback_on_failure: true
+    
+  canary:
+    enabled: true
+    stages:
+      - weight: 10
+        duration: 300
+      - weight: 50
+        duration: 600
+      - weight: 100
+        duration: 0
+    rollback_on_failure: true
+    metrics:
+      - error_rate
+      - response_time
+      - cpu_usage
+      - memory_usage
+    
+  recreate:
+    enabled: true
+    grace_period: 60
+    force_recreate: false
+
+health_checks:
+  enabled: true
+  endpoints:
+    - path: "/health"
+      method: "GET"
+      expected_status: 200
+      timeout: 30
+      retries: 3
+    - path: "/ready"
+      method: "GET"
+      expected_status: 200
+      timeout: 30
+      retries: 3
+  
+  smoke_tests:
+    enabled: true
+    tests:
+      - name: "API Health Check"
+        endpoint: "/api/health"
+        method: "GET"
+        expected_status: 200
+        timeout: 30
+      - name: "Database Connection"
+        endpoint: "/api/db-health"
+        method: "GET"
+        expected_status: 200
+        timeout: 60
+      - name: "Critical Endpoints"
+        endpoint: "/api/critical-endpoints"
+        method: "GET"
+        expected_status: 200
+        timeout: 45
+
+rollback:
+  enabled: true
+  automatic_on_failure: true
+  max_attempts: 3
+  strategies:
+    - immediate
+    - gradual
+  notifications:
+    enabled: true
+    channels:
+      - slack
+      - email
+      - pagerduty
+
+monitoring:
+  enabled: true
+  metrics:
+    - deployment_duration
+    - success_rate
+    - rollback_count
+    - error_rate
+    - response_time
+  alerts:
+    enabled: true
+    thresholds:
+      error_rate: 5
+      response_time: 2000
+      success_rate: 95
+
+notifications:
+  enabled: true
+  channels:
+    slack:
+      enabled: true
+      webhook_url: "${{ secrets.SLACK_WEBHOOK_URL }}"
+      channels:
+        - "#deployments"
+        - "#alerts"
+    email:
+      enabled: true
+      recipients:
+        - "devops@example.com"
+        - "team@example.com"
+    pagerduty:
+      enabled: true
+      service_key: "${{ secrets.PAGERDUTY_SERVICE_KEY }}"

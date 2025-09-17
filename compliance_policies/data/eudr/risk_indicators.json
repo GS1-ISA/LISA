@@ -1,0 +1,85 @@
+{
+  "eudr_risk_indicators": {
+    "high_risk_countries": [
+      "Brazil", "Indonesia", "Malaysia", "Colombia", "Peru", "Argentina",
+      "Ecuador", "Guatemala", "Honduras", "Nicaragua", "Panama"
+    ],
+    "risk_categories": {
+      "geographic_risk": {
+        "description": "Risk based on country of origin",
+        "weight": 0.4,
+        "thresholds": {
+          "high": ["Brazil", "Indonesia", "Malaysia"],
+          "medium": ["Colombia", "Peru", "Argentina"],
+          "low": ["Other countries"]
+        }
+      },
+      "supplier_transparency": {
+        "description": "Transparency of supply chain information",
+        "weight": 0.3,
+        "indicators": [
+          "due_diligence_statement_present",
+          "geolocation_data_available",
+          "supplier_certification_present",
+          "traceability_information_complete"
+        ]
+      },
+      "commodity_risk": {
+        "description": "Risk associated with specific commodities",
+        "weight": 0.3,
+        "high_risk_commodities": [
+          "Palm oil",
+          "Soy",
+          "Wood",
+          "Beef",
+          "Coffee",
+          "Cocoa",
+          "Rubber"
+        ]
+      }
+    },
+    "due_diligence_requirements": {
+      "information_collection": [
+        "Description of goods",
+        "Quantity of goods",
+        "Country of production",
+        "Date of harvest/placement on market",
+        "Geolocation coordinates",
+        "Supplier information"
+      ],
+      "risk_assessment": [
+        "Country risk assessment",
+        "Supplier risk assessment",
+        "Plot of land risk assessment"
+      ],
+      "risk_mitigation": [
+        "Supplier engagement",
+        "Third-party verification",
+        "Additional documentation"
+      ]
+    },
+    "compliance_levels": {
+      "compliant": "All due diligence requirements met",
+      "conditional": "Some requirements met with mitigation measures",
+      "non_compliant": "Due diligence requirements not met"
+    }
+  },
+  "validation_rules": {
+    "due_diligence_statement": {
+      "required_fields": [
+        "regulatoryReferenceNumber",
+        "regulatoryVerificationNumber",
+        "regulatoryReferenceApplicabilityStartDate",
+        "regulatoryReferenceApplicabilityEndDate"
+      ],
+      "optional_fields": [
+        "regulatoryInformationProvider",
+        "applicableProducts"
+      ]
+    },
+    "supply_chain_transparency": {
+      "minimum_traceability_depth": 2,
+      "required_geolocation_precision": "coordinate_level"
+    }
+  }
+}

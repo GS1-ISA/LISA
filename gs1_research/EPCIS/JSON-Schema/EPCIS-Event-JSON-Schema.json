@@ -1,0 +1,105 @@
+{
+    "$id": "https://gs1.github.io/EPCIS/JSON-Schema/EPCIS-Event-JSON-Schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+      "EPCIS-Document-Event": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "enum": ["ObjectEvent"]
+                }
+              }
+            },
+            "then": {
+              "$ref": "schemas/ObjectEvent-JSON-Schema.json#/definitions/ObjectEvent"
+            }
+          },
+          {
+            "if": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "enum": ["AggregationEvent"]
+                }
+              }
+            },
+            "then": {
+              "$ref": "schemas/AggregationEvent-JSON-Schema.json#/definitions/AggregationEvent"
+            }
+          },
+          {
+            "if": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "enum": ["TransactionEvent"]
+                }
+              }
+            },
+            "then": {
+              "$ref": "schemas/TransactionEvent-JSON-Schema.json#/definitions/TransactionEvent"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "enum": ["TransformationEvent"]
+                }
+              }
+            },
+            "then": {
+              "$ref": "schemas/TransformationEvent-JSON-Schema.json#/definitions/TransformationEvent"
+            }
+          },
+          {
+            "if": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "enum": ["AssociationEvent"]
+                }
+              }
+            },
+            "then": {
+              "$ref": "schemas/AssociationEvent-JSON-Schema.json#/definitions/AssociationEvent"
+            }
+          },
+          {
+            "if": {
+              "not": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "AssociationEvent",
+                      "ObjectEvent",
+                      "AggregationEvent",
+                      "TransactionEvent",
+                      "TransformationEvent"
+                    ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "$ref": "schemas/event-definitions-JSON-Schema.json#/definitions/Extended-Event"
+            }
+          }
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+  

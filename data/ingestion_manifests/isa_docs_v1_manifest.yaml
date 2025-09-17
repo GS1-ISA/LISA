@@ -1,0 +1,26 @@
+# Ingestion manifest example for isa_docs_v1
+# Connects canonical doc sources to the vector store schema.
+
+id: isa_docs_v1_manifest
+source:
+  - path: docs/
+    include: ['*.md']
+    parser: markdown
+chunking:
+  method: token
+  chunk_size: 500
+  chunk_overlap: 50
+embedding:
+  model: text-embedding-3-small
+  encoding: cosine
+metadata:
+  - document_id
+  - document_version
+  - source
+  - page
+  - chunk_id
+  - checksum
+provenance:
+  captured_at: 2025-09-04
+  ingester: local-cli
+notes: "This manifest is an example; adapt paths and checksum strategy per source. See docs/VECTOR_STORE_SCHEMA.md for canonical schema."

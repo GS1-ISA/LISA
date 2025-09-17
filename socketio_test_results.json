@@ -1,0 +1,140 @@
+{
+  "total_tests": 22,
+  "passed": 22,
+  "failed": 0,
+  "results": [
+    {
+      "test": "connection",
+      "success": true,
+      "details": "Connected successfully: {'message': 'Connected to Compliance Assistant'}",
+      "timestamp": 1758042804.918488
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042806.165639
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042808.925727
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042811.922231
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042812.92312
+    },
+    {
+      "test": "connection",
+      "success": true,
+      "details": "Connected successfully: {'message': 'Connected to Compliance Assistant'}",
+      "timestamp": 1758042814.928857
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042815.937858
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042818.940118
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042821.932401
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042822.940798
+    },
+    {
+      "test": "connection",
+      "success": true,
+      "details": "Connected successfully: {'message': 'Connected to Compliance Assistant'}",
+      "timestamp": 1758042824.9515
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042825.958731
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042828.960314
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042831.961946
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042832.962108
+    },
+    {
+      "test": "connection",
+      "success": true,
+      "details": "Connected successfully: {'message': 'Connected to Compliance Assistant'}",
+      "timestamp": 1758042834.967393
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042835.979685
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Internal server error'}",
+      "timestamp": 1758042838.9862258
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042841.972658
+    },
+    {
+      "test": "error_handling",
+      "success": true,
+      "details": "Error handled: {'message': 'Empty message'}",
+      "timestamp": 1758042842.9737759
+    },
+    {
+      "test": "connection",
+      "success": true,
+      "details": "Connected successfully: {'message': 'Connected to Compliance Assistant'}",
+      "timestamp": 1758042844.980901
+    },
+    {
+      "test": "cors_connection",
+      "success": true,
+      "details": "CORS allows connection without auth",
+      "timestamp": 1758042845.982141
+    }
+  ],
+  "success_rate": 100.0
+}

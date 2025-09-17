@@ -1,0 +1,34 @@
+{
+  "flags": {
+    "ISA_REF_SRC_20250906": {
+      "enabled": false,
+      "traffic": 0,
+      "created_at": 1757191772.234228
+    },
+    "ISA_REF_DOCS_PROVIDER_20250906": {
+      "enabled": true,
+      "traffic": 100,
+      "created_at": 1757226674.667676
+    },
+    "ISA_REF_DSPY_MODULES_20250906": {
+      "enabled": false,
+      "traffic": 0,
+      "created_at": 1757242946.951872
+    },
+    "ISA_REF_LLM_RUNTIME_20250906": {
+      "enabled": false,
+      "traffic": 0,
+      "created_at": 1757244586.425483
+    },
+    "ISA_REF_ORCHESTRATOR_20250906": {
+      "enabled": false,
+      "traffic": 0,
+      "created_at": 1757244696.936666
+    },
+    "ISA_REF_SECURITY_20250915": {
+      "enabled": true,
+      "traffic": 100,
+      "created_at": 1726443825.973
+    }
+  }
+}

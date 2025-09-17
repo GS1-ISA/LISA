@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isa-superapp
+  labels:
+    app: isa-superapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: isa-superapp
+  template:
+    metadata:
+      labels:
+        app: isa-superapp
+    spec:
+      containers:
+      - name: isa-superapp
+        image: isa-superapp:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: isa-superapp-config
+        - secretRef:
+            name: isa-superapp-secrets
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: data
+          mountPath: /app/data
+        - name: static
+          mountPath: /app/static
+        - name: media
+          mountPath: /app/media
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: data
+        emptyDir: {}
+      - name: static
+        emptyDir: {}
+      - name: media
+        emptyDir: {}

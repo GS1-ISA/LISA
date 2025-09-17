@@ -1,0 +1,29 @@
+services:
+  compliance_service:
+    url: http://localhost:8181
+    credentials:
+      bearer:
+        token: "opa_token"
+
+bundles:
+  compliance_policies:
+    service: compliance_service
+    resource: /v1/policies
+    persist: true
+    polling:
+      min_delay_seconds: 60
+      max_delay_seconds: 120
+
+decision_logs:
+  console: true
+
+status:
+  console: true
+
+policies:
+  - compliance_policies/policies/csrd
+  - compliance_policies/policies/eudr
+  - compliance_policies/policies/common
+
+data:
+  - compliance_policies/data

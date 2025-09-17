@@ -1,0 +1,94 @@
+# Security Configuration for Unified CI/CD Pipeline
+
+vulnerability_scanning:
+  enabled: true
+  severity_threshold: "HIGH"
+  fail_on_severity: "CRITICAL"
+  timeout: 300
+  tools:
+    trivy:
+      enabled: true
+      scan_types:
+        - vuln
+        - config
+        - secret
+      severity_levels:
+        - CRITICAL
+        - HIGH
+        - MEDIUM
+    snyk:
+      enabled: false
+      token: "${{ secrets.SNYK_TOKEN }}"
+      severity_threshold: "high"
+
+sast:
+  enabled: true
+  tools:
+    semgrep:
+      enabled: true
+      config: "auto"
+      severity_levels:
+        - ERROR
+        - WARNING
+        - INFO
+    codeql:
+      enabled: true
+      languages:
+        - python
+        - javascript
+        - java
+      queries: "security-and-quality"
+
+dependency_scanning:
+  enabled: true
+  tools:
+    safety:
+      enabled: true
+      python: true
+    npm_audit:
+      enabled: true
+      node: true
+    owasp_dependency_check:
+      enabled: true
+      java: true
+
+secret_scanning:
+  enabled: true
+  tools:
+    gitleaks:
+      enabled: true
+      config: ".gitleaks.toml"
+
+container_scanning:
+  enabled: true
+  tools:
+    trivy:
+      enabled: true
+      scan_types:
+        - vuln
+        - config
+        - secret
+      severity_levels:
+        - CRITICAL
+        - HIGH
+        - MEDIUM
+
+compliance:
+  enabled: true
+  standards:
+    - SOC2
+    - ISO27001
+    - GDPR
+    - HIPAA
+  reporting:
+    enabled: true
+    format: "json"
+    upload_to_github_security: true
+
+notifications:
+  enabled: true
+  channels:
+    - github_security
+    - slack
+    - email
+  severity_threshold: "HIGH"

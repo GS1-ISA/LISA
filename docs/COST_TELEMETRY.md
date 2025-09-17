@@ -1,4 +1,5 @@
-Title: Cost Telemetry & Budgets (FinOps)
+# Cost Telemetry & Budgets (FinOps)
+Last updated: 2025-09-02
 
 Goal: Track and reduce spend for APIs/LLMs/storage/compute with minimal overhead.
 
@@ -15,4 +16,3 @@ Implementation Sketch
 Acceptance
 - Weekly cost report artifact exists (API/LLM totals, $/1k items, cache hit rate).
 - Budgets and alerts configured for costly features; PRs must not exceed budget without override.
-

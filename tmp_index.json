@@ -1,0 +1,49 @@
+{
+  "docs": [
+    {
+      "id": "RFID",
+      "text": "RFID used in hospitals for asset tracking and patient safety",
+      "meta": {
+        "type": "technology"
+      }
+    },
+    {
+      "id": "Barcode",
+      "text": "Barcodes enable inventory management",
+      "meta": {
+        "type": "standard"
+      }
+    },
+    {
+      "id": "ESG",
+      "text": "ESG reporting aligns with EU directives",
+      "meta": {
+        "type": "esg"
+      }
+    }
+  ],
+  "vecs": null,
+  "lex_df": {
+    "in": 1,
+    "used": 1,
+    "patient": 1,
+    "for": 1,
+    "safety": 1,
+    "and": 1,
+    "rfid": 1,
+    "tracking": 1,
+    "hospitals": 1,
+    "asset": 1,
+    "inventory": 1,
+    "barcodes": 1,
+    "management": 1,
+    "enable": 1,
+    "directives": 1,
+    "reporting": 1,
+    "esg": 1,
+    "with": 1,
+    "eu": 1,
+    "aligns": 1
+  },
+  "lex_vocab_docs": 3
+}

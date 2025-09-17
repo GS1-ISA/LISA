@@ -1,0 +1,537 @@
+
+# Unified CI/CD Pipeline Configuration
+# This file serves as the single source of truth for all workflow configurations
+
+# Global Configuration
+global:
+  # Default timeouts for different job types (in minutes)
+  timeouts:
+    code_quality: 15
+    build_test: 45
+    security_scan: 30
+    deployment: 60
+    validation: 20
+  
+  # Default retry configuration
+  retries:
+    max_attempts: 3
+    backoff_strategy: exponential
+    initial_delay: 30
+  
+  # Notification settings
+  notifications:
+    slack:
+      enabled: true
+      channels:
+        development: "#dev-alerts"
+        staging: "#staging-alerts"
+        production: "#production-alerts"
+    email:
+      enabled: true
+      recipients:
+        - "devops@company.com"
+        - "security@company.com"
+  
+  # Caching configuration
+  caching:
+    enabled: true
+    strategies:
+      - dependency_caching
+      - build_caching
+      - docker_layer_caching
+    ttl: 7  # days
+
+# Environment-specific Configuration
+environments:
+  development:
+    enabled: true
+    triggers:
+      - push
+      - pull_request
+    tests:
+      unit: true
+      integration: false
+      e2e: false
+    security:
+      sast: true
+      dependency_check: true
+      secret_scanning: true
+      container_scanning: false
+    deployment:
+      enabled: false
+    notifications:
+      level: "minimal"
+    caching:
+      enabled: true
+      strategies: ["dependency_caching"]
+  
+  staging:
+    enabled: true
+    triggers:
+      - push:
+          branches: ["main", "develop"]
+    tests:
+      unit: true
+      integration: true
+      e2e: false
+    security:
+      sast: true
+      dependency_check: true
+      secret_scanning: true
+      container_scanning: true
+    deployment:
+      enabled: true
+      strategy: "blue_green"
+      approval_required: false
+      validation_required: true
+      rollback_enabled: true
+    notifications:
+      level: "standard"
+    caching:
+      enabled: true
+      strategies: ["dependency_caching", "build_caching"]
+  
+  production:
+    enabled: true
+    triggers:
+      - release:
+          types: ["published"]
+      - workflow_dispatch:
+          inputs:
+            deployment_target:
+              required: true
+              type: "choice"
+              options: ["staging", "production", "none"]
+    tests:
+      unit: true
+      integration: true
+      e2e: true
+    security:
+      sast: true
+      dependency_check: true
+      secret_scanning: true
+      container_scanning: true
+      compliance_check: true
+    deployment:
+      enabled: true
+      strategy: "canary"
+      approval_required: true
+      validation_required: true
+      validation_period: 300  # seconds
+      rollback_enabled: true
+      rollback_threshold: 95  # success rate percentage
+    notifications:
+      level: "comprehensive"
+    caching:
+      enabled: true
+      strategies: ["dependency_caching", "build_caching", "docker_layer_caching"]
+
+# Security Configuration
+security:
+  # SAST (Static Application Security Testing)
+  sast:
+    enabled: true
+    tools:
+      - name: "CodeQL"
+        enabled: true
+        config: ".github/codeql/codeql-config.yml"
+      - name: "SonarCloud"
+        enabled: true
+        config: "sonar-project.properties"
+    severity_threshold: "high"
+    fail_on_vulnerability: true
+  
+  # Dependency Vulnerability Scanning
+  dependency_check:
+    enabled: true
+    tools:
+      - name: "Snyk"
+        enabled: true
+        severity_threshold: "high"
+      - name: "GitHub Dependabot"
+        enabled: true
+        auto_fix: true
+    fail_on_vulnerability: true
+  
+  # Secret Scanning
+  secret_scanning:
+    enabled: true
+    tools:
+      - name: "GitHub Secret Scanning"
+        enabled: true
+        push_protection: true
+      - name: "TruffleHog"
+        enabled: true
+        entropy_check: true
+    fail_on_detection: true
+  
+  # Container Image Scanning
+  container_scanning:
+    enabled: true
+    tools:
+      - name: "Trivy"
+        enabled: true
+        severity_threshold: "high"
+      - name: "Grype"
+        enabled: true
+        severity_threshold: "high"
+    fail_on_vulnerability: true
+  
+  # Compliance Checking
+  compliance:
+    enabled: true
+    standards:
+      - "SOC2"
+      - "ISO27001"
+      - "GDPR"
+    tools:
+      - name: "AWS Config"
+        enabled: true
+      - name: "Open Policy Agent"
+        enabled: true
+
+# Build Configuration
+build:
+  # Language-specific configurations
+  languages:
+    python:
+      versions: ["3.9", "3.10", "3.11"]
+      package_manager: "pip"
+      dependency_files: ["requirements.txt", "requirements-dev.txt", "pyproject.toml"]
+      test_framework: "pytest"
+      linting:
+        enabled: true
+        tools: ["flake8", "black", "isort", "mypy"]
+    
+    nodejs:
+      versions: ["16", "18", "20"]
+      package_manager: "npm"
+      dependency_files: ["package.json", "package-lock.json"]
+      test_framework: "jest"
+      linting:
+        enabled: true
+        tools: ["eslint", "prettier"]
+    
+    docker:
+      enabled: true
+      platforms: ["linux/amd64", "linux/arm64"]
+      build_args:
+        - "BUILDKIT_INLINE_CACHE=1"
+      cache_strategy: "inline"
+  
+  # Build matrix configuration
+  matrix:
+    fail_fast: false
+    max_parallel: 4
+  
+  # Artifact configuration
+  artifacts:
+    retention_days: 30
+    compression: "gzip"
+    encryption: true
+
+# Test Configuration
+testing:
+  # Unit Testing
+  unit:
+    enabled: true
+    coverage_threshold: 80
+    parallel: true
+    timeout: 10  # minutes
+    tools:
+      - name: "pytest"
+        enabled: true
+        config: "pytest.ini"
+      - name: "coverage"
+        enabled: true
+        config: ".coveragerc"
+  
+  # Integration Testing
+  integration:
+    enabled: true
+    timeout: 20  # minutes
+    services:
+      - "postgresql"
+      - "redis"
+      - "elasticsearch"
+    tools:
+      - name: "pytest"
+        enabled: true
+        config: "pytest.ini"
+  
+  # End-to-End Testing
+  e2e:
+    enabled: true
+    timeout: 30  # minutes
+    environments:
+      - "staging"
+      - "production"
+    tools:
+      - name: "Cypress"
+        enabled: true
+        config: "cypress.config.js"
+      - name: "Playwright"
+        enabled: true
+        config: "playwright.config.js"
+  
+  # Performance Testing
+  performance:
+    enabled: true
+    tools:
+      - name: "k6"
+        enabled: true
+        config: "performance/k6-config.js"
+      - name: "Locust"
+        enabled: true
+        config: "performance/locustfile.py"
+
+# Deployment Configuration
+deployment:
+  # Container Registry Configuration
+  registry:
+    type: "ghcr"  # or "ecr", "acr", "gcr"
+    url: "ghcr.io"
+    namespace: "${{ github.repository_owner }}"
+    image_name: "${{ github.event.repository.name }}"
+    tags:
+      - "latest"
+      - "${{ github.sha }}"
+      - "${{ github.ref_name }}"
+  
+  # Deployment Strategies
+  strategies:
+    blue_green:
+      enabled: true
+      traffic_shift: 100
+      health_check_url: "/health"
+      health_check_timeout: 300
+      rollback_on_failure: true
+    
+    canary:
+      enabled: true
+      stages:
+        - weight: 10
+          duration: 300
+        - weight: 50
+          duration: 600
+        - weight: 100
+          duration: 0
+      health_check_url: "/health"
+      rollback_on_failure: true
+      metrics:
+        - "error_rate"
+        - "response_time"
+        - "cpu_usage"
+        - "memory_usage"
+    
+    rolling:
+      enabled: true
+      max_unavailable: 1
+      max_surge: 1
+      health_check_url: "/health"
+  
+  # Target Environments
+  targets:
+    staging:
+      cluster: "staging-cluster"
+      namespace: "staging"
+      replicas: 2
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+    
+    production:
+      cluster: "production-cluster"
+      namespace: "production"
+      replicas: 3
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "256Mi"
+        limits:
+          cpu: "1000m"
+          memory: "1Gi"
+      autoscaling:
+        enabled: true
+        min_replicas: 3
+        max_replicas: 10
+        target_cpu_utilization: 70
+
+# Validation Configuration
+validation:
+  # Health Check Configuration
+  health_check:
+    enabled: true
+    endpoints:
+      - "/health"
+      - "/health/ready"
+      - "/health/live"
+    timeout: 30
+    retries: 3
+    success_threshold: 2
+  
+  # Performance Validation
+  performance:
+    enabled: true
+    thresholds:
+      response_time: 2000  # ms
+      error_rate: 1  # percentage
+      cpu_usage: 80  # percentage
+      memory_usage: 85  # percentage
+  
+  # Functional Validation
+  functional:
+    enabled: true
+    test_suites:
+      - "smoke"
+      - "regression"
+      - "api"
+    timeout: 15  # minutes
+
+# Rollback Configuration
+rollback:
+  enabled: true
+  strategies:
+    automatic:
+      enabled: true
+      triggers:
+        - "health_check_failure"
+        - "performance_degradation"
+        - "error_rate_spike"
+      threshold: 95  # success rate percentage
+    
+    manual:
+      enabled: true
+      approval_required: true
+      timeout: 30  # minutes
+  
+  # Rollback History
+  history:
+    preserve_count: 5
+    cleanup_interval: 24  # hours
+
+# Monitoring and Observability
+monitoring:
+  # Metrics Collection
+  metrics:
+    enabled: true
+    tools:
+      - name: "Prometheus"
+        enabled: true
+        endpoint: "http://prometheus:9090"
+      - name: "CloudWatch"
+        enabled: true
+        region: "us-east-1"
+  
+  # Logging
+  logging:
+    enabled: true
+    level: "info"
+    tools:
+      - name: "CloudWatch Logs"
+        enabled: true
+        region: "us-east-1"
+      - name: "ELK Stack"
+        enabled: true
+        endpoint: "http://elasticsearch:9200"
+  
+  # Alerting
+  alerting:
+    enabled: true
+    tools:
+      - name: "PagerDuty"
+        enabled: true
+        service_key: "${{ secrets.PAGERDUTY_SERVICE_KEY }}"
+      - name: "Slack"
+        enabled: true
+        webhook: "${{ secrets.SLACK_WEBHOOK_URL }}"
+  
+  # Tracing
+  tracing:
+    enabled: true
+    tools:
+      - name: "Jaeger"
+        enabled: true
+        endpoint: "http://jaeger:14268/api/traces"
+      - name: "AWS X-Ray"
+        enabled: true
+        region: "us-east-1"
+
+# Feature Flags
+feature_flags:
+  # Enable/disable specific features
+  caching: true
+  parallel_execution: true
+  security_scanning: true
+  performance_testing: false
+  compliance_checking: true
+  
+  # Gradual rollout features
+  canary_deployment: true
+  blue_green_deployment: false
+  rolling_deployment: true
+  
+  # Experimental features
+  experimental:
+    ai_code_review: false
+    predictive_scaling: false
+    chaos_engineering: false
+
+# Compliance and Governance
+compliance:
+  # Audit Logging
+  audit:
+    enabled: true
+    retention_days: 365
+    encryption: true
+    include:
+      - "workflow_execution"
+      - "deployment_history"
+      - "security_events"
+      - "access_logs"
+  
+  # Policy Enforcement
+  policies:
+    enabled: true
+    tools:
+      - name: "Open Policy Agent"
+        enabled: true
+        policies:
+          - "require_approval_for_production"
+          - "enforce_security_scanning"
+          - "validate_deployment_window"
+      - name: "AWS Config"
+        enabled: true
+        rules:
+          - "s3-bucket-public-access-prohibited"
+          - "rds-storage-encrypted"
+          - "ec2-volume-inuse-check"
+  
+  # Documentation Requirements
+  documentation:
+    enabled: true
+    requirements:
+      - "architecture_diagram"
+      - "deployment_guide"
+      - "runbook"
+      - "disaster_recovery_plan"
+
+# Cost Optimization
+cost_optimization:
+  # Resource Management
+  resources:
+    enabled: true
+    spot_instances: true
+    auto_shutdown: true
+    cleanup_interval: 24  # hours
+  
+  # Build Optimization
+  builds:
+    enabled: true
+    parallel_builds: true
+    incremental_builds: true
+    cache_optimization: true

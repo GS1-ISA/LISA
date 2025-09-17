@@ -1,4 +1,5 @@
 Title: Search Ledger — Q21 CI Gating & xdist Stability
+Last updated: 2025-09-02
 
 Question: Q21 — Impact of xdist and flaky quarantine on CI stability/time
 Date Range:
@@ -9,4 +10,3 @@ Notes & Relevance:
 Bias/COI:
 Shortlist Candidates: xdist on/off; quarantine nightly list
 Next Actions: pre-register POC; tune workers
-

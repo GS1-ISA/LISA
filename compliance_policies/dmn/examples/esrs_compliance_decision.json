@@ -1,0 +1,125 @@
+{
+  "dmnTable": {
+    "id": "esrs_compliance_table",
+    "name": "ESRS Compliance Decision Table",
+    "namespace": "http://www.omg.org/spec/DMN/20191111/MODEL/",
+    "description": "Decision table for evaluating ESRS compliance requirements",
+    "version": "1.0",
+    "decisionTables": [
+      {
+        "id": "dt_esrs_compliance_check",
+        "name": "ESRS Compliance Check",
+        "hitPolicy": "UNIQUE",
+        "description": "Determine ESRS compliance status based on disclosure requirements",
+        "inputClauses": [
+          {
+            "id": "input_company_size",
+            "label": "Company Size",
+            "expression": "company_size",
+            "typeRef": "string"
+          },
+          {
+            "id": "input_esrs_e1_disclosed",
+            "label": "ESRS E1 Disclosed",
+            "expression": "esrs_e1_disclosed",
+            "typeRef": "boolean"
+          },
+          {
+            "id": "input_esrs_s1_disclosed",
+            "label": "ESRS S1 Disclosed",
+            "expression": "esrs_s1_disclosed",
+            "typeRef": "boolean"
+          },
+          {
+            "id": "input_reporting_period",
+            "label": "Reporting Period",
+            "expression": "reporting_period",
+            "typeRef": "string"
+          }
+        ],
+        "outputClauses": [
+          {
+            "id": "output_compliance_status",
+            "label": "Compliance Status",
+            "name": "compliance_status",
+            "typeRef": "string"
+          },
+          {
+            "id": "output_risk_level",
+            "label": "Risk Level",
+            "name": "risk_level",
+            "typeRef": "string"
+          },
+          {
+            "id": "output_required_actions",
+            "label": "Required Actions",
+            "name": "required_actions",
+            "typeRef": "string"
+          }
+        ],
+        "rules": [
+          {
+            "id": "rule_full_compliance",
+            "description": "Full compliance for large companies with all disclosures",
+            "inputEntries": {
+              "input_company_size": "large",
+              "input_esrs_e1_disclosed": true,
+              "input_esrs_s1_disclosed": true,
+              "input_reporting_period": "2024"
+            },
+            "outputEntries": {
+              "output_compliance_status": "FULLY_COMPLIANT",
+              "output_risk_level": "LOW",
+              "output_required_actions": "Continue monitoring"
+            }
+          },
+          {
+            "id": "rule_partial_compliance",
+            "description": "Partial compliance for large companies missing some disclosures",
+            "inputEntries": {
+              "input_company_size": "large",
+              "input_esrs_e1_disclosed": true,
+              "input_esrs_s1_disclosed": false,
+              "input_reporting_period": "2024"
+            },
+            "outputEntries": {
+              "output_compliance_status": "PARTIALLY_COMPLIANT",
+              "output_risk_level": "MEDIUM",
+              "output_required_actions": "Complete ESRS S1 disclosure"
+            }
+          },
+          {
+            "id": "rule_non_compliant_large",
+            "description": "Non-compliant large company",
+            "inputEntries": {
+              "input_company_size": "large",
+              "input_esrs_e1_disclosed": false,
+              "input_esrs_s1_disclosed": false,
+              "input_reporting_period": "2024"
+            },
+            "outputEntries": {
+              "output_compliance_status": "NON_COMPLIANT",
+              "output_risk_level": "HIGH",
+              "output_required_actions": "Immediate compliance review required"
+            }
+          },
+          {
+            "id": "rule_small_company_exempt",
+            "description": "Small companies may be exempt from full ESRS requirements",
+            "inputEntries": {
+              "input_company_size": "small",
+              "input_esrs_e1_disclosed": false,
+              "input_esrs_s1_disclosed": false,
+              "input_reporting_period": "2024"
+            },
+            "outputEntries": {
+              "output_compliance_status": "EXEMPT",
+              "output_risk_level": "LOW",
+              "output_required_actions": "Monitor regulatory changes"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

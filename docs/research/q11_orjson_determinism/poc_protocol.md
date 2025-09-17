@@ -1,4 +1,5 @@
 Title: Micro‑POC Protocol — Q11 Determinism (orjson vs stdlib)
+Last updated: 2025-09-02
 
 Question/Hypothesis: orjson + explicit newline/encoding yields stable snapshots across OS/Python with ≤5% overhead.
 Success Metrics: 100% snapshot match across OS/Python; perf delta ≤5%
@@ -10,4 +11,3 @@ Results: (TBD)
 Replication Notes: (TBD)
 Decision: (TBD)
 Follow‑ups: (TBD)
-

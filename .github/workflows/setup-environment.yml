@@ -1,0 +1,322 @@
+name: Environment Setup
+
+on:
+  workflow_call:
+    inputs:
+      languages:
+        description: 'Languages to setup (comma-separated: node,python,java,go,rust)'
+        required: true
+        type: string
+      node_version:
+        description: 'Node.js version'
+        required: false
+        type: string
+        default: '18'
+      python_version:
+        description: 'Python version'
+        required: false
+        type: string
+        default: '3.11'
+      java_version:
+        description: 'Java version'
+        required: false
+        type: string
+        default: '17'
+      go_version:
+        description: 'Go version'
+        required: false
+        type: string
+        default: '1.21'
+      rust_version:
+        description: 'Rust version'
+        required: false
+        type: string
+        default: 'stable'
+      install_dependencies:
+        description: 'Install project dependencies'
+        required: false
+        type: boolean
+        default: true
+      cache_dependencies:
+        description: 'Enable dependency caching'
+        required: false
+        type: boolean
+        default: true
+      setup_docker:
+        description: 'Setup Docker environment'
+        required: false
+        type: boolean
+        default: false
+      setup_terraform:
+        description: 'Setup Terraform'
+        required: false
+        type: boolean
+        default: false
+      setup_kubectl:
+        description: 'Setup kubectl'
+        required: false
+        type: boolean
+        default: false
+      additional_tools:
+        description: 'Additional tools to install (comma-separated)'
+        required: false
+        type: string
+    outputs:
+      setup_status:
+        description: 'Environment setup status'
+        value: ${{ jobs.setup.outputs.status }}
+      installed_languages:
+        description: 'List of installed languages'
+        value: ${{ jobs.setup.outputs.languages }}
+
+jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    
+    outputs:
+      status: ${{ steps.setup.outputs.status }}
+      languages: ${{ steps.setup.outputs.languages }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup environment
+        id: setup
+        run: |
+          echo "Setting up development environment..."
+          
+          LANGUAGES="${{ inputs.languages }}"
+          INSTALLED_LANGUAGES=""
+          
+          # Setup Node.js
+          if echo "$LANGUAGES" | grep -q "node"; then
+            echo "Setting up Node.js ${{ inputs.node_version }}..."
+            curl -fsSL https://deb.nodesource.com/setup_${{ inputs.node_version }}.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+            
+            # Setup npm caching
+            if [ "${{ inputs.cache_dependencies }}" == "true" ]; then
+              npm config set cache ~/.npm --global
+            fi
+            
+            INSTALLED_LANGUAGES="${INSTALLED_LANGUAGES}node,"
+            echo "✅ Node.js setup complete"
+          fi
+          
+          # Setup Python
+          if echo "$LANGUAGES" | grep -q "python"; then
+            echo "Setting up Python ${{ inputs.python_version }}..."
+            sudo apt-get update
+            sudo apt-get install -y python${{ inputs.python_version }} python3-pip python3-venv
+            
+            # Create virtual environment
+            python${{ inputs.python_version }} -m venv venv
+            source venv/bin/activate
+            
+            # Setup pip caching
+            if [ "${{ inputs.cache_dependencies }}" == "true" ]; then
+              pip config set global.cache-dir ~/.cache/pip
+            fi
+            
+            INSTALLED_LANGUAGES="${INSTALLED_LANGUAGES}python,"
+            echo "✅ Python setup complete"
+          fi
+          
+          # Setup Java
+          if echo "$LANGUAGES" | grep -q "java"; then
+            echo "Setting up Java ${{ inputs.java_version }}..."
+            sudo apt-get install -y openjdk-${{ inputs.java_version }}-jdk maven gradle
+            
+            # Setup Maven caching
+            if [ "${{ inputs.cache_dependencies }}" == "true" ]; then
+              mkdir -p ~/.m2
+              echo "<settings><localRepository>~/.m2/repository</localRepository></settings>" > ~/.m2/settings.xml
+            fi
+            
+            INSTALLED_LANGUAGES="${INSTALLED_LANGUAGES}java,"
+            echo "✅ Java setup complete"
+          fi
+          
+          # Setup Go
+          if echo "$LANGUAGES" | grep -q "go"; then
+            echo "Setting up Go ${{ inputs.go_version }}..."
+            wget -q https://golang.org/dl/go${{ inputs.go_version }}.linux-amd64.tar.gz
+            sudo tar -C /usr/local -xzf go${{ inputs.go_version }}.linux-amd64.tar.gz
+            echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.bashrc
+            export PATH=$PATH:/usr/local/go/bin
+            
+            # Setup Go module caching
+            if [ "${{ inputs.cache_dependencies }}" == "true" ]; then
+              export GOMODCACHE=~/go/pkg/mod
+              export GOCACHE=~/go/cache
+            fi
+            
+            INSTALLED_LANGUAGES="${INSTALLED_LANGUAGES}go,"
+            echo "✅ Go setup complete"
+          fi
+          
+          # Setup Rust
+          if echo "$LANGUAGES" | grep -q "rust"; then
+            echo "Setting up Rust ${{ inputs.rust_version }}..."
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${{ inputs.rust_version }}
+            source ~/.cargo/env
+            
+            # Setup cargo caching
+            if [ "${{ inputs.cache_dependencies }}" == "true" ]; then
+              export CARGO_HOME=~/.cargo
+              export CARGO_TARGET_DIR=~/target
+            fi
+            
+            INSTALLED_LANGUAGES="${INSTALLED_LANGUAGES}rust,"
+            echo "✅ Rust setup complete"
+          fi
+          
+          # Setup Docker
+          if [ "${{ inputs.setup_docker }}" == "true" ]; then
+            echo "Setting up Docker..."
+            sudo apt-get update
+            sudo apt-get install -y docker.io docker-compose-plugin
+            sudo usermod -aG docker $USER
+            
+            # Enable Docker BuildKit
+            echo "export DOCKER_BUILDKIT=1" >> ~/.bashrc
+            echo "export COMPOSE_DOCKER_CLI_BUILD=1" >> ~/.bashrc
+            
+            echo "✅ Docker setup complete"
+          fi
+          
+          # Setup Terraform
+          if [ "${{ inputs.setup_terraform }}" == "true" ]; then
+            echo "Setting up Terraform..."
+            wget -q https://releases.hashicorp.com/terraform/1.7.0/terraform_1.7.0_linux_amd64.zip
+            unzip terraform_1.7.0_linux_amd64.zip
+            sudo mv terraform /usr/local/bin/
+            rm terraform_1.7.0_linux_amd64.zip
+            
+            echo "✅ Terraform setup complete"
+          fi
+          
+          # Setup kubectl
+          if [ "${{ inputs.setup_kubectl }}" == "true" ]; then
+            echo "Setting up kubectl..."
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            rm kubectl
+            
+            echo "✅ kubectl setup complete"
+          fi
+          
+          # Install additional tools
+          if [ -n "${{ inputs.additional_tools }}" ]; then
+            IFS=',' read -ra TOOLS <<< "${{ inputs.additional_tools }}"
+            for tool in "${TOOLS[@]}"; do
+              case "$tool" in
+                "aws-cli")
+                  echo "Installing AWS CLI..."
+                  sudo apt-get install -y awscli
+                  ;;
+                "azure-cli")
+                  echo "Installing Azure CLI..."
+                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+                  ;;
+                "gcloud")
+                  echo "Installing Google Cloud SDK..."
+                  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+                  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+                  sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+                  ;;
+                "helm")
+                  echo "Installing Helm..."
+                  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                  ;;
+                "jq")
+                  echo "Installing jq..."
+                  sudo apt-get install -y jq
+                  ;;
+                "curl")
+                  echo "Installing curl..."
+                  sudo apt-get install -y curl
+                  ;;
+                "git")
+                  echo "Installing git..."
+                  sudo apt-get install -y git
+                  ;;
+              esac
+            done
+          fi
+          
+          # Install project dependencies
+          if [ "${{ inputs.install_dependencies }}" == "true" ]; then
+            echo "Installing project dependencies..."
+            
+            # Node.js dependencies
+            if [ -f "package.json" ] && echo "$LANGUAGES" | grep -q "node"; then
+              echo "Installing Node.js dependencies..."
+              npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit || true
+            fi
+            
+            # Python dependencies
+            if [ -f "requirements.txt" ] && echo "$LANGUAGES" | grep -q "python"; then
+              echo "Installing Python dependencies..."
+              source venv/bin/activate
+              pip install --cache-dir ~/.cache/pip -r requirements.txt || true
+            fi
+            
+            # Java dependencies
+            if [ -f "pom.xml" ] && echo "$LANGUAGES" | grep -q "java"; then
+              echo "Installing Java dependencies..."
+              mvn dependency:go-offline --no-transfer-progress || true
+            fi
+            
+            # Go dependencies
+            if [ -f "go.mod" ] && echo "$LANGUAGES" | grep -q "go"; then
+              echo "Installing Go dependencies..."
+              go mod download || true
+            fi
+            
+            # Rust dependencies
+            if [ -f "Cargo.toml" ] && echo "$LANGUAGES" | grep -q "rust"; then
+              echo "Installing Rust dependencies..."
+              cargo fetch || true
+            fi
+          fi
+          
+          # Verify installations
+          echo "Verifying installations..."
+          if echo "$LANGUAGES" | grep -q "node"; then
+            node --version
+            npm --version
+          fi
+          
+          if echo "$LANGUAGES" | grep -q "python"; then
+            source venv/bin/activate
+            python --version
+            pip --version
+          fi
+          
+          if echo "$LANGUAGES" | grep -q "java"; then
+            java -version
+            mvn --version || gradle --version || true
+          fi
+          
+          if echo "$LANGUAGES" | grep -q "go"; then
+            export PATH=$PATH:/usr/local/go/bin
+            go version
+          fi
+          
+          if echo "$LANGUAGES" | grep -q "rust"; then
+            source ~/.cargo/env
+            rustc --version
+            cargo --version
+          fi
+          
+          # Remove trailing comma from languages list
+          INSTALLED_LANGUAGES="${INSTALLED_LANGUAGES%,}"
+          
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "languages=$INSTALLED_LANGUAGES" >> $GITHUB_OUTPUT
+          
+          echo "✅ Environment setup completed successfully!"
+          echo "Installed languages: $INSTALLED_LANGUAGES"

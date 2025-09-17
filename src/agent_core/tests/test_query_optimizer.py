@@ -1,0 +1,296 @@
+
+import pytest
+
+from src.agent_core.query_optimizer import (
+    OptimizationResult,
+    QueryAnalysis,
+    QueryComplexity,
+    QueryDomain,
+    QueryOptimizer,
+)
+
+
+class TestQueryOptimizer:
+
+    def setup_method(self):
+        """Setup test fixtures."""
+        self.optimizer = QueryOptimizer()
+
+    def test_analyze_query_simple_compliance(self):
+        """Test analysis of simple compliance query."""
+        query = "What are CSRD requirements?"
+        analysis = self.optimizer.analyze_query(query)
+
+        assert analysis.length_chars == len(query)
+        assert analysis.complexity == QueryComplexity.SIMPLE
+        assert analysis.domain == QueryDomain.COMPLIANCE
+        assert analysis.has_questions
+        assert not analysis.has_technical_terms
+
+    def test_analyze_query_complex_document_processing(self):
+        """Test analysis of complex document processing query."""
+        query = "Analyze this PDF document and extract all compliance requirements, regulatory mandates, and standards mapping information for ESG reporting."
+        analysis = self.optimizer.analyze_query(query)
+
+        assert analysis.complexity == QueryComplexity.COMPLEX
+        assert analysis.domain == QueryDomain.DOCUMENT_PROCESSING
+        assert analysis.has_technical_terms
+        assert analysis.requires_reasoning
+
+    def test_analyze_query_standards_mapping(self):
+        """Test analysis of standards mapping query."""
+        query = "Map GDSN attributes to ontology schema for retail sector compliance."
+        analysis = self.optimizer.analyze_query(query)
+
+        assert analysis.domain == QueryDomain.STANDARDS_MAPPING
+        assert analysis.has_technical_terms
+        assert analysis.requires_structured_output
+
+    def test_analyze_query_very_complex(self):
+        """Test analysis of very complex query."""
+        query = "Compare and contrast the regulatory compliance frameworks across EU CSRD, US SEC climate disclosure rules, and international ESG standards, analyzing the mapping between GDSN ontology schemas and XBRL taxonomies for automated reporting systems in the retail sector."
+        analysis = self.optimizer.analyze_query(query)
+
+        assert analysis.complexity == QueryComplexity.VERY_COMPLEX
+        assert analysis.length_words > 30
+        assert analysis.requires_reasoning
+        assert analysis.requires_structured_output
+
+    def test_domain_detection_compliance_keywords(self):
+        """Test compliance domain detection with various keywords."""
+        compliance_queries = [
+            "CSRD directive compliance",
+            "ESG regulatory requirements",
+            "gap analysis for standards",
+            "mandate compliance check"
+        ]
+
+        for query in compliance_queries:
+            analysis = self.optimizer.analyze_query(query)
+            assert analysis.domain == QueryDomain.COMPLIANCE
+
+    def test_domain_detection_document_processing(self):
+        """Test document processing domain detection."""
+        doc_queries = [
+            "extract information from PDF",
+            "parse document content",
+            "analyze text document",
+            "content extraction from files"
+        ]
+
+        for query in doc_queries:
+            analysis = self.optimizer.analyze_query(query)
+            assert analysis.domain == QueryDomain.DOCUMENT_PROCESSING
+
+    def test_domain_detection_standards_mapping(self):
+        """Test standards mapping domain detection."""
+        mapping_queries = [
+            "map attributes to schema",
+            "GDSN standards mapping",
+            "ontology attribute mapping",
+            "data model standards"
+        ]
+
+        for query in mapping_queries:
+            analysis = self.optimizer.analyze_query(query)
+            assert analysis.domain == QueryDomain.STANDARDS_MAPPING
+
+    def test_complexity_analysis_factors(self):
+        """Test complexity analysis with different factors."""
+        # Simple query
+        simple = self.optimizer.analyze_query("What is CSRD?")
+        assert simple.complexity == QueryComplexity.SIMPLE
+
+        # Moderate complexity
+        moderate = self.optimizer.analyze_query("Explain CSRD requirements in detail.")
+        assert moderate.complexity in [QueryComplexity.MODERATE, QueryComplexity.COMPLEX]
+
+        # Complex with technical terms
+        complex_query = self.optimizer.analyze_query("Integrate ontology schema with API validation for compliance mapping.")
+        assert complex_query.complexity in [QueryComplexity.COMPLEX, QueryComplexity.VERY_COMPLEX]
+
+    def test_optimize_query_compliance(self):
+        """Test query optimization for compliance domain."""
+        query = "Analyze CSRD compliance gaps for our organization."
+        result = self.optimizer.optimize_query(query)
+
+        assert isinstance(result, OptimizationResult)
+        assert result.model in self.optimizer.model_configs
+        assert 0.0 <= result.temperature <= 0.5
+        assert result.max_tokens > 0
+        assert "compliance" in result.reasoning.lower()
+
+    def test_optimize_query_document_processing(self):
+        """Test query optimization for document processing."""
+        query = "Extract and analyze information from this regulatory document."
+        result = self.optimizer.optimize_query(query)
+
+        assert result.model in self.optimizer.model_configs
+        assert "document" in result.reasoning.lower()
+
+    def test_optimize_query_standards_mapping(self):
+        """Test query optimization for standards mapping."""
+        query = "Map these attributes to the GDSN ontology schema."
+        result = self.optimizer.optimize_query(query)
+
+        assert result.model in self.optimizer.model_configs
+        assert "structured" in result.reasoning.lower() or "mapping" in result.reasoning.lower()
+
+    def test_optimize_query_with_context_length(self):
+        """Test optimization with context length consideration."""
+        query = "Summarize this document."
+        context_length = 100000  # Long context
+
+        result = self.optimizer.optimize_query(query, context_length)
+
+        # Should select long context model and adjust max_tokens
+        assert result.max_tokens <= 3000  # Reduced for long context
+
+    def test_model_selection_long_context(self):
+        """Test model selection for long context queries."""
+        analysis = QueryAnalysis(
+            length_chars=100000,
+            length_words=20000,
+            complexity=QueryComplexity.COMPLEX,
+            domain=QueryDomain.DOCUMENT_PROCESSING,
+            has_questions=False,
+            has_technical_terms=True,
+            requires_reasoning=True,
+            requires_structured_output=False
+        )
+
+        model = self.optimizer._select_optimal_model(analysis, 100000)
+        # Should prefer long context models
+        assert model in ["meta-llama/llama-4-scout:free"]
+
+    def test_temperature_optimization(self):
+        """Test temperature optimization based on query characteristics."""
+        # Simple query should have lower temperature
+        simple_analysis = QueryAnalysis(
+            length_chars=50, length_words=10, complexity=QueryComplexity.SIMPLE,
+            domain=QueryDomain.GENERAL, has_questions=True, has_technical_terms=False,
+            requires_reasoning=False, requires_structured_output=False
+        )
+        temp_simple = self.optimizer._calculate_optimal_temperature(simple_analysis)
+        assert temp_simple < 0.3
+
+        # Complex reasoning query should have higher temperature
+        complex_analysis = QueryAnalysis(
+            length_chars=200, length_words=40, complexity=QueryComplexity.COMPLEX,
+            domain=QueryDomain.COMPLIANCE, has_questions=True, has_technical_terms=True,
+            requires_reasoning=True, requires_structured_output=False
+        )
+        temp_complex = self.optimizer._calculate_optimal_temperature(complex_analysis)
+        assert temp_complex > temp_simple
+
+    def test_max_tokens_optimization(self):
+        """Test max tokens optimization."""
+        # Simple query
+        simple_analysis = QueryAnalysis(
+            length_chars=50, length_words=10, complexity=QueryComplexity.SIMPLE,
+            domain=QueryDomain.GENERAL, has_questions=True, has_technical_terms=False,
+            requires_reasoning=False, requires_structured_output=False
+        )
+        tokens_simple = self.optimizer._calculate_optimal_max_tokens(simple_analysis, 0)
+        assert tokens_simple <= 4000
+
+        # Complex query
+        complex_analysis = QueryAnalysis(
+            length_chars=500, length_words=100, complexity=QueryComplexity.VERY_COMPLEX,
+            domain=QueryDomain.COMPLIANCE, has_questions=True, has_technical_terms=True,
+            requires_reasoning=True, requires_structured_output=True
+        )
+        tokens_complex = self.optimizer._calculate_optimal_max_tokens(complex_analysis, 0)
+        assert tokens_complex > tokens_simple
+
+    def test_optimization_reasoning(self):
+        """Test that optimization reasoning is comprehensive."""
+        analysis = QueryAnalysis(
+            length_chars=150, length_words=30, complexity=QueryComplexity.MODERATE,
+            domain=QueryDomain.STANDARDS_MAPPING, has_questions=True, has_technical_terms=True,
+            requires_reasoning=True, requires_structured_output=True
+        )
+
+        model = "mistralai/mistral-small-3.1-24b-instruct:free"
+        temperature = 0.2
+        max_tokens = 6000
+
+        reasoning = self.optimizer._generate_optimization_reasoning(analysis, model, temperature, max_tokens)
+
+        assert "standards_mapping" in reasoning
+        assert "moderate" in reasoning
+        assert str(analysis.length_chars) in reasoning
+        assert model in reasoning
+        assert str(temperature) in reasoning
+        assert str(max_tokens) in reasoning
+
+    def test_get_optimization_stats(self):
+        """Test getting optimization statistics."""
+        stats = self.optimizer.get_optimization_stats()
+
+        assert "supported_models" in stats
+        assert "domain_coverage" in stats
+        assert "complexity_levels" in stats
+        assert "expected_accuracy_improvement" in stats
+
+        assert len(stats["supported_models"]) == 5  # All configured models
+        assert QueryDomain.COMPLIANCE in stats["domain_coverage"]
+        assert "25-35%" in stats["expected_accuracy_improvement"]
+
+    def test_edge_cases(self):
+        """Test edge cases and error handling."""
+        # Empty query
+        with pytest.raises(ValueError):
+            self.optimizer.analyze_query("")
+
+        # Very long query
+        long_query = "word " * 1000
+        analysis = self.optimizer.analyze_query(long_query)
+        assert analysis.length_words == 1000
+        assert analysis.complexity in [QueryComplexity.COMPLEX, QueryComplexity.VERY_COMPLEX]
+
+        # Query with special characters
+        special_query = "Map XML→JSON for API compliance?"
+        analysis = self.optimizer.analyze_query(special_query)
+        assert analysis.has_questions
+        assert analysis.has_technical_terms
+
+    def test_isa_specific_scenarios(self):
+        """Test ISA-specific query scenarios."""
+        isa_queries = [
+            {
+                "query": "How does CSRD Article 8 affect GDSN attribute mapping for ESG data?",
+                "expected_domain": QueryDomain.STANDARDS_MAPPING,
+                "expected_complexity": QueryComplexity.COMPLEX
+            },
+            {
+                "query": "Extract compliance requirements from EU regulatory documents",
+                "expected_domain": QueryDomain.DOCUMENT_PROCESSING,
+                "expected_complexity": QueryComplexity.MODERATE
+            },
+            {
+                "query": "What are the mandatory ESG disclosure requirements?",
+                "expected_domain": QueryDomain.COMPLIANCE,
+                "expected_complexity": QueryComplexity.SIMPLE
+            },
+            {
+                "query": "Compare XBRL taxonomy mappings between different regulatory frameworks",
+                "expected_domain": QueryDomain.STANDARDS_MAPPING,
+                "expected_complexity": QueryComplexity.COMPLEX
+            }
+        ]
+
+        for test_case in isa_queries:
+            analysis = self.optimizer.analyze_query(test_case["query"])
+            assert analysis.domain == test_case["expected_domain"]
+            assert analysis.complexity == test_case["expected_complexity"]
+
+            # Test optimization
+            result = self.optimizer.optimize_query(test_case["query"])
+            assert result.model in self.optimizer.model_configs
+            assert result.temperature >= 0.0 and result.temperature <= 0.5
+            assert result.max_tokens >= 2000 and result.max_tokens <= 10000
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

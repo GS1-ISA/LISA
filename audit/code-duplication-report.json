@@ -1,0 +1,393 @@
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample6.jsonld[39m[22m [21:6 - 32:2] (11 lines, 129 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample8.jsonld[39m[22m [31:6 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample14.jsonld[39m[22m [1:1 - 15:43] (14 lines, 99 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample16.jsonld[39m[22m [1:1 - 15:26]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample13.jsonld[39m[22m [13:6 - 33:14] (20 lines, 115 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample17.jsonld[39m[22m [5:4 - 21:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1.jsonld[39m[22m [14:2 - 54:2] (40 lines, 470 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1b.jsonld[39m[22m [14:13 - 54:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [191:27 - 217:15] (26 lines, 116 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [99:5 - 125:14]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [243:2 - 290:2] (47 lines, 225 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [189:2 - 235:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [40:11 - 70:20] (30 lines, 145 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [68:11 - 98:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [69:2 - 223:2] (154 lines, 794 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [149:2 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [36:4 - 162:7] (126 lines, 669 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [38:3 - 244:13]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [161:2 - 214:13] (53 lines, 271 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [97:2 - 150:20]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [213:9 - 273:2] (60 lines, 280 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [243:9 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/association_event_all_possible_fields.jsonld[39m[22m [28:13 - 227:2] (199 lines, 1020 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [52:16 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [42:6 - 227:2] (185 lines, 945 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [38:3 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.1-ObjectEventWithDigitalLink.jsonld[39m[22m [29:2 - 42:2] (13 lines, 99 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [36:39 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample9.jsonld[39m[22m [2:65 - 35:2] (33 lines, 181 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample9.jsonld[39m[22m [2:58 - 35:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample8.jsonld[39m[22m [8:35 - 117:2] (109 lines, 699 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample8.jsonld[39m[22m [4:14 - 56:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample7.jsonld[39m[22m [8:35 - 70:2] (62 lines, 388 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample7.jsonld[39m[22m [4:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample6.jsonld[39m[22m [8:35 - 71:2] (63 lines, 394 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample6.jsonld[39m[22m [4:14 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample5.jsonld[39m[22m [8:35 - 76:2] (68 lines, 436 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample5.jsonld[39m[22m [4:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample4.jsonld[39m[22m [8:35 - 76:2] (68 lines, 448 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample4.jsonld[39m[22m [3:14 - 33:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample3.jsonld[39m[22m [8:35 - 50:2] (42 lines, 269 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample3.jsonld[39m[22m [4:14 - 33:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample2.jsonld[39m[22m [8:35 - 70:2] (62 lines, 404 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample2.jsonld[39m[22m [4:14 - 35:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample1b.jsonld[39m[22m [4:35 - 54:2] (50 lines, 526 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1b.jsonld[39m[22m [4:14 - 54:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample17.jsonld[39m[22m [21:9 - 54:2] (33 lines, 167 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample17.jsonld[39m[22m [14:39 - 30:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample16.jsonld[39m[22m [2:65 - 19:2] (17 lines, 105 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample16.jsonld[39m[22m [2:58 - 19:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample15.jsonld[39m[22m [2:65 - 18:17] (16 lines, 105 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample15.jsonld[39m[22m [2:58 - 18:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample15.jsonld[39m[22m [18:6 - 40:2] (22 lines, 117 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample15.jsonld[39m[22m [19:6 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample14.jsonld[39m[22m [1:1 - 18:15] (17 lines, 113 tokens)
+   [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample16.jsonld[39m[22m [1:1 - 18:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample14.jsonld[39m[22m [18:6 - 39:2] (21 lines, 104 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample14.jsonld[39m[22m [19:6 - 40:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample13.jsonld[39m[22m [9:3 - 34:14] (25 lines, 142 tokens)
+   [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample17.jsonld[39m[22m [6:5 - 31:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample13.jsonld[39m[22m [24:5 - 51:2] (27 lines, 133 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample13.jsonld[39m[22m [24:5 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample12.jsonld[39m[22m [12:27 - 37:17] (25 lines, 200 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample12.jsonld[39m[22m [10:16 - 35:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample12.jsonld[39m[22m [37:6 - 74:2] (37 lines, 201 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample12.jsonld[39m[22m [36:6 - 73:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample11.jsonld[39m[22m [2:65 - 42:2] (40 lines, 213 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample11.jsonld[39m[22m [2:58 - 42:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample10.jsonld[39m[22m [11:35 - 60:2] (49 lines, 313 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample10.jsonld[39m[22m [11:14 - 42:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample1.jsonld[39m[22m [8:35 - 122:2] (114 lines, 606 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1.jsonld[39m[22m [3:14 - 54:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [20:2 - 162:17] (142 lines, 714 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [10:9 - 152:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [175:14 - 301:65] (126 lines, 646 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [166:18 - 292:58]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [20:2 - 82:17] (62 lines, 312 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [10:9 - 72:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [79:2 - 165:13] (86 lines, 476 tokens)
+   [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [159:2 - 236:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [163:11 - 223:2] (60 lines, 281 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [188:15 - 310:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [24:6 - 282:2] (258 lines, 1324 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [14:10 - 224:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/association_event_all_possible_fields.jsonld[39m[22m [20:2 - 228:2] (208 lines, 1072 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/association_event_all_possible_fields.jsonld[39m[22m [10:9 - 224:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [20:2 - 107:20] (87 lines, 472 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [10:9 - 183:12]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [107:20 - 228:2] (121 lines, 599 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [174:12 - 224:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [4:35 - 49:2] (45 lines, 315 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [4:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithErrorDeclaration/ErrorDeclarationAndCorrectiveEvent.jsonld[39m[22m [8:35 - 84:2] (76 lines, 393 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/ErrorDeclarationAndCorrectiveEvent.jsonld[39m[22m [4:14 - 76:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.4-TransformationEventWithDigitalLink.jsonld[39m[22m [3:35 - 37:2] (34 lines, 235 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.4-TransformationEventWithDigitalLink.jsonld[39m[22m [3:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.3-AggregationEventWithDigitalLink.jsonld[39m[22m [8:35 - 48:2] (40 lines, 214 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.3-AggregationEventWithDigitalLink.jsonld[39m[22m [3:14 - 29:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.2-ObjectEventWithDigitalLink.jsonld[39m[22m [3:35 - 34:2] (31 lines, 244 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.2-ObjectEventWithDigitalLink.jsonld[39m[22m [3:14 - 34:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.1-ObjectEventWithDigitalLink.jsonld[39m[22m [3:35 - 42:2] (39 lines, 287 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.1-ObjectEventWithDigitalLink.jsonld[39m[22m [3:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-h.jsonld[39m[22m [4:35 - 26:2] (22 lines, 125 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-h.jsonld[39m[22m [4:14 - 26:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-g.jsonld[39m[22m [8:35 - 35:2] (27 lines, 147 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-g.jsonld[39m[22m [3:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [4:35 - 38:2] (34 lines, 289 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [4:14 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-e.jsonld[39m[22m [4:35 - 28:2] (24 lines, 140 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-e.jsonld[39m[22m [4:14 - 28:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-d.jsonld[39m[22m [4:35 - 24:2] (20 lines, 107 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-d.jsonld[39m[22m [4:14 - 24:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-c.jsonld[39m[22m [8:35 - 31:2] (23 lines, 124 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-c.jsonld[39m[22m [4:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-b.jsonld[39m[22m [4:35 - 25:2] (21 lines, 115 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-b.jsonld[39m[22m [4:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-a.jsonld[39m[22m [4:35 - 25:2] (21 lines, 115 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-a.jsonld[39m[22m [4:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [68:12 - 84:8] (16 lines, 135 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [29:12 - 45:6]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.4-TransformationEvent.jsonld[39m[22m [12:5 - 27:10] (15 lines, 107 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [8:9 - 36:21]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.4-TransformationEvent.jsonld[39m[22m [18:39 - 37:2] (19 lines, 97 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.4-TransformationEventWithDigitalLink.jsonld[39m[22m [18:39 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.2-ObjectEvent.jsonld[39m[22m [21:44 - 37:2] (16 lines, 97 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.2-ObjectEventWithDigitalLink.jsonld[39m[22m [20:49 - 34:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-with-comment.jsonld[39m[22m [28:92 - 50:2] (22 lines, 137 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [31:92 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [13:10 - 24:92] (11 lines, 87 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-with-comment.jsonld[39m[22m [17:58 - 28:92]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [18:9 - 44:2] (26 lines, 186 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [26:2 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent-with-pseudo-SBDH-headers.jsonld[39m[22m [10:13 - 47:2] (37 lines, 261 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [7:25 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [12:2 - 26:2] (14 lines, 129 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [11:2 - 24:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [28:42 - 47:2] (19 lines, 131 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [24:2 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/PersistentDisposition-example.jsonld[39m[22m [19:10 - 73:10] (54 lines, 256 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [16:12 - 50:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/PersistentDisposition-example.jsonld[39m[22m [90:13 - 135:2] (45 lines, 211 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [29:12 - 94:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.4-TransformationEvent.jsonld[39m[22m [4:35 - 37:2] (33 lines, 240 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.4-TransformationEvent.jsonld[39m[22m [4:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.3-AggregationEvent.jsonld[39m[22m [4:35 - 33:2] (29 lines, 209 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.3-AggregationEvent.jsonld[39m[22m [4:14 - 33:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.2-ObjectEvent.jsonld[39m[22m [4:35 - 37:2] (33 lines, 250 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.2-ObjectEvent.jsonld[39m[22m [4:14 - 34:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.1-with-comment.jsonld[39m[22m [11:35 - 71:2] (60 lines, 320 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-with-comment.jsonld[39m[22m [7:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.1-ObjectEvent.jsonld[39m[22m [4:35 - 44:2] (40 lines, 319 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [4:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.1-ObjectEvent-with-pseudo-SBDH-headers.jsonld[39m[22m [4:35 - 47:2] (43 lines, 300 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent-with-pseudo-SBDH-headers.jsonld[39m[22m [4:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [8:35 - 86:2] (78 lines, 402 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [4:14 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [1:1 - 32:2] (31 lines, 220 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [1:1 - 32:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [33:2 - 59:65] (26 lines, 136 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [33:2 - 59:58]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/EPCISQueryDocument.jsonld[39m[22m [16:14 - 71:2] (55 lines, 289 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [8:12 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/VC-Data-Model/licence-ontology.jsonld[39m[22m [1:1 - 203:31] (202 lines, 1130 tokens)
+   [1m[32mgs1_research/VC-Data-Model/license-ontology.jsonld[39m[22m [1:1 - 203:31]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [1:1 - 43:2] (42 lines, 271 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [1:1 - 43:57]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [44:9 - 85:2] (41 lines, 287 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-bizstep.jsonld[39m[22m [7:9 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [91:9 - 124:2] (33 lines, 231 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-disposition.jsonld[39m[22m [7:9 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [124:2 - 158:2] (34 lines, 205 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [48:61 - 82:65]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [163:9 - 179:2] (16 lines, 96 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [83:17 - 99:65]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [191:9 - 226:2] (35 lines, 237 tokens)
+   [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [90:2 - 125:6]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [225:2 - 265:2] (40 lines, 235 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [107:61 - 148:69]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [266:13 - 280:2] (14 lines, 93 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-biztransaction-type.jsonld[39m[22m [7:9 - 21:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [280:9 - 366:2] (86 lines, 504 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [149:17 - 235:66]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [367:17 - 439:2] (72 lines, 504 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/gs1-context-measurement-type.jsonld[39m[22m [6:9 - 79:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [447:2 - 472:2] (25 lines, 144 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [240:67 - 265:59]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [473:17 - 487:2] (14 lines, 98 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-component.jsonld[39m[22m [7:9 - 22:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [487:2 - 540:2] (53 lines, 302 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [265:59 - 318:62]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [544:9 - 593:2] (49 lines, 286 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [319:17 - 359:2]
+
+[90m┌────────[39m[90m┬────────────────[39m[90m┬─────────────[39m[90m┬──────────────[39m[90m┬──────────────[39m[90m┬──────────────────[39m[90m┬───────────────────┐[39m
+[90m│[39m[31m Format [39m[90m│[39m[31m Files analyzed [39m[90m│[39m[31m Total lines [39m[90m│[39m[31m Total tokens [39m[90m│[39m[31m Clones found [39m[90m│[39m[31m Duplicated lines [39m[90m│[39m[31m Duplicated tokens [39m[90m│[39m
+[90m├────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m json   [90m│[39m 312            [90m│[39m 11696       [90m│[39m 70661        [90m│[39m 96           [90m│[39m 5063 (43.29%)    [90m│[39m 29529 (41.79%)    [90m│[39m
+[90m├────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m [1mTotal:[22m [90m│[39m 312            [90m│[39m 11696       [90m│[39m 70661        [90m│[39m 96           [90m│[39m 5063 (43.29%)    [90m│[39m 29529 (41.79%)    [90m│[39m
+[90m└────────[39m[90m┴────────────────[39m[90m┴─────────────[39m[90m┴──────────────[39m[90m┴──────────────[39m[90m┴──────────────────[39m[90m┴───────────────────┘[39m
+[90mFound 96 clones.[39m
+[3m[90mDetection time:[39m[23m: 4.828s

@@ -4,6 +4,10 @@ from __future__ import annotations
 import csv
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 EXCLUDE_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
 NON_NORMATIVE = [
@@ -13,14 +17,16 @@ NON_NORMATIVE = [
 
 # Heuristics for extracting explicit rules/checks/behavioural statements
 RULE_PATTERNS = [
-    re.compile(r"\b(must|shall|required|enforced|prohibited|never|only)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(must|shall|required|enforced|prohibited|never|only)\b", re.IGNORECASE
+    ),
     re.compile(r"^\s*- \[(?: |x)\] "),  # checkboxes
     re.compile(r"^\s*Acceptance:\s*$", re.IGNORECASE),
     re.compile(r"^\s*Gate[-\s]Flip|^\s*Kill[-\s]Switch|^\s*Waiver", re.IGNORECASE),
 ]
 
 
-def iter_md_files(root: Path):
+def iter_md_files(root: Path) -> Iterable[Path]:
     for p in root.rglob("*.md"):
         if any(part in EXCLUDE_DIRS for part in p.parts):
             continue
@@ -35,8 +41,8 @@ def iter_md_files(root: Path):
         yield p
 
 
-def extract_rules(path: Path):
-    rules = []
+def extract_rules(path: Path) -> list[tuple[Path, int, str]]:
+    rules: list[tuple[Path, int, str]] = []
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except Exception:

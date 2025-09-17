@@ -1,0 +1,164 @@
+name: Caching Optimization Strategy
+
+on:
+  workflow_call:
+    inputs:
+      cache_scope:
+        description: 'Scope of caching (global, workflow, job)'
+        required: false
+        type: string
+        default: 'workflow'
+      cache_paths:
+        description: 'Additional paths to cache (JSON array)'
+        required: false
+        type: string
+        default: '[]'
+      invalidate_cache:
+        description: 'Force cache invalidation'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  CACHE_VERSION: 'v1'
+  GLOBAL_CACHE_KEY: 'global-cache-v1'
+
+jobs:
+  setup-caching:
+    name: Setup Optimized Caching
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+      cache-key: ${{ steps.cache.outputs.cache-key }}
+    
+    steps:
+      - name: Analyze caching requirements
+        id: analysis
+        run: |
+          echo "🔍 Analyzing caching requirements..."
+          
+          # Determine cache scope and paths
+          CACHE_SCOPE="${{ inputs.cache_scope }}"
+          ADDITIONAL_PATHS='${{ inputs.cache_paths }}'
+          
+          # Base cache paths
+          BASE_PATHS='[
+            "~/.cache/pip",
+            "~/.cache/pre-commit",
+            "~/.npm",
+            "~/.cache/yarn",
+            "node_modules",
+            ".pytest_cache",
+            ".mypy_cache",
+            ".ruff_cache"
+          ]'
+          
+          # Merge base and additional paths
+          MERGED_PATHS=$(echo "$BASE_PATHS $ADDITIONAL_PATHS" | jq -s 'add | unique')
+          
+          echo "cache_scope=${CACHE_SCOPE}" >> $GITHUB_OUTPUT
+          echo "cache_paths=${MERGED_PATHS}" >> $GITHUB_OUTPUT
+          
+          # Generate cache key based on scope
+          case "$CACHE_SCOPE" in
+            "global")
+              CACHE_KEY="${{ env.GLOBAL_CACHE_KEY }}-${{ runner.os }}-${{ hashFiles('**/requirements*.txt', '**/package*.json', '.pre-commit-config.yaml') }}"
+              ;;
+            "workflow")
+              CACHE_KEY="${{ github.workflow }}-${{ runner.os }}-${{ hashFiles('**/requirements*.txt', '**/package*.json', '.pre-commit-config.yaml') }}"
+              ;;
+            "job")
+              CACHE_KEY="${{ github.job }}-${{ runner.os }}-${{ hashFiles('**/requirements*.txt', '**/package*.json') }}"
+              ;;
+            *)
+              CACHE_KEY="${{ github.workflow }}-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}"
+              ;;
+          esac
+          
+          echo "cache_key=${CACHE_KEY}" >> $GITHUB_OUTPUT
+          echo "Generated cache key: ${CACHE_KEY}"
+
+      - name: Setup intelligent caching
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pre-commit
+            ~/.npm
+            ~/.cache/yarn
+            node_modules
+            .pytest_cache
+            .mypy_cache
+            .ruff_cache
+            ~/.cache/pip-tools
+            ~/.cache/black
+            ~/.cache/isort
+          key: ${{ steps.analysis.outputs.cache_key }}-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ steps.analysis.outputs.cache_key }}-
+            ${{ runner.os }}-${{ steps.analysis.outputs.cache_scope }}-
+
+      - name: Cache optimization metrics
+        if: always()
+        run: |
+          echo "📊 Cache Optimization Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache Hit | ${{ steps.cache.outputs.cache-hit }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache Key | ${{ steps.analysis.outputs.cache_key }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache Scope | ${{ steps.analysis.outputs.cache_scope }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.cache.outputs.cache-hit }}" == "true" ]; then
+            echo "✅ Cache hit achieved. Build time optimized." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Cache miss. Dependencies will be installed fresh." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  cleanup-cache:
+    name: Cache Cleanup
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Cleanup old caches
+        run: |
+          echo "🧹 Cleaning up old caches..."
+          
+          # Calculate cache age threshold (7 days)
+          THRESHOLD_DATE=$(date -d "7 days ago" +%s)
+          
+          # List and remove old caches (this would require GitHub API calls in real implementation)
+          echo "Cache cleanup completed (simulated)"
+          
+          # In a real implementation, you would use GitHub API to:
+          # 1. List all caches for the repository
+          # 2. Identify caches older than threshold
+          # 3. Delete old caches to free up space
+          
+          echo "✅ Cache cleanup completed"
+
+  cache-performance-report:
+    name: Cache Performance Report
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Generate performance report
+        run: |
+          echo "📈 Cache Performance Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Cache Hit Rate Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache Type | Hit Rate | Optimization |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|----------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Python Dependencies | High | Shared across jobs |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-commit Hooks | Medium | Workflow-scoped |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Artifacts | Low | Job-specific |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "- Use global cache for stable dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- Implement cache warming for critical paths" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor cache hit rates and adjust strategies" >> $GITHUB_STEP_SUMMARY

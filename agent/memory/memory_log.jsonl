@@ -1,0 +1,95 @@
+{"ts_iso": "2025-09-02T04:42:58.970182+00:00", "kind": "retrieve", "session_id": "-", "content": "Test?", "meta": {"context_type": "short_term", "snippets": 0}}
+{"ts_iso": "2025-09-02T04:42:58.970539+00:00", "kind": "store", "session_id": "interactive", "content": "Q: Test?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:42:58.970590+00:00", "kind": "ask", "session_id": "interactive", "content": "Test?", "meta": {"context_len": 0}}
+{"ts_iso": "2025-09-02T04:42:58.978117+00:00", "kind": "retrieve", "session_id": "-", "content": "What is ISA?", "meta": {"context_type": "short_term", "snippets": 0}}
+{"ts_iso": "2025-09-02T04:42:58.978275+00:00", "kind": "store", "session_id": "interactive", "content": "Q: What is ISA?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:42:58.978325+00:00", "kind": "ask", "session_id": "interactive", "content": "What is ISA?", "meta": {"context_len": 0}}
+{"ts_iso": "2025-09-02T04:42:58.981109+00:00", "kind": "create_entity", "session_id": "-", "content": "ESG regulation", "meta": {"type": "topic"}}
+{"ts_iso": "2025-09-02T04:42:58.981277+00:00", "kind": "add_observations", "session_id": "-", "content": "ESG regulation", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:42:58.981430+00:00", "kind": "create_entity", "session_id": "-", "content": "CSRD directive", "meta": {"type": "topic"}}
+{"ts_iso": "2025-09-02T04:42:58.981546+00:00", "kind": "add_observations", "session_id": "-", "content": "CSRD directive", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:42:58.981660+00:00", "kind": "create_entity", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"type": "topic"}}
+{"ts_iso": "2025-09-02T04:42:58.981772+00:00", "kind": "add_observations", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:42:58.997172+00:00", "kind": "create_entity", "session_id": "-", "content": "RFID", "meta": {"type": "technology"}}
+{"ts_iso": "2025-09-02T04:42:58.997362+00:00", "kind": "add_observations", "session_id": "-", "content": "RFID", "meta": {"count": 1}}
+{"ts_iso": "2025-09-02T04:42:59.000145+00:00", "kind": "store", "session_id": "t", "content": "Plan: owner: ops id:42", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:42:59.000248+00:00", "kind": "retrieve", "session_id": "-", "content": "ESG regulation", "meta": {"context_type": "short_term", "snippets": 3}}
+{"ts_iso": "2025-09-02T04:42:59.001105+00:00", "kind": "create_entity", "session_id": "-", "content": "Barcode", "meta": {"type": "standard"}}
+{"ts_iso": "2025-09-02T04:43:24.984057+00:00", "kind": "retrieve", "session_id": "-", "content": "Test?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T04:43:24.984468+00:00", "kind": "store", "session_id": "interactive", "content": "Q: Test?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:43:24.984517+00:00", "kind": "ask", "session_id": "interactive", "content": "Test?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T04:43:24.991437+00:00", "kind": "retrieve", "session_id": "-", "content": "What is ISA?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T04:43:24.991579+00:00", "kind": "store", "session_id": "interactive", "content": "Q: What is ISA?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:43:24.991631+00:00", "kind": "ask", "session_id": "interactive", "content": "What is ISA?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T04:43:24.993956+00:00", "kind": "add_observations", "session_id": "-", "content": "ESG regulation", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:43:24.994121+00:00", "kind": "add_observations", "session_id": "-", "content": "CSRD directive", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:43:24.994248+00:00", "kind": "add_observations", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:43:25.007777+00:00", "kind": "add_observations", "session_id": "-", "content": "RFID", "meta": {"count": 1}}
+{"ts_iso": "2025-09-02T04:43:25.010367+00:00", "kind": "store", "session_id": "t", "content": "Plan: owner: ops id:42", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:43:25.010467+00:00", "kind": "retrieve", "session_id": "-", "content": "ESG regulation", "meta": {"context_type": "short_term", "snippets": 3}}
+{"ts_iso": "2025-09-02T04:43:25.011304+00:00", "kind": "create_entity", "session_id": "-", "content": "Barcode", "meta": {"type": "standard"}}
+{"ts_iso": "2025-09-02T04:58:21.907624+00:00", "kind": "retrieve", "session_id": "-", "content": "Test?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T04:58:21.908022+00:00", "kind": "store", "session_id": "interactive", "content": "Q: Test?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:58:21.908076+00:00", "kind": "ask", "session_id": "interactive", "content": "Test?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T04:58:21.916212+00:00", "kind": "retrieve", "session_id": "-", "content": "What is ISA?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T04:58:21.916372+00:00", "kind": "store", "session_id": "interactive", "content": "Q: What is ISA?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:58:21.916425+00:00", "kind": "ask", "session_id": "interactive", "content": "What is ISA?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T04:58:21.919342+00:00", "kind": "add_observations", "session_id": "-", "content": "ESG regulation", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:58:21.919527+00:00", "kind": "add_observations", "session_id": "-", "content": "CSRD directive", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:58:21.919670+00:00", "kind": "add_observations", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T04:58:21.935540+00:00", "kind": "add_observations", "session_id": "-", "content": "RFID", "meta": {"count": 1}}
+{"ts_iso": "2025-09-02T04:58:21.938341+00:00", "kind": "store", "session_id": "t", "content": "Plan: owner: ops id:42", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T04:58:21.938447+00:00", "kind": "retrieve", "session_id": "-", "content": "ESG regulation", "meta": {"context_type": "short_term", "snippets": 3}}
+{"ts_iso": "2025-09-02T04:58:21.939455+00:00", "kind": "create_entity", "session_id": "-", "content": "Barcode", "meta": {"type": "standard"}}
+{"ts_iso": "2025-09-02T07:23:52.709269+00:00", "kind": "retrieve", "session_id": "-", "content": "Test?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T07:23:52.709770+00:00", "kind": "store", "session_id": "interactive", "content": "Q: Test?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:23:52.709827+00:00", "kind": "ask", "session_id": "interactive", "content": "Test?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T07:23:52.724468+00:00", "kind": "retrieve", "session_id": "-", "content": "What is ISA?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T07:23:52.724707+00:00", "kind": "store", "session_id": "interactive", "content": "Q: What is ISA?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:23:52.724828+00:00", "kind": "ask", "session_id": "interactive", "content": "What is ISA?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T07:23:52.727793+00:00", "kind": "add_observations", "session_id": "-", "content": "ESG regulation", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:23:52.727973+00:00", "kind": "add_observations", "session_id": "-", "content": "CSRD directive", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:23:52.728099+00:00", "kind": "add_observations", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:23:52.744048+00:00", "kind": "add_observations", "session_id": "-", "content": "RFID", "meta": {"count": 1}}
+{"ts_iso": "2025-09-02T07:23:52.746680+00:00", "kind": "store", "session_id": "t", "content": "Plan: owner: ops id:42", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:23:52.746784+00:00", "kind": "retrieve", "session_id": "-", "content": "ESG regulation", "meta": {"context_type": "short_term", "snippets": 3}}
+{"ts_iso": "2025-09-02T07:23:52.747690+00:00", "kind": "create_entity", "session_id": "-", "content": "Barcode", "meta": {"type": "standard"}}
+{"ts_iso": "2025-09-02T07:33:52.998407+00:00", "kind": "retrieve", "session_id": "-", "content": "Test?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T07:33:52.998868+00:00", "kind": "store", "session_id": "interactive", "content": "Q: Test?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:33:52.998923+00:00", "kind": "ask", "session_id": "interactive", "content": "Test?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T07:33:53.012936+00:00", "kind": "retrieve", "session_id": "-", "content": "What is ISA?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T07:33:53.013101+00:00", "kind": "store", "session_id": "interactive", "content": "Q: What is ISA?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:33:53.013157+00:00", "kind": "ask", "session_id": "interactive", "content": "What is ISA?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T07:33:53.015721+00:00", "kind": "add_observations", "session_id": "-", "content": "ESG regulation", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:33:53.015900+00:00", "kind": "add_observations", "session_id": "-", "content": "CSRD directive", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:33:53.016029+00:00", "kind": "add_observations", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:33:53.037000+00:00", "kind": "add_observations", "session_id": "-", "content": "RFID", "meta": {"count": 1}}
+{"ts_iso": "2025-09-02T07:33:53.039548+00:00", "kind": "store", "session_id": "t", "content": "Plan: owner: ops id:42", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:33:53.039665+00:00", "kind": "retrieve", "session_id": "-", "content": "ESG regulation", "meta": {"context_type": "short_term", "snippets": 3}}
+{"ts_iso": "2025-09-02T07:33:53.040573+00:00", "kind": "create_entity", "session_id": "-", "content": "Barcode", "meta": {"type": "standard"}}
+{"ts_iso": "2025-09-02T07:43:21.766152+00:00", "kind": "retrieve", "session_id": "-", "content": "Test?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T07:43:21.766665+00:00", "kind": "store", "session_id": "interactive", "content": "Q: Test?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:43:21.766735+00:00", "kind": "ask", "session_id": "interactive", "content": "Test?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T07:43:21.888835+00:00", "kind": "retrieve", "session_id": "-", "content": "What is ISA?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T07:43:21.889011+00:00", "kind": "store", "session_id": "interactive", "content": "Q: What is ISA?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:43:21.889066+00:00", "kind": "ask", "session_id": "interactive", "content": "What is ISA?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T07:43:21.891459+00:00", "kind": "add_observations", "session_id": "-", "content": "ESG regulation", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:43:21.891628+00:00", "kind": "add_observations", "session_id": "-", "content": "CSRD directive", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:43:21.891755+00:00", "kind": "add_observations", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T07:43:21.906663+00:00", "kind": "add_observations", "session_id": "-", "content": "RFID", "meta": {"count": 1}}
+{"ts_iso": "2025-09-02T07:43:21.909170+00:00", "kind": "store", "session_id": "t", "content": "Plan: owner: ops id:42", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T07:43:21.909277+00:00", "kind": "retrieve", "session_id": "-", "content": "ESG regulation", "meta": {"context_type": "short_term", "snippets": 3}}
+{"ts_iso": "2025-09-02T07:43:21.910139+00:00", "kind": "create_entity", "session_id": "-", "content": "Barcode", "meta": {"type": "standard"}}
+{"ts_iso": "2025-09-02T08:04:57.657990+00:00", "kind": "retrieve", "session_id": "-", "content": "Test?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T08:04:57.658731+00:00", "kind": "store", "session_id": "interactive", "content": "Q: Test?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T08:04:57.658812+00:00", "kind": "ask", "session_id": "interactive", "content": "Test?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T08:04:57.714456+00:00", "kind": "retrieve", "session_id": "-", "content": "What is ISA?", "meta": {"context_type": "short_term", "snippets": 2}}
+{"ts_iso": "2025-09-02T08:04:57.714618+00:00", "kind": "store", "session_id": "interactive", "content": "Q: What is ISA?\nA: Stubbed offline answer.", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T08:04:57.714677+00:00", "kind": "ask", "session_id": "interactive", "content": "What is ISA?", "meta": {"context_len": 83}}
+{"ts_iso": "2025-09-02T08:04:57.717988+00:00", "kind": "add_observations", "session_id": "-", "content": "ESG regulation", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T08:04:57.718201+00:00", "kind": "add_observations", "session_id": "-", "content": "CSRD directive", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T08:04:57.718343+00:00", "kind": "add_observations", "session_id": "-", "content": "OpenTelemetry tracing", "meta": {"count": 2}}
+{"ts_iso": "2025-09-02T08:04:57.738006+00:00", "kind": "add_observations", "session_id": "-", "content": "RFID", "meta": {"count": 1}}
+{"ts_iso": "2025-09-02T08:04:57.741231+00:00", "kind": "store", "session_id": "t", "content": "Plan: owner: ops id:42", "meta": {"context_type": "short_term"}}
+{"ts_iso": "2025-09-02T08:04:57.741382+00:00", "kind": "retrieve", "session_id": "-", "content": "ESG regulation", "meta": {"context_type": "short_term", "snippets": 3}}
+{"ts_iso": "2025-09-02T08:04:57.742547+00:00", "kind": "create_entity", "session_id": "-", "content": "Barcode", "meta": {"type": "standard"}}

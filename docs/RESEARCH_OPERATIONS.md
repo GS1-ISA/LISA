@@ -1,4 +1,5 @@
-Title: Research Operations — From Learning to Adoption (R2P)
+# Research Operations — From Learning to Adoption (R2P)
+Last updated: 2025-09-02
 
 Goal: Convert research into high‑impact, low‑bloat improvements via a repeatable Research‑to‑Production (R2P) pipeline with strong evidence standards and measurable ROI.
 
@@ -66,3 +67,6 @@ Artifacts & Traceability
 
 Acceptance
 - For each adopted research output: ADR exists; adapter and flag merged; nightly shadow metrics green for 7 days; promotion logged; rollback plan documented.
+\n+POC Results Index (Examples)
+- Q11 Determinism (orjson vs stdlib): docs/research/q11_orjson_determinism/results.md
+- Q12 Compiled Validators: docs/research/q12_compiled_validators/results.md

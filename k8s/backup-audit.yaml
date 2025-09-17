@@ -1,0 +1,309 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-audit-config
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: backup-audit
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+data:
+  audit-logger.sh: |
+    #!/bin/bash
+
+    LOG_FILE="/var/log/backup-audit.log"
+    AUDIT_DIR="/audit"
+
+    # Ensure directories exist
+    mkdir -p "$AUDIT_DIR"
+    mkdir -p /var/log
+
+    log_audit_event() {
+        local event_type="$1"
+        local backup_type="$2"
+        local status="$3"
+        local details="$4"
+        local user="${5:-system}"
+
+        local timestamp
+        timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+        local hostname
+        hostname=$(hostname)
+
+        local event_id
+        event_id=$(uuidgen 2>/dev/null || echo "$(date +%s)-$$")
+
+        # Create audit log entry
+        local audit_entry
+        audit_entry=$(jq -n \
+            --arg timestamp "$timestamp" \
+            --arg event_id "$event_id" \
+            --arg event_type "$event_type" \
+            --arg backup_type "$backup_type" \
+            --arg status "$status" \
+            --arg details "$details" \
+            --arg user "$user" \
+            --arg hostname "$hostname" \
+            '{
+                timestamp: $timestamp,
+                event_id: $event_id,
+                event_type: $event_type,
+                backup_type: $backup_type,
+                status: $status,
+                details: $details,
+                user: $user,
+                hostname: $hostname
+            }')
+
+        # Write to audit log
+        echo "$audit_entry" >> "$LOG_FILE"
+
+        # Also write human-readable format
+        echo "[$timestamp] $event_type - $backup_type - $status - $details - User: $user" >> "${LOG_FILE}.human"
+
+        # Rotate logs if needed
+        if [ $(stat -f%z "$LOG_FILE" 2>/dev/null || stat -c%s "$LOG_FILE" 2>/dev/null) -gt 104857600 ]; then
+            mv "$LOG_FILE" "${LOG_FILE}.$(date +%Y%m%d_%H%M%S)"
+            mv "${LOG_FILE}.human" "${LOG_FILE}.human.$(date +%Y%m%d_%H%M%S)"
+            touch "$LOG_FILE"
+            touch "${LOG_FILE}.human"
+        fi
+    }
+
+    # Main audit logging function
+    audit_backup_operation() {
+        local operation="$1"
+        local backup_type="$2"
+        local backup_name="$3"
+        local status="$4"
+        local details="$5"
+
+        case $operation in
+            "START")
+                log_audit_event "BACKUP_START" "$backup_type" "INFO" "Started backup: $backup_name - $details"
+                ;;
+            "SUCCESS")
+                log_audit_event "BACKUP_SUCCESS" "$backup_type" "SUCCESS" "Completed backup: $backup_name - $details"
+                ;;
+            "FAILURE")
+                log_audit_event "BACKUP_FAILURE" "$backup_type" "ERROR" "Failed backup: $backup_name - $details"
+                ;;
+            "VALIDATION_START")
+                log_audit_event "VALIDATION_START" "$backup_type" "INFO" "Started validation: $backup_name"
+                ;;
+            "VALIDATION_SUCCESS")
+                log_audit_event "VALIDATION_SUCCESS" "$backup_type" "SUCCESS" "Validation passed: $backup_name"
+                ;;
+            "VALIDATION_FAILURE")
+                log_audit_event "VALIDATION_FAILURE" "$backup_type" "ERROR" "Validation failed: $backup_name - $details"
+                ;;
+            "RESTORE_START")
+                log_audit_event "RESTORE_START" "$backup_type" "INFO" "Started restore: $backup_name"
+                ;;
+            "RESTORE_SUCCESS")
+                log_audit_event "RESTORE_SUCCESS" "$backup_type" "SUCCESS" "Restore completed: $backup_name"
+                ;;
+            "RESTORE_FAILURE")
+                log_audit_event "RESTORE_FAILURE" "$backup_type" "ERROR" "Restore failed: $backup_name - $details"
+                ;;
+            "CLEANUP")
+                log_audit_event "CLEANUP" "$backup_type" "INFO" "Cleaned up old backups: $details"
+                ;;
+            "ACCESS")
+                log_audit_event "ACCESS" "$backup_type" "INFO" "Backup accessed: $backup_name - $details"
+                ;;
+        esac
+    }
+
+    # Export function for use in other scripts
+    export -f audit_backup_operation
+    export -f log_audit_event
+
+  compliance-report.sh: |
+    #!/bin/bash
+    set -e
+
+    AUDIT_LOG="/var/log/backup-audit.log"
+    REPORT_DIR="/reports"
+    REPORT_DATE=$(date +%Y%m%d)
+
+    mkdir -p "$REPORT_DIR"
+
+    log() {
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
+    }
+
+    generate_compliance_report() {
+        local report_file="$REPORT_DIR/compliance_report_${REPORT_DATE}.json"
+
+        log "Generating compliance report..."
+
+        # Calculate metrics for the last 30 days
+        local thirty_days_ago
+        thirty_days_ago=$(date -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v -30d +%Y-%m-%dT%H:%M:%SZ)
+
+        # Extract audit events from the last 30 days
+        local recent_events
+        recent_events=$(grep -A 1000000 "$thirty_days_ago" "$AUDIT_LOG" 2>/dev/null || cat "$AUDIT_LOG")
+
+        # Calculate compliance metrics
+        local total_backups
+        total_backups=$(echo "$recent_events" | jq -r 'select(.event_type == "BACKUP_SUCCESS") | .event_id' 2>/dev/null | wc -l)
+
+        local failed_backups
+        failed_backups=$(echo "$recent_events" | jq -r 'select(.event_type == "BACKUP_FAILURE") | .event_id' 2>/dev/null | wc -l)
+
+        local successful_validations
+        successful_validations=$(echo "$recent_events" | jq -r 'select(.event_type == "VALIDATION_SUCCESS") | .event_id' 2>/dev/null | wc -l)
+
+        local failed_validations
+        failed_validations=$(echo "$recent_events" | jq -r 'select(.event_type == "VALIDATION_FAILURE") | .event_id' 2>/dev/null | wc -l)
+
+        local backup_success_rate=0
+        if [ "$total_backups" -gt 0 ]; then
+            backup_success_rate=$(( (total_backups * 100) / (total_backups + failed_backups) ))
+        fi
+
+        local validation_success_rate=0
+        local total_validations=$(( successful_validations + failed_validations ))
+        if [ "$total_validations" -gt 0 ]; then
+            validation_success_rate=$(( (successful_validations * 100) / total_validations ))
+        fi
+
+        # Check for required backup types
+        local required_types=("database" "redis" "neo4j" "config" "app_data")
+        local missing_types=()
+
+        for backup_type in "${required_types[@]}"; do
+            local type_count
+            type_count=$(echo "$recent_events" | jq -r "select(.event_type == \"BACKUP_SUCCESS\" and .backup_type == \"$backup_type\") | .event_id" 2>/dev/null | wc -l)
+            if [ "$type_count" -eq 0 ]; then
+                missing_types+=("$backup_type")
+            fi
+        done
+
+        # Generate compliance report
+        jq -n \
+            --arg report_date "$REPORT_DATE" \
+            --arg period_start "$thirty_days_ago" \
+            --arg period_end "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg total_backups "$total_backups" \
+            --arg failed_backups "$failed_backups" \
+            --arg backup_success_rate "${backup_success_rate}%" \
+            --arg successful_validations "$successful_validations" \
+            --arg failed_validations "$failed_validations" \
+            --arg validation_success_rate "${validation_success_rate}%" \
+            --args "${missing_types[@]}" \
+            '{
+                report_date: $report_date,
+                compliance_period: {
+                    start: $period_start,
+                    end: $period_end
+                },
+                backup_metrics: {
+                    total_successful_backups: ($total_backups | tonumber),
+                    total_failed_backups: ($failed_backups | tonumber),
+                    success_rate: $backup_success_rate
+                },
+                validation_metrics: {
+                    successful_validations: ($successful_validations | tonumber),
+                    failed_validations: ($failed_validations | tonumber),
+                    success_rate: $validation_success_rate
+                },
+                compliance_status: {
+                    gdpr_compliant: (if ($total_backups | tonumber) > 0 and ($failed_backups | tonumber) == 0 then true else false end),
+                    soc2_compliant: (if ($successful_validations | tonumber) > 0 then true else false end),
+                    hipaa_compliant: (if ($backup_success_rate | tonumber) >= 99 then true else false end)
+                },
+                issues: {
+                    missing_backup_types: $ARGS.positional
+                }
+            }' > "$report_file"
+
+        log "Compliance report generated: $report_file"
+    }
+
+    generate_audit_summary() {
+        local summary_file="$REPORT_DIR/audit_summary_${REPORT_DATE}.txt"
+
+        log "Generating audit summary..."
+
+        {
+            echo "ISA SuperApp Backup Audit Summary - $REPORT_DATE"
+            echo "==============================================="
+            echo ""
+            echo "Backup Operations Summary:"
+            echo "- Total successful backups: $(grep "BACKUP_SUCCESS" "$AUDIT_LOG" 2>/dev/null | wc -l)"
+            echo "- Total failed backups: $(grep "BACKUP_FAILURE" "$AUDIT_LOG" 2>/dev/null | wc -l)"
+            echo "- Total validations: $(grep "VALIDATION_" "$AUDIT_LOG" 2>/dev/null | wc -l)"
+            echo "- Total restores: $(grep "RESTORE_" "$AUDIT_LOG" 2>/dev/null | wc -l)"
+            echo ""
+            echo "Recent Activity (Last 7 days):"
+            grep "$(date -d '7 days ago' +%Y-%m-%d 2>/dev/null || date -v -7d +%Y-%m-%d)" "$AUDIT_LOG" 2>/dev/null | tail -20 || echo "No recent activity"
+            echo ""
+            echo "Report generated at $(date)"
+        } > "$summary_file"
+
+        log "Audit summary generated: $summary_file"
+    }
+
+    # Main execution
+    generate_compliance_report
+    generate_audit_summary
+
+    log "Compliance reporting completed"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-compliance-report
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: backup-audit
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 8 * * 1"  # Weekly on Monday at 8 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: compliance-report
+            image: alpine:latest
+            command:
+            - /bin/bash
+            - -c
+            - /scripts/compliance-report.sh
+            volumeMounts:
+            - name: audit-scripts
+              mountPath: /scripts
+            - name: audit-logs
+              mountPath: /var/log
+            - name: reports
+              mountPath: /reports
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 200m
+                memory: 512Mi
+          volumes:
+          - name: audit-scripts
+            configMap:
+              name: backup-audit-config
+              items:
+              - key: compliance-report.sh
+                path: compliance-report.sh
+          - name: audit-logs
+            hostPath:
+              path: /var/log/backup-audit
+              type: DirectoryOrCreate
+          - name: reports
+            hostPath:
+              path: /var/log/backup-reports
+              type: DirectoryOrCreate
+          restartPolicy: OnFailure

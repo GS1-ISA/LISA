@@ -1,0 +1,2201 @@
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/safety/formatters/schemas/0_5.json[39m[22m [1:1 - 32:2] (31 lines, 137 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/safety/formatters/schemas/3_0.json[39m[22m [1:1 - 32:2]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft6/metaschema.json[39m[22m [3:42 - 53:8] (50 lines, 297 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft7/metaschema.json[39m[22m [3:42 - 53:11]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft6/metaschema.json[39m[22m [63:9 - 92:2] (29 lines, 196 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft7/metaschema.json[39m[22m [70:9 - 99:5]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft6/metaschema.json[39m[22m [93:9 - 131:2] (38 lines, 326 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft7/metaschema.json[39m[22m [100:9 - 138:5]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft4/metaschema.json[39m[22m [97:9 - 111:10] (14 lines, 107 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft7/metaschema.json[39m[22m [111:2 - 125:16]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft4/metaschema.json[39m[22m [126:9 - 144:15] (18 lines, 147 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft6/metaschema.json[39m[22m [134:9 - 152:10]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [60:7 - 85:2] (25 lines, 111 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [10:7 - 34:2]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [190:27 - 289:7] (99 lines, 433 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [90:22 - 189:13]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [289:7 - 389:2] (100 lines, 441 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [89:7 - 188:2]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p3beta1/gapic_metadata.json[39m[22m [46:15 - 137:30] (91 lines, 402 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [76:15 - 167:16]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p3beta1/gapic_metadata.json[39m[22m [135:15 - 249:7] (114 lines, 500 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [170:15 - 154:13]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p3beta1/gapic_metadata.json[39m[22m [230:15 - 344:2] (114 lines, 499 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [270:15 - 153:2]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p2beta1/gapic_metadata.json[39m[22m [5:32 - 57:2] (52 lines, 240 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p3beta1/gapic_metadata.json[39m[22m [5:32 - 56:2]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1/gapic_metadata.json[39m[22m [5:25 - 392:2] (387 lines, 1721 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/google/cloud/vision_v1p4beta1/gapic_metadata.json[39m[22m [5:32 - 392:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/resolve/test/resolver/multirepo/package.json[39m[22m [1:1 - 20:2] (19 lines, 112 tokens)
+   [1m[32mfrontend/node_modules/eslint-plugin-react/node_modules/resolve/test/resolver/multirepo/package.json[39m[22m [1:1 - 20:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/next/dist/compiled/react-server-dom-webpack/package.json[39m[22m [2:35 - 50:35] (48 lines, 299 tokens)
+   [1m[32mfrontend/node_modules/next/dist/compiled/react-server-dom-webpack-experimental/package.json[39m[22m [2:48 - 50:40]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/next/dist/compiled/react-server-dom-turbopack-experimental/package.json[39m[22m [12:9 - 28:12] (16 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/next/dist/compiled/react-server-dom-webpack-experimental/package.json[39m[22m [12:9 - 28:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/next/dist/compiled/react-server-dom-turbopack/package.json[39m[22m [2:37 - 51:35] (49 lines, 306 tokens)
+   [1m[32mfrontend/node_modules/next/dist/compiled/react-server-dom-turbopack-experimental/package.json[39m[22m [2:50 - 51:40]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/next/dist/compiled/react-dom/package.json[39m[22m [2:20 - 39:37] (37 lines, 239 tokens)
+   [1m[32mfrontend/node_modules/next/dist/compiled/react-dom-experimental/package.json[39m[22m [2:33 - 39:21]
+
+Clone found (json):
+ - [1m[32m.venv/lib/python3.13/site-packages/setuptools/config/setuptools.schema.json[39m[22m [136:79 - 149:21] (13 lines, 100 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/setuptools/config/setuptools.schema.json[39m[22m [112:79 - 125:23]
+
+Clone found (json):
+ - [1m[32mnode_modules/@tanstack/react-query/build/query-codemods/package.json[39m[22m [1:1 - 38:2] (37 lines, 211 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/react-query/build/query-codemods/package.json[39m[22m [1:1 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON_Schema/TDT-JSON-Schema.json[39m[22m [230:25 - 256:2] (26 lines, 131 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON_Schema/TDT-JSON-Schema.json[39m[22m [147:31 - 172:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [18:41 - 41:5] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [93:2 - 115:19] (22 lines, 116 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [61:33 - 83:14]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [127:46 - 145:89] (18 lines, 101 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [89:48 - 107:22]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGLN+.json[39m[22m [18:41 - 41:6] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGLN+.json[39m[22m [93:2 - 115:19] (22 lines, 116 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGLN+.json[39m[22m [61:31 - 83:14]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGLN+.json[39m[22m [143:15 - 163:2] (20 lines, 112 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [148:15 - 169:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGCN+.json[39m[22m [18:41 - 41:6] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [18:41 - 41:7] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [93:2 - 115:19] (22 lines, 116 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [61:33 - 83:14]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [104:17 - 126:133] (22 lines, 107 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [104:17 - 126:131]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [127:48 - 145:88] (18 lines, 101 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [89:50 - 107:22]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [145:88 - 173:2] (28 lines, 137 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [145:89 - 173:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GSRNP+.json[39m[22m [18:41 - 41:7] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GSRN+.json[39m[22m [18:41 - 41:7] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GRAI+.json[39m[22m [18:41 - 41:7] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GID-96.json[39m[22m [92:62 - 120:18] (28 lines, 150 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GID-96.json[39m[22m [58:66 - 86:16]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GID-96.json[39m[22m [126:81 - 153:2] (27 lines, 143 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GID-96.json[39m[22m [58:66 - 84:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GIAI+.json[39m[22m [18:41 - 41:7] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GDTI+.json[39m[22m [18:41 - 41:6] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/CPI+.json[39m[22m [18:41 - 41:7] (23 lines, 134 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [18:41 - 41:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [47:78 - 70:21] (23 lines, 139 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [17:59 - 40:9]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [82:258 - 111:4] (29 lines, 165 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [16:262 - 45:4]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [112:363 - 147:4] (35 lines, 199 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [46:367 - 81:4]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [179:71 - 202:21] (23 lines, 139 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [149:52 - 172:9]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [214:252 - 243:4] (29 lines, 165 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [148:256 - 177:4]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [244:357 - 278:2] (34 lines, 192 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [178:361 - 211:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [312:95 - 329:31] (17 lines, 97 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [288:67 - 305:19]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [340:89 - 357:15] (17 lines, 97 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [287:86 - 304:14]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [364:114 - 392:4] (28 lines, 150 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [311:111 - 339:4]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [418:97 - 435:31] (17 lines, 97 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [394:69 - 411:19]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [446:89 - 463:15] (17 lines, 97 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [393:86 - 410:14]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [470:114 - 497:2] (27 lines, 143 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [417:111 - 443:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [595:98 - 616:4] (21 lines, 109 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [556:95 - 577:4]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [673:98 - 693:2] (20 lines, 102 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [634:95 - 653:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [687:2 - 708:16] (21 lines, 117 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [491:2 - 512:15]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [708:16 - 730:6] (22 lines, 121 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [512:15 - 534:16]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/data_entry_server/src/gs1-digitallink-toolkit/package.json[39m[22m [1:1 - 40:2] (39 lines, 206 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/web_server/src/gs1-digitallink-toolkit/package.json[39m[22m [1:1 - 40:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/wrap-ansi/node_modules/strip-ansi/package.json[39m[22m [1:1 - 59:2] (58 lines, 293 tokens)
+   [1m[32mfrontend/node_modules/@isaacs/cliui/node_modules/strip-ansi/package.json[39m[22m [1:1 - 59:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/wrap-ansi/node_modules/ansi-regex/package.json[39m[22m [1:1 - 61:2] (60 lines, 303 tokens)
+   [1m[32mfrontend/node_modules/@isaacs/cliui/node_modules/ansi-regex/package.json[39m[22m [1:1 - 61:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/sucrase/node_modules/minimatch/package.json[39m[22m [36:6 - 62:25] (26 lines, 158 tokens)
+   [1m[32mfrontend/node_modules/@typescript-eslint/typescript-estree/node_modules/minimatch/package.json[39m[22m [38:9 - 64:5]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/sucrase/node_modules/brace-expansion/package.json[39m[22m [1:1 - 49:2] (48 lines, 258 tokens)
+   [1m[32mfrontend/node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion/package.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/string-width-cjs/node_modules/emoji-regex/package.json[39m[22m [1:1 - 50:2] (49 lines, 265 tokens)
+   [1m[32mfrontend/node_modules/wrap-ansi-cjs/node_modules/emoji-regex/package.json[39m[22m [1:1 - 50:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/string-width/node_modules/strip-ansi/package.json[39m[22m [1:1 - 59:2] (58 lines, 293 tokens)
+   [1m[32mfrontend/node_modules/@isaacs/cliui/node_modules/strip-ansi/package.json[39m[22m [1:1 - 59:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/string-width/node_modules/ansi-regex/package.json[39m[22m [1:1 - 61:2] (60 lines, 303 tokens)
+   [1m[32mfrontend/node_modules/@isaacs/cliui/node_modules/ansi-regex/package.json[39m[22m [1:1 - 61:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/socket.io-client/node_modules/debug/package.json[39m[22m [1:1 - 60:2] (59 lines, 330 tokens)
+   [1m[32mfrontend/node_modules/socket.io-parser/node_modules/debug/package.json[39m[22m [1:1 - 60:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/next/dist/lib/server-external-packages.json[39m[22m [1:1 - 52:2] (51 lines, 201 tokens)
+   [1m[32mfrontend/node_modules/next/dist/esm/lib/server-external-packages.json[39m[22m [1:1 - 52:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/eslint-plugin-import/node_modules/semver/package.json[39m[22m [1:1 - 38:2] (37 lines, 214 tokens)
+   [1m[32mfrontend/node_modules/eslint-plugin-react/node_modules/semver/package.json[39m[22m [1:1 - 38:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/eslint-plugin-import/node_modules/doctrine/package.json[39m[22m [1:1 - 57:2] (56 lines, 332 tokens)
+   [1m[32mfrontend/node_modules/eslint-plugin-react/node_modules/doctrine/package.json[39m[22m [1:1 - 57:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/eslint-module-utils/node_modules/debug/package.json[39m[22m [1:1 - 51:2] (50 lines, 284 tokens)
+   [1m[32mfrontend/node_modules/eslint-plugin-import/node_modules/debug/package.json[39m[22m [1:1 - 51:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/eslint-import-resolver-node/node_modules/debug/package.json[39m[22m [1:1 - 51:2] (50 lines, 284 tokens)
+   [1m[32mfrontend/node_modules/eslint-plugin-import/node_modules/debug/package.json[39m[22m [1:1 - 51:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/engine.io-client/node_modules/debug/package.json[39m[22m [1:1 - 60:2] (59 lines, 330 tokens)
+   [1m[32mfrontend/node_modules/socket.io-parser/node_modules/debug/package.json[39m[22m [1:1 - 60:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/chokidar/node_modules/glob-parent/package.json[39m[22m [1:1 - 48:2] (47 lines, 252 tokens)
+   [1m[32mfrontend/node_modules/fast-glob/node_modules/glob-parent/package.json[39m[22m [1:1 - 48:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ajv/lib/refs/json-schema-draft-07.json[39m[22m [1:1 - 141:2] (140 lines, 954 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft7/metaschema.json[39m[22m [1:1 - 142:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ajv/lib/refs/json-schema-draft-07.json[39m[22m [141:5 - 157:19] (16 lines, 104 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft4/metaschema.json[39m[22m [123:8 - 139:8]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ajv/lib/refs/json-schema-draft-07.json[39m[22m [143:14 - 168:2] (25 lines, 221 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft7/metaschema.json[39m[22m [141:8 - 166:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ajv/lib/refs/json-schema-draft-06.json[39m[22m [1:1 - 129:16] (128 lines, 866 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft6/metaschema.json[39m[22m [1:1 - 122:7]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ajv/lib/refs/json-schema-draft-06.json[39m[22m [117:2 - 132:2] (15 lines, 103 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft6/metaschema.json[39m[22m [118:2 - 134:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ajv/lib/refs/json-schema-draft-06.json[39m[22m [130:2 - 154:2] (24 lines, 183 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft4/metaschema.json[39m[22m [121:9 - 153:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ajv/lib/refs/json-schema-draft-04.json[39m[22m [1:1 - 149:2] (148 lines, 1073 tokens)
+   [1m[32m.venv/lib/python3.13/site-packages/jsonschema_specifications/schemas/draft4/metaschema.json[39m[22m [1:1 - 149:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/react-dropzone/typings/tests/tsconfig.json[39m[22m [1:1 - 22:2] (21 lines, 109 tokens)
+   [1m[32mfrontend/node_modules/react-dropzone/typings/tests/tsconfig.json[39m[22m [1:1 - 22:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/zod/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/zod/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/yup/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/yup/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/vine/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/vine/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/vest/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/vest/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/valibot/package.json[39m[22m [1:1 - 15:10] (14 lines, 96 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/valibot/package.json[39m[22m [1:1 - 15:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/typeschema/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/typeschema/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/typebox/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/typebox/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/typanion/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/typanion/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/superstruct/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/superstruct/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/nope/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/nope/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/joi/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/joi/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/io-ts/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/io-ts/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/fluentvalidation-ts/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/fluentvalidation-ts/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/effect-ts/package.json[39m[22m [1:1 - 16:10] (15 lines, 103 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/effect-ts/package.json[39m[22m [1:1 - 16:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/computed-types/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/computed-types/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/class-validator/package.json[39m[22m [1:1 - 19:2] (18 lines, 115 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/class-validator/package.json[39m[22m [1:1 - 19:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/arktype/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/arktype/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/ajv/package.json[39m[22m [1:1 - 14:10] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/ajv/package.json[39m[22m [1:1 - 14:9]
+
+Clone found (json):
+ - [1m[32mgs1_research/gs1-syntax-engine/src/js-wasm/package.json[39m[22m [4:85 - 40:2] (36 lines, 185 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/web_server/src/gs1-digitallink-toolkit/package.json[39m[22m [4:77 - 40:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON_Schema/TDT-JSON-Schema.json[39m[22m [1:1 - 267:2] (266 lines, 1340 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON_Schema/TDT-JSON-Schema.json[39m[22m [1:1 - 267:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/manifest.json[39m[22m [1:1 - 45:2] (44 lines, 771 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/manifest.json[39m[22m [1:1 - 45:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/USDOD-96.json[39m[22m [1:1 - 139:2] (138 lines, 761 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/USDOD-96.json[39m[22m [1:1 - 139:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/TDT_TableK.json[39m[22m [1:1 - 57:2] (56 lines, 896 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/TDT_TableK.json[39m[22m [1:1 - 57:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/TDT_TableF.json[39m[22m [1:1 - 556:2] (555 lines, 16437 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/TDT_TableF.json[39m[22m [1:1 - 556:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/TDT_TableE.json[39m[22m [1:1 - 22:2] (21 lines, 406 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/TDT_TableE.json[39m[22m [1:1 - 22:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/TDT_TableB.json[39m[22m [1:1 - 106:2] (105 lines, 3085 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/TDT_TableB.json[39m[22m [1:1 - 106:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/SSCC+.json[39m[22m [1:1 - 129:2] (128 lines, 703 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SSCC+.json[39m[22m [1:1 - 129:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/SGTIN+.json[39m[22m [1:1 - 173:2] (172 lines, 937 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGTIN+.json[39m[22m [1:1 - 173:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/SGLN+.json[39m[22m [1:1 - 171:2] (170 lines, 929 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGLN+.json[39m[22m [1:1 - 171:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/SGCN+.json[39m[22m [1:1 - 114:2] (113 lines, 598 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/SGCN+.json[39m[22m [1:1 - 114:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/ITIP+.json[39m[22m [1:1 - 173:2] (172 lines, 937 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ITIP+.json[39m[22m [1:1 - 173:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/GSRNP+.json[39m[22m [1:1 - 129:2] (128 lines, 706 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GSRNP+.json[39m[22m [1:1 - 129:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/GSRN+.json[39m[22m [1:1 - 129:2] (128 lines, 706 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GSRN+.json[39m[22m [1:1 - 129:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/GRAI+.json[39m[22m [1:1 - 132:2] (131 lines, 703 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GRAI+.json[39m[22m [1:1 - 132:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/GID-96.json[39m[22m [1:1 - 156:2] (155 lines, 864 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GID-96.json[39m[22m [1:1 - 156:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/GIAI+.json[39m[22m [1:1 - 132:2] (131 lines, 703 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GIAI+.json[39m[22m [1:1 - 132:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/GDTI+.json[39m[22m [1:1 - 132:2] (131 lines, 703 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/GDTI+.json[39m[22m [1:1 - 132:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/CPI+.json[39m[22m [1:1 - 160:2] (159 lines, 862 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/CPI+.json[39m[22m [1:1 - 160:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/TDT/artefacts/JSON/ADI-var.json[39m[22m [1:1 - 894:2] (893 lines, 4920 tokens)
+   [1m[32mgs1_research/TDT/2.2.0-draft/artefacts/JSON/ADI-var.json[39m[22m [1:1 - 894:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample6.jsonld[39m[22m [21:6 - 32:2] (11 lines, 129 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample8.jsonld[39m[22m [31:6 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample14.jsonld[39m[22m [1:1 - 15:43] (14 lines, 99 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample16.jsonld[39m[22m [1:1 - 15:26]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample13.jsonld[39m[22m [13:6 - 33:14] (20 lines, 115 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample17.jsonld[39m[22m [5:4 - 21:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1.jsonld[39m[22m [14:2 - 54:2] (40 lines, 470 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1b.jsonld[39m[22m [14:13 - 54:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [191:27 - 217:15] (26 lines, 116 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [99:5 - 125:14]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [243:2 - 290:2] (47 lines, 225 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [189:2 - 235:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [40:11 - 70:20] (30 lines, 145 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [68:11 - 98:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [69:2 - 223:2] (154 lines, 794 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [149:2 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [36:4 - 162:7] (126 lines, 669 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [38:3 - 244:13]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [161:2 - 214:13] (53 lines, 271 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [97:2 - 150:20]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [213:9 - 273:2] (60 lines, 280 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [243:9 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/association_event_all_possible_fields.jsonld[39m[22m [28:13 - 227:2] (199 lines, 1020 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [52:16 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [42:6 - 227:2] (185 lines, 945 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [38:3 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.1-ObjectEventWithDigitalLink.jsonld[39m[22m [29:2 - 42:2] (13 lines, 99 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [36:39 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/test/TransformationEvent.json[39m[22m [9:5 - 24:10] (15 lines, 107 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [8:9 - 36:21]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/test/TransformationEvent.json[39m[22m [15:39 - 29:2] (14 lines, 85 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.4-TransformationEventWithDigitalLink.jsonld[39m[22m [18:39 - 34:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransformationEvent-JSON-Schema.json[39m[22m [182:25 - 213:2] (31 lines, 154 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransformationEvent-JSON-Schema.json[39m[22m [112:33 - 144:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransformationEvent-JSON-Schema.json[39m[22m [214:33 - 244:2] (30 lines, 148 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransformationEvent-JSON-Schema.json[39m[22m [148:41 - 179:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/ObjectEvent-JSON-Schema.json[39m[22m [25:25 - 70:2] (45 lines, 238 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransformationEvent-JSON-Schema.json[39m[22m [33:25 - 79:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/ObjectEvent-JSON-Schema.json[39m[22m [94:33 - 132:8] (38 lines, 176 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransactionEvent-JSON-Schema.json[39m[22m [98:33 - 136:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/AssociationEvent-JSON-Schema.json[39m[22m [25:20 - 46:21] (21 lines, 111 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransactionEvent-JSON-Schema.json[39m[22m [33:15 - 54:13]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/AssociationEvent-JSON-Schema.json[39m[22m [39:21 - 71:9] (32 lines, 174 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/TransformationEvent-JSON-Schema.json[39m[22m [42:25 - 75:21]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/AggregationEvent-JSON-Schema.json[39m[22m [15:19 - 75:2] (60 lines, 311 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/AssociationEvent-JSON-Schema.json[39m[22m [14:19 - 71:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/AggregationEvent-JSON-Schema.json[39m[22m [75:21 - 149:33] (74 lines, 337 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/AssociationEvent-JSON-Schema.json[39m[22m [71:11 - 140:33]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample9.jsonld[39m[22m [2:65 - 35:2] (33 lines, 181 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample9.jsonld[39m[22m [2:58 - 35:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample8.jsonld[39m[22m [8:35 - 117:2] (109 lines, 699 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample8.jsonld[39m[22m [4:14 - 56:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample7.jsonld[39m[22m [8:35 - 70:2] (62 lines, 388 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample7.jsonld[39m[22m [4:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample6.jsonld[39m[22m [8:35 - 71:2] (63 lines, 394 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample6.jsonld[39m[22m [4:14 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample5.jsonld[39m[22m [8:35 - 76:2] (68 lines, 436 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample5.jsonld[39m[22m [4:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample4.jsonld[39m[22m [8:35 - 76:2] (68 lines, 448 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample4.jsonld[39m[22m [3:14 - 33:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample3.jsonld[39m[22m [8:35 - 50:2] (42 lines, 269 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample3.jsonld[39m[22m [4:14 - 33:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample2.jsonld[39m[22m [8:35 - 70:2] (62 lines, 404 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample2.jsonld[39m[22m [4:14 - 35:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample1b.jsonld[39m[22m [4:35 - 54:2] (50 lines, 526 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1b.jsonld[39m[22m [4:14 - 54:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample17.jsonld[39m[22m [21:9 - 54:2] (33 lines, 167 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample17.jsonld[39m[22m [14:39 - 30:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample16.jsonld[39m[22m [2:65 - 19:2] (17 lines, 105 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample16.jsonld[39m[22m [2:58 - 19:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample15.jsonld[39m[22m [2:65 - 18:17] (16 lines, 105 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample15.jsonld[39m[22m [2:58 - 18:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample15.jsonld[39m[22m [18:6 - 40:2] (22 lines, 117 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample15.jsonld[39m[22m [19:6 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample14.jsonld[39m[22m [1:1 - 18:15] (17 lines, 113 tokens)
+   [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample16.jsonld[39m[22m [1:1 - 18:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample14.jsonld[39m[22m [18:6 - 39:2] (21 lines, 104 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample14.jsonld[39m[22m [19:6 - 40:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample13.jsonld[39m[22m [9:3 - 34:14] (25 lines, 142 tokens)
+   [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample17.jsonld[39m[22m [6:5 - 31:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample13.jsonld[39m[22m [24:5 - 51:2] (27 lines, 133 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample13.jsonld[39m[22m [24:5 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample12.jsonld[39m[22m [12:27 - 37:17] (25 lines, 200 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample12.jsonld[39m[22m [10:16 - 35:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample12.jsonld[39m[22m [37:6 - 74:2] (37 lines, 201 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample12.jsonld[39m[22m [36:6 - 73:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample11.jsonld[39m[22m [2:65 - 42:2] (40 lines, 213 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample11.jsonld[39m[22m [2:58 - 42:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample10.jsonld[39m[22m [11:35 - 60:2] (49 lines, 313 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample10.jsonld[39m[22m [11:14 - 42:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithSensorData/SensorDataExample1.jsonld[39m[22m [8:35 - 122:2] (114 lines, 606 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithSensorData/SensorDataExample1.jsonld[39m[22m [3:14 - 54:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [20:2 - 162:17] (142 lines, 714 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [10:9 - 152:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [175:14 - 301:65] (126 lines, 646 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [166:18 - 292:58]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [20:2 - 82:17] (62 lines, 312 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [10:9 - 72:7]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [79:2 - 165:13] (86 lines, 476 tokens)
+   [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [159:2 - 236:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/transaction_event_all_possible_fields.jsonld[39m[22m [163:11 - 223:2] (60 lines, 281 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [188:15 - 310:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [24:6 - 282:2] (258 lines, 1324 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/object_event_all_possible_fields.jsonld[39m[22m [14:10 - 224:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/association_event_all_possible_fields.jsonld[39m[22m [20:2 - 228:2] (208 lines, 1072 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/association_event_all_possible_fields.jsonld[39m[22m [10:9 - 224:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [20:2 - 107:20] (87 lines, 472 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [10:9 - 183:12]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithFullCombinationOfFields/aggregation_event_all_possible_fields.jsonld[39m[22m [107:20 - 228:2] (121 lines, 599 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithFullCombinationOfFields/transformation_event_all_possible_fields.jsonld[39m[22m [174:12 - 224:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [4:35 - 49:2] (45 lines, 315 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [4:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithErrorDeclaration/ErrorDeclarationAndCorrectiveEvent.jsonld[39m[22m [8:35 - 84:2] (76 lines, 393 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/ErrorDeclarationAndCorrectiveEvent.jsonld[39m[22m [4:14 - 76:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.4-TransformationEventWithDigitalLink.jsonld[39m[22m [3:35 - 37:2] (34 lines, 235 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.4-TransformationEventWithDigitalLink.jsonld[39m[22m [3:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.3-AggregationEventWithDigitalLink.jsonld[39m[22m [8:35 - 48:2] (40 lines, 214 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.3-AggregationEventWithDigitalLink.jsonld[39m[22m [3:14 - 29:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.2-ObjectEventWithDigitalLink.jsonld[39m[22m [3:35 - 34:2] (31 lines, 244 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.2-ObjectEventWithDigitalLink.jsonld[39m[22m [3:14 - 34:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/WithDigitalLinkID/Example_9.6.1-ObjectEventWithDigitalLink.jsonld[39m[22m [3:35 - 42:2] (39 lines, 287 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.1-ObjectEventWithDigitalLink.jsonld[39m[22m [3:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-h.jsonld[39m[22m [4:35 - 26:2] (22 lines, 125 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-h.jsonld[39m[22m [4:14 - 26:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-g.jsonld[39m[22m [8:35 - 35:2] (27 lines, 147 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-g.jsonld[39m[22m [3:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [4:35 - 38:2] (34 lines, 289 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [4:14 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-e.jsonld[39m[22m [4:35 - 28:2] (24 lines, 140 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-e.jsonld[39m[22m [4:14 - 28:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-d.jsonld[39m[22m [4:35 - 24:2] (20 lines, 107 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-d.jsonld[39m[22m [4:14 - 24:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-c.jsonld[39m[22m [8:35 - 31:2] (23 lines, 124 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-c.jsonld[39m[22m [4:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-b.jsonld[39m[22m [4:35 - 25:2] (21 lines, 115 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-b.jsonld[39m[22m [4:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/AssociationEvent/AssociationEvent-a.jsonld[39m[22m [4:35 - 25:2] (21 lines, 115 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-a.jsonld[39m[22m [4:14 - 25:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/axe-core/locales/pt_BR.json[39m[22m [553:26 - 572:21] (19 lines, 122 tokens)
+   [1m[32mfrontend/node_modules/axe-core/locales/pt_BR.json[39m[22m [534:17 - 553:26]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/axe-core/locales/fr.json[39m[22m [572:26 - 595:21] (23 lines, 145 tokens)
+   [1m[32mfrontend/node_modules/axe-core/locales/fr.json[39m[22m [549:17 - 572:26]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/axe-core/locales/eu.json[39m[22m [448:26 - 465:21] (17 lines, 108 tokens)
+   [1m[32mfrontend/node_modules/axe-core/locales/eu.json[39m[22m [431:17 - 448:26]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/axe-core/locales/es.json[39m[22m [448:26 - 465:21] (17 lines, 108 tokens)
+   [1m[32mfrontend/node_modules/axe-core/locales/es.json[39m[22m [431:17 - 448:26]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/axe-core/locales/da.json[39m[22m [457:26 - 474:21] (17 lines, 108 tokens)
+   [1m[32mfrontend/node_modules/axe-core/locales/da.json[39m[22m [440:17 - 457:26]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@typescript-eslint/types/package.json[39m[22m [4:43 - 26:17] (22 lines, 117 tokens)
+   [1m[32mfrontend/node_modules/@typescript-eslint/visitor-keys/package.json[39m[22m [4:63 - 26:24]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@typescript-eslint/scope-manager/package.json[39m[22m [6:7 - 25:25] (19 lines, 103 tokens)
+   [1m[32mfrontend/node_modules/@typescript-eslint/visitor-keys/package.json[39m[22m [7:9 - 26:24]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@typescript-eslint/parser/package.json[39m[22m [7:9 - 25:18] (18 lines, 99 tokens)
+   [1m[32mfrontend/node_modules/@typescript-eslint/visitor-keys/package.json[39m[22m [8:15 - 26:24]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@tanstack/react-virtual/package.json[39m[22m [11:3 - 47:15] (36 lines, 190 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/virtual-core/package.json[39m[22m [11:3 - 47:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@tanstack/react-query/package.json[39m[22m [64:3 - 82:41] (18 lines, 125 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/react-query-devtools/package.json[39m[22m [75:3 - 93:37]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@tanstack/query-core/package.json[39m[22m [11:3 - 41:2] (30 lines, 171 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/react-query/package.json[39m[22m [11:3 - 40:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@tanstack/query-core/package.json[39m[22m [45:3 - 64:2] (19 lines, 128 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/react-query-devtools/package.json[39m[22m [75:3 - 93:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@nodelib/fs.scandir/package.json[39m[22m [15:3 - 35:15] (20 lines, 113 tokens)
+   [1m[32mfrontend/node_modules/@nodelib/fs.stat/package.json[39m[22m [13:3 - 33:18]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@jridgewell/sourcemap-codec/package.json[39m[22m [38:44 - 55:78] (17 lines, 114 tokens)
+   [1m[32mfrontend/node_modules/@jridgewell/trace-mapping/package.json[39m[22m [38:42 - 55:76]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/@jridgewell/gen-mapping/package.json[39m[22m [38:40 - 55:74] (17 lines, 114 tokens)
+   [1m[32mfrontend/node_modules/@jridgewell/trace-mapping/package.json[39m[22m [38:42 - 55:76]
+
+Clone found (json):
+ - [1m[32mnode_modules/xlsx/types/tsconfig.json[39m[22m [1:1 - 15:2] (14 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/xlsx/types/tsconfig.json[39m[22m [1:1 - 15:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/ssf/types/tsconfig.json[39m[22m [1:1 - 15:2] (14 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/ssf/types/tsconfig.json[39m[22m [1:1 - 15:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/goober/should-forward-prop/package.json[39m[22m [1:1 - 41:2] (40 lines, 240 tokens)
+   [1m[32mfrontend/node_modules/goober/should-forward-prop/package.json[39m[22m [1:1 - 41:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/goober/prefixer/package.json[39m[22m [1:1 - 44:2] (43 lines, 237 tokens)
+   [1m[32mfrontend/node_modules/goober/prefixer/package.json[39m[22m [1:1 - 44:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/goober/macro/package.json[39m[22m [1:1 - 22:2] (21 lines, 117 tokens)
+   [1m[32mfrontend/node_modules/goober/macro/package.json[39m[22m [1:1 - 22:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/goober/global/package.json[39m[22m [1:1 - 42:2] (41 lines, 247 tokens)
+   [1m[32mfrontend/node_modules/goober/global/package.json[39m[22m [1:1 - 42:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/frac/types/tsconfig.json[39m[22m [1:1 - 14:2] (13 lines, 94 tokens)
+   [1m[32mfrontend/node_modules/frac/types/tsconfig.json[39m[22m [1:1 - 14:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/crc-32/types/tsconfig.json[39m[22m [1:1 - 14:2] (13 lines, 94 tokens)
+   [1m[32mfrontend/node_modules/crc-32/types/tsconfig.json[39m[22m [1:1 - 14:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/codepage/types/tsconfig.json[39m[22m [1:1 - 15:2] (14 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/codepage/types/tsconfig.json[39m[22m [1:1 - 15:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/cfb/types/tsconfig.json[39m[22m [1:1 - 15:2] (14 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/cfb/types/tsconfig.json[39m[22m [1:1 - 15:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/adler-32/types/tsconfig.json[39m[22m [1:1 - 15:2] (14 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/adler-32/types/tsconfig.json[39m[22m [1:1 - 15:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@types/raf/package.json[39m[22m [1:1 - 25:2] (24 lines, 146 tokens)
+   [1m[32mfrontend/node_modules/@types/raf/package.json[39m[22m [1:1 - 25:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@tanstack/virtual-core/package.json[39m[22m [1:1 - 56:2] (55 lines, 310 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/virtual-core/package.json[39m[22m [1:1 - 56:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@tanstack/react-virtual/package.json[39m[22m [1:1 - 73:2] (72 lines, 414 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/react-virtual/package.json[39m[22m [1:1 - 73:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@tanstack/react-query/package.json[39m[22m [3:9 - 47:9] (44 lines, 250 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/react-query/package.json[39m[22m [3:9 - 47:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@tanstack/react-query/package.json[39m[22m [59:9 - 86:2] (27 lines, 169 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/react-query/package.json[39m[22m [59:9 - 86:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@tanstack/query-core/package.json[39m[22m [3:9 - 65:2] (62 lines, 374 tokens)
+   [1m[32mfrontend/node_modules/@tanstack/query-core/package.json[39m[22m [3:9 - 65:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@swc/helpers/package.json[39m[22m [4:9 - 39:9] (35 lines, 207 tokens)
+   [1m[32mfrontend/node_modules/@swc/helpers/package.json[39m[22m [3:8 - 38:9]
+
+Clone found (json):
+ - [1m[32mnode_modules/@socket.io/component-emitter/package.json[39m[22m [1:1 - 28:2] (27 lines, 150 tokens)
+   [1m[32mfrontend/node_modules/@socket.io/component-emitter/package.json[39m[22m [1:1 - 28:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@react-aria/utils/package.json[39m[22m [3:9 - 28:15] (25 lines, 139 tokens)
+   [1m[32mnode_modules/@react-stately/utils/package.json[39m[22m [3:9 - 28:19]
+
+Clone found (json):
+ - [1m[32mnode_modules/@react-aria/ssr/package.json[39m[22m [3:9 - 29:15] (26 lines, 145 tokens)
+   [1m[32mnode_modules/@react-stately/utils/package.json[39m[22m [3:9 - 29:18]
+
+Clone found (json):
+ - [1m[32mnode_modules/@react-aria/interactions/package.json[39m[22m [3:9 - 30:20] (27 lines, 152 tokens)
+   [1m[32mnode_modules/@react-stately/utils/package.json[39m[22m [3:9 - 30:23]
+
+Clone found (json):
+ - [1m[32mnode_modules/@react-aria/focus/package.json[39m[22m [3:9 - 29:27] (26 lines, 145 tokens)
+   [1m[32mnode_modules/@react-stately/utils/package.json[39m[22m [3:9 - 29:18]
+
+Clone found (json):
+ - [1m[32mnode_modules/@kurkle/color/package.json[39m[22m [1:1 - 77:2] (76 lines, 455 tokens)
+   [1m[32mfrontend/node_modules/@kurkle/color/package.json[39m[22m [1:1 - 77:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/package.json[39m[22m [4:8 - 126:20] (122 lines, 754 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/package.json[39m[22m [4:9 - 126:17]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/package.json[39m[22m [131:5 - 193:2] (62 lines, 256 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/package.json[39m[22m [125:5 - 188:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/package.json[39m[22m [197:3 - 223:24] (26 lines, 173 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/package.json[39m[22m [188:3 - 214:12]
+
+Clone found (json):
+ - [1m[32mnode_modules/@hookform/resolvers/package.json[39m[22m [225:51 - 256:2] (31 lines, 143 tokens)
+   [1m[32mfrontend/node_modules/@hookform/resolvers/package.json[39m[22m [215:65 - 247:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@heroicons/react/package.json[39m[22m [1:1 - 149:2] (148 lines, 839 tokens)
+   [1m[32mfrontend/node_modules/@heroicons/react/package.json[39m[22m [1:1 - 149:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/@headlessui/react/package.json[39m[22m [3:8 - 36:98] (33 lines, 193 tokens)
+   [1m[32mfrontend/node_modules/@headlessui/react/package.json[39m[22m [3:9 - 36:63]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/useful_external_python_scripts/mongo_linkset_example.json[39m[22m [59:9 - 103:2] (44 lines, 213 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/useful_external_python_scripts/mongo_linkset_example.json[39m[22m [7:2 - 50:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/useful_external_python_scripts/data_entry_example.json[39m[22m [77:2 - 140:2] (63 lines, 310 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/useful_external_python_scripts/data_entry_example.json[39m[22m [4:45 - 66:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/tests/test_01_09506000134376.json[39m[22m [55:9 - 84:80] (29 lines, 142 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/useful_external_python_scripts/data_entry_v3_format.json[39m[22m [18:9 - 47:87]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/Documentation/proposed_input.json[39m[22m [3:57 - 35:2] (32 lines, 162 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/useful_external_python_scripts/data_entry_example.json[39m[22m [68:21 - 26:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/Documentation/proposed_input.json[39m[22m [35:9 - 74:2] (39 lines, 186 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/useful_external_python_scripts/data_entry_example.json[39m[22m [28:9 - 66:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/Documentation/linkset.json[39m[22m [76:39 - 100:2] (24 lines, 121 tokens)
+   [1m[32mgs1_research/GS1_DigitalLink_Resolver_CE/Documentation/linkset.json[39m[22m [35:26 - 58:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix8.json[39m[22m [6:167 - 172:7] (166 lines, 891 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [6:171 - 172:8]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix8.json[39m[22m [184:11 - 205:30] (21 lines, 105 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [198:11 - 219:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix8.json[39m[22m [206:11 - 226:14] (20 lines, 105 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 240:25]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix8.json[39m[22m [245:7 - 295:12] (50 lines, 233 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [278:7 - 328:20]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix.json[39m[22m [6:238 - 205:29] (199 lines, 1056 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [6:171 - 219:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix.json[39m[22m [206:11 - 233:27] (27 lines, 144 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 233:29]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix.json[39m[22m [233:27 - 303:2] (70 lines, 318 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix8.json[39m[22m [233:29 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/organizationdata.json[39m[22m [6:181 - 197:50] (191 lines, 1012 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [6:171 - 197:45]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/organizationdata.json[39m[22m [198:11 - 219:29] (21 lines, 105 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [198:11 - 219:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/organizationdata.json[39m[22m [220:11 - 250:15] (30 lines, 158 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 250:10]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/organizationdata.json[39m[22m [255:5 - 310:2] (55 lines, 248 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/prefix8.json[39m[22m [243:15 - 331:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/key.json[39m[22m [6:399 - 183:49] (177 lines, 948 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [6:171 - 183:45]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/key.json[39m[22m [184:11 - 205:16] (21 lines, 105 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [198:11 - 219:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/key.json[39m[22m [206:11 - 228:20] (22 lines, 112 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 242:9]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/key.json[39m[22m [237:7 - 293:2] (56 lines, 256 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [278:7 - 300:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/idkey.json[39m[22m [6:117 - 205:40] (199 lines, 1056 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [6:171 - 219:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/idkey.json[39m[22m [206:11 - 233:20] (27 lines, 144 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 233:29]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/idkey.json[39m[22m [255:7 - 313:2] (58 lines, 262 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [278:7 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/data.json[39m[22m [6:153 - 219:17] (213 lines, 1120 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [6:171 - 219:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/data.json[39m[22m [220:11 - 250:2] (30 lines, 157 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 249:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/data.json[39m[22m [253:7 - 306:2] (53 lines, 242 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [278:7 - 331:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/custom_shipment.json[39m[22m [1:1 - 221:2] (220 lines, 1162 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/data.json[39m[22m [1:1 - 222:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/custom_shipment.json[39m[22m [225:11 - 255:21] (30 lines, 158 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 250:10]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/custom_shipment.json[39m[22m [308:7 - 361:2] (53 lines, 242 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [278:7 - 331:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/custom_asset.json[39m[22m [1:1 - 224:18] (223 lines, 1177 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/data.json[39m[22m [1:1 - 224:21]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/custom_asset.json[39m[22m [225:11 - 255:16] (30 lines, 158 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 250:10]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/custom_asset.json[39m[22m [414:7 - 467:2] (53 lines, 242 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [278:7 - 331:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/companyprefix.json[39m[22m [6:197 - 205:36] (199 lines, 1056 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [6:171 - 219:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/companyprefix.json[39m[22m [206:11 - 233:35] (27 lines, 144 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/productdata.json[39m[22m [220:11 - 233:29]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/schemas/companyprefix.json[39m[22m [248:15 - 308:2] (60 lines, 268 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/schemas/key.json[39m[22m [235:5 - 303:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/GS1DigitalLicenses/jsons/gtin8-id-key-license-sample.json[39m[22m [6:83 - 24:75] (18 lines, 103 tokens)
+   [1m[32mgs1_research/GS1DigitalLicenses/jsons/id-key-license-sample.json[39m[22m [6:77 - 24:81]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [34:5 - 60:12] (26 lines, 122 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/definitions-JSON-Schema.json[39m[22m [5:9 - 31:12]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [99:9 - 147:2] (48 lines, 193 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/bizStep-JSON-Schema.json[39m[22m [9:17 - 58:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [152:9 - 192:2] (40 lines, 161 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/disposition-JSON-Schema.json[39m[22m [9:17 - 50:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [226:9 - 305:2] (79 lines, 317 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/schemas/measurement-type-JSON-Schema.json[39m[22m [9:17 - 89:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [68:12 - 84:8] (16 lines, 135 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [29:12 - 45:6]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.4-TransformationEvent.jsonld[39m[22m [11:5 - 37:2] (26 lines, 172 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/test/TransformationEvent.json[39m[22m [8:5 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.3-AggregationEvent.jsonld[39m[22m [11:5 - 28:2] (17 lines, 133 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/test/AggregationEvent.json[39m[22m [8:5 - 25:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.2-ObjectEvent.jsonld[39m[22m [21:44 - 37:2] (16 lines, 97 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithDigitalLinkID/Example_9.6.2-ObjectEventWithDigitalLink.jsonld[39m[22m [20:49 - 34:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-with-comment.jsonld[39m[22m [28:92 - 50:2] (22 lines, 137 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [31:92 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [11:5 - 21:2] (10 lines, 94 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-Schema/test/ObjectEvent.json[39m[22m [3:5 - 13:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [13:10 - 24:92] (11 lines, 87 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-with-comment.jsonld[39m[22m [17:58 - 28:92]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [18:9 - 44:2] (26 lines, 186 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/WithErrorDeclaration/Example_9.6.1-ObjectEvent-with-error-declaration.jsonld[39m[22m [26:2 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent-with-pseudo-SBDH-headers.jsonld[39m[22m [10:13 - 47:2] (37 lines, 261 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [7:25 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [12:2 - 26:2] (14 lines, 129 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [11:2 - 24:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [28:42 - 47:2] (19 lines, 131 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/AssociationEvent/AssociationEvent-f.jsonld[39m[22m [24:2 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/EPCIS-Query-JSON-Schema-root.json[39m[22m [2:76 - 34:14] (32 lines, 157 tokens)
+   [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [2:64 - 34:11]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/EPCIS-Query-JSON-Schema-root.json[39m[22m [105:9 - 139:70] (34 lines, 186 tokens)
+   [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [377:9 - 411:19]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/EPCIS-Query-JSON-Schema-root.json[39m[22m [164:11 - 193:81] (29 lines, 157 tokens)
+   [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [436:11 - 465:24]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/EPCIS-Query-JSON-Schema-root.json[39m[22m [216:11 - 239:78] (23 lines, 120 tokens)
+   [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [488:11 - 511:21]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON-Schema/EPCIS-Query-JSON-Schema-root.json[39m[22m [260:11 - 687:2] (427 lines, 2275 tokens)
+   [1m[32mgs1_research/EPCIS/REST Bindings/query-schema.json[39m[22m [532:11 - 959:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/PersistentDisposition-example.jsonld[39m[22m [19:10 - 73:10] (54 lines, 256 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [16:12 - 50:5]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/PersistentDisposition-example.jsonld[39m[22m [90:13 - 135:2] (45 lines, 211 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/PersistentDisposition-example.jsonld[39m[22m [29:12 - 94:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.4-TransformationEvent.jsonld[39m[22m [4:35 - 37:2] (33 lines, 240 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.4-TransformationEvent.jsonld[39m[22m [4:14 - 37:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.3-AggregationEvent.jsonld[39m[22m [4:35 - 33:2] (29 lines, 209 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.3-AggregationEvent.jsonld[39m[22m [4:14 - 33:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.2-ObjectEvent.jsonld[39m[22m [4:35 - 37:2] (33 lines, 250 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.2-ObjectEvent.jsonld[39m[22m [4:14 - 34:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.1-with-comment.jsonld[39m[22m [11:35 - 71:2] (60 lines, 320 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-with-comment.jsonld[39m[22m [7:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.1-ObjectEvent.jsonld[39m[22m [4:35 - 44:2] (40 lines, 319 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [4:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example_9.6.1-ObjectEvent-with-pseudo-SBDH-headers.jsonld[39m[22m [4:35 - 47:2] (43 lines, 300 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent-with-pseudo-SBDH-headers.jsonld[39m[22m [4:14 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [8:35 - 86:2] (78 lines, 402 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-Type-sourceOrDestination,measurement,bizTransaction.jsonld[39m[22m [4:14 - 38:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [1:1 - 32:2] (31 lines, 220 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [1:1 - 32:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [33:2 - 59:65] (26 lines, 136 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example-TransactionEvents-2020_07_03y.jsonld[39m[22m [33:2 - 59:58]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/JSON/EPCISQueryDocument.jsonld[39m[22m [16:14 - 71:2] (55 lines, 289 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-simple-context/Example_9.6.1-ObjectEvent.jsonld[39m[22m [8:12 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/wrap-ansi/package.json[39m[22m [27:2 - 56:9] (29 lines, 122 tokens)
+   [1m[32mfrontend/node_modules/wrap-ansi-cjs/package.json[39m[22m [21:2 - 50:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/typed-array-length/package.json[39m[22m [74:9 - 90:15] (16 lines, 99 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [59:9 - 75:16]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/typed-array-byte-offset/package.json[39m[22m [4:48 - 21:7] (17 lines, 109 tokens)
+   [1m[32mfrontend/node_modules/typed-array-length/package.json[39m[22m [4:43 - 21:15]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/typed-array-byte-offset/package.json[39m[22m [91:9 - 107:11] (16 lines, 94 tokens)
+   [1m[32mfrontend/node_modules/which-builtin-type/package.json[39m[22m [90:9 - 106:16]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/typed-array-byte-length/package.json[39m[22m [4:48 - 22:39] (18 lines, 119 tokens)
+   [1m[32mfrontend/node_modules/typed-array-length/package.json[39m[22m [4:43 - 22:38]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/typed-array-byte-length/package.json[39m[22m [80:10 - 94:10] (14 lines, 90 tokens)
+   [1m[32mfrontend/node_modules/typed-array-length/package.json[39m[22m [68:9 - 82:17]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/typed-array-byte-length/package.json[39m[22m [89:10 - 111:2] (22 lines, 125 tokens)
+   [1m[32mfrontend/node_modules/which-builtin-type/package.json[39m[22m [90:9 - 112:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/typed-array-buffer/package.json[39m[22m [58:9 - 82:2] (24 lines, 135 tokens)
+   [1m[32mfrontend/node_modules/typed-array-byte-length/package.json[39m[22m [86:9 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/text-segmentation/package.json[39m[22m [20:8 - 49:58] (29 lines, 190 tokens)
+   [1m[32mfrontend/node_modules/utrie/package.json[39m[22m [18:21 - 47:46]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/strip-ansi-cjs/package.json[39m[22m [14:2 - 47:9] (33 lines, 143 tokens)
+   [1m[32mfrontend/node_modules/@isaacs/cliui/node_modules/strip-ansi/package.json[39m[22m [19:2 - 52:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/strip-ansi/package.json[39m[22m [1:1 - 54:2] (53 lines, 258 tokens)
+   [1m[32mfrontend/node_modules/strip-ansi-cjs/package.json[39m[22m [1:1 - 54:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/string.prototype.trim/package.json[39m[22m [84:21 - 104:2] (20 lines, 103 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [107:21 - 126:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/string-width-cjs/package.json[39m[22m [1:1 - 56:2] (55 lines, 272 tokens)
+   [1m[32mfrontend/node_modules/wrap-ansi-cjs/node_modules/string-width/package.json[39m[22m [1:1 - 56:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/string-width/package.json[39m[22m [17:2 - 50:17] (33 lines, 140 tokens)
+   [1m[32mfrontend/node_modules/wrap-ansi-cjs/node_modules/string-width/package.json[39m[22m [14:2 - 47:14]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/stop-iteration-iterator/package.json[39m[22m [10:6 - 26:60] (16 lines, 105 tokens)
+   [1m[32mfrontend/node_modules/unbox-primitive/package.json[39m[22m [5:11 - 21:52]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/side-channel-weakmap/package.json[39m[22m [66:10 - 87:2] (21 lines, 114 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [62:10 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/side-channel-map/package.json[39m[22m [56:10 - 80:2] (24 lines, 135 tokens)
+   [1m[32mfrontend/node_modules/side-channel-weakmap/package.json[39m[22m [63:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/side-channel-list/package.json[39m[22m [4:78 - 27:54] (23 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/side-channel-map/package.json[39m[22m [4:70 - 27:53]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/side-channel-list/package.json[39m[22m [46:9 - 77:2] (31 lines, 184 tokens)
+   [1m[32mfrontend/node_modules/side-channel-map/package.json[39m[22m [49:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/side-channel/package.json[39m[22m [3:8 - 27:49] (24 lines, 156 tokens)
+   [1m[32mfrontend/node_modules/side-channel-weakmap/package.json[39m[22m [3:8 - 27:57]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/side-channel/package.json[39m[22m [55:9 - 85:2] (30 lines, 177 tokens)
+   [1m[32mfrontend/node_modules/side-channel-weakmap/package.json[39m[22m [57:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/set-proto/package.json[39m[22m [58:10 - 78:2] (20 lines, 113 tokens)
+   [1m[32mfrontend/node_modules/which-builtin-type/package.json[39m[22m [90:9 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/set-function-name/tsconfig.json[39m[22m [8:9 - 24:3] (16 lines, 408 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [8:9 - 23:3]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/set-function-name/tsconfig.json[39m[22m [32:2 - 42:16] (10 lines, 174 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [32:2 - 43:3]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/safe-regex-test/package.json[39m[22m [57:9 - 87:2] (30 lines, 177 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [53:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/safe-push-apply/package.json[39m[22m [56:10 - 82:2] (26 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/set-proto/package.json[39m[22m [53:9 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/safe-array-concat/package.json[39m[22m [4:80 - 26:7] (22 lines, 139 tokens)
+   [1m[32mfrontend/node_modules/safe-push-apply/package.json[39m[22m [4:90 - 26:8]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/regexp.prototype.flags/package.json[39m[22m [67:10 - 105:2] (38 lines, 184 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trim/package.json[39m[22m [68:10 - 106:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/reflect.getprototypeof/package.json[39m[22m [75:9 - 95:11] (20 lines, 114 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trimend/package.json[39m[22m [60:9 - 80:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/react-is/package.json[39m[22m [3:10 - 22:18] (19 lines, 104 tokens)
+   [1m[32mfrontend/node_modules/next/dist/compiled/react-is/package.json[39m[22m [3:9 - 22:11]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/postcss/package.json[39m[22m [12:5 - 77:10] (65 lines, 384 tokens)
+   [1m[32mfrontend/node_modules/next/node_modules/postcss/package.json[39m[22m [12:5 - 77:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/possible-typed-array-names/package.json[39m[22m [58:9 - 84:2] (26 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/side-channel-map/package.json[39m[22m [54:10 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/picomatch/package.json[39m[22m [33:10 - 81:2] (48 lines, 217 tokens)
+   [1m[32mfrontend/node_modules/tinyglobby/node_modules/picomatch/package.json[39m[22m [35:10 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/package-json-from-dist/package.json[39m[22m [5:27 - 31:38] (26 lines, 152 tokens)
+   [1m[32mfrontend/node_modules/sucrase/node_modules/minimatch/package.json[39m[22m [11:29 - 37:37]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/p-limit/package.json[39m[22m [6:23 - 25:8] (19 lines, 99 tokens)
+   [1m[32mfrontend/node_modules/p-locate/package.json[39m[22m [6:24 - 25:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/own-keys/package.json[39m[22m [4:108 - 26:6] (22 lines, 139 tokens)
+   [1m[32mfrontend/node_modules/safe-push-apply/package.json[39m[22m [4:90 - 26:8]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/own-keys/package.json[39m[22m [67:9 - 91:2] (24 lines, 135 tokens)
+   [1m[32mfrontend/node_modules/set-proto/package.json[39m[22m [55:10 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/object.values/package.json[39m[22m [8:44 - 26:46] (18 lines, 119 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trim/package.json[39m[22m [19:52 - 37:54]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/object.values/package.json[39m[22m [61:9 - 99:2] (38 lines, 184 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trim/package.json[39m[22m [68:10 - 106:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/object.entries/package.json[39m[22m [54:9 - 95:2] (41 lines, 205 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trim/package.json[39m[22m [65:9 - 106:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/minipass/package.json[39m[22m [15:2 - 42:10] (27 lines, 156 tokens)
+   [1m[32mfrontend/node_modules/sucrase/node_modules/minimatch/package.json[39m[22m [11:29 - 38:12]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/math-intrinsics/package.json[39m[22m [23:2 - 41:54] (18 lines, 119 tokens)
+   [1m[32mfrontend/node_modules/possible-typed-array-names/package.json[39m[22m [10:15 - 28:63]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/math-intrinsics/package.json[39m[22m [60:10 - 86:2] (26 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [57:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-weakset/package.json[39m[22m [60:10 - 87:2] (27 lines, 156 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [56:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-weakmap/tsconfig.json[39m[22m [1:1 - 49:2] (48 lines, 907 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-weakmap/package.json[39m[22m [62:9 - 81:2] (19 lines, 100 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [64:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-typed-array/package.json[39m[22m [89:10 - 121:2] (32 lines, 165 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [90:10 - 123:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-symbol/package.json[39m[22m [55:9 - 95:9] (40 lines, 208 tokens)
+   [1m[32mfrontend/node_modules/is-typed-array/package.json[39m[22m [86:9 - 127:13]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-string/package.json[39m[22m [54:9 - 88:2] (34 lines, 174 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [88:9 - 121:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-shared-array-buffer/package.json[39m[22m [58:9 - 73:17] (15 lines, 97 tokens)
+   [1m[32mfrontend/node_modules/typed-array-buffer/package.json[39m[22m [51:9 - 66:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-shared-array-buffer/package.json[39m[22m [60:9 - 82:13] (22 lines, 140 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [54:9 - 91:12]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-set/tsconfig.json[39m[22m [1:1 - 49:2] (48 lines, 907 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-set/package.json[39m[22m [40:46 - 55:6] (15 lines, 100 tokens)
+   [1m[32mfrontend/node_modules/is-weakmap/package.json[39m[22m [43:50 - 58:12]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-set/package.json[39m[22m [54:9 - 69:10] (15 lines, 92 tokens)
+   [1m[32mfrontend/node_modules/is-weakmap/package.json[39m[22m [58:9 - 73:16]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-regex/package.json[39m[22m [68:2 - 101:17] (33 lines, 164 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [94:2 - 127:13]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-number-object/package.json[39m[22m [8:105 - 27:51] (19 lines, 126 tokens)
+   [1m[32mfrontend/node_modules/is-string/package.json[39m[22m [9:6 - 28:44]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-number-object/package.json[39m[22m [40:56 - 57:10] (17 lines, 109 tokens)
+   [1m[32mfrontend/node_modules/is-string/package.json[39m[22m [37:2 - 54:5]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-negative-zero/tsconfig.json[39m[22m [1:1 - 49:2] (48 lines, 907 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-negative-zero/package.json[39m[22m [68:21 - 92:2] (24 lines, 116 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [105:21 - 106:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-map/tsconfig.json[39m[22m [1:1 - 49:2] (48 lines, 907 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-map/package.json[39m[22m [4:95 - 17:64] (13 lines, 89 tokens)
+   [1m[32mfrontend/node_modules/is-weakset/package.json[39m[22m [4:99 - 17:64]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-map/package.json[39m[22m [6:6 - 24:47] (18 lines, 119 tokens)
+   [1m[32mfrontend/node_modules/is-weakmap/package.json[39m[22m [6:5 - 24:51]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-map/package.json[39m[22m [41:46 - 61:22] (20 lines, 138 tokens)
+   [1m[32mfrontend/node_modules/is-weakmap/package.json[39m[22m [43:50 - 63:7]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-generator-function/package.json[39m[22m [71:2 - 106:2] (35 lines, 168 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [94:2 - 106:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-finalizationregistry/package.json[39m[22m [55:10 - 82:2] (27 lines, 156 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [56:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-extglob/package.json[39m[22m [21:3 - 46:6] (25 lines, 110 tokens)
+   [1m[32mfrontend/node_modules/is-glob/package.json[39m[22m [29:3 - 54:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-date-object/package.json[39m[22m [63:2 - 99:2] (36 lines, 172 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [94:2 - 104:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-data-view/package.json[39m[22m [76:10 - 98:2] (22 lines, 125 tokens)
+   [1m[32mfrontend/node_modules/is-number-object/package.json[39m[22m [60:10 - 81:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-core-module/core.json[39m[22m [1:1 - 94:2] (93 lines, 844 tokens)
+   [1m[32mfrontend/node_modules/resolve/lib/core.json[39m[22m [1:1 - 94:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-core-module/core.json[39m[22m [94:2 - 162:2] (68 lines, 636 tokens)
+   [1m[32mfrontend/node_modules/resolve/lib/core.json[39m[22m [94:10 - 162:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-callable/package.json[39m[22m [70:2 - 99:9] (29 lines, 148 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [94:2 - 122:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-boolean-object/package.json[39m[22m [66:10 - 100:2] (34 lines, 158 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [96:16 - 104:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-bigint/package.json[39m[22m [44:9 - 62:17] (18 lines, 118 tokens)
+   [1m[32mfrontend/node_modules/is-symbol/package.json[39m[22m [45:9 - 63:11]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-bigint/package.json[39m[22m [53:9 - 78:2] (25 lines, 142 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [58:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-async-function/package.json[39m[22m [67:9 - 110:2] (43 lines, 219 tokens)
+   [1m[32mfrontend/node_modules/is-generator-function/package.json[39m[22m [63:9 - 106:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/is-array-buffer/package.json[39m[22m [52:9 - 75:2] (23 lines, 156 tokens)
+   [1m[32mfrontend/node_modules/is-shared-array-buffer/package.json[39m[22m [56:12 - 74:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/hasown/package.json[39m[22m [69:9 - 88:2] (19 lines, 109 tokens)
+   [1m[32mfrontend/node_modules/stop-iteration-iterator/package.json[39m[22m [55:9 - 75:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/has-tostringtag/tsconfig.json[39m[22m [1:1 - 49:2] (48 lines, 907 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/has-tostringtag/package.json[39m[22m [86:9 - 105:15] (19 lines, 102 tokens)
+   [1m[32mfrontend/node_modules/which-builtin-type/package.json[39m[22m [92:9 - 79:11]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/has-symbols/package.json[39m[22m [69:9 - 108:8] (39 lines, 201 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [88:9 - 127:13]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/has-proto/package.json[39m[22m [66:9 - 85:8] (19 lines, 110 tokens)
+   [1m[32mfrontend/node_modules/which-builtin-type/package.json[39m[22m [90:9 - 99:7]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/has-bigints/package.json[39m[22m [43:9 - 69:2] (26 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/side-channel-weakmap/package.json[39m[22m [61:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/gopd/package.json[39m[22m [56:9 - 77:2] (21 lines, 114 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [62:10 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/globalthis/package.json[39m[22m [63:2 - 95:17] (32 lines, 160 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [94:2 - 126:20]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/get-proto/package.json[39m[22m [9:29 - 28:46] (19 lines, 122 tokens)
+   [1m[32mfrontend/node_modules/set-proto/package.json[39m[22m [9:29 - 28:46]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/get-proto/package.json[39m[22m [44:9 - 81:2] (37 lines, 216 tokens)
+   [1m[32mfrontend/node_modules/set-proto/package.json[39m[22m [45:9 - 82:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/function.prototype.name/package.json[39m[22m [65:2 - 93:2] (28 lines, 142 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trim/package.json[39m[22m [71:2 - 100:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/es-to-primitive/package.json[39m[22m [72:9 - 89:2] (17 lines, 104 tokens)
+   [1m[32mfrontend/node_modules/is-number-object/package.json[39m[22m [60:10 - 78:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/es-object-atoms/package.json[39m[22m [55:9 - 80:2] (25 lines, 142 tokens)
+   [1m[32mfrontend/node_modules/side-channel-map/package.json[39m[22m [55:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/es-iterator-helpers/package.json[39m[22m [185:10 - 205:2] (20 lines, 107 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trimend/package.json[39m[22m [63:10 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/es-errors/tsconfig.json[39m[22m [37:2 - 47:2] (10 lines, 108 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [37:2 - 48:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/es-errors/package.json[39m[22m [61:9 - 80:2] (19 lines, 100 tokens)
+   [1m[32mfrontend/node_modules/which-boxed-primitive/package.json[39m[22m [64:9 - 83:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/es-define-property/package.json[39m[22m [54:9 - 81:2] (27 lines, 151 tokens)
+   [1m[32mfrontend/node_modules/stop-iteration-iterator/package.json[39m[22m [50:9 - 77:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/es-abstract/package.json[39m[22m [149:10 - 175:10] (26 lines, 118 tokens)
+   [1m[32mfrontend/node_modules/object.assign/package.json[39m[22m [64:10 - 90:20]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/engine.io-client/package.json[39m[22m [12:26 - 35:23] (23 lines, 126 tokens)
+   [1m[32mfrontend/node_modules/socket.io-client/package.json[39m[22m [23:26 - 46:25]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/emoji-regex/package.json[39m[22m [3:8 - 32:15] (29 lines, 150 tokens)
+   [1m[32mfrontend/node_modules/wrap-ansi-cjs/node_modules/emoji-regex/package.json[39m[22m [3:8 - 32:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/dunder-proto/package.json[39m[22m [46:9 - 65:11] (19 lines, 120 tokens)
+   [1m[32mfrontend/node_modules/side-channel-map/package.json[39m[22m [53:9 - 79:16]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/doctrine/package.json[39m[22m [9:3 - 30:9] (21 lines, 112 tokens)
+   [1m[32mfrontend/node_modules/eslint-plugin-react/node_modules/doctrine/package.json[39m[22m [9:3 - 30:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/doctrine/package.json[39m[22m [33:9 - 49:19] (16 lines, 103 tokens)
+   [1m[32mfrontend/node_modules/eslint-plugin-react/node_modules/doctrine/package.json[39m[22m [33:10 - 49:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/define-properties/package.json[39m[22m [51:2 - 80:8] (29 lines, 148 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [94:2 - 122:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/define-data-property/tsconfig.json[39m[22m [1:1 - 59:2] (58 lines, 1217 tokens)
+   [1m[32mfrontend/node_modules/set-function-name/tsconfig.json[39m[22m [1:1 - 59:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/define-data-property/package.json[39m[22m [83:9 - 103:24] (20 lines, 112 tokens)
+   [1m[32mfrontend/node_modules/stop-iteration-iterator/package.json[39m[22m [55:9 - 89:7]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/debug/package.json[39m[22m [3:8 - 29:29] (26 lines, 133 tokens)
+   [1m[32mfrontend/node_modules/socket.io-parser/node_modules/debug/package.json[39m[22m [3:8 - 29:48]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/debug/package.json[39m[22m [39:9 - 58:2] (19 lines, 114 tokens)
+   [1m[32mfrontend/node_modules/socket.io-parser/node_modules/debug/package.json[39m[22m [40:9 - 60:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/data-view-byte-offset/package.json[39m[22m [68:10 - 94:2] (26 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/typed-array-buffer/package.json[39m[22m [56:9 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/data-view-byte-length/package.json[39m[22m [4:50 - 27:41] (23 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/data-view-byte-offset/package.json[39m[22m [4:50 - 27:37]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/data-view-byte-length/package.json[39m[22m [63:9 - 92:2] (29 lines, 170 tokens)
+   [1m[32mfrontend/node_modules/data-view-byte-offset/package.json[39m[22m [65:10 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/data-view-buffer/package.json[39m[22m [4:51 - 18:11] (14 lines, 91 tokens)
+   [1m[32mfrontend/node_modules/data-view-byte-offset/package.json[39m[22m [4:50 - 18:22]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/data-view-buffer/package.json[39m[22m [11:6 - 31:57] (20 lines, 128 tokens)
+   [1m[32mfrontend/node_modules/is-data-view/package.json[39m[22m [10:15 - 30:53]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/data-view-buffer/package.json[39m[22m [57:9 - 88:2] (31 lines, 184 tokens)
+   [1m[32mfrontend/node_modules/data-view-byte-offset/package.json[39m[22m [63:9 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/css-line-break/package.json[39m[22m [29:2 - 47:9] (18 lines, 116 tokens)
+   [1m[32mfrontend/node_modules/text-segmentation/package.json[39m[22m [18:2 - 34:8]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/client-only/package.json[39m[22m [1:1 - 19:2] (18 lines, 107 tokens)
+   [1m[32mfrontend/node_modules/next/dist/compiled/client-only/package.json[39m[22m [1:1 - 19:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/call-bound/package.json[39m[22m [79:2 - 99:2] (20 lines, 107 tokens)
+   [1m[32mfrontend/node_modules/iterator.prototype/package.json[39m[22m [57:2 - 77:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/call-bind-apply-helpers/package.json[39m[22m [14:2 - 31:60] (17 lines, 112 tokens)
+   [1m[32mfrontend/node_modules/call-bound/package.json[39m[22m [10:6 - 27:47]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/call-bind-apply-helpers/package.json[39m[22m [56:9 - 85:2] (29 lines, 165 tokens)
+   [1m[32mfrontend/node_modules/call-bound/package.json[39m[22m [70:9 - 77:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/call-bind/package.json[39m[22m [27:2 - 49:45] (22 lines, 104 tokens)
+   [1m[32mfrontend/node_modules/call-bound/package.json[39m[22m [28:2 - 50:46]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/call-bind/package.json[39m[22m [70:10 - 93:2] (23 lines, 123 tokens)
+   [1m[32mfrontend/node_modules/iterator.prototype/package.json[39m[22m [54:9 - 77:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/browserslist/package.json[39m[22m [4:109 - 26:28] (22 lines, 110 tokens)
+   [1m[32mfrontend/node_modules/update-browserslist-db/package.json[39m[22m [4:86 - 26:25]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/brace-expansion/package.json[39m[22m [21:9 - 48:6] (27 lines, 136 tokens)
+   [1m[32mfrontend/node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion/package.json[39m[22m [20:9 - 47:6]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/base64-arraybuffer/package.json[39m[22m [33:3 - 53:11] (20 lines, 132 tokens)
+   [1m[32mfrontend/node_modules/utrie/package.json[39m[22m [19:3 - 39:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/balanced-match/package.json[39m[22m [25:3 - 48:2] (23 lines, 108 tokens)
+   [1m[32mfrontend/node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion/package.json[39m[22m [23:2 - 45:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/available-typed-arrays/tsconfig.json[39m[22m [8:9 - 28:2] (20 lines, 534 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [8:9 - 28:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/available-typed-arrays/tsconfig.json[39m[22m [23:2 - 49:2] (26 lines, 409 tokens)
+   [1m[32mfrontend/node_modules/set-function-name/tsconfig.json[39m[22m [22:2 - 49:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/async-function/package.json[39m[22m [16:2 - 35:51] (19 lines, 122 tokens)
+   [1m[32mfrontend/node_modules/set-proto/package.json[39m[22m [9:29 - 28:46]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/async-function/package.json[39m[22m [63:9 - 86:2] (23 lines, 123 tokens)
+   [1m[32mfrontend/node_modules/which-builtin-type/package.json[39m[22m [91:9 - 82:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/arraybuffer.prototype.slice/package.json[39m[22m [9:6 - 23:15] (14 lines, 91 tokens)
+   [1m[32mfrontend/node_modules/object.groupby/package.json[39m[22m [4:101 - 18:24]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/arraybuffer.prototype.slice/package.json[39m[22m [18:2 - 35:66] (17 lines, 112 tokens)
+   [1m[32mfrontend/node_modules/regexp.prototype.flags/package.json[39m[22m [10:11 - 27:55]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/arraybuffer.prototype.slice/package.json[39m[22m [82:2 - 102:2] (20 lines, 107 tokens)
+   [1m[32mfrontend/node_modules/is-number-object/package.json[39m[22m [64:2 - 100:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array.prototype.tosorted/package.json[39m[22m [64:9 - 79:16] (15 lines, 92 tokens)
+   [1m[32mfrontend/node_modules/string.prototype.trimstart/package.json[39m[22m [54:9 - 69:15]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array.prototype.flatmap/package.json[39m[22m [77:2 - 104:8] (27 lines, 134 tokens)
+   [1m[32mfrontend/node_modules/which-typed-array/package.json[39m[22m [96:16 - 122:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array.prototype.flat/package.json[39m[22m [66:9 - 113:2] (47 lines, 236 tokens)
+   [1m[32mfrontend/node_modules/array.prototype.flatmap/package.json[39m[22m [64:9 - 111:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array.prototype.findlast/package.json[39m[22m [4:111 - 22:62] (18 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/array.prototype.findlastindex/package.json[39m[22m [4:116 - 22:67]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array.prototype.findlast/package.json[39m[22m [24:62 - 38:44] (14 lines, 91 tokens)
+   [1m[32mfrontend/node_modules/array.prototype.findlastindex/package.json[39m[22m [24:67 - 38:24]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array.prototype.findlast/package.json[39m[22m [88:2 - 111:2] (23 lines, 117 tokens)
+   [1m[32mfrontend/node_modules/array.prototype.findlastindex/package.json[39m[22m [92:2 - 115:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array-includes/package.json[39m[22m [79:25 - 108:8] (29 lines, 141 tokens)
+   [1m[32mfrontend/node_modules/array.prototype.flatmap/package.json[39m[22m [75:16 - 122:9]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array-buffer-byte-length/package.json[39m[22m [55:3 - 75:17] (20 lines, 136 tokens)
+   [1m[32mfrontend/node_modules/data-view-buffer/package.json[39m[22m [52:3 - 78:10]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array-buffer-byte-length/package.json[39m[22m [64:9 - 83:11] (19 lines, 120 tokens)
+   [1m[32mfrontend/node_modules/math-intrinsics/package.json[39m[22m [59:9 - 75:16]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/array-buffer-byte-length/package.json[39m[22m [70:10 - 94:2] (24 lines, 130 tokens)
+   [1m[32mfrontend/node_modules/dunder-proto/package.json[39m[22m [52:10 - 76:2]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ansi-styles/package.json[39m[22m [15:2 - 46:15] (31 lines, 133 tokens)
+   [1m[32mfrontend/node_modules/wrap-ansi/node_modules/ansi-styles/package.json[39m[22m [17:2 - 48:18]
+
+Clone found (json):
+ - [1m[32mfrontend/node_modules/ansi-regex/package.json[39m[22m [14:2 - 51:6] (37 lines, 159 tokens)
+   [1m[32mfrontend/node_modules/@isaacs/cliui/node_modules/ansi-regex/package.json[39m[22m [19:2 - 56:15]
+
+Clone found (json):
+ - [1m[32mnode_modules/zod/package.json[39m[22m [71:5 - 130:78] (59 lines, 353 tokens)
+   [1m[32mfrontend/node_modules/zod/package.json[39m[22m [53:5 - 112:29]
+
+Clone found (json):
+ - [1m[32mnode_modules/xmlhttprequest-ssl/package.json[39m[22m [1:1 - 40:2] (39 lines, 205 tokens)
+   [1m[32mfrontend/node_modules/xmlhttprequest-ssl/package.json[39m[22m [1:1 - 40:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/xlsx/package.json[39m[22m [1:1 - 101:2] (100 lines, 572 tokens)
+   [1m[32mfrontend/node_modules/xlsx/package.json[39m[22m [1:1 - 101:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/ws/package.json[39m[22m [1:1 - 69:2] (68 lines, 380 tokens)
+   [1m[32mfrontend/node_modules/ws/package.json[39m[22m [1:1 - 69:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/word/package.json[39m[22m [1:1 - 29:2] (28 lines, 154 tokens)
+   [1m[32mfrontend/node_modules/word/package.json[39m[22m [1:1 - 29:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/wmf/package.json[39m[22m [1:1 - 68:2] (67 lines, 348 tokens)
+   [1m[32mfrontend/node_modules/wmf/package.json[39m[22m [1:1 - 68:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/utrie/package.json[39m[22m [1:1 - 53:2] (52 lines, 328 tokens)
+   [1m[32mfrontend/node_modules/utrie/package.json[39m[22m [1:1 - 53:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/tslib/package.json[39m[22m [1:1 - 47:2] (46 lines, 255 tokens)
+   [1m[32mfrontend/node_modules/tslib/package.json[39m[22m [1:1 - 47:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/text-segmentation/package.json[39m[22m [1:1 - 55:2] (54 lines, 342 tokens)
+   [1m[32mfrontend/node_modules/text-segmentation/package.json[39m[22m [1:1 - 55:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/svg-pathdata/tslint.json[39m[22m [1:1 - 19:2] (18 lines, 114 tokens)
+   [1m[32mfrontend/node_modules/svg-pathdata/tslint.json[39m[22m [1:1 - 19:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/svg-pathdata/tsconfig.json[39m[22m [1:1 - 66:2] (65 lines, 1348 tokens)
+   [1m[32mfrontend/node_modules/svg-pathdata/tsconfig.json[39m[22m [1:1 - 66:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/svg-pathdata/package.json[39m[22m [1:1 - 95:2] (94 lines, 524 tokens)
+   [1m[32mfrontend/node_modules/svg-pathdata/package.json[39m[22m [1:1 - 95:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/stackblur-canvas/package.json[39m[22m [1:1 - 71:2] (70 lines, 430 tokens)
+   [1m[32mfrontend/node_modules/stackblur-canvas/package.json[39m[22m [1:1 - 71:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/ssf/package.json[39m[22m [1:1 - 57:2] (56 lines, 301 tokens)
+   [1m[32mfrontend/node_modules/ssf/package.json[39m[22m [1:1 - 57:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/socket.io-parser/package.json[39m[22m [1:1 - 58:2] (57 lines, 350 tokens)
+   [1m[32mfrontend/node_modules/socket.io-parser/package.json[39m[22m [1:1 - 58:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/socket.io-client/package.json[39m[22m [1:1 - 101:2] (100 lines, 553 tokens)
+   [1m[32mfrontend/node_modules/socket.io-client/package.json[39m[22m [1:1 - 101:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/rgbcolor/package.json[39m[22m [1:1 - 14:2] (13 lines, 95 tokens)
+   [1m[32mfrontend/node_modules/rgbcolor/package.json[39m[22m [1:1 - 14:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/regenerator-runtime/package.json[39m[22m [1:1 - 19:2] (18 lines, 98 tokens)
+   [1m[32mfrontend/node_modules/regenerator-runtime/package.json[39m[22m [1:1 - 19:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/react-is/package.json[39m[22m [1:1 - 27:2] (26 lines, 135 tokens)
+   [1m[32mfrontend/node_modules/react-is/package.json[39m[22m [1:1 - 27:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/react-hot-toast/package.json[39m[22m [1:1 - 103:2] (102 lines, 585 tokens)
+   [1m[32mfrontend/node_modules/react-hot-toast/package.json[39m[22m [1:1 - 103:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/react-hook-form/package.json[39m[22m [1:1 - 143:2] (142 lines, 869 tokens)
+   [1m[32mfrontend/node_modules/react-hook-form/package.json[39m[22m [1:1 - 143:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/react-dropzone/package.json[39m[22m [1:1 - 205:2] (204 lines, 1195 tokens)
+   [1m[32mfrontend/node_modules/react-dropzone/package.json[39m[22m [1:1 - 205:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/react-chartjs-2/package.json[39m[22m [1:1 - 44:2] (43 lines, 240 tokens)
+   [1m[32mfrontend/node_modules/react-chartjs-2/package.json[39m[22m [1:1 - 44:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/raf/package.json[39m[22m [1:1 - 48:2] (47 lines, 238 tokens)
+   [1m[32mfrontend/node_modules/raf/package.json[39m[22m [1:1 - 48:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/proxy-from-env/package.json[39m[22m [1:1 - 34:2] (33 lines, 185 tokens)
+   [1m[32mfrontend/node_modules/proxy-from-env/package.json[39m[22m [1:1 - 34:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/prop-types/package.json[39m[22m [1:1 - 60:2] (59 lines, 331 tokens)
+   [1m[32mfrontend/node_modules/prop-types/package.json[39m[22m [1:1 - 60:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/performance-now/package.json[39m[22m [1:1 - 35:2] (34 lines, 220 tokens)
+   [1m[32mfrontend/node_modules/performance-now/package.json[39m[22m [1:1 - 35:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/object-assign/package.json[39m[22m [1:1 - 42:2] (41 lines, 212 tokens)
+   [1m[32mfrontend/node_modules/object-assign/package.json[39m[22m [1:1 - 42:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/ms/package.json[39m[22m [1:1 - 38:2] (37 lines, 206 tokens)
+   [1m[32mfrontend/node_modules/ms/package.json[39m[22m [1:1 - 38:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/mime-types/package.json[39m[22m [1:1 - 44:2] (43 lines, 236 tokens)
+   [1m[32mfrontend/node_modules/mime-types/package.json[39m[22m [1:1 - 44:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/mime-db/package.json[39m[22m [1:1 - 60:2] (59 lines, 332 tokens)
+   [1m[32mfrontend/node_modules/mime-db/package.json[39m[22m [1:1 - 60:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/math-intrinsics/package.json[39m[22m [1:1 - 86:2] (85 lines, 541 tokens)
+   [1m[32mfrontend/node_modules/math-intrinsics/package.json[39m[22m [1:1 - 83:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/lucide-react/package.json[39m[22m [15:8 - 34:14] (19 lines, 100 tokens)
+   [1m[32mfrontend/node_modules/lucide-react/package.json[39m[22m [15:10 - 34:24]
+
+Clone found (json):
+ - [1m[32mnode_modules/loose-envify/package.json[39m[22m [1:1 - 36:2] (35 lines, 188 tokens)
+   [1m[32mfrontend/node_modules/loose-envify/package.json[39m[22m [1:1 - 36:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/jspdf/package.json[39m[22m [4:36 - 23:40] (19 lines, 106 tokens)
+   [1m[32mfrontend/node_modules/jspdf/package.json[39m[22m [4:33 - 23:37]
+
+Clone found (json):
+ - [1m[32mnode_modules/jspdf/package.json[39m[22m [42:9 - 60:8] (18 lines, 122 tokens)
+   [1m[32mfrontend/node_modules/jspdf/package.json[39m[22m [42:9 - 60:10]
+
+Clone found (json):
+ - [1m[32mnode_modules/jspdf/package.json[39m[22m [70:9 - 85:13] (15 lines, 101 tokens)
+   [1m[32mfrontend/node_modules/jspdf/package.json[39m[22m [72:8 - 87:23]
+
+Clone found (json):
+ - [1m[32mnode_modules/jspdf/package.json[39m[22m [94:176 - 112:2] (18 lines, 113 tokens)
+   [1m[32mfrontend/node_modules/jspdf/package.json[39m[22m [97:155 - 114:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/js-tokens/package.json[39m[22m [1:1 - 30:2] (29 lines, 159 tokens)
+   [1m[32mfrontend/node_modules/js-tokens/package.json[39m[22m [1:1 - 30:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/html2canvas/tsconfig.json[39m[22m [1:1 - 21:2] (20 lines, 131 tokens)
+   [1m[32mfrontend/node_modules/html2canvas/tsconfig.json[39m[22m [1:1 - 21:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/html2canvas/package.json[39m[22m [1:1 - 124:2] (123 lines, 820 tokens)
+   [1m[32mfrontend/node_modules/html2canvas/package.json[39m[22m [1:1 - 124:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/hasown/package.json[39m[22m [1:1 - 92:2] (91 lines, 535 tokens)
+   [1m[32mfrontend/node_modules/hasown/package.json[39m[22m [1:1 - 92:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/has-tostringtag/tsconfig.json[39m[22m [1:1 - 49:2] (48 lines, 907 tokens)
+   [1m[32mfrontend/node_modules/which-collection/tsconfig.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/has-tostringtag/package.json[39m[22m [1:1 - 108:2] (107 lines, 612 tokens)
+   [1m[32mfrontend/node_modules/has-tostringtag/package.json[39m[22m [1:1 - 108:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/has-symbols/package.json[39m[22m [1:1 - 111:2] (110 lines, 617 tokens)
+   [1m[32mfrontend/node_modules/has-symbols/package.json[39m[22m [1:1 - 111:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/gopd/package.json[39m[22m [1:1 - 77:2] (76 lines, 453 tokens)
+   [1m[32mfrontend/node_modules/gopd/package.json[39m[22m [1:1 - 83:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/goober/package.json[39m[22m [1:1 - 154:2] (153 lines, 880 tokens)
+   [1m[32mfrontend/node_modules/goober/package.json[39m[22m [1:1 - 154:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/get-proto/package.json[39m[22m [1:1 - 81:2] (80 lines, 476 tokens)
+   [1m[32mfrontend/node_modules/get-proto/package.json[39m[22m [1:1 - 82:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/get-intrinsic/package.json[39m[22m [1:1 - 97:2] (96 lines, 577 tokens)
+   [1m[32mfrontend/node_modules/get-intrinsic/package.json[39m[22m [1:1 - 97:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/function-bind/package.json[39m[22m [1:1 - 87:2] (86 lines, 472 tokens)
+   [1m[32mfrontend/node_modules/function-bind/package.json[39m[22m [1:1 - 87:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/frac/package.json[39m[22m [1:1 - 36:2] (35 lines, 258 tokens)
+   [1m[32mfrontend/node_modules/frac/package.json[39m[22m [1:1 - 36:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/form-data/package.json[39m[22m [1:1 - 82:2] (81 lines, 531 tokens)
+   [1m[32mfrontend/node_modules/form-data/package.json[39m[22m [1:1 - 82:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/follow-redirects/package.json[39m[22m [1:1 - 58:2] (57 lines, 300 tokens)
+   [1m[32mfrontend/node_modules/follow-redirects/package.json[39m[22m [1:1 - 58:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/file-selector/package.json[39m[22m [1:1 - 69:2] (68 lines, 401 tokens)
+   [1m[32mfrontend/node_modules/file-selector/package.json[39m[22m [1:1 - 69:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/fflate/package.json[39m[22m [1:1 - 127:2] (126 lines, 728 tokens)
+   [1m[32mfrontend/node_modules/fflate/package.json[39m[22m [1:1 - 127:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/fast-png/package.json[39m[22m [16:6 - 38:47] (22 lines, 133 tokens)
+   [1m[32mnode_modules/iobuffer/package.json[39m[22m [7:22 - 29:47]
+
+Clone found (json):
+ - [1m[32mnode_modules/es-set-tostringtag/package.json[39m[22m [1:1 - 78:2] (77 lines, 475 tokens)
+   [1m[32mfrontend/node_modules/es-set-tostringtag/package.json[39m[22m [1:1 - 78:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/es-object-atoms/package.json[39m[22m [1:1 - 80:2] (79 lines, 474 tokens)
+   [1m[32mfrontend/node_modules/es-object-atoms/package.json[39m[22m [1:1 - 83:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/es-errors/tsconfig.json[39m[22m [1:1 - 49:2] (48 lines, 912 tokens)
+   [1m[32mfrontend/node_modules/es-errors/tsconfig.json[39m[22m [1:1 - 49:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/es-errors/package.json[39m[22m [1:1 - 80:2] (79 lines, 476 tokens)
+   [1m[32mfrontend/node_modules/es-errors/package.json[39m[22m [1:1 - 83:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/es-define-property/package.json[39m[22m [1:1 - 81:2] (80 lines, 475 tokens)
+   [1m[32mfrontend/node_modules/es-define-property/package.json[39m[22m [1:1 - 77:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/engine.io-parser/package.json[39m[22m [1:1 - 46:2] (45 lines, 266 tokens)
+   [1m[32mfrontend/node_modules/engine.io-parser/package.json[39m[22m [1:1 - 46:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/engine.io-client/package.json[39m[22m [1:1 - 95:2] (94 lines, 544 tokens)
+   [1m[32mfrontend/node_modules/engine.io-client/package.json[39m[22m [1:1 - 95:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/dunder-proto/package.json[39m[22m [1:1 - 76:2] (75 lines, 461 tokens)
+   [1m[32mfrontend/node_modules/dunder-proto/package.json[39m[22m [1:1 - 76:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/dompurify/package.json[39m[22m [45:2 - 79:2] (34 lines, 166 tokens)
+   [1m[32mfrontend/node_modules/dompurify/package.json[39m[22m [22:17 - 57:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/dompurify/package.json[39m[22m [111:13 - 131:10] (20 lines, 139 tokens)
+   [1m[32mfrontend/node_modules/dompurify/package.json[39m[22m [71:9 - 91:10]
+
+Clone found (json):
+ - [1m[32mnode_modules/delayed-stream/package.json[39m[22m [1:1 - 27:2] (26 lines, 149 tokens)
+   [1m[32mfrontend/node_modules/delayed-stream/package.json[39m[22m [1:1 - 27:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/debug/package.json[39m[22m [1:1 - 60:2] (59 lines, 330 tokens)
+   [1m[32mfrontend/node_modules/socket.io-parser/node_modules/debug/package.json[39m[22m [1:1 - 60:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/d3-polygon/package.json[39m[22m [33:27 - 51:2] (18 lines, 101 tokens)
+   [1m[32mnode_modules/d3-timer/package.json[39m[22m [35:25 - 53:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/d3-ease/package.json[39m[22m [33:24 - 51:2] (18 lines, 101 tokens)
+   [1m[32mnode_modules/d3-timer/package.json[39m[22m [35:25 - 53:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/d3-dispatch/package.json[39m[22m [32:28 - 50:2] (18 lines, 101 tokens)
+   [1m[32mnode_modules/d3-timer/package.json[39m[22m [35:25 - 53:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/csstype/package.json[39m[22m [1:1 - 66:2] (65 lines, 402 tokens)
+   [1m[32mfrontend/node_modules/csstype/package.json[39m[22m [1:1 - 66:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/css-line-break/package.json[39m[22m [1:1 - 61:2] (60 lines, 364 tokens)
+   [1m[32mfrontend/node_modules/css-line-break/package.json[39m[22m [1:1 - 61:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/crc-32/package.json[39m[22m [1:1 - 43:2] (42 lines, 333 tokens)
+   [1m[32mfrontend/node_modules/crc-32/package.json[39m[22m [1:1 - 43:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/core-js/package.json[39m[22m [1:1 - 76:2] (75 lines, 351 tokens)
+   [1m[32mfrontend/node_modules/core-js/package.json[39m[22m [1:1 - 76:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/combined-stream/package.json[39m[22m [1:1 - 25:2] (24 lines, 137 tokens)
+   [1m[32mfrontend/node_modules/combined-stream/package.json[39m[22m [1:1 - 25:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/codepage/package.json[39m[22m [1:1 - 72:2] (71 lines, 374 tokens)
+   [1m[32mfrontend/node_modules/codepage/package.json[39m[22m [1:1 - 72:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/chart.js/package.json[39m[22m [1:1 - 139:2] (138 lines, 830 tokens)
+   [1m[32mfrontend/node_modules/chart.js/package.json[39m[22m [1:1 - 139:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/cfb/package.json[39m[22m [1:1 - 68:2] (67 lines, 378 tokens)
+   [1m[32mfrontend/node_modules/cfb/package.json[39m[22m [1:1 - 68:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/canvg/package.json[39m[22m [1:1 - 60:2] (59 lines, 325 tokens)
+   [1m[32mfrontend/node_modules/canvg/package.json[39m[22m [1:1 - 60:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/call-bind-apply-helpers/package.json[39m[22m [1:1 - 85:2] (84 lines, 524 tokens)
+   [1m[32mfrontend/node_modules/call-bind-apply-helpers/package.json[39m[22m [1:1 - 77:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/base64-arraybuffer/package.json[39m[22m [1:1 - 54:2] (53 lines, 336 tokens)
+   [1m[32mfrontend/node_modules/base64-arraybuffer/package.json[39m[22m [1:1 - 54:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/axios/package.json[39m[22m [1:1 - 234:2] (233 lines, 1416 tokens)
+   [1m[32mfrontend/node_modules/axios/package.json[39m[22m [1:1 - 234:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/attr-accept/package.json[39m[22m [1:1 - 115:2] (114 lines, 675 tokens)
+   [1m[32mfrontend/node_modules/attr-accept/package.json[39m[22m [1:1 - 115:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/asynckit/package.json[39m[22m [1:1 - 63:2] (62 lines, 348 tokens)
+   [1m[32mfrontend/node_modules/asynckit/package.json[39m[22m [1:1 - 63:2]
+
+Clone found (json):
+ - [1m[32mnode_modules/adler-32/package.json[39m[22m [1:1 - 35:2] (34 lines, 260 tokens)
+   [1m[32mfrontend/node_modules/adler-32/package.json[39m[22m [1:1 - 35:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/linkset/gs1-linkset-schema.json[39m[22m [1:1 - 16:10] (15 lines, 96 tokens)
+   [1m[32mgs1_research/linkset/linkset-schema.json[39m[22m [1:1 - 16:9]
+
+Clone found (json):
+ - [1m[32mgs1_research/linkset/gs1-linkset-schema.json[39m[22m [42:33 - 62:2] (20 lines, 121 tokens)
+   [1m[32mgs1_research/linkset/linkset-schema.json[39m[22m [32:33 - 53:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/linkset/ExampleLinkset.json[39m[22m [3:44 - 28:2] (25 lines, 207 tokens)
+   [1m[32mgs1_research/linkset/linksetContext.jsonld[39m[22m [4:5 - 29:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/VC-Data-Model/licence-ontology.jsonld[39m[22m [1:1 - 203:31] (202 lines, 1130 tokens)
+   [1m[32mgs1_research/VC-Data-Model/license-ontology.jsonld[39m[22m [1:1 - 203:31]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [1:1 - 43:2] (42 lines, 271 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [1:1 - 43:57]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [44:9 - 85:2] (41 lines, 287 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-bizstep.jsonld[39m[22m [7:9 - 49:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [91:9 - 124:2] (33 lines, 231 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-disposition.jsonld[39m[22m [7:9 - 41:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [124:2 - 158:2] (34 lines, 205 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [48:61 - 82:65]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [163:9 - 179:2] (16 lines, 96 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [83:17 - 99:65]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [191:9 - 226:2] (35 lines, 237 tokens)
+   [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [90:2 - 125:6]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [225:2 - 265:2] (40 lines, 235 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [107:61 - 148:69]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [266:13 - 280:2] (14 lines, 93 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-biztransaction-type.jsonld[39m[22m [7:9 - 21:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [280:9 - 366:2] (86 lines, 504 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [149:17 - 235:66]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [367:17 - 439:2] (72 lines, 504 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/gs1-context-measurement-type.jsonld[39m[22m [6:9 - 79:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [447:2 - 472:2] (25 lines, 144 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [240:67 - 265:59]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [473:17 - 487:2] (14 lines, 98 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/cbv-context-component.jsonld[39m[22m [7:9 - 22:2]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [487:2 - 540:2] (53 lines, 302 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [265:59 - 318:62]
+
+Clone found (json):
+ - [1m[32mgs1_research/EPCIS/epcis-context.jsonld[39m[22m [544:9 - 593:2] (49 lines, 286 tokens)
+   [1m[32mgs1_research/EPCIS/JSON-LD-Context/epcis-context-root.jsonld[39m[22m [319:17 - 359:2]
+
+[90m┌────────[39m[90m┬────────────────[39m[90m┬─────────────[39m[90m┬──────────────[39m[90m┬──────────────[39m[90m┬──────────────────[39m[90m┬───────────────────┐[39m
+[90m│[39m[31m Format [39m[90m│[39m[31m Files analyzed [39m[90m│[39m[31m Total lines [39m[90m│[39m[31m Total tokens [39m[90m│[39m[31m Clones found [39m[90m│[39m[31m Duplicated lines [39m[90m│[39m[31m Duplicated tokens [39m[90m│[39m
+[90m├────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m json   [90m│[39m 1383           [90m│[39m 92673       [90m│[39m 585726       [90m│[39m 548          [90m│[39m 27388 (29.55%)   [90m│[39m 179210 (30.6%)    [90m│[39m
+[90m├────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m [1mTotal:[22m [90m│[39m 1383           [90m│[39m 92673       [90m│[39m 585726       [90m│[39m 548          [90m│[39m 27388 (29.55%)   [90m│[39m 179210 (30.6%)    [90m│[39m
+[90m└────────[39m[90m┴────────────────[39m[90m┴─────────────[39m[90m┴──────────────[39m[90m┴──────────────[39m[90m┴──────────────────[39m[90m┴───────────────────┘[39m
+[90mFound 548 clones.[39m
+[3m[90mDetection time:[39m[23m: 8.060s

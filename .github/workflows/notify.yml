@@ -1,0 +1,355 @@
+name: Reusable Notification Workflow
+
+on:
+  workflow_call:
+    inputs:
+      notification_channels:
+        description: 'JSON array of notification channels'
+        required: false
+        type: string
+        default: '["slack", "email"]'
+      notification_level:
+        description: 'Notification level (info, warning, error, success)'
+        required: false
+        type: string
+        default: 'info'
+      workflow_status:
+        description: 'Overall workflow status'
+        required: true
+        type: string
+      deployment_environment:
+        description: 'Deployment environment'
+        required: false
+        type: string
+        default: 'development'
+      deployment_strategy:
+        description: 'Deployment strategy used'
+        required: false
+        type: string
+        default: 'rolling'
+      include_metrics:
+        description: 'Include performance metrics in notification'
+        required: false
+        type: boolean
+        default: true
+      include_logs:
+        description: 'Include log links in notification'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Prepare notification data
+        id: prepare
+        run: |
+          # Generate notification content based on status
+          case "${{ inputs.workflow_status }}" in
+            "success")
+              EMOJI="✅"
+              COLOR="good"
+              TITLE="Deployment Successful"
+              MESSAGE="The deployment to ${{ inputs.deployment_environment }} completed successfully using ${{ inputs.deployment_strategy }} strategy."
+              ;;
+            "failure")
+              EMOJI="❌"
+              COLOR="danger"
+              TITLE="Deployment Failed"
+              MESSAGE="The deployment to ${{ inputs.deployment_environment }} failed. Please check the logs and take appropriate action."
+              ;;
+            "cancelled")
+              EMOJI="⚠️"
+              COLOR="warning"
+              TITLE="Deployment Cancelled"
+              MESSAGE="The deployment to ${{ inputs.deployment_environment }} was cancelled."
+              ;;
+            *)
+              EMOJI="ℹ️"
+              COLOR="good"
+              TITLE="Deployment Status Update"
+              MESSAGE="Deployment to ${{ inputs.deployment_environment }} status: ${{ inputs.workflow_status }}"
+              ;;
+          esac
+          
+          # Set outputs for use in notification steps
+          echo "emoji=${EMOJI}" >> $GITHUB_OUTPUT
+          echo "color=${COLOR}" >> $GITHUB_OUTPUT
+          echo "title=${TITLE}" >> $GITHUB_OUTPUT
+          echo "message=${MESSAGE}" >> $GITHUB_OUTPUT
+          
+          # Generate workflow run URL
+          WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "workflow_url=${WORKFLOW_URL}" >> $GITHUB_OUTPUT
+          
+          # Generate commit info
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT_SHA:0:7}"
+          echo "commit_short=${COMMIT_SHORT}" >> $GITHUB_OUTPUT
+          
+          # Generate repository info
+          REPO_NAME="${{ github.repository }}"
+          echo "repo_name=${REPO_NAME}" >> $GITHUB_OUTPUT
+          
+          echo "✅ Notification data prepared"
+      
+      - name: Send Slack notification
+        if: contains(inputs.notification_channels, 'slack')
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "${{ steps.prepare.outputs.emoji }} ${{ steps.prepare.outputs.title }}",
+              "attachments": [
+                {
+                  "color": "${{ steps.prepare.outputs.color }}",
+                  "title": "${{ steps.prepare.outputs.title }}",
+                  "text": "${{ steps.prepare.outputs.message }}",
+                  "fields": [
+                    {
+                      "title": "Repository",
+                      "value": "${{ steps.prepare.outputs.repo_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Environment",
+                      "value": "${{ inputs.deployment_environment }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Strategy",
+                      "value": "${{ inputs.deployment_strategy }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit",
+                      "value": "${{ steps.prepare.outputs.commit_short }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Triggered by",
+                      "value": "${{ github.actor }}",
+                      "short": true
+                    }
+                    ${{ inputs.include_logs && ',
+                    {
+                      "title": "Workflow Run",
+                      "value": "<${{ steps.prepare.outputs.workflow_url }}|View Details>",
+                      "short": false
+                    }' || '' }}
+                  ],
+                  "footer": "GitHub Actions",
+                  "ts": ${{ github.event.head_commit.timestamp || '0' }}
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: Send Microsoft Teams notification
+        if: contains(inputs.notification_channels, 'teams')
+        uses: skitionek/notify-microsoft-teams@master
+        with:
+          webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: "${{ steps.prepare.outputs.emoji }} ${{ steps.prepare.outputs.title }}"
+          message: "${{ steps.prepare.outputs.message }}"
+          color: "${{ steps.prepare.outputs.color }}"
+          sections: |
+            [
+              {
+                "activityTitle": "Deployment Details",
+                "activitySubtitle": "${{ steps.prepare.outputs.repo_name }}",
+                "facts": [
+                  {
+                    "name": "Environment",
+                    "value": "${{ inputs.deployment_environment }}"
+                  },
+                  {
+                    "name": "Strategy",
+                    "value": "${{ inputs.deployment_strategy }}"
+                  },
+                  {
+                    "name": "Commit",
+                    "value": "${{ steps.prepare.outputs.commit_short }}"
+                  },
+                  {
+                    "name": "Branch",
+                    "value": "${{ github.ref_name }}"
+                  },
+                  {
+                    "name": "Triggered by",
+                    "value": "${{ github.actor }}"
+                  }
+                  ${{ inputs.include_logs && ',
+                  {
+                    "name": "Workflow Run",
+                    "value": "[View Details](${{ steps.prepare.outputs.workflow_url }})"
+                  }' || '' }}
+                ]
+              }
+            ]
+      
+      - name: Send email notification
+        if: contains(inputs.notification_channels, 'email')
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "${{ steps.prepare.outputs.emoji }} ${{ steps.prepare.outputs.title }} - ${{ steps.prepare.outputs.repo_name }}"
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: ${{ secrets.SMTP_FROM }}
+          html_body: |
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: ${{ inputs.workflow_status == 'success' && '#28a745' || inputs.workflow_status == 'failure' && '#dc3545' || '#ffc107' }}; color: white; padding: 20px; border-radius: 5px; }
+                .content { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-top: 20px; }
+                .details { margin-top: 20px; }
+                .detail-item { margin: 10px 0; }
+                .label { font-weight: bold; display: inline-block; width: 120px; }
+                .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+                .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>${{ steps.prepare.outputs.emoji }} ${{ steps.prepare.outputs.title }}</h1>
+                  <p>${{ steps.prepare.outputs.message }}</p>
+                </div>
+                
+                <div class="content">
+                  <h2>Deployment Details</h2>
+                  <div class="details">
+                    <div class="detail-item">
+                      <span class="label">Repository:</span> ${{ steps.prepare.outputs.repo_name }}
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Environment:</span> ${{ inputs.deployment_environment }}
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Strategy:</span> ${{ inputs.deployment_strategy }}
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Commit:</span> ${{ steps.prepare.outputs.commit_short }}
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Branch:</span> ${{ github.ref_name }}
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Triggered by:</span> ${{ github.actor }}
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Timestamp:</span> $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+                    </div>
+                  </div>
+                  
+                  ${{ inputs.include_logs && '
+                  <a href="${{ steps.prepare.outputs.workflow_url }}" class="button">View Workflow Details</a>
+                  ' || '' }}
+                </div>
+                
+                <div class="footer">
+                  <p>This notification was sent automatically by GitHub Actions.</p>
+                  <p>Repository: ${{ steps.prepare.outputs.repo_name }}</p>
+                </div>
+              </div>
+            </body>
+            </html>
+      
+      - name: Send Discord notification
+        if: contains(inputs.notification_channels, 'discord')
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        with:
+          args: |
+            ${{ steps.prepare.outputs.emoji }} **${{ steps.prepare.outputs.title }}**
+            
+            **Repository:** ${{ steps.prepare.outputs.repo_name }}
+            **Environment:** ${{ inputs.deployment_environment }}
+            **Strategy:** ${{ inputs.deployment_strategy }}
+            **Status:** ${{ inputs.workflow_status }}
+            **Commit:** ${{ steps.prepare.outputs.commit_short }}
+            **Branch:** ${{ github.ref_name }}
+            **Triggered by:** ${{ github.actor }}
+            
+            ${{ steps.prepare.outputs.message }}
+            
+            ${{ inputs.include_logs && '[View Workflow Details](${{ steps.prepare.outputs.workflow_url }})' || '' }}
+      
+      - name: Send webhook notification
+        if: contains(inputs.notification_channels, 'webhook')
+        run: |
+          echo "Sending webhook notification..."
+          
+          # Prepare webhook payload
+          WEBHOOK_PAYLOAD=$(cat <<EOF
+          {
+            "event": "deployment",
+            "status": "${{ inputs.workflow_status }}",
+            "repository": "${{ steps.prepare.outputs.repo_name }}",
+            "environment": "${{ inputs.deployment_environment }}",
+            "strategy": "${{ inputs.deployment_strategy }}",
+            "commit": "${{ github.sha }}",
+            "commit_short": "${{ steps.prepare.outputs.commit_short }}",
+            "branch": "${{ github.ref_name }}",
+            "actor": "${{ github.actor }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "message": "${{ steps.prepare.outputs.message }}",
+            "workflow_url": "${{ steps.prepare.outputs.workflow_url }}",
+            "emoji": "${{ steps.prepare.outputs.emoji }}",
+            "color": "${{ steps.prepare.outputs.color }}",
+            "title": "${{ steps.prepare.outputs.title }}"
+          }
+          EOF
+          )
+          
+          # Send webhook
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "${WEBHOOK_PAYLOAD}" \
+            ${{ secrets.CUSTOM_WEBHOOK_URL }} || \
+            echo "⚠️ Webhook notification failed"
+      
+      - name: Create GitHub deployment
+        if: contains(inputs.notification_channels, 'github') && inputs.workflow_status == 'success'
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: ${{ github.token }}
+          environment: ${{ inputs.deployment_environment }}
+          description: "Deployment completed successfully using ${{ inputs.deployment_strategy }} strategy"
+      
+      - name: Update GitHub deployment status
+        if: contains(inputs.notification_channels, 'github')
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          state: ${{ inputs.workflow_status == 'success' && 'success' || inputs.workflow_status == 'failure' && 'failure' || 'error' }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+      
+      - name: Notification summary
+        if: always()
+        run: |
+          echo "📋 Notification Summary"
+          echo "======================"
+          echo "Status: ${{ inputs.workflow_status }}"
+          echo "Channels: ${{ inputs.notification_channels }}"
+          echo "Environment: ${{ inputs.deployment_environment }}"
+          echo "Level: ${{ inputs.notification_level }}"
+          echo ""
+          echo "✅ Notifications sent successfully"

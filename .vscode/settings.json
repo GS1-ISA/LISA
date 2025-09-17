@@ -1,0 +1,13 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
+    "mcp.languageServers": {
+        "context7": {
+            "serverUrl": "${env:CONTEXT7_MCP_URL}",
+            "enabled": true
+        }
+    },
+    "chatgpt.config": {}
+}

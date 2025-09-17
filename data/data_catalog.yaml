@@ -1,0 +1,279 @@
+# ISA Data Catalog
+# This catalog documents all data sources used in the ISA project
+# Last updated: 2025-09-14
+
+metadata:
+  catalog_version: "1.0.0"
+  last_updated: "2025-09-14T19:45:00Z"
+  maintainer: "ISA Data Team"
+  description: "Central catalog for all data sources ingested into the ISA vector store"
+
+# Data sources are organized by category
+sources:
+
+  # Standards and Compliance Documents
+  standards:
+    description: "International standards and compliance frameworks"
+    sources:
+      
+      iso_27001:
+        name: "ISO 27001 Information Security Management"
+        description: "Information security management system requirements"
+        source_type: "pdf_document"
+        source_uri: "https://www.iso.org/standard/27001"
+        document_format: "pdf"
+        language: "en"
+        version: "2022"
+        license: "commercial"
+        update_frequency: "annual"
+        last_ingested: "2025-09-01"
+        ingestion_manifest: "data/ingestion_manifests/iso27001_v2022_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "information_security"
+          compliance_framework: true
+          jurisdiction: "international"
+        
+      gdpr:
+        name: "General Data Protection Regulation"
+        description: "EU regulation on data protection and privacy"
+        source_type: "html_document"
+        source_uri: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679"
+        document_format: "html"
+        language: "en"
+        version: "2016/679"
+        license: "public_domain"
+        update_frequency: "as_needed"
+        last_ingested: "2025-08-15"
+        ingestion_manifest: "data/ingestion_manifests/gdpr_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "privacy_law"
+          compliance_framework: true
+          jurisdiction: "eu"
+
+  # Internal Policies and Procedures
+  internal_policies:
+    description: "Internal organizational policies and procedures"
+    sources:
+      
+      data_governance_policy:
+        name: "ISA Data Governance Policy"
+        description: "Internal data governance and quality standards"
+        source_type: "markdown_document"
+        source_uri: "internal://policies/data_governance.md"
+        document_format: "markdown"
+        language: "en"
+        version: "2025-07-01"
+        license: "internal"
+        update_frequency: "quarterly"
+        last_ingested: "2025-07-15"
+        ingestion_manifest: "data/ingestion_manifests/data_governance_policy_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "internal_policy"
+          access_level: "restricted"
+          department: "data_governance"
+        
+      ai_ethics_guidelines:
+        name: "AI Ethics and Responsible Use Guidelines"
+        description: "Guidelines for ethical AI development and deployment"
+        source_type: "markdown_document"
+        source_uri: "internal://policies/ai_ethics.md"
+        document_format: "markdown"
+        language: "en"
+        version: "2025-08-15"
+        license: "internal"
+        update_frequency: "bi-annually"
+        last_ingested: "2025-08-20"
+        ingestion_manifest: "data/ingestion_manifests/ai_ethics_guidelines_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "ai_governance"
+          access_level: "restricted"
+          department: "ai_governance"
+
+  # Research and Technical Documentation
+  research:
+    description: "Research papers, technical documentation, and knowledge base"
+    sources:
+      
+      ai_safety_research:
+        name: "AI Safety Research Collection"
+        description: "Curated collection of AI safety and alignment research papers"
+        source_type: "pdf_collection"
+        source_uri: "https://arxiv.org/list/cs.AI/recent"
+        document_format: "pdf"
+        language: "en"
+        version: "dynamic"
+        license: "varies"
+        update_frequency: "weekly"
+        last_ingested: "2025-09-10"
+        ingestion_manifest: "data/ingestion_manifests/ai_safety_research_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "research"
+          domain: "ai_safety"
+          peer_reviewed: true
+          
+      vector_db_research:
+        name: "Vector Database Research Papers"
+        description: "Research on vector databases and similarity search"
+        source_type: "pdf_collection"
+        source_uri: "https://dblp.org/db/conf/sigmod/"
+        document_format: "pdf"
+        language: "en"
+        version: "dynamic"
+        license: "varies"
+        update_frequency: "monthly"
+        last_ingested: "2025-08-25"
+        ingestion_manifest: "data/ingestion_manifests/vector_db_research_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "research"
+          domain: "databases"
+          peer_reviewed: true
+
+  # Industry Reports and Analysis
+  industry_reports:
+    description: "Industry reports, market analysis, and trend studies"
+    sources:
+      
+      ai_trends_2025:
+        name: "AI Industry Trends Report 2025"
+        description: "Comprehensive analysis of AI industry trends and developments"
+        source_type: "pdf_document"
+        source_uri: "https://example.com/reports/ai-trends-2025.pdf"
+        document_format: "pdf"
+        language: "en"
+        version: "2025"
+        license: "commercial"
+        update_frequency: "annual"
+        last_ingested: "2025-01-15"
+        ingestion_manifest: "data/ingestion_manifests/ai_trends_2025_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "industry_analysis"
+          report_type: "trend_analysis"
+          publisher: "industry_research_firm"
+          
+      data_privacy_landscape:
+        name: "Global Data Privacy Landscape Report"
+        description: "Analysis of global data privacy regulations and trends"
+        source_type: "pdf_document"
+        source_uri: "https://example.com/reports/privacy-landscape-2025.pdf"
+        document_format: "pdf"
+        language: "en"
+        version: "2025"
+        license: "commercial"
+        update_frequency: "annual"
+        last_ingested: "2025-03-01"
+        ingestion_manifest: "data/ingestion_manifests/data_privacy_landscape_manifest.json"
+        vector_store_schema: "docs/VECTOR_STORE_SCHEMA.md"
+        metadata:
+          category: "regulatory_analysis"
+          report_type: "compliance_analysis"
+          publisher: "legal_research_firm"
+
+# Data Quality and Governance
+data_quality:
+  description: "Data quality standards and validation rules"
+  validation_rules:
+    required_fields:
+      - "document_id"
+      - "source"
+      - "chunk_text"
+      - "created_at"
+      - "embedding_model"
+      - "language"
+      - "checksum"
+    
+    field_constraints:
+      document_id:
+        pattern: "^[a-zA-Z0-9_-]+$"
+        max_length: 100
+        
+      language:
+        enum: ["en", "es", "fr", "de", "it", "pt", "nl", "sv", "da", "no"]
+        
+      embedding_model:
+        pattern: "^[a-zA-Z0-9_-]+@[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        
+      checksum:
+        pattern: "^sha256:[a-fA-F0-9]{64}$"
+
+# Ingestion Statistics
+ingestion_statistics:
+  total_documents: 847
+  total_chunks: 124_932
+  total_sources: 12
+  last_full_reindex: "2025-09-01T00:00:00Z"
+  
+  by_category:
+    standards: 156
+    internal_policies: 89
+    research: 423
+    industry_reports: 179
+
+# Data Lineage and Dependencies
+lineage:
+  upstream_dependencies:
+    - "external_document_sources"
+    - "internal_document_management_system"
+    - "web_scraping_system"
+    
+  downstream_consumers:
+    - "rag_memory_system"
+    - "semantic_search_api"
+    - "agent_knowledge_base"
+    - "compliance_checking_system"
+
+# Access and Security
+access_control:
+  default_access_level: "public"
+  sensitive_sources:
+    - "internal_policies"
+    
+  encryption:
+    at_rest: true
+    in_transit: true
+    
+  audit_logging:
+    enabled: true
+    retention_period: "2_years"
+
+# Maintenance and Updates
+maintenance:
+  update_schedule: "monthly"
+  review_process: "quarterly"
+  responsible_team: "data_engineering"
+  
+  deprecation_policy:
+    notice_period: "30_days"
+    archive_location: "storage/archives/"
+    
+# References and Documentation
+references:
+  - name: "Vector Store Schema"
+    location: "docs/VECTOR_STORE_SCHEMA.md"
+    description: "Technical schema for vector store entries"
+    
+  - name: "Data Governance Policy"
+    location: "internal://policies/data_governance.md"
+    description: "Internal data governance standards"
+    
+  - name: "Ingestion Manifests"
+    location: "data/ingestion_manifests/"
+    description: "Detailed ingestion logs and manifests"
+
+# Contact Information
+contact:
+  technical_owner: "data-engineering@isa-project.org"
+  business_owner: "data-governance@isa-project.org"
+  support: "support@isa-project.org"
+  
+notes:
+  - "This catalog is automatically updated during ingestion processes"
+  - "All sources must comply with VECTOR_STORE_SCHEMA.md requirements"
+  - "Ingestion manifests provide detailed lineage information"
+  - "Regular audits ensure data quality and compliance"

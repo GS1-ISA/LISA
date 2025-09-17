@@ -9,22 +9,21 @@ Signals (any true => significant):
 Outputs:
 - Writes `significant=true|false` and a `reason=...` line to $GITHUB_OUTPUT
 """
+
 from __future__ import annotations
 
 import argparse
 import os
 import subprocess
-from dataclasses import dataclass
-from typing import List, Tuple
 
 
-def run(cmd: List[str]) -> str:
+def run(cmd: list[str]) -> str:
     return subprocess.check_output(cmd, text=True).strip()
 
 
-def diff_files(base: str) -> List[str]:
+def diff_files(base: str) -> list[str]:
     out = run(["git", "diff", "--name-only", f"{base}...HEAD"]) or ""
-    return [l for l in out.splitlines() if l.strip()]
+    return [line for line in out.splitlines() if line.strip()]
 
 
 def diff_loc(base: str) -> int:
@@ -37,7 +36,7 @@ def diff_loc(base: str) -> int:
     return total
 
 
-def touched_critical(changed: List[str], critical: List[str]) -> Tuple[bool, str]:
+def touched_critical(changed: list[str], critical: list[str]) -> tuple[bool, str]:
     for f in changed:
         for c in critical:
             if f.startswith(c):
@@ -47,21 +46,21 @@ def touched_critical(changed: List[str], critical: List[str]) -> Tuple[bool, str
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", required=True, help="Base commit/branch/sha to diff against")
+    ap.add_argument(
+        "--base", required=True, help="Base commit/branch/sha to diff against"
+    )
     ap.add_argument("--threshold-files", type=int, default=25)
     ap.add_argument("--threshold-loc", type=int, default=800)
-    ap.add_argument("--critical", action="append", default=[], help="Critical prefixes to watch")
+    ap.add_argument(
+        "--critical", action="append", default=[], help="Critical prefixes to watch"
+    )
     args = ap.parse_args()
 
     files = diff_files(args.base)
     loc = diff_loc(args.base)
     crit, hit = touched_critical(files, args.critical)
 
-    significant = (
-        len(files) > args.threshold_files
-        or loc > args.threshold_loc
-        or crit
-    )
+    significant = len(files) > args.threshold_files or loc > args.threshold_loc or crit
     reason_parts = []
     if len(files) > args.threshold_files:
         reason_parts.append(f"files>{args.threshold_files} ({len(files)})")
@@ -82,4 +81,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

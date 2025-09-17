@@ -1,0 +1,71 @@
+extends: default
+
+rules:
+  # Allow longer lines for URLs and long strings
+  line-length:
+    max: 300
+    level: error
+
+  # Do not require '---' at document start
+  document-start: disable
+
+  # Don't enforce truthy values for CI YAML
+  truthy: disable
+
+  # Allow comments to start at any column
+  comments:
+    min-spaces-from-content: 1
+
+  # Allow empty lines at end of file
+  empty-lines:
+    max-end: 1
+    level: warning
+
+  # Allow trailing spaces in markdown files (they handle line breaks)
+  trailing-spaces: disable
+
+  # Allow empty values in certain contexts
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false
+
+  # Allow key duplicates in certain contexts (like GitHub Actions)
+  key-duplicates: disable
+
+  # Disable strict bracket spacing checks
+  brackets: disable
+  # Relax indentation checks for legacy files
+  indentation: disable
+
+  # Allow octal values starting with 0 (common in permissions)
+  octal-values:
+    forbid-implicit-octal: false
+    forbid-explicit-octal: false
+
+# Files to ignore
+ignore: |
+  .venv/
+  venv/
+  __pycache__/
+  .git/
+  .ruff_cache/
+  .mypy_cache/
+  .pytest_cache/
+  .coverage/
+  htmlcov/
+  *.egg-info/
+  build/
+  dist/
+  migrations/
+  alembic/
+  __MACOSX/
+  ISA_synthesized/
+  context7-master/
+  artifacts/
+  experiments/
+  *.log
+  *.tmp
+  *.bak
+  *.swp
+  *.swo
+  *~

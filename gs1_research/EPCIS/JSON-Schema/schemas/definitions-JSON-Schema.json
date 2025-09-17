@@ -1,0 +1,58 @@
+{
+    "$id": "https://gs1.github.io/EPCIS/JSON-Schema/schemas/definitions-JSON-Schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "@context": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "uri"
+                },
+                {
+                    "type": "object"
+                },
+                {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uri"
+                            },
+                            {
+                                "type": "object"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "vocab-uri": {
+                    "type": "string",
+                    "format": "uri"
+        },
+        "vocab-other-uri": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^(?!(urn:epcglobal:cbv|https?:\\/\\/ns\\.gs1\\.org\/cbv\\/))"
+        },
+        "vocab-nonGS1WebVoc-uri": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^(?!(https?:\\/\\/gs1\\.org\\/voc\\/|https?:\\/\\/www\\.gs1\\.org\\/voc\\/))"
+        },
+        "required-ld-context": {
+            "type": "object",
+            "required": ["@context"]
+        },
+        "version": {
+            "type": "string",
+            "pattern":  "^\\d+(\\.\\d+)*$"
+        },
+        "id": {
+            "type": "string",
+            "format": "uri"
+        }
+    }
+}

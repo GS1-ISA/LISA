@@ -1,0 +1,36 @@
+# Privacy-Preserving AI Dependencies
+# Fully Homomorphic Encryption and Federated Learning libraries
+
+# Fully Homomorphic Encryption
+tenseal>=0.3.14
+# Alternative FHE libraries (uncomment as needed):
+# phe>=1.5.0
+# Pyfhel>=3.4.1
+
+# Federated Learning
+# Note: Flower (flwr) is the main FL framework, but we'll implement custom FL for FHE integration
+# flwr>=1.5.0
+
+# Async HTTP server for FL coordination
+aiohttp>=3.8.5
+aiohttp-cors>=0.7.0
+
+# Additional cryptography libraries
+cryptography>=41.0.7
+
+# Scientific computing for model operations
+numpy>=1.25.2
+scipy>=1.11.3
+
+# Machine Learning (for local model training)
+scikit-learn>=1.3.1
+torch>=2.0.1
+# Note: Using torch for local model training, but models are trained on encrypted data
+
+# Data validation and processing
+pydantic>=2.4.2
+pandas>=2.1.1
+
+# Logging and utilities
+structlog>=23.1.0
+python-json-logger>=2.0.7

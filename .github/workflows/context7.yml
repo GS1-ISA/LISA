@@ -1,0 +1,34 @@
+
+name: Context7 Docs Parity Check
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**'
+      - 'scripts/**'
+      - '.github/workflows/context7.yml'
+
+jobs:
+  docs-parity:
+    runs-on: ubuntu-latest
+    # This job will only run if the secret is available in the environment
+    if: secrets.CONTEXT7_KEY != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run Docs Parity Check
+        env:
+          CONTEXT7_ENABLED: 1
+          CONTEXT7_PROJECT: ${{ secrets.CONTEXT7_PROJECT }}
+          CONTEXT7_KEY: ${{ secrets.CONTEXT7_KEY }}
+        run: make docs-parity

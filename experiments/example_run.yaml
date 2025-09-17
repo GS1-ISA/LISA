@@ -1,0 +1,7 @@
+run_id: "example-20250904-01"
+manifest: data/ingestion_manifests/isa_docs_v1_manifest.yaml
+out: artifacts/example-20250904-01
+owner: data-engineer
+started_at: 2025-09-04T00:00:00Z
+notes: "Example run produced by scripts/research/run_poc.py for repo onboarding."
+status: success

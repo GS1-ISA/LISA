@@ -1,0 +1,730 @@
+name: Security Scanning
+
+on:
+  workflow_call:
+    inputs:
+      scan_scope:
+        description: 'Security scan scope (full, quick, compliance)'
+        required: false
+        type: string
+        default: 'full'
+      enable_sast:
+        description: 'Enable Static Application Security Testing'
+        required: false
+        type: boolean
+        default: true
+      enable_dast:
+        description: 'Enable Dynamic Application Security Testing'
+        required: false
+        type: boolean
+        default: false
+      enable_dependency_scan:
+        description: 'Enable dependency vulnerability scanning'
+        required: false
+        type: boolean
+        default: true
+      enable_container_scan:
+        description: 'Enable container security scanning'
+        required: false
+        type: boolean
+        default: true
+      enable_secret_scan:
+        description: 'Enable secret detection'
+        required: false
+        type: boolean
+        default: true
+      enable_compliance_scan:
+        description: 'Enable compliance scanning'
+        required: false
+        type: boolean
+        default: true
+      enable_iac_scan:
+        description: 'Enable Infrastructure as Code scanning'
+        required: false
+        type: boolean
+        default: true
+      severity_threshold:
+        description: 'Minimum severity level (critical, high, medium, low)'
+        required: false
+        type: string
+        default: 'high'
+      fail_on_vulnerabilities:
+        description: 'Fail workflow on vulnerability detection'
+        required: false
+        type: boolean
+        default: true
+      upload_sarif:
+        description: 'Upload SARIF results to GitHub Security tab'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      security_status:
+        description: 'Overall security status (pass, warn, fail)'
+        value: ${{ jobs.security-summary.outputs.status }}
+      vulnerabilities_found:
+        description: 'Number of vulnerabilities found'
+        value: ${{ jobs.security-summary.outputs.vulnerabilities }}
+      critical_count:
+        description: 'Number of critical vulnerabilities'
+        value: ${{ jobs.security-summary.outputs.critical }}
+      high_count:
+        description: 'Number of high vulnerabilities'
+        value: ${{ jobs.security-summary.outputs.high }}
+      sarif_uploaded:
+        description: 'Whether SARIF results were uploaded'
+        value: ${{ jobs.security-summary.outputs.sarif }}
+
+env:
+  SECURITY_SCAN_VERSION: v1
+  SARIF_CATEGORY: security-scan
+
+jobs:
+  security-setup:
+    name: Security Scan Setup
+    runs-on: ubuntu-latest
+    outputs:
+      scan_config: ${{ steps.config.outputs.config }}
+      tools_enabled: ${{ steps.tools.outputs.enabled }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure security scanning
+        id: config
+        run: |
+          echo "🔧 Configuring security scanning..."
+          
+          # Determine scan configuration based on scope
+          case "${{ inputs.scan_scope }}" in
+            "full")
+              echo "🔍 Full security scan enabled"
+              CONFIG='{"sast":true,"dast":${{ inputs.enable_dast }},"deps":true,"containers":true,"secrets":true,"compliance":true,"iac":true}'
+              ;;
+            "quick")
+              echo "⚡ Quick security scan enabled"
+              CONFIG='{"sast":true,"dast":false,"deps":true,"containers":false,"secrets":true,"compliance":false,"iac":false}'
+              ;;
+            "compliance")
+              echo "📋 Compliance-focused scan enabled"
+              CONFIG='{"sast":true,"dast":false,"deps":true,"containers":${{ inputs.enable_container_scan }},"secrets":true,"compliance":true,"iac":true}'
+              ;;
+            *)
+              echo "🔧 Custom scan configuration"
+              CONFIG='{"sast":${{ inputs.enable_sast }},"dast":${{ inputs.enable_dast }},"deps":${{ inputs.enable_dependency_scan }},"containers":${{ inputs.enable_container_scan }},"secrets":${{ inputs.enable_secret_scan }},"compliance":${{ inputs.enable_compliance_scan }},"iac":${{ inputs.enable_iac_scan }}}'
+              ;;
+          esac
+          
+          echo "config=$CONFIG" >> $GITHUB_OUTPUT
+          echo "Scan configuration: $CONFIG"
+
+      - name: Setup security tools
+        id: tools
+        run: |
+          echo "🛠️ Setting up security scanning tools..."
+          
+          TOOLS_ENABLED=""
+          
+          # Setup Semgrep
+          if [ "${{ fromJSON(steps.config.outputs.config).sast }}" == "true" ]; then
+            echo "📦 Installing Semgrep..."
+            pip install semgrep
+            TOOLS_ENABLED="${TOOLS_ENABLED} semgrep"
+          fi
+          
+          # Setup Trivy
+          if [ "${{ fromJSON(steps.config.outputs.config).containers }}" == "true" ] || [ "${{ fromJSON(steps.config.outputs.config).deps }}" == "true" ]; then
+            echo "📦 Installing Trivy..."
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+            TOOLS_ENABLED="${TOOLS_ENABLED} trivy"
+          fi
+          
+          # Setup Gitleaks
+          if [ "${{ fromJSON(steps.config.outputs.config).secrets }}" == "true" ]; then
+            echo "📦 Installing Gitleaks..."
+            curl -sSfL https://raw.githubusercontent.com/zricethezav/gitleaks/master/install.sh | sh -s -- -b /usr/local/bin
+            TOOLS_ENABLED="${TOOLS_ENABLED} gitleaks"
+          fi
+          
+          # Setup Checkov
+          if [ "${{ fromJSON(steps.config.outputs.config).iac }}" == "true" ]; then
+            echo "📦 Installing Checkov..."
+            pip install checkov
+            TOOLS_ENABLED="${TOOLS_ENABLED} checkov"
+          fi
+          
+          echo "enabled=$TOOLS_ENABLED" >> $GITHUB_OUTPUT
+          echo "Security tools enabled: $TOOLS_ENABLED"
+
+  sast-scan:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    needs: [security-setup]
+    if: fromJSON(needs.security-setup.outputs.scan_config).sast == true
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      vulnerabilities: ${{ steps.scan.outputs.vulnerabilities }}
+      sarif_file: ${{ steps.scan.outputs.sarif }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep SAST scan
+        id: scan
+        run: |
+          echo "🔍 Running SAST scan with Semgrep..."
+          
+          # Create output directory
+          mkdir -p security-reports
+          
+          # Run Semgrep scan
+          semgrep \
+            --config=auto \
+            --json \
+            --output=security-reports/semgrep-results.json \
+            --sarif \
+            --output=security-reports/semgrep-results.sarif \
+            --severity=${{ inputs.severity_threshold }} \
+            --metrics=off \
+            .
+          
+          # Parse results
+          if [ -f "security-reports/semgrep-results.json" ]; then
+            VULN_COUNT=$(jq '.results | length' security-reports/semgrep-results.json)
+            if [ "$VULN_COUNT" -gt 0 ]; then
+              echo "⚠️ Found $VULN_COUNT SAST vulnerabilities"
+              STATUS="warn"
+              if [ "${{ inputs.fail_on_vulnerabilities }}" == "true" ]; then
+                STATUS="fail"
+              fi
+            else
+              echo "✅ No SAST vulnerabilities found"
+              STATUS="pass"
+            fi
+          else
+            echo "❌ SAST scan failed"
+            STATUS="fail"
+            VULN_COUNT=0
+          fi
+          
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "vulnerabilities=$VULN_COUNT" >> $GITHUB_OUTPUT
+          echo "sarif=security-reports/semgrep-results.sarif" >> $GITHUB_OUTPUT
+
+      - name: Upload SAST SARIF
+        if: inputs.upload_sarif == true && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: sast-scan
+
+  dependency-scan:
+    name: Dependency Vulnerability Scanning
+    runs-on: ubuntu-latest
+    needs: [security-setup]
+    if: fromJSON(needs.security-setup.outputs.scan_config).deps == true
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      vulnerabilities: ${{ steps.scan.outputs.vulnerabilities }}
+      critical: ${{ steps.scan.outputs.critical }}
+      high: ${{ steps.scan.outputs.high }}
+      sarif_file: ${{ steps.scan.outputs.sarif }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run dependency vulnerability scan
+        id: scan
+        run: |
+          echo "🔍 Running dependency vulnerability scan..."
+          
+          # Create output directory
+          mkdir -p security-reports
+          
+          # Run Trivy dependency scan
+          trivy fs \
+            --security-checks vuln \
+            --format json \
+            --output security-reports/trivy-deps-results.json \
+            --severity ${{ inputs.severity_threshold }},critical,high,medium,low \
+            .
+          
+          # Generate SARIF output
+          trivy fs \
+            --security-checks vuln \
+            --format sarif \
+            --output security-reports/trivy-deps-results.sarif \
+            .
+          
+          # Parse results
+          if [ -f "security-reports/trivy-deps-results.json" ]; then
+            VULN_COUNT=$(jq '[.Results[].Vulnerabilities // [] | length] | add // 0' security-reports/trivy-deps-results.json)
+            CRITICAL_COUNT=$(jq '[.Results[].Vulnerabilities // [] | map(select(.Severity == "CRITICAL")) | length] | add // 0' security-reports/trivy-deps-results.json)
+            HIGH_COUNT=$(jq '[.Results[].Vulnerabilities // [] | map(select(.Severity == "HIGH")) | length] | add // 0' security-reports/trivy-deps-results.json)
+            
+            if [ "$VULN_COUNT" -gt 0 ]; then
+              echo "⚠️ Found $VULN_COUNT dependency vulnerabilities ($CRITICAL_COUNT critical, $HIGH_COUNT high)"
+              STATUS="warn"
+              if [ "${{ inputs.fail_on_vulnerabilities }}" == "true" ] && [ "$CRITICAL_COUNT" -gt 0 ]; then
+                STATUS="fail"
+              fi
+            else
+              echo "✅ No dependency vulnerabilities found"
+              STATUS="pass"
+            fi
+          else
+            echo "❌ Dependency scan failed"
+            STATUS="fail"
+            VULN_COUNT=0
+            CRITICAL_COUNT=0
+            HIGH_COUNT=0
+          fi
+          
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "vulnerabilities=$VULN_COUNT" >> $GITHUB_OUTPUT
+          echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          echo "high=$HIGH_COUNT" >> $GITHUB_OUTPUT
+          echo "sarif=security-reports/trivy-deps-results.sarif" >> $GITHUB_OUTPUT
+
+      - name: Upload dependency SARIF
+        if: inputs.upload_sarif == true && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: dependency-scan
+
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    needs: [security-setup]
+    if: fromJSON(needs.security-setup.outputs.scan_config).secrets == true
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      secrets_found: ${{ steps.scan.outputs.secrets }}
+      sarif_file: ${{ steps.scan.outputs.sarif }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run secret detection scan
+        id: scan
+        run: |
+          echo "🔍 Running secret detection scan..."
+          
+          # Create output directory
+          mkdir -p security-reports
+          
+          # Run Gitleaks scan
+          gitleaks detect \
+            --source . \
+            --report-format json \
+            --report-path security-reports/gitleaks-results.json \
+            --verbose \
+            --redact
+          
+          # Generate SARIF output
+          gitleaks detect \
+            --source . \
+            --report-format sarif \
+            --report-path security-reports/gitleaks-results.sarif \
+            --verbose
+          
+          # Parse results
+          if [ -f "security-reports/gitleaks-results.json" ]; then
+            SECRET_COUNT=$(jq '[.[] | length] | add // 0' security-reports/gitleaks-results.json)
+            
+            if [ "$SECRET_COUNT" -gt 0 ]; then
+              echo "⚠️ Found $SECRET_COUNT potential secrets"
+              STATUS="warn"
+              if [ "${{ inputs.fail_on_vulnerabilities }}" == "true" ]; then
+                STATUS="fail"
+              fi
+            else
+              echo "✅ No secrets detected"
+              STATUS="pass"
+            fi
+          else
+            echo "❌ Secret scan failed"
+            STATUS="fail"
+            SECRET_COUNT=0
+          fi
+          
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "secrets=$SECRET_COUNT" >> $GITHUB_OUTPUT
+          echo "sarif=security-reports/gitleaks-results.sarif" >> $GITHUB_OUTPUT
+
+      - name: Upload secret scan SARIF
+        if: inputs.upload_sarif == true && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: secret-scan
+
+  container-scan:
+    name: Container Security Scanning
+    runs-on: ubuntu-latest
+    needs: [security-setup]
+    if: fromJSON(needs.security-setup.outputs.scan_config).containers == true
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      vulnerabilities: ${{ steps.scan.outputs.vulnerabilities }}
+      critical: ${{ steps.scan.outputs.critical }}
+      high: ${{ steps.scan.outputs.high }}
+      sarif_file: ${{ steps.scan.outputs.sarif }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build container image for scanning
+        run: |
+          echo "🏗️ Building container image for security scanning..."
+          
+          if [ -f "Dockerfile" ]; then
+            docker build -t security-scan-image:latest .
+          elif [ -f "docker/Dockerfile" ]; then
+            docker build -t security-scan-image:latest -f docker/Dockerfile .
+          else
+            echo "❌ No Dockerfile found"
+            exit 1
+          fi
+
+      - name: Run container security scan
+        id: scan
+        run: |
+          echo "🔍 Running container security scan..."
+          
+          # Create output directory
+          mkdir -p security-reports
+          
+          # Run Trivy container scan
+          trivy image \
+            --format json \
+            --output security-reports/trivy-container-results.json \
+            --severity ${{ inputs.severity_threshold }},critical,high,medium,low \
+            security-scan-image:latest
+          
+          # Generate SARIF output
+          trivy image \
+            --format sarif \
+            --output security-reports/trivy-container-results.sarif \
+            security-scan-image:latest
+          
+          # Parse results
+          if [ -f "security-reports/trivy-container-results.json" ]; then
+            VULN_COUNT=$(jq '[.Results[].Vulnerabilities // [] | length] | add // 0' security-reports/trivy-container-results.json)
+            CRITICAL_COUNT=$(jq '[.Results[].Vulnerabilities // [] | map(select(.Severity == "CRITICAL")) | length] | add // 0' security-reports/trivy-container-results.json)
+            HIGH_COUNT=$(jq '[.Results[].Vulnerabilities // [] | map(select(.Severity == "HIGH")) | length] | add // 0' security-reports/trivy-container-results.json)
+            
+            if [ "$VULN_COUNT" -gt 0 ]; then
+              echo "⚠️ Found $VULN_COUNT container vulnerabilities ($CRITICAL_COUNT critical, $HIGH_COUNT high)"
+              STATUS="warn"
+              if [ "${{ inputs.fail_on_vulnerabilities }}" == "true" ] && [ "$CRITICAL_COUNT" -gt 0 ]; then
+                STATUS="fail"
+              fi
+            else
+              echo "✅ No container vulnerabilities found"
+              STATUS="pass"
+            fi
+          else
+            echo "❌ Container scan failed"
+            STATUS="fail"
+            VULN_COUNT=0
+            CRITICAL_COUNT=0
+            HIGH_COUNT=0
+          fi
+          
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "vulnerabilities=$VULN_COUNT" >> $GITHUB_OUTPUT
+          echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          echo "high=$HIGH_COUNT" >> $GITHUB_OUTPUT
+          echo "sarif=security-reports/trivy-container-results.sarif" >> $GITHUB_OUTPUT
+
+      - name: Upload container SARIF
+        if: inputs.upload_sarif == true && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: container-scan
+
+  iac-scan:
+    name: Infrastructure as Code Scanning
+    runs-on: ubuntu-latest
+    needs: [security-setup]
+    if: fromJSON(needs.security-setup.outputs.scan_config).iac == true
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      misconfigurations: ${{ steps.scan.outputs.misconfigurations }}
+      sarif_file: ${{ steps.scan.outputs.sarif }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run IaC security scan
+        id: scan
+        run: |
+          echo "🔍 Running Infrastructure as Code security scan..."
+          
+          # Create output directory
+          mkdir -p security-reports
+          
+          # Run Checkov IaC scan
+          checkov \
+            --directory . \
+            --output json \
+            --output-file security-reports/checkov-results.json \
+            --framework terraform,cloudformation,arm,serverless,kubernetes,helm,dockerfile,github_actions \
+            --severity ${{ inputs.severity_threshold }} \
+            --compact \
+            --quiet
+          
+          # Generate SARIF output
+          checkov \
+            --directory . \
+            --output sarif \
+            --output-file security-reports/checkov-results.sarif \
+            --framework terraform,cloudformation,arm,serverless,kubernetes,helm,dockerfile,github_actions \
+            --quiet
+          
+          # Parse results
+          if [ -f "security-reports/checkov-results.json" ]; then
+            FAILED_CHECKS=$(jq '.summary.failed // 0' security-reports/checkov-results.json)
+            
+            if [ "$FAILED_CHECKS" -gt 0 ]; then
+              echo "⚠️ Found $FAILED_CHECKS IaC misconfigurations"
+              STATUS="warn"
+              if [ "${{ inputs.fail_on_vulnerabilities }}" == "true" ]; then
+                STATUS="fail"
+              fi
+            else
+              echo "✅ No IaC misconfigurations found"
+              STATUS="pass"
+            fi
+          else
+            echo "❌ IaC scan failed"
+            STATUS="fail"
+            FAILED_CHECKS=0
+          fi
+          
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "misconfigurations=$FAILED_CHECKS" >> $GITHUB_OUTPUT
+          echo "sarif=security-reports/checkov-results.sarif" >> $GITHUB_OUTPUT
+
+      - name: Upload IaC SARIF
+        if: inputs.upload_sarif == true && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: iac-scan
+
+  compliance-scan:
+    name: Compliance Scanning
+    runs-on: ubuntu-latest
+    needs: [security-setup]
+    if: fromJSON(needs.security-setup.outputs.scan_config).compliance == true
+    outputs:
+      status: ${{ steps.scan.outputs.status }}
+      compliance_issues: ${{ steps.scan.outputs.issues }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run compliance scan
+        id: scan
+        run: |
+          echo "🔍 Running compliance scan..."
+          
+          # Create output directory
+          mkdir -p security-reports
+          
+          # Run compliance checks
+          COMPLIANCE_ISSUES=0
+          
+          # Check for security policy files
+          if [ ! -f "SECURITY.md" ] && [ ! -f "SECURITY.rst" ]; then
+            echo "⚠️ Missing security policy file"
+            COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+          fi
+          
+          # Check for license files
+          if [ ! -f "LICENSE" ] && [ ! -f "LICENSE.md" ] && [ ! -f "LICENSE.txt" ]; then
+            echo "⚠️ Missing license file"
+            COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+          fi
+          
+          # Check for code of conduct
+          if [ ! -f "CODE_OF_CONDUCT.md" ]; then
+            echo "⚠️ Missing code of conduct"
+            COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+          fi
+          
+          # Check for contributing guidelines
+          if [ ! -f "CONTRIBUTING.md" ]; then
+            echo "⚠️ Missing contributing guidelines"
+            COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+          fi
+          
+          # Check for GitHub security settings
+          if [ ! -f ".github/SECURITY.md" ]; then
+            echo "⚠️ Missing GitHub security policy"
+            COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+          fi
+          
+          if [ "$COMPLIANCE_ISSUES" -gt 0 ]; then
+            echo "⚠️ Found $COMPLIANCE_ISSUES compliance issues"
+            STATUS="warn"
+          else
+            echo "✅ No compliance issues found"
+            STATUS="pass"
+          fi
+          
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "issues=$COMPLIANCE_ISSUES" >> $GITHUB_OUTPUT
+
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [security-setup, sast-scan, dependency-scan, secret-scan, container-scan, iac-scan, compliance-scan]
+    if: always()
+    outputs:
+      status: ${{ steps.summary.outputs.status }}
+      vulnerabilities: ${{ steps.summary.outputs.total_vulnerabilities }}
+      critical: ${{ steps.summary.outputs.critical }}
+      high: ${{ steps.summary.outputs.high }}
+      sarif: ${{ steps.summary.outputs.sarif_uploaded }}
+    
+    steps:
+      - name: Generate security summary
+        id: summary
+        run: |
+          echo "📊 Generating security scan summary..."
+          
+          # Collect results from all scans
+          SAST_STATUS="${{ needs.sast-scan.outputs.status }}"
+          DEP_STATUS="${{ needs.dependency-scan.outputs.status }}"
+          SECRET_STATUS="${{ needs.secret-scan.outputs.status }}"
+          CONTAINER_STATUS="${{ needs.container-scan.outputs.status }}"
+          IAC_STATUS="${{ needs.iac-scan.outputs.status }}"
+          COMPLIANCE_STATUS="${{ needs.compliance-scan.outputs.status }}"
+          
+          # Count vulnerabilities
+          SAST_VULNS="${{ needs.sast-scan.outputs.vulnerabilities }}"
+          DEP_VULNS="${{ needs.dependency-scan.outputs.vulnerabilities }}"
+          SECRET_VULNS="${{ needs.secret-scan.outputs.secrets_found }}"
+          CONTAINER_VULNS="${{ needs.container-scan.outputs.vulnerabilities }}"
+          IAC_VULNS="${{ needs.iac-scan.outputs.misconfigurations }}"
+          COMPLIANCE_ISSUES="${{ needs.compliance-scan.outputs.compliance_issues }}"
+          
+          # Sum critical and high vulnerabilities
+          CRITICAL_COUNT=$((${{ needs.dependency-scan.outputs.critical }} + ${{ needs.container-scan.outputs.critical }}))
+          HIGH_COUNT=$((${{ needs.dependency-scan.outputs.high }} + ${{ needs.container-scan.outputs.high }}))
+          
+          TOTAL_VULNERABILITIES=$((SAST_VULNS + DEP_VULNS + SECRET_VULNS + CONTAINER_VULNS + IAC_VULNS + COMPLIANCE_ISSUES))
+          
+          # Determine overall status
+          OVERALL_STATUS="pass"
+          
+          for status in $SAST_STATUS $DEP_STATUS $SECRET_STATUS $CONTAINER_STATUS $IAC_STATUS $COMPLIANCE_STATUS; do
+            if [ "$status" == "fail" ]; then
+              OVERALL_STATUS="fail"
+              break
+            elif [ "$status" == "warn" ] && [ "$OVERALL_STATUS" != "fail" ]; then
+              OVERALL_STATUS="warn"
+            fi
+          done
+          
+          echo "status=$OVERALL_STATUS" >> $GITHUB_OUTPUT
+          echo "total_vulnerabilities=$TOTAL_VULNERABILITIES" >> $GITHUB_OUTPUT
+          echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          echo "high=$HIGH_COUNT" >> $GITHUB_OUTPUT
+          echo "sarif_uploaded=${{ inputs.upload_sarif }}" >> $GITHUB_OUTPUT
+          
+          # Generate detailed report
+          echo "📋 Security Scan Summary"
+          echo "================================"
+          echo "Overall Status: $OVERALL_STATUS"
+          echo "Total Vulnerabilities: $TOTAL_VULNERABILITIES"
+          echo "Critical: $CRITICAL_COUNT"
+          echo "High: $HIGH_COUNT"
+          echo "================================"
+          echo "SAST: $SAST_STATUS ($SAST_VULNS vulnerabilities)"
+          echo "Dependencies: $DEP_STATUS ($DEP_VULNS vulnerabilities)"
+          echo "Secrets: $SECRET_STATUS ($SECRET_VULNS secrets)"
+          echo "Containers: $CONTAINER_STATUS ($CONTAINER_VULNS vulnerabilities)"
+          echo "IaC: $IAC_STATUS ($IAC_VULNS misconfigurations)"
+          echo "Compliance: $COMPLIANCE_STATUS ($COMPLIANCE_ISSUES issues)"
+          echo "================================"
+          
+          if [ "$OVERALL_STATUS" == "pass" ]; then
+            echo "✅ Security scan passed"
+          elif [ "$OVERALL_STATUS" == "warn" ]; then
+            echo "⚠️ Security scan completed with warnings"
+          else
+            echo "❌ Security scan failed"
+          fi
+
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-report
+          path: security-reports/
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.summary.outputs.status }}';
+            const totalVulns = '${{ steps.summary.outputs.total_vulnerabilities }}';
+            const critical = '${{ steps.summary.outputs.critical }}';
+            const high = '${{ steps.summary.outputs.high }}';
+            
+            let statusIcon = '✅';
+            let statusText = 'PASSED';
+            
+            if (status === 'fail') {
+              statusIcon = '❌';
+              statusText = 'FAILED';
+            } else if (status === 'warn') {
+              statusIcon = '⚠️';
+              statusText = 'WARNINGS';
+            }
+            
+            const body = `## 🔒 Security Scan Results
+            
+            ${statusIcon} **Security Scan ${statusText}**
+            
+            **Summary:**
+            - Total Vulnerabilities: ${totalVulns}
+            - Critical: ${critical}
+            - High: ${high}
+            
+            **Details:**
+            - SAST: ${{ needs.sast-scan.outputs.status }} (${{ needs.sast-scan.outputs.vulnerabilities }} vulns)
+            - Dependencies: ${{ needs.dependency-scan.outputs.status }} (${{ needs.dependency-scan.outputs.vulnerabilities }} vulns)
+            - Secrets: ${{ needs.secret-scan.outputs.status }} (${{ needs.secret-scan.outputs.secrets_found }} secrets)
+            - Containers: ${{ needs.container-scan.outputs.status }} (${{ needs.container-scan.outputs.vulnerabilities }} vulns)
+            - IaC: ${{ needs.iac-scan.outputs.status }} (${{ needs.iac-scan.outputs.misconfigurations }} misconfigs)
+            - Compliance: ${{ needs.compliance-scan.outputs.status }} (${{ needs.compliance-scan.outputs.compliance_issues }} issues)
+            
+            [View detailed report in workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

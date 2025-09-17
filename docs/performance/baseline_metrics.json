@@ -1,0 +1,97 @@
+{
+  "api_server": {
+    "command": "pytest tests/test_api_server.py::TestHealthEndpoints::test_root_endpoint tests/test_api_server.py::TestHealthEndpoints::test_metrics_endpoint -v",
+    "return_code": 0,
+    "duration": 8.028195142745972,
+    "metrics": [
+      {
+        "memory_percent": 84.2,
+        "memory_used_mb": 2612.484375,
+        "memory_available_mb": 1296.109375,
+        "cpu_percent": 38.3,
+        "timestamp": 1758117386.531101
+      },
+      {
+        "memory_percent": 84.1,
+        "memory_used_mb": 2531.734375,
+        "memory_available_mb": 1303.484375,
+        "cpu_percent": 34.0,
+        "timestamp": 1758117388.536443
+      },
+      {
+        "memory_percent": 84.0,
+        "memory_used_mb": 2513.828125,
+        "memory_available_mb": 1311.8125,
+        "cpu_percent": 43.5,
+        "timestamp": 1758117390.5442739
+      },
+      {
+        "memory_percent": 84.0,
+        "memory_used_mb": 2503.203125,
+        "memory_available_mb": 1306.828125,
+        "cpu_percent": 49.6,
+        "timestamp": 1758117392.553113
+      }
+    ],
+    "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.7, pytest-8.4.2, pluggy-1.6.0 -- /Users/frisowempe/ISA_D/.venv/bin/python3\ncachedir: .pytest_cache\nmetadata: {'Python': '3.13.7', 'Platform': 'macOS-15.6-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.2', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.1.1', 'asyncio': '1.1.0', 'xdist': '3.8.0', 'mock': '3.15.0', 'timeout': '2.4.0', 'langsmith': '0.4.28', 'metadata': '3.1.1', 'Faker': '37.8.0', 'anyio': '4.10.0', 'cov': '6.2.1', 'benchmark': '5.1.0'}}\nbenchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)\nrootdir: /Users/frisowempe/ISA_D\nconfigfile: pytest.ini\nplugins: html-4.1.1, asyncio-1.1.0, xdist-3.8.0, mock-3.15.0, timeout-2.4.0, langsmith-0.4.28, metadata-3.1.1, Faker-37.8.0, anyio-4.10.0, cov-6.2.1, benchmark-5.1.0\nasyncio: mode=Mode.STRICT, async",
+    "stderr": "<sys>:0: DeprecationWarning: builtin type swigvarlink has no __module__ attribute\n"
+  },
+  "agents": {
+    "command": "pytest tests/test_agents.py::TestAgentResponse::test_agent_response_creation -v",
+    "return_code": 0,
+    "duration": 2.012019395828247,
+    "metrics": [
+      {
+        "memory_percent": 79.7,
+        "memory_used_mb": 2188.53125,
+        "memory_available_mb": 1666.609375,
+        "cpu_percent": 39.5,
+        "timestamp": 1758117394.563284
+      }
+    ],
+    "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.7, pytest-8.4.2, pluggy-1.6.0 -- /Users/frisowempe/ISA_D/.venv/bin/python3\ncachedir: .pytest_cache\nmetadata: {'Python': '3.13.7', 'Platform': 'macOS-15.6-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.2', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.1.1', 'asyncio': '1.1.0', 'xdist': '3.8.0', 'mock': '3.15.0', 'timeout': '2.4.0', 'langsmith': '0.4.28', 'metadata': '3.1.1', 'Faker': '37.8.0', 'anyio': '4.10.0', 'cov': '6.2.1', 'benchmark': '5.1.0'}}\nbenchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)\nrootdir: /Users/frisowempe/ISA_D\nconfigfile: pytest.ini\nplugins: html-4.1.1, asyncio-1.1.0, xdist-3.8.0, mock-3.15.0, timeout-2.4.0, langsmith-0.4.28, metadata-3.1.1, Faker-37.8.0, anyio-4.10.0, cov-6.2.1, benchmark-5.1.0\nasyncio: mode=Mode.STRICT, async",
+    "stderr": ""
+  },
+  "vector_store": {
+    "command": "pytest tests/test_vector_store.py::TestVectorDocument::test_vector_document_creation -v",
+    "return_code": 0,
+    "duration": 2.0104050636291504,
+    "metrics": [
+      {
+        "memory_percent": 81.4,
+        "memory_used_mb": 2653.28125,
+        "memory_available_mb": 1526.28125,
+        "cpu_percent": 67.9,
+        "timestamp": 1758117396.573641
+      }
+    ],
+    "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.7, pytest-8.4.2, pluggy-1.6.0 -- /Users/frisowempe/ISA_D/.venv/bin/python3\ncachedir: .pytest_cache\nmetadata: {'Python': '3.13.7', 'Platform': 'macOS-15.6-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.2', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.1.1', 'asyncio': '1.1.0', 'xdist': '3.8.0', 'mock': '3.15.0', 'timeout': '2.4.0', 'langsmith': '0.4.28', 'metadata': '3.1.1', 'Faker': '37.8.0', 'anyio': '4.10.0', 'cov': '6.2.1', 'benchmark': '5.1.0'}}\nbenchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)\nrootdir: /Users/frisowempe/ISA_D\nconfigfile: pytest.ini\nplugins: html-4.1.1, asyncio-1.1.0, xdist-3.8.0, mock-3.15.0, timeout-2.4.0, langsmith-0.4.28, metadata-3.1.1, Faker-37.8.0, anyio-4.10.0, cov-6.2.1, benchmark-5.1.0\nasyncio: mode=Mode.STRICT, async",
+    "stderr": ""
+  },
+  "summary": {
+    "api_server": {
+      "avg_memory_percent": 84.075,
+      "max_memory_percent": 84.2,
+      "avg_cpu_percent": 41.35,
+      "max_cpu_percent": 49.6,
+      "duration": 8.028195142745972,
+      "return_code": 0
+    },
+    "agents": {
+      "avg_memory_percent": 79.7,
+      "max_memory_percent": 79.7,
+      "avg_cpu_percent": 39.5,
+      "max_cpu_percent": 39.5,
+      "duration": 2.012019395828247,
+      "return_code": 0
+    },
+    "vector_store": {
+      "avg_memory_percent": 81.4,
+      "max_memory_percent": 81.4,
+      "avg_cpu_percent": 67.9,
+      "max_cpu_percent": 67.9,
+      "duration": 2.0104050636291504,
+      "return_code": 0
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "title": "ISA SuperApp Comprehensive Monitoring",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "HTTP Requests per Second",
+      "targets": [{ "expr": "sum(rate(isa_http_requests_total[1m]))" }],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "type": "graph",
+      "title": "HTTP Request Latency (95th percentile)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(isa_http_request_duration_seconds_bucket[5m])) by (le))"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "type": "graph",
+      "title": "HTTP Error Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(isa_http_requests_total{status_code=~\"5..\"}[1m])) / sum(rate(isa_http_requests_total[1m])) * 100"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+    },
+    {
+      "type": "graph",
+      "title": "System CPU Usage",
+      "targets": [{ "expr": "isa_system_cpu_percent" }],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+    },
+    {
+      "type": "graph",
+      "title": "System Memory Usage",
+      "targets": [{ "expr": "isa_system_memory_percent" }],
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 }
+    },
+    {
+      "type": "graph",
+      "title": "System Disk Usage",
+      "targets": [{ "expr": "isa_system_disk_percent" }],
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 }
+    },
+    {
+      "type": "graph",
+      "title": "Network Connections",
+      "targets": [{ "expr": "isa_system_network_connections" }],
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 }
+    },
+    {
+      "type": "graph",
+      "title": "Research Workflows Started",
+      "targets": [{ "expr": "sum(rate(isa_research_workflows_total{status=\"started\"}[5m]))" }],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
+    },
+    {
+      "type": "graph",
+      "title": "Research Workflow Duration (95th percentile)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(isa_research_workflow_duration_seconds_bucket[5m])) by (le))"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+    {
+      "type": "graph",
+      "title": "Active Users",
+      "targets": [{ "expr": "isa_active_users_current" }],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 }
+    },
+    {
+      "type": "graph",
+      "title": "User Engagement Score",
+      "targets": [{ "expr": "isa_user_engagement_score" }],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 }
+    },
+    {
+      "type": "graph",
+      "title": "Compliance Violations",
+      "targets": [{ "expr": "isa_compliance_violations_current" }],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 }
+    },
+    {
+      "type": "graph",
+      "title": "Agent Response Time (95th percentile)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(isa_agent_response_time_seconds_bucket[5m])) by (le))"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 }
+    },
+    {
+      "type": "graph",
+      "title": "Cache Hit Rate",
+      "targets": [{ "expr": "isa_cache_hit_rate_percent" }],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 }
+    },
+    {
+      "type": "graph",
+      "title": "User Registrations",
+      "targets": [{ "expr": "sum(rate(isa_user_registrations_total[5m]))" }],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 }
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 2
+}

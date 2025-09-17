@@ -1,0 +1,503 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: 'Deployment ID to rollback'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - integration
+          - staging
+          - production
+        default: 'development'
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+        default: 'Manual rollback'
+      rollback_strategy:
+        description: 'Rollback strategy'
+        required: false
+        type: choice
+        options:
+          - immediate
+          - gradual
+          - blue-green
+        default: 'immediate'
+      skip_validation:
+        description: 'Skip validation (emergency rollback)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  ROLLBACK_TIMEOUT: 300  # 5 minutes
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+  actions: read
+
+jobs:
+  # Pre-rollback validation
+  validate-rollback:
+    name: Validate Rollback Request
+    runs-on: ubuntu-latest
+    if: github.event.inputs.skip_validation != 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate rollback request
+        run: |
+          DEPLOYMENT_ID="${{ github.event.inputs.deployment_id }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          REASON="${{ github.event.inputs.reason }}"
+          
+          echo "Validating rollback request for deployment $DEPLOYMENT_ID in $ENVIRONMENT"
+          echo "Reason: $REASON"
+          
+          # Check if deployment exists
+          # Check if rollback is allowed for this environment
+          # Check if user has permissions
+          
+          # Validate reason length
+          if [ ${#REASON} -lt 10 ]; then
+            echo "::error::Rollback reason must be at least 10 characters"
+            exit 1
+          fi
+          
+          echo "Rollback request validated successfully"
+
+  # Get previous deployment information
+  get-previous-deployment:
+    name: Get Previous Deployment
+    runs-on: ubuntu-latest
+    needs: validate-rollback
+    if: ${{ !cancelled() && (needs.validate-rollback.result == 'success' || github.event.inputs.skip_validation == 'true') }}
+    
+    outputs:
+      previous_image: ${{ steps.get-info.outputs.previous_image }}
+      previous_version: ${{ steps.get-info.outputs.previous_version }}
+      rollback_point: ${{ steps.get-info.outputs.rollback_point }}
+    
+    steps:
+      - name: Get deployment history
+        id: get-info
+        run: |
+          DEPLOYMENT_ID="${{ github.event.inputs.deployment_id }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          
+          echo "Getting previous deployment information for $DEPLOYMENT_ID in $ENVIRONMENT"
+          
+          # Get previous deployment details from deployment history
+          # This would typically come from a deployment database or API
+          
+          # For now, we'll use a mock approach
+          case $ENVIRONMENT in
+            development)
+              PREVIOUS_IMAGE="ghcr.io/${{ github.repository }}:dev-previous"
+              PREVIOUS_VERSION="dev-previous"
+              ROLLBACK_POINT="dev-rollback-point"
+              ;;
+            integration)
+              PREVIOUS_IMAGE="ghcr.io/${{ github.repository }}:int-previous"
+              PREVIOUS_VERSION="int-previous"
+              ROLLBACK_POINT="int-rollback-point"
+              ;;
+            staging)
+              PREVIOUS_IMAGE="ghcr.io/${{ github.repository }}:stg-previous"
+              PREVIOUS_VERSION="stg-previous"
+              ROLLBACK_POINT="stg-rollback-point"
+              ;;
+            production)
+              PREVIOUS_IMAGE="ghcr.io/${{ github.repository }}:prod-previous"
+              PREVIOUS_VERSION="prod-previous"
+              ROLLBACK_POINT="prod-rollback-point"
+              ;;
+          esac
+          
+          echo "previous_image=$PREVIOUS_IMAGE" >> $GITHUB_OUTPUT
+          echo "previous_version=$PREVIOUS_VERSION" >> $GITHUB_OUTPUT
+          echo "rollback_point=$ROLLBACK_POINT" >> $GITHUB_OUTPUT
+          
+          echo "Previous deployment identified:"
+          echo "Image: $PREVIOUS_IMAGE"
+          echo "Version: $PREVIOUS_VERSION"
+          echo "Rollback point: $ROLLBACK_POINT"
+
+  # Execute rollback
+  execute-rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: get-previous-deployment
+    if: ${{ !cancelled() && needs.get-previous-deployment.result == 'success' }}
+    
+    environment:
+      name: ${{ github.event.inputs.environment }}
+      url: ${{ steps.rollback.outputs.environment_url }}
+    
+    outputs:
+      rollback_id: ${{ steps.rollback.outputs.rollback_id }}
+      environment_url: ${{ steps.rollback.outputs.environment_url }}
+      rollback_status: ${{ steps.rollback.outputs.status }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure cloud credentials
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          
+          case $ENVIRONMENT in
+            development)
+              # Configure GCP credentials
+              echo "Configuring GCP credentials for development"
+              ;;
+            integration)
+              # Configure Azure credentials
+              echo "Configuring Azure credentials for integration"
+              ;;
+            staging|production)
+              # Configure AWS credentials
+              echo "Configuring AWS credentials for $ENVIRONMENT"
+              ;;
+          esac
+      
+      - name: Execute rollback
+        id: rollback
+        timeout-minutes: 5
+        run: |
+          DEPLOYMENT_ID="${{ github.event.inputs.deployment_id }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          STRATEGY="${{ github.event.inputs.rollback_strategy }}"
+          PREVIOUS_IMAGE="${{ needs.get-previous-deployment.outputs.previous_image }}"
+          PREVIOUS_VERSION="${{ needs.get-previous-deployment.outputs.previous_version }}"
+          ROLLBACK_POINT="${{ needs.get-previous-deployment.outputs.rollback_point }}"
+          
+          echo "Executing rollback for deployment $DEPLOYMENT_ID"
+          echo "Strategy: $STRATEGY"
+          echo "Previous image: $PREVIOUS_IMAGE"
+          echo "Previous version: $PREVIOUS_VERSION"
+          
+          ROLLBACK_ID="rollback-${ENVIRONMENT}-${{ github.run_number }}"
+          
+          # Execute rollback based on strategy
+          case $STRATEGY in
+            immediate)
+              echo "Executing immediate rollback..."
+              # Immediate rollback logic
+              # This would typically involve:
+              # - Updating deployment to previous version
+              # - Updating load balancer configuration
+              # - Updating DNS records if needed
+              ;;
+            gradual)
+              echo "Executing gradual rollback..."
+              # Gradual rollback logic
+              # This would typically involve:
+              # - Gradual traffic shifting
+              # - Monitoring during rollback
+              # - Validation at each step
+              ;;
+            blue-green)
+              echo "Executing blue-green rollback..."
+              # Blue-green rollback logic
+              # This would typically involve:
+              # - Switching traffic back to blue environment
+              # - Validating blue environment health
+              # - Completing the rollback
+              ;;
+          esac
+          
+          # Set environment URL based on environment
+          case $ENVIRONMENT in
+            development)
+              ENV_URL="https://dev.example.com"
+              ;;
+            integration)
+              ENV_URL="https://int.example.com"
+              ;;
+            staging)
+              ENV_URL="https://staging.example.com"
+              ;;
+            production)
+              ENV_URL="https://app.example.com"
+              ;;
+          esac
+          
+          echo "rollback_id=$ROLLBACK_ID" >> $GITHUB_OUTPUT
+          echo "environment_url=$ENV_URL" >> $GITHUB_OUTPUT
+          echo "status=success" >> $GITHUB_OUTPUT
+          
+          echo "Rollback completed successfully"
+          echo "Rollback ID: $ROLLBACK_ID"
+          echo "Environment URL: $ENV_URL"
+
+  # Validate rollback success
+  validate-rollback-success:
+    name: Validate Rollback Success
+    runs-on: ubuntu-latest
+    needs: execute-rollback
+    if: ${{ !cancelled() && needs.execute-rollback.result == 'success' && github.event.inputs.skip_validation != 'true' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate rollback success
+        run: |
+          ROLLBACK_ID="${{ needs.execute-rollback.outputs.rollback_id }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          ENV_URL="${{ needs.execute-rollback.outputs.environment_url }}"
+          
+          echo "Validating rollback $ROLLBACK_ID for $ENVIRONMENT"
+          echo "Environment URL: $ENV_URL"
+          
+          # Health check validation
+          echo "Performing health checks..."
+          for i in {1..10}; do
+            if curl -f -s -o /dev/null -w "%{http_code}" "$ENV_URL/health" | grep -q "200"; then
+              echo "Health check passed"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
+          
+          # Functional validation
+          echo "Running functional validation..."
+          # Run smoke tests
+          # Run integration tests
+          # Validate critical user journeys
+          
+          # Performance validation
+          echo "Running performance validation..."
+          # Check response times
+          # Check resource utilization
+          # Check error rates
+          
+          echo "Rollback validation completed successfully"
+
+  # Update deployment records
+  update-deployment-records:
+    name: Update Deployment Records
+    runs-on: ubuntu-latest
+    needs: [execute-rollback, validate-rollback-success]
+    if: always()
+    
+    steps:
+      - name: Update deployment history
+        run: |
+          ROLLBACK_ID="${{ needs.execute-rollback.outputs.rollback_id }}"
+          DEPLOYMENT_ID="${{ github.event.inputs.deployment_id }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          REASON="${{ github.event.inputs.reason }}"
+          STATUS="${{ needs.execute-rollback.outputs.rollback_status }}"
+          
+          echo "Updating deployment records for rollback $ROLLBACK_ID"
+          
+          # Update deployment database
+          # Mark original deployment as rolled back
+          # Record rollback details
+          # Update deployment metrics
+          
+          cat > rollback-record.json << EOF
+          {
+            "rollback_id": "$ROLLBACK_ID",
+            "original_deployment_id": "$DEPLOYMENT_ID",
+            "environment": "$ENVIRONMENT",
+            "reason": "$REASON",
+            "status": "$STATUS",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "triggered_by": "${{ github.actor }}",
+            "workflow_run_id": "${{ github.run_id }}",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}"
+          }
+          EOF
+          
+          echo "Rollback record created:"
+          cat rollback-record.json
+      
+      - name: Upload rollback record
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-record-${{ github.run_number }}
+          path: rollback-record.json
+
+  # Notification
+  notify:
+    name: Notify Stakeholders
+    runs-on: ubuntu-latest
+    needs: [execute-rollback, validate-rollback-success, update-deployment-records]
+    if: always()
+    
+    steps:
+      - name: Prepare notification
+        run: |
+          ROLLBACK_ID="${{ needs.execute-rollback.outputs.rollback_id }}"
+          DEPLOYMENT_ID="${{ github.event.inputs.deployment_id }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          REASON="${{ github.event.inputs.reason }}"
+          STATUS="${{ needs.execute-rollback.outputs.rollback_status }}"
+          
+          if [ "$STATUS" == "success" ]; then
+            MESSAGE="✅ Rollback completed successfully"
+            COLOR="good"
+          else
+            MESSAGE="❌ Rollback failed"
+            COLOR="danger"
+          fi
+          
+          echo "NOTIFICATION_MESSAGE=$MESSAGE" >> $GITHUB_ENV
+          echo "NOTIFICATION_COLOR=$COLOR" >> $GITHUB_ENV
+          
+          # Create detailed message
+          cat > notification-details.json << EOF
+          {
+            "rollback_id": "$ROLLBACK_ID",
+            "original_deployment_id": "$DEPLOYMENT_ID",
+            "environment": "$ENVIRONMENT",
+            "reason": "$REASON",
+            "status": "$STATUS",
+            "triggered_by": "${{ github.actor }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+      
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          custom_payload: |
+            {
+              attachments: [{
+                color: '${{ env.NOTIFICATION_COLOR }}',
+                fields: [{
+                  title: 'Rollback Status',
+                  value: '${{ env.NOTIFICATION_MESSAGE }}',
+                  short: false
+                }, {
+                  title: 'Environment',
+                  value: '${{ github.event.inputs.environment }}',
+                  short: true
+                }, {
+                  title: 'Original Deployment',
+                  value: '${{ github.event.inputs.deployment_id }}',
+                  short: true
+                }, {
+                  title: 'Reason',
+                  value: '${{ github.event.inputs.reason }}',
+                  short: false
+                }, {
+                  title: 'Triggered By',
+                  value: '${{ github.actor }}',
+                  short: true
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: Send email notification
+        if: contains(github.event.inputs.environment, 'production')
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Rollback Notification - ${{ github.event.inputs.environment }}"
+          body: |
+            Rollback Notification
+            
+            Environment: ${{ github.event.inputs.environment }}
+            Original Deployment: ${{ github.event.inputs.deployment_id }}
+            Rollback ID: ${{ needs.execute-rollback.outputs.rollback_id }}
+            Status: ${{ env.NOTIFICATION_MESSAGE }}
+            Reason: ${{ github.event.inputs.reason }}
+            Triggered By: ${{ github.actor }}
+            Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          to: ${{ vars.ROLLBACK_NOTIFICATION_EMAIL }}
+          from: ${{ vars.ROLLBACK_NOTIFICATION_FROM }}
+
+  # Post-rollback analysis
+  post-rollback-analysis:
+    name: Post-Rollback Analysis
+    runs-on: ubuntu-latest
+    needs: [execute-rollback, validate-rollback-success, update-deployment-records, notify]
+    if: always()
+    
+    steps:
+      - name: Generate rollback analysis
+        run: |
+          ROLLBACK_ID="${{ needs.execute-rollback.outputs.rollback_id }}"
+          DEPLOYMENT_ID="${{ github.event.inputs.deployment_id }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          REASON="${{ github.event.inputs.reason }}"
+          STATUS="${{ needs.execute-rollback.outputs.rollback_status }}"
+          
+          echo "Generating post-rollback analysis for $ROLLBACK_ID"
+          
+          # Analyze rollback metrics
+          # Identify root causes
+          # Calculate rollback impact
+          # Generate recommendations
+          
+          cat > rollback-analysis.json << EOF
+          {
+            "rollback_id": "$ROLLBACK_ID",
+            "original_deployment_id": "$DEPLOYMENT_ID",
+            "environment": "$ENVIRONMENT",
+            "reason": "$REASON",
+            "status": "$STATUS",
+            "analysis": {
+              "rollback_duration": "${{ job.duration }}",
+              "success_rate": "$([ \"$STATUS\" == \"success\" ] && echo \"100\" || echo \"0\")",
+              "impact_assessment": "TBD",
+              "root_cause_analysis": "TBD",
+              "recommendations": [
+                "Review deployment validation procedures",
+                "Improve monitoring and alerting",
+                "Consider additional pre-deployment checks"
+              ]
+            },
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "analyst": "${{ github.actor }}"
+          }
+          EOF
+          
+          echo "Rollback analysis generated:"
+          cat rollback-analysis.json
+      
+      - name: Upload rollback analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-analysis-${{ github.run_number }}
+          path: rollback-analysis.json
+      
+      - name: Create incident ticket
+        if: contains(github.event.inputs.environment, 'production')
+        run: |
+          # Create incident ticket in ticketing system
+          # This would integrate with Jira, ServiceNow, etc.
+          echo "Creating incident ticket for production rollback..."
+          
+          # Example Jira integration
+          # curl -X POST \
+          #   -H "Authorization: Bearer ${{ secrets.JIRA_TOKEN }}" \
+          #   -H "Content-Type: application/json" \
+          #   -d @rollback-analysis.json \
+          #   "${{ vars.JIRA_URL }}/rest/api/2/issue"

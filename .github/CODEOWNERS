@@ -1,0 +1,16 @@
+# CODEOWNERS — adjust GitHub handles as needed
+*                              @frisowempe
+docs/**                        @frisowempe
+docs/agents/**                 @frisowempe
+docs/guilds/**                 @frisowempe
+docs/interop/**                @frisowempe
+docs/llm/**                    @frisowempe
+docs/rag/**                    @frisowempe
+docs/ops/**                    @frisowempe
+ISA_SuperApp/**                @frisowempe
+ISA_SuperApp/src/memory/**     @frisowempe
+ISA_SuperApp/src/utils/**      @frisowempe
+packages/orchestrator/**       @frisowempe
+packages/llm/**                @frisowempe
+packages/dspy/**               @frisowempe
+infra/**                       @frisowempe

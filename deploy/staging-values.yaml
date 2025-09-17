@@ -1,0 +1,275 @@
+# Staging values for ISA SuperApp Helm chart
+# This file contains staging-specific configurations
+
+# Global configuration
+global:
+  imageRegistry: "123456789012.dkr.ecr.us-east-1.amazonaws.com"
+  imagePullSecrets:
+    - name: ecr-registry-secret
+  storageClass: "gp3"
+  environment: "staging"
+
+# ISA SuperApp configuration
+isaSuperapp:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: "isa-superapp"
+    tag: ""  # Will be set by CI/CD pipeline
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  nodeSelector:
+    environment: staging
+    workload: application
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "application"
+      effect: "NoSchedule"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: "isa-frontend"
+    tag: ""  # Will be set by CI/CD pipeline
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: ""  # Set via external secret
+    username: "isa_user"
+    password: ""  # Set via external secret
+    database: "isa_superapp"
+  architecture: "standalone"
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClass: "gp3"
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    nodeSelector:
+      environment: staging
+      workload: database
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    password: ""  # Set via external secret
+  architecture: "standalone"
+  master:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: "gp3"
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    nodeSelector:
+      environment: staging
+      workload: cache
+
+# Neo4j configuration
+neo4j:
+  enabled: true
+  name: "isa-neo4j"
+  acceptLicenseAgreement: "yes"
+  neo4jPassword: ""  # Set via external secret
+  neo4jEdition: "enterprise"
+  volumes:
+    data:
+      mode: "defaultStorageClass"
+      defaultStorageClass:
+        requests:
+          storage: 100Gi
+        storageClassName: "gp3"
+    logs:
+      mode: "defaultStorageClass"
+      defaultStorageClass:
+        requests:
+          storage: 20Gi
+        storageClassName: "gp3"
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+    limits:
+      cpu: 2000m
+      memory: 8Gi
+  nodeSelector:
+    environment: staging
+    workload: graph-database
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 50Gi
+        storageClass: "gp3"
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+  grafana:
+    enabled: true
+    adminPassword: ""  # Set via external secret
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: "gp3"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:123456789012:certificate/staging-isa-superapp"
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-port: "80"
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header X-Frame-Options "SAMEORIGIN" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header Referrer-Policy "no-referrer-when-downgrade" always;
+      add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+  hosts:
+    - host: staging-api.isa-superapp.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: isa-superapp
+              port:
+                number: 8000
+    - host: staging-app.isa-superapp.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: isa-frontend
+              port:
+                number: 80
+  tls:
+    - secretName: isa-staging-tls-secret
+      hosts:
+        - staging-api.isa-superapp.com
+        - staging-app.isa-superapp.com
+
+# Security configuration
+security:
+  networkPolicy:
+    enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    capabilities:
+      drop:
+      - ALL
+
+# AWS configuration
+aws:
+  region: "us-east-1"
+  accountId: "123456789012"
+  eks:
+    clusterName: "isa-staging-cluster"
+  iam:
+    serviceAccountAnnotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/isa-superapp-staging-sa-role"
+
+# External secrets configuration
+externalSecrets:
+  enabled: true
+  secretStore:
+    name: "aws-secretsmanager"
+    region: "us-east-1"
+  secrets:
+    - name: "isa-superapp-secrets"
+      secretName: "isa-superapp-secrets"
+      refreshInterval: "15s"
+      secretStoreRef:
+        name: "aws-secretsmanager"
+        kind: "SecretStore"
+      target:
+        name: "isa-superapp-secrets"
+        creationPolicy: "Owner"
+      dataFrom:
+        - "isa-superapp/staging/*"

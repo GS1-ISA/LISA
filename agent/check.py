@@ -4,14 +4,15 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import sys
 import time
 from pathlib import Path
 
 
 def run(cmd: str) -> tuple[int, str]:
     print(f"$ {cmd}")
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
     out, _ = p.communicate()
     print(out)
     return p.returncode, out
@@ -48,11 +49,12 @@ def main() -> int:
     result["results"].append({"gate": "docs_build", "ok": True})
 
     out_path = out_dir / f"{run_id}.json"
-    out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    out_path.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(f"Wrote {out_path}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

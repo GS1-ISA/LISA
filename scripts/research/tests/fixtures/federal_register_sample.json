@@ -1,0 +1,17 @@
+{
+  "count": 2,
+  "results": [
+    {
+      "title": "Import Safety Standards Update",
+      "html_url": "https://www.federalregister.gov/documents/2025/07/10/abc123",
+      "publication_date": "2025-07-10",
+      "type": "Rule"
+    },
+    {
+      "title": "Sustainability Reporting Requirements",
+      "html_url": "https://www.federalregister.gov/documents/2025/06/20/def456",
+      "publication_date": "2025-06-20",
+      "type": "Notice"
+    }
+  ]
+}

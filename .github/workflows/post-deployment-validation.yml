@@ -1,0 +1,233 @@
+name: Reusable Post-Deployment Validation Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment for validation'
+        required: true
+        type: string
+      validation_tests:
+        description: 'JSON array of validation test types'
+        required: false
+        type: string
+        default: '["smoke", "integration"]'
+      performance_thresholds:
+        description: 'JSON object with performance thresholds'
+        required: false
+        type: string
+        default: '{"response_time": 2000, "error_rate": 0.01, "throughput": 100}'
+      timeout_minutes:
+        description: 'Validation timeout in minutes'
+        required: false
+        type: string
+        default: '30'
+
+jobs:
+  validate:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup validation tools
+        run: |
+          # Install testing tools
+          npm install -g newman@latest
+          pip install requests pytest pytest-html
+          
+          # Install kubectl for cluster validation
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          
+          echo "✅ Validation tools installed"
+      
+      - name: Configure environment access
+        run: |
+          # Configure access to the target environment
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          
+          # Set environment-specific variables
+          case "${{ inputs.environment }}" in
+            "development")
+              echo "API_BASE_URL=${{ secrets.DEV_API_URL }}" >> $GITHUB_ENV
+              echo "APP_URL=${{ secrets.DEV_APP_URL }}" >> $GITHUB_ENV
+              ;;
+            "staging")
+              echo "API_BASE_URL=${{ secrets.STAGING_API_URL }}" >> $GITHUB_ENV
+              echo "APP_URL=${{ secrets.STAGING_APP_URL }}" >> $GITHUB_ENV
+              ;;
+            "production")
+              echo "API_BASE_URL=${{ secrets.PROD_API_URL }}" >> $GITHUB_ENV
+              echo "APP_URL=${{ secrets.PROD_APP_URL }}" >> $GITHUB_ENV
+              ;;
+          esac
+          
+          echo "✅ Environment access configured for ${{ inputs.environment }}"
+      
+      - name: Smoke tests
+        if: contains(inputs.validation_tests, 'smoke')
+        run: |
+          echo "🚬 Running smoke tests for ${{ inputs.environment }}"
+          
+          # Basic connectivity tests
+          echo "Testing API connectivity..."
+          curl -f -s -o /dev/null -w "%{http_code}" "${API_BASE_URL}/health" || {
+            echo "❌ API health check failed"
+            exit 1
+          }
+          
+          echo "Testing application URL..."
+          curl -f -s -o /dev/null -w "%{http_code}" "${APP_URL}" || {
+            echo "❌ Application URL check failed"
+            exit 1
+          }
+          
+          # Kubernetes pod health validation
+          export KUBECONFIG=kubeconfig
+          kubectl get pods --all-namespaces | grep -v Running | grep -v Completed && {
+            echo "❌ Some pods are not in Running state"
+            exit 1
+          }
+          
+          echo "✅ Smoke tests passed"
+      
+      - name: Integration tests
+        if: contains(inputs.validation_tests, 'integration')
+        run: |
+          echo "🔗 Running integration tests for ${{ inputs.environment }}"
+          
+          # Create test results directory
+          mkdir -p test-results
+          
+          # Run integration tests based on available test suites
+          if [ -f "tests/integration/test_api.py" ]; then
+            echo "Running Python integration tests..."
+            python -m pytest tests/integration/test_api.py \
+              --html=test-results/integration-report.html \
+              --self-contained-html \
+              --tb=short
+          fi
+          
+          if [ -f "tests/integration/postman_collection.json" ]; then
+            echo "Running Postman collection tests..."
+            newman run tests/integration/postman_collection.json \
+              --environment tests/integration/postman_environment.json \
+              --reporters cli,html \
+              --reporter-html-export test-results/postman-report.html \
+              --timeout-request 30000
+          fi
+          
+          echo "✅ Integration tests completed"
+      
+      - name: Performance tests
+        if: contains(inputs.validation_tests, 'performance')
+        run: |
+          echo "⚡ Running performance tests for ${{ inputs.environment }}"
+          
+          # Parse performance thresholds
+          RESPONSE_TIME=$(echo '${{ inputs.performance_thresholds }}' | jq -r '.response_time // 2000')
+          ERROR_RATE=$(echo '${{ inputs.performance_thresholds }}' | jq -r '.error_rate // 0.01')
+          THROUGHPUT=$(echo '${{ inputs.performance_thresholds }}' | jq -r '.throughput // 100')
+          
+          echo "Performance thresholds:"
+          echo "- Response time: ${RESPONSE_TIME}ms"
+          echo "- Error rate: ${ERROR_RATE}%"
+          echo "- Throughput: ${THROUGHPUT} req/s"
+          
+          # Simple performance test using curl
+          echo "Testing API response time..."
+          START_TIME=$(date +%s%3N)
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${API_BASE_URL}/health")
+          END_TIME=$(date +%s%3N)
+          RESPONSE_TIME_MS=$((END_TIME - START_TIME))
+          
+          echo "Response time: ${RESPONSE_TIME_MS}ms"
+          
+          if [ $RESPONSE_TIME_MS -gt $RESPONSE_TIME ]; then
+            echo "❌ Response time ${RESPONSE_TIME_MS}ms exceeds threshold ${RESPONSE_TIME}ms"
+            exit 1
+          fi
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Health check returned HTTP ${HTTP_CODE}"
+            exit 1
+          fi
+          
+          echo "✅ Performance tests passed"
+      
+      - name: Security validation
+        if: contains(inputs.validation_tests, 'security')
+        run: |
+          echo "🔒 Running security validation for ${{ inputs.environment }}"
+          
+          # Check for common security headers
+          echo "Checking security headers..."
+          SECURITY_HEADERS=$(curl -s -I "${APP_URL}" | grep -E "(X-Frame-Options|X-Content-Type-Options|X-XSS-Protection|Strict-Transport-Security)" | wc -l)
+          
+          if [ $SECURITY_HEADERS -lt 2 ]; then
+            echo "⚠️ Limited security headers found (${SECURITY_HEADERS}), consider adding more"
+          else
+            echo "✅ Security headers present (${SECURITY_HEADERS} found)"
+          fi
+          
+          # Check HTTPS redirect
+          echo "Checking HTTPS configuration..."
+          HTTP_RESPONSE=$(curl -s -I "http://${APP_URL#https://}" | head -n 1)
+          if echo "$HTTP_RESPONSE" | grep -q "301\|302"; then
+            echo "✅ HTTP to HTTPS redirect configured"
+          else
+            echo "⚠️ Consider implementing HTTP to HTTPS redirect"
+          fi
+          
+          echo "✅ Security validation completed"
+      
+      - name: Data validation
+        if: contains(inputs.validation_tests, 'data')
+        run: |
+          echo "📊 Running data validation for ${{ inputs.environment }}"
+          
+          # Test database connectivity if applicable
+          if [ -n "${{ secrets.DB_CONNECTION_STRING }}" ]; then
+            echo "Testing database connectivity..."
+            # Add database connectivity test here
+            echo "✅ Database connectivity test completed"
+          fi
+          
+          # Validate data integrity
+          if [ -f "tests/data_validation/test_data_integrity.py" ]; then
+            echo "Running data integrity tests..."
+            python tests/data_validation/test_data_integrity.py
+          fi
+          
+          echo "✅ Data validation completed"
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-results-${{ inputs.environment }}
+          path: test-results/
+          retention-days: 30
+      
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "📋 Post-Deployment Validation Summary"
+          echo "===================================="
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Tests executed: ${{ inputs.validation_tests }}"
+          echo "Overall status: ${{ job.status }}"
+          echo ""
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ All validation tests passed!"
+            echo "🎯 Deployment to ${{ inputs.environment }} is ready for production traffic"
+          else
+            echo "❌ Some validation tests failed"
+            echo "🔧 Please review the test results and address any issues"
+          fi

@@ -1,0 +1,25 @@
+# Research ledger template
+# Fill and save as data/research_ledger/<run_id>.yaml
+run_id: "2025-09-04-research-001"
+owner: "data-engineer"
+title: "short title"
+description: |
+  One-line summary of the research question and why it's important.
+hypothesis: "what we expect"
+timebox_days: 1
+sources:
+  - url: "https://example.org"
+    note: "seed source"
+scripts:
+  - path: scripts/research/run_poc.py
+    args: "--manifest data/ingestion_manifests/isa_docs_v1_manifest.yaml"
+artifacts:
+  - path: artifacts/${run_id}/raw
+  - path: artifacts/${run_id}/processed
+metrics:
+  - name: "accuracy"
+    target: 0.8
+  - name: "latency_ms"
+    target: 200
+replication_required: true
+notes: "add human-review notes here"

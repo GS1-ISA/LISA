@@ -35,13 +35,17 @@ def find_evidence(rule_text: str, source_file: str) -> tuple[str, Evidence | Non
     t = rule_text.lower()
     # Lint (ruff)
     if "ruff" in t or ("lint" in t and "ruff" in source_file.lower()):
-        for p in search_paths([".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]):
+        for p in search_paths(
+            [".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]
+        ):
             ev = grep_first(p, re.compile(r"ruff"))
             if ev:
                 return "PASS", ev
     # Typecheck (mypy)
     if "mypy" in t or ("typecheck" in t or "typing" in t):
-        for p in search_paths([".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]):
+        for p in search_paths(
+            [".github/workflows/ci.yml", ".pre-commit-config.yaml", "pyproject.toml"]
+        ):
             ev = grep_first(p, re.compile(r"mypy"))
             if ev:
                 return "PASS", ev
@@ -53,7 +57,12 @@ def find_evidence(rule_text: str, source_file: str) -> tuple[str, Evidence | Non
                 return "PASS", ev
     # Determinism / snapshots
     if "determinism" in t or "snapshot" in t or "canonical" in t:
-        for p in search_paths(["ISA_SuperApp/src/utils/json_canonical.py", "ISA_SuperApp/tests/unit/test_snapshot_canonical_sample.py"]):
+        for p in search_paths(
+            [
+                "ISA_SuperApp/src/utils/json_canonical.py",
+                "ISA_SuperApp/tests/unit/test_snapshot_canonical_sample.py",
+            ]
+        ):
             if p.exists():
                 ev = grep_first(p, re.compile(r"canonical|snapshot|sorted"))
                 if ev:
@@ -73,8 +82,13 @@ def find_evidence(rule_text: str, source_file: str) -> tuple[str, Evidence | Non
             if ev:
                 return "PASS", ev
     # Security scans: bandit, pip-audit, trivy, gitleaks, sbom
-    if any(k in t for k in ["bandit", "pip-audit", "gitleaks", "trivy", "sbom", "syft", "secrets"]):
-        for p in search_paths([".github/workflows/ci.yml", ".github/workflows/weekly.yml"]):
+    if any(
+        k in t
+        for k in ["bandit", "pip-audit", "gitleaks", "trivy", "sbom", "syft", "secrets"]
+    ):
+        for p in search_paths(
+            [".github/workflows/ci.yml", ".github/workflows/weekly.yml"]
+        ):
             ev = grep_first(p, re.compile(r"bandit|pip-audit|gitleaks|trivy|sbom|syft"))
             if ev:
                 return "PASS", ev
@@ -106,7 +120,10 @@ def main() -> int:
     catalog = root / "docs" / "audit" / "rule_catalog.csv"
     out = root / "docs" / "audit" / "traceability_matrix.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
-    with catalog.open("r", encoding="utf-8") as f_in, out.open("w", newline="", encoding="utf-8") as f_out:
+    with (
+        catalog.open("r", encoding="utf-8") as f_in,
+        out.open("w", newline="", encoding="utf-8") as f_out,
+    ):
         r = csv.DictReader(f_in)
         w = csv.writer(f_out)
         w.writerow(["RuleID", "SourceFile", "Line", "Artefact", "Status", "Evidence"])
@@ -118,7 +135,16 @@ def main() -> int:
             status, ev = find_evidence(text, source)
             if ev:
                 snippet = ev.text[:200].replace("\n", " ")
-                w.writerow([rule_id, source, line, str(ev.file), status, f"{ev.line}: {snippet}"])
+                w.writerow(
+                    [
+                        rule_id,
+                        source,
+                        line,
+                        str(ev.file),
+                        status,
+                        f"{ev.line}: {snippet}",
+                    ]
+                )
             else:
                 w.writerow([rule_id, source, line, "", status, ""])
     print(f"Wrote {out}")

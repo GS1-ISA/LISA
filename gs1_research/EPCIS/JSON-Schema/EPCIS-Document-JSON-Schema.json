@@ -1,0 +1,331 @@
+{
+    "$id": "https://gs1.github.io/EPCIS/JSON-Schema/EPCIS-Document-JSON-Schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "vocabulary": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "$ref": "schemas/event-definitions-JSON-Schema.json#/definitions/uri"
+                },
+                "vocabularyElementList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vocabularyElement"
+                    }
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "vocabularyElement": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "$ref": "schemas/event-definitions-JSON-Schema.json#/definitions/uri"
+                },
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/attribute"
+                    }
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "schemas/event-definitions-JSON-Schema.json#/definitions/uri"
+                    }
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "attribute": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "$ref": "schemas/event-definitions-JSON-Schema.json#/definitions/uri"
+                },
+                "attribute": {
+                    "anyOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "object"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "eventList": {
+            "type": "array",
+            "items": {
+                "$ref": "EPCIS-Event-JSON-Schema.json#/definitions/EPCIS-Document-Event"
+            }
+        },
+        "vocabularyList": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/vocabulary"
+            }
+        },
+        "resultsBody": {
+            "type": "object",
+            "properties": {
+                "eventList": {
+                    "$ref": "#/definitions/eventList"
+                },
+                "vocabularyList": {
+                    "$ref": "#/definitions/vocabularyList"
+                }
+            },
+            "required": [
+                "eventList"
+            ],
+            "propertyNames": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "enum": [
+                            "eventList",
+                            "vocabularyList"
+                        ]
+                    },
+                    {
+                        "$ref": "schemas/definitions-JSON-Schema.json#/definitions/vocab-uri"
+                    }
+                ]
+            }
+        },
+        "queryResults": {
+            "type": "object",
+            "properties": {
+                "queryName": {
+                    "type": "string"
+                },
+                "subscriptionID": {
+                    "type": "string"
+                },
+                "resultsBody": {
+                    "$ref": "#/definitions/resultsBody"
+                }
+            },
+            "required": [
+                "queryName",
+                "resultsBody"
+            ],
+            "propertyNames": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "enum": [
+                            "queryName",
+                            "subscriptionID",
+                            "resultsBody"
+                        ]
+                    },
+                    {
+                        "$ref": "schemas/definitions-JSON-Schema.json#/definitions/vocab-uri"
+                    }
+                ]
+            }
+        },
+        "epcisQueryDocumentBody": {
+            "type": "object",
+            "properties": {
+                "queryResults": {
+                    "$ref": "#/definitions/queryResults"
+                }
+            },
+            "required": [
+                "queryResults"
+            ],
+            "propertyNames": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "enum": [
+                            "queryResults"
+                        ]
+                    },
+                    {
+                        "$ref": "schemas/definitions-JSON-Schema.json#/definitions/vocab-uri"
+                    }
+                ]
+            }
+        },
+        "epcisHeader": {
+            "type": "object",
+            "properties": {
+                "epcisMasterData": {
+                    "type": "object",
+                    "properties": {
+                        "vocabularyList": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vocabulary"
+                            }
+                        }
+                    }
+                }
+            },
+            "propertyNames": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "enum": [
+                            "epcisMasterData"
+                        ]
+                    },
+                    {
+                        "$ref": "schemas/definitions-JSON-Schema.json#/definitions/vocab-uri"
+                    }
+                ]
+            }
+        },
+        "epcisDocument": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "$ref": "schemas/definitions-JSON-Schema.json#/definitions/id"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["EPCISDocument"]
+                },
+                "@context": {
+                    "$ref": "schemas/definitions-JSON-Schema.json#/definitions/%40context"
+                },
+                "schemaVersion": {
+                    "$ref": "schemas/definitions-JSON-Schema.json#/definitions/version"
+                },
+                "creationDate": {
+                    "$ref": "schemas/event-definitions-JSON-Schema.json#/definitions/time"
+                },
+                "instanceIdentifier": {
+                    "type": "string"
+                },
+                "sender": {
+                    "type": "string"
+                },
+                "receiver": {
+                    "type": "string"
+                },
+                "epcisHeader": {
+                    "$ref": "#/definitions/epcisHeader"
+                },
+                "epcisBody": {
+                    "type": "object",
+                    "properties": {
+                        "eventList": {
+                            "$ref": "#/definitions/eventList"
+                        }
+                    },
+                    "required": [
+                        "eventList"
+                    ]
+                }
+            },
+            "required": [
+                "@context",
+                "type",
+                "schemaVersion",
+                "creationDate",
+                "epcisBody"
+            ],
+            "propertyNames": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "enum": [
+                            "@context",
+                            "id",
+                            "type",
+                            "schemaVersion",
+                            "creationDate",
+                            "instanceIdentifier",
+                            "sender",
+                            "receiver",
+                            "epcisHeader",
+                            "epcisBody"
+                        ]
+                    },
+                    {
+                        "$ref": "schemas/definitions-JSON-Schema.json#/definitions/vocab-uri"
+                    }
+                ]
+            }
+        },
+        "epcisQueryDocument": {
+            "type": "object",
+            "properties": {
+                "@context": {
+                    "$ref": "schemas/definitions-JSON-Schema.json#/definitions/%40context"
+                },
+                "id": {
+                    "$ref": "schemas/definitions-JSON-Schema.json#/definitions/id"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["EPCISQueryDocument"]
+                },
+                "schemaVersion": {
+                    "$ref": "schemas/definitions-JSON-Schema.json#/definitions/version"
+                },
+                "creationDate": {
+                    "$ref": "schemas/event-definitions-JSON-Schema.json#/definitions/time"
+                },
+                "epcisBody": {
+                    "$ref": "#/definitions/epcisQueryDocumentBody"
+                }
+            },
+            "required": [
+                "@context",
+                "type",
+                "epcisBody"
+            ],
+            "propertyNames": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "enum": [
+                            "@context",
+                            "id",
+                            "type",
+                            "schemaVersion",
+                            "creationDate",
+                            "epcisBody"
+                        ]
+                    },
+                    {
+                        "$ref": "schemas/definitions-JSON-Schema.json#/definitions/vocab-uri"
+                    }
+                ]
+            }
+        },
+        "EPCIS-Document": {
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/epcisDocument"
+                },
+                {
+                    "$ref": "#/definitions/epcisQueryDocument"
+                }
+            ]
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/EPCIS-Document"
+        }
+    ]
+}

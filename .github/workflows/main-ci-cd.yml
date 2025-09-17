@@ -1,0 +1,233 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      deployment_target:
+        description: 'Deployment target'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: '3.11'
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  # Use reusable workflow for unit tests
+  unit-tests:
+    name: Unit Tests
+    uses: ./.github/workflows/reusable-build-test.yml
+    with:
+      python-version: '3.11'
+      test-group: 'unit'
+      coverage-threshold: 80
+      skip-tests: ${{ github.event.inputs.skip_tests }}
+
+  # Use reusable workflow for integration tests
+  integration-tests:
+    name: Integration Tests
+    uses: ./.github/workflows/reusable-build-test.yml
+    with:
+      python-version: '3.11'
+      test-group: 'integration'
+      coverage-threshold: 70
+      skip-tests: ${{ github.event.inputs.skip_tests }}
+
+  # Use reusable workflow for E2E tests
+  e2e-tests:
+    name: End-to-End Tests
+    uses: ./.github/workflows/reusable-build-test.yml
+    with:
+      python-version: '3.11'
+      test-group: 'e2e'
+      coverage-threshold: 60
+      skip-tests: ${{ github.event.inputs.skip_tests }}
+
+  # Build and package using reusable workflow
+  build:
+    name: Build Package
+    uses: ./.github/workflows/reusable-build-test.yml
+    with:
+      python-version: '3.11'
+      skip-tests: true
+    needs: [unit-tests, integration-tests, e2e-tests]
+    if: always() && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped')
+
+  # Security scanning using reusable workflow
+  security-scan:
+    name: Security Scanning
+    uses: ./.github/workflows/security-scanning.yml
+    with:
+      scan-type: 'full'
+      severity-threshold: 'HIGH'
+      upload-results: true
+    needs: [build]
+
+  # Build and push Docker image
+  docker-build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: [build, security-scan]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Staging deployment with automatic approval for develop branch
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.deployment_target == 'staging'
+    environment:
+      name: staging
+      url: https://staging.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment"
+          echo "Image: ${{ needs.docker-build.outputs.image-tag }}"
+          # Add your deployment commands here
+          
+      - name: Run staging health checks
+        run: |
+          echo "Running health checks on staging"
+          # Add health check commands here
+          
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests on staging"
+          # Add smoke test commands here
+
+  # Production deployment with manual approval
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker-build, deploy-staging]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.deployment_target == 'production'
+    environment:
+      name: production
+      url: https://app.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Create deployment backup
+        run: |
+          echo "Creating backup of current production deployment"
+          # Add backup commands here
+          
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment"
+          echo "Image: ${{ needs.docker-build.outputs.image-tag }}"
+          # Add your deployment commands here
+          
+      - name: Run production health checks
+        run: |
+          echo "Running health checks on production"
+          # Add health check commands here
+          
+      - name: Run production smoke tests
+        run: |
+          echo "Running smoke tests on production"
+          # Add smoke test commands here
+          
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment success"
+          # Add verification commands here
+
+  # Post-deployment tasks
+  post-deployment:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+      - name: Clean up old container images
+        run: |
+          echo "Cleaning up old container images"
+          # Add cleanup commands here
+          
+      - name: Send deployment notifications
+        run: |
+          echo "Sending deployment notifications"
+          # Add notification commands here
+          
+      - name: Update deployment status
+        run: |
+          echo "Updating deployment status"
+          # Add status update commands here

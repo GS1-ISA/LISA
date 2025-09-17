@@ -1,0 +1,503 @@
+# Unified Deployment Configuration
+# This file contains all configuration for the unified deployment system
+
+# Global settings
+global:
+  aws_region: us-east-1
+  ecr_repository: app-repository
+  deployment_timeout: 1800  # 30 minutes
+  health_check_timeout: 300  # 5 minutes
+  rollback_timeout: 600  # 10 minutes
+  
+# Security configuration
+security:
+  scan_enabled: true
+  severity_threshold: high
+  fail_on_vulnerabilities: true
+  tools:
+    - trivy
+    - snyk
+  vulnerability_whitelist:
+    - CVE-2021-12345  # Example: Known false positive
+  compliance:
+    required_checks:
+      - vulnerability_scan
+      - dependency_check
+      - container_scan
+
+# Environment configurations
+environments:
+  development:
+    enabled: true
+    approval_required: false
+    environment_protection: false
+    oidc_required: false
+    deployment_branch: main
+    deployment_strategy: rolling
+    deployment_timeout: 900  # 15 minutes
+    health_check:
+      enabled: true
+      endpoint: /health
+      timeout: 60
+      retries: 3
+      retry_delay: 10
+    rollback:
+      enabled: true
+      automatic_on_failure: true
+      preserve_state: true
+    resources:
+      replicas: 1
+      cpu: "500m"
+      memory: "512Mi"
+    scaling:
+      min_replicas: 1
+      max_replicas: 3
+      target_cpu_utilization: 70
+    monitoring:
+      enabled: true
+      log_level: debug
+      metrics_enabled: true
+    notifications:
+      slack_channel: "#deployments-dev"
+      email_notifications: false
+      
+  staging:
+    enabled: true
+    approval_required: true
+    environment_protection: true
+    oidc_required: true
+    deployment_branch: staging
+    deployment_strategy: blue-green
+    deployment_timeout: 1200  # 20 minutes
+    deployment_window:
+      start: "06:00"
+      end: "22:00"
+      timezone: "UTC"
+    required_reviewers: 1
+    health_check:
+      enabled: true
+      endpoint: /health
+      timeout: 120
+      retries: 5
+      retry_delay: 15
+    rollback:
+      enabled: true
+      automatic_on_failure: true
+      preserve_state: true
+    resources:
+      replicas: 2
+      cpu: "1000m"
+      memory: "1Gi"
+    scaling:
+      min_replicas: 2
+      max_replicas: 5
+      target_cpu_utilization: 70
+    monitoring:
+      enabled: true
+      log_level: info
+      metrics_enabled: true
+    notifications:
+      slack_channel: "#deployments-staging"
+      email_notifications: true
+      email_recipients:
+        - devops@company.com
+        - qa@company.com
+        
+  production:
+    enabled: true
+    approval_required: true
+    environment_protection: true
+    oidc_required: true
+    deployment_branch: main
+    deployment_strategy: canary
+    deployment_timeout: 1800  # 30 minutes
+    deployment_window:
+      start: "09:00"
+      end: "17:00"
+      timezone: "UTC"
+    required_reviewers: 2
+    health_check:
+      enabled: true
+      endpoint: /health
+      timeout: 300
+      retries: 10
+      retry_delay: 30
+    rollback:
+      enabled: true
+      automatic_on_failure: true
+      preserve_state: true
+    resources:
+      replicas: 3
+      cpu: "2000m"
+      memory: "2Gi"
+    scaling:
+      min_replicas: 3
+      max_replicas: 10
+      target_cpu_utilization: 60
+    monitoring:
+      enabled: true
+      log_level: warning
+      metrics_enabled: true
+      alerting:
+        enabled: true
+        channels:
+          - pagerduty
+          - slack
+    notifications:
+      slack_channel: "#deployments-prod"
+      email_notifications: true
+      email_recipients:
+        - devops@company.com
+        - oncall@company.com
+        - management@company.com
+
+# Platform-specific configurations
+platforms:
+  kubernetes:
+    enabled: true
+    namespace_template: "app-{environment}"
+    service_account: "app-{environment}-sa"
+    ingress:
+      enabled: true
+      class: "nginx"
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    network_policies:
+      enabled: true
+      deny_all_by_default: true
+    pod_security_policy:
+      enabled: true
+      enforce: true
+    resource_quotas:
+      enabled: true
+      limits:
+        cpu: "10"
+        memory: "20Gi"
+    storage:
+      storage_class: "gp2"
+      access_modes:
+        - ReadWriteOnce
+    monitoring:
+      service_monitor:
+        enabled: true
+        interval: "30s"
+        path: "/metrics"
+    config_maps:
+      enabled: true
+      data:
+        app.properties: |
+          server.port=8080
+          management.endpoints.web.exposure.include=health,metrics
+    secrets:
+      enabled: true
+      type: "kubernetes.io/dockerconfigjson"
+      
+  ecs:
+    enabled: true
+    cluster_name: "app-{environment}-cluster"
+    task_definition_family: "app-{environment}"
+    service_name: "app-{environment}-service"
+    load_balancer:
+      enabled: true
+      type: "application"
+      scheme: "internet-facing"
+      health_check_path: "/health"
+      health_check_interval: 30
+      health_check_timeout: 5
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+    auto_scaling:
+      enabled: true
+      min_capacity: 1
+      max_capacity: 10
+      target_cpu_utilization: 70
+      target_memory_utilization: 80
+    capacity_providers:
+      - "FARGATE"
+      - "FARGATE_SPOT"
+    capacity_provider_strategy:
+      - capacity_provider: "FARGATE"
+        weight: 1
+        base: 1
+      - capacity_provider: "FARGATE_SPOT"
+        weight: 4
+        base: 0
+    task_role_arn: "arn:aws:iam::123456789012:role/app-{environment}-task-role"
+    execution_role_arn: "arn:aws:iam::123456789012:role/app-{environment}-execution-role"
+    vpc_configuration:
+      subnets:
+        - "subnet-12345678"
+        - "subnet-87654321"
+      security_groups:
+        - "sg-12345678"
+      assign_public_ip: "ENABLED"
+    log_configuration:
+      log_driver: "awslogs"
+      options:
+        awslogs-group: "/ecs/app-{environment}"
+        awslogs-region: "us-east-1"
+        awslogs-stream-prefix: "ecs"
+        
+  docker:
+    enabled: true
+    registry: "123456789012.dkr.ecr.us-east-1.amazonaws.com"
+    repository: "app-{environment}"
+    tag_template: "{git_sha}-{timestamp}"
+    labels:
+      environment: "{environment}"
+      version: "{git_sha}"
+      build_date: "{timestamp}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart_policy:
+      condition: "on-failure"
+      max_attempts: 3
+    resources:
+      limits:
+        cpus: "2.0"
+        memory: "2G"
+      reservations:
+        cpus: "1.0"
+        memory: "1G"
+    networks:
+      - "app-{environment}-network"
+    volumes:
+      - type: "bind"
+        source: "/var/log/app"
+        target: "/app/logs"
+        read_only: false
+    environment_variables:
+      - "ENVIRONMENT={environment}"
+      - "LOG_LEVEL=info"
+      - "JAVA_OPTS=-Xmx1g -Xms512m"
+
+# Deployment strategies configuration
+deployment_strategies:
+  rolling:
+    enabled: true
+    max_surge: 1
+    max_unavailable: 0
+    progress_deadline: 600  # 10 minutes
+    readiness_probe:
+      enabled: true
+      initial_delay_seconds: 10
+      period_seconds: 5
+      timeout_seconds: 3
+      success_threshold: 1
+      failure_threshold: 3
+      
+  blue_green:
+    enabled: true
+    pre_promotion_timeout: 900  # 15 minutes
+    post_promotion_timeout: 300  # 5 minutes
+    traffic_split: 100  # 100% to new version after promotion
+    health_check_grace_period: 60
+    rollback_on_failure: true
+    
+  canary:
+    enabled: true
+    stages:
+      - weight: 10  # 10% traffic
+        duration: 300  # 5 minutes
+      - weight: 50  # 50% traffic
+        duration: 600  # 10 minutes
+      - weight: 100  # 100% traffic
+        duration: 0  # Immediate
+    analysis:
+      enabled: true
+      interval: 60  # 1 minute
+      threshold:
+        success_rate: 95
+        p99_latency: 1000  # milliseconds
+        p95_latency: 500   # milliseconds
+    rollback_on_analysis_failure: true
+    
+  recreate:
+    enabled: true
+    grace_period: 30  # 30 seconds
+    termination_timeout: 300  # 5 minutes
+    startup_timeout: 600  # 10 minutes
+
+# Health check configuration
+health_checks:
+  http:
+    enabled: true
+    endpoint: "/health"
+    method: "GET"
+    expected_status_codes: [200]
+    timeout: 30
+    retries: 3
+    retry_delay: 10
+    headers:
+      User-Agent: "Deployment-Health-Check/1.0"
+  tcp:
+    enabled: false
+    port: 8080
+    timeout: 10
+  grpc:
+    enabled: false
+    service: "health.v1.Health"
+    timeout: 30
+
+# Rollback configuration
+rollback:
+  enabled: true
+  automatic_on_health_check_failure: true
+  automatic_on_deployment_failure: true
+  preserve_state: true
+  max_history: 10
+  strategies:
+    - immediate
+    - gradual
+  notification:
+    enabled: true
+    channels:
+      - slack
+      - email
+
+# Monitoring and alerting
+monitoring:
+  enabled: true
+  metrics:
+    enabled: true
+    endpoint: "/metrics"
+    port: 8080
+    path: "/metrics"
+    interval: 30
+  alerting:
+    enabled: true
+    channels:
+      slack:
+        webhook_url: "${SLACK_WEBHOOK_URL}"
+        channel: "#alerts-{environment}"
+      pagerduty:
+        service_key: "${PAGERDUTY_SERVICE_KEY}"
+      email:
+        smtp_server: "smtp.company.com"
+        smtp_port: 587
+        from: "alerts@company.com"
+        to:
+          - "oncall@company.com"
+          - "devops@company.com"
+    rules:
+      - name: "High Error Rate"
+        condition: "error_rate > 5%"
+        duration: 300
+        severity: "critical"
+      - name: "High Latency"
+        condition: "p99_latency > 1000ms"
+        duration: 600
+        severity: "warning"
+      - name: "Deployment Failure"
+        condition: "deployment_status == 'failed'"
+        duration: 0
+        severity: "critical"
+
+# Notification configuration
+notifications:
+  slack:
+    enabled: true
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channels:
+      development: "#deployments-dev"
+      staging: "#deployments-staging"
+      production: "#deployments-prod"
+    templates:
+      success: |
+        ✅ Deployment Successful
+        Environment: {environment}
+        Platform: {platform}
+        Version: {version}
+        Duration: {duration}
+      failure: |
+        ❌ Deployment Failed
+        Environment: {environment}
+        Platform: {platform}
+        Version: {version}
+        Error: {error}
+      rollback: |
+        ⚠️ Deployment Rolled Back
+        Environment: {environment}
+        Platform: {platform}
+        Reason: {reason}
+        Previous Version: {previous_version}
+  email:
+    enabled: true
+    smtp_server: "smtp.company.com"
+    smtp_port: 587
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    from: "deployments@company.com"
+    templates:
+      subject: "[{environment}] Deployment {status}"
+      body: |
+        Deployment {status} for {environment}
+        
+        Platform: {platform}
+        Version: {version}
+        Duration: {duration}
+        Initiated by: {user}
+        
+        {additional_details}
+
+# Compliance and governance
+compliance:
+  enabled: true
+  required_approvals:
+    development: 0
+    staging: 1
+    production: 2
+  audit_logging:
+    enabled: true
+    retention_days: 365
+    include:
+      - deployment_start
+      - deployment_end
+      - approval_granted
+      - approval_denied
+      - rollback_initiated
+      - health_check_results
+  change_management:
+    enabled: true
+    integration: "jira"
+    jira_project: "DEPLOY"
+    required_fields:
+      - change_request_id
+      - business_justification
+      - risk_assessment
+  security_policies:
+    enabled: true
+    policies:
+      - name: "No Critical Vulnerabilities"
+        condition: "critical_vulnerabilities == 0"
+        action: "block_deployment"
+      - name: "High Vulnerability Limit"
+        condition: "high_vulnerabilities <= 5"
+        action: "warn"
+      - name: "Deployment Window"
+        condition: "time_in_window == true"
+        action: "block_deployment"
+
+# Feature flags
+feature_flags:
+  enabled: true
+  provider: "launchdarkly"
+  sdk_key: "${LAUNCHDARKLY_SDK_KEY}"
+  flags:
+    - name: "new_deployment_strategy"
+      default: false
+      environments:
+        development: true
+        staging: true
+        production: false
+    - name: "enhanced_monitoring"
+      default: true
+      environments:
+        development: true
+        staging: true
+        production: true

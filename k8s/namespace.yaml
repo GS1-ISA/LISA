@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: isa-superapp
+  labels:
+    name: isa-superapp
+    app.kubernetes.io/name: isa-superapp
+    app.kubernetes.io/component: namespace
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: isa-monitoring
+  labels:
+    name: isa-monitoring
+    app.kubernetes.io/name: isa-monitoring
+    app.kubernetes.io/component: namespace
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: isa-database
+  labels:
+    name: isa-database
+    app.kubernetes.io/name: isa-database
+    app.kubernetes.io/component: namespace

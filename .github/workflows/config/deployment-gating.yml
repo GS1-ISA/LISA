@@ -1,0 +1,646 @@
+# Deployment Staging and Gating Configuration
+# This file defines deployment stages, quality gates, approval processes, and promotion criteria
+
+# Global Deployment Gating Configuration
+global_gating:
+  enabled: true
+  default_timeout: 3600  # 1 hour
+  max_concurrent_deployments: 2
+  require_approval_for_production: true
+  auto_promote_lower_environments: true
+  rollback_on_gate_failure: true
+  notification_channels: ["slack", "email", "pagerduty"]
+  
+  # Global quality gates
+  quality_gates:
+    - name: "code_quality_gate"
+      enabled: true
+      description: "Code quality and security scanning"
+      priority: 1
+      blocking: true
+      timeout: 1800  # 30 minutes
+      criteria:
+        - name: "security_scan_passed"
+          description: "Security scan must pass"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "no_critical_vulnerabilities"
+            - "no_high_vulnerabilities"
+            - "medium_vulnerabilities < 5"
+        
+        - name: "code_quality_threshold"
+          description: "Code quality metrics"
+          enabled: true
+          severity: "warning"
+          conditions:
+            - "code_coverage > 80%"
+            - "technical_debt < 5%"
+            - "code_smells < 10"
+            - "duplicated_lines < 3%"
+        
+        - name: "dependency_scan"
+          description: "Dependency vulnerability scan"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "no_critical_vulnerabilities"
+            - "no_high_vulnerabilities"
+            - "dependencies_up_to_date"
+        
+        - name: "license_compliance"
+          description: "License compliance check"
+          enabled: true
+          severity: "warning"
+          conditions:
+            - "no_forbidden_licenses"
+            - "approved_licenses_only"
+            - "license_attribution_complete"
+    
+    - name: "testing_gate"
+      enabled: true
+      description: "Automated testing validation"
+      priority: 2
+      blocking: true
+      timeout: 3600  # 1 hour
+      criteria:
+        - name: "unit_tests"
+          description: "Unit test execution"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "unit_test_pass_rate > 95%"
+            - "no_critical_test_failures"
+            - "test_execution_time < 10_minutes"
+        
+        - name: "integration_tests"
+          description: "Integration test execution"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "integration_test_pass_rate > 90%"
+            - "no_critical_integration_failures"
+            - "api_contract_tests_passed"
+        
+        - name: "performance_tests"
+          description: "Performance testing"
+          enabled: true
+          severity: "warning"
+          conditions:
+            - "response_time_p95 < 2000ms"
+            - "throughput > 1000_rps"
+            - "error_rate < 1%"
+            - "memory_usage < 80%"
+            - "cpu_usage < 70%"
+        
+        - name: "security_tests"
+          description: "Security testing"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "penetration_test_passed"
+            - "authentication_tests_passed"
+            - "authorization_tests_passed"
+            - "input_validation_tests_passed"
+    
+    - name: "compliance_gate"
+      enabled: true
+      description: "Compliance and regulatory validation"
+      priority: 3
+      blocking: true
+      timeout: 1800  # 30 minutes
+      criteria:
+        - name: "gdpr_compliance"
+          description: "GDPR compliance check"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "data_processing_agreements_valid"
+            - "data_retention_policies_compliant"
+            - "user_consent_mechanisms_working"
+            - "data_deletion_procedures_tested"
+        
+        - name: "soc2_compliance"
+          description: "SOC 2 compliance check"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "access_controls_documented"
+            - "audit_logging_enabled"
+            - "change_management_documented"
+            - "incident_response_procedures_tested"
+        
+        - name: "hipaa_compliance"
+          description: "HIPAA compliance check (if applicable)"
+          enabled: false
+          severity: "critical"
+          conditions:
+            - "phi_encryption_verified"
+            - "access_logging_enabled"
+            - "business_associate_agreements_valid"
+            - "risk_assessment_completed"
+    
+    - name: "business_validation_gate"
+      enabled: true
+      description: "Business logic and acceptance criteria"
+      priority: 4
+      blocking: true
+      timeout: 1800  # 30 minutes
+      criteria:
+        - name: "acceptance_tests"
+          description: "User acceptance testing"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "critical_user_journeys_passed"
+            - "business_metrics_validated"
+            - "user_experience_metrics_acceptable"
+        
+        - name: "data_validation"
+          description: "Data integrity and accuracy"
+          enabled: true
+          severity: "critical"
+          conditions:
+            - "data_migration_successful"
+            - "data_consistency_verified"
+            - "reporting_accuracy_validated"
+            - "backup_and_recovery_tested"
+
+# Deployment Stages Configuration
+deployment_stages:
+  - name: "build_stage"
+    description: "Build and package application"
+    enabled: true
+    environment: "build"
+    timeout: 1800  # 30 minutes
+    auto_promote: true
+    quality_gates:
+      - "code_quality_gate"
+    approval_required: false
+    rollback_enabled: true
+    
+    # Build stage configuration
+    configuration:
+      build_parallelization: true
+      cache_dependencies: true
+      artifact_retention: 30  # days
+      build_optimization: true
+      security_scanning: true
+      dependency_check: true
+    
+    # Build stage outputs
+    outputs:
+      - name: "application_artifacts"
+        type: "docker_image"
+        retention: 90  # days
+        signing_required: true
+        vulnerability_scan: true
+      
+      - name: "test_reports"
+        type: "test_results"
+        retention: 30  # days
+        coverage_threshold: 80
+      
+      - name: "security_reports"
+        type: "security_scan"
+        retention: 90  # days
+        compliance_check: true
+
+  - name: "development_stage"
+    description: "Deploy to development environment"
+    enabled: true
+    environment: "development"
+    timeout: 900  # 15 minutes
+    auto_promote: true
+    quality_gates:
+      - "code_quality_gate"
+      - "testing_gate"
+    approval_required: false
+    rollback_enabled: true
+    
+    # Development stage configuration
+    configuration:
+      deployment_strategy: "rolling"
+      health_check_enabled: true
+      monitoring_enabled: true
+      log_aggregation: true
+      auto_scaling: false
+      backup_before_deployment: false
+    
+    # Development stage validation
+    validation:
+      health_check_url: "https://dev-api.example.com/health"
+      health_check_timeout: 60  # seconds
+      smoke_tests_enabled: true
+      smoke_test_timeout: 300  # 5 minutes
+      performance_baseline: "relaxed"
+
+  - name: "integration_stage"
+    description: "Deploy to integration environment"
+    enabled: true
+    environment: "integration"
+    timeout: 1800  # 30 minutes
+    auto_promote: false
+    quality_gates:
+      - "code_quality_gate"
+      - "testing_gate"
+      - "compliance_gate"
+    approval_required: false
+    rollback_enabled: true
+    
+    # Integration stage configuration
+    configuration:
+      deployment_strategy: "blue_green"
+      health_check_enabled: true
+      monitoring_enabled: true
+      log_aggregation: true
+      auto_scaling: true
+      backup_before_deployment: true
+    
+    # Integration stage validation
+    validation:
+      health_check_url: "https://int-api.example.com/health"
+      health_check_timeout: 120  # seconds
+      integration_tests_enabled: true
+      integration_test_timeout: 1800  # 30 minutes
+      api_contract_tests: true
+      performance_baseline: "standard"
+
+  - name: "staging_stage"
+    description: "Deploy to staging environment"
+    enabled: true
+    environment: "staging"
+    timeout: 3600  # 1 hour
+    auto_promote: false
+    quality_gates:
+      - "code_quality_gate"
+      - "testing_gate"
+      - "compliance_gate"
+      - "business_validation_gate"
+    approval_required: true
+    approval_timeout: 1800  # 30 minutes
+    approval_roles: ["staging-deployer", "qa-lead"]
+    rollback_enabled: true
+    
+    # Staging stage configuration
+    configuration:
+      deployment_strategy: "canary"
+      health_check_enabled: true
+      monitoring_enabled: true
+      log_aggregation: true
+      auto_scaling: true
+      backup_before_deployment: true
+      traffic_splitting: true
+    
+    # Staging stage validation
+    validation:
+      health_check_url: "https://staging-api.example.com/health"
+      health_check_timeout: 180  # seconds
+      end_to_end_tests_enabled: true
+      e2e_test_timeout: 3600  # 1 hour
+      performance_tests_enabled: true
+      performance_test_timeout: 1800  # 30 minutes
+      security_tests_enabled: true
+      security_test_timeout: 1200  # 20 minutes
+      user_acceptance_tests: true
+      uat_timeout: 7200  # 2 hours
+      performance_baseline: "production_like"
+
+  - name: "production_stage"
+    description: "Deploy to production environment"
+    enabled: true
+    environment: "production"
+    timeout: 7200  # 2 hours
+    auto_promote: false
+    quality_gates:
+      - "code_quality_gate"
+      - "testing_gate"
+      - "compliance_gate"
+      - "business_validation_gate"
+    approval_required: true
+    approval_timeout: 3600  # 1 hour
+    approval_roles: ["production-deployer", "security-reviewer", "business-stakeholder"]
+    rollback_enabled: true
+    
+    # Production stage configuration
+    configuration:
+      deployment_strategy: "canary"
+      health_check_enabled: true
+      monitoring_enabled: true
+      log_aggregation: true
+      auto_scaling: true
+      backup_before_deployment: true
+      traffic_splitting: true
+      feature_flags_enabled: true
+      circuit_breakers_enabled: true
+    
+    # Production stage validation
+    validation:
+      health_check_url: "https://api.example.com/health"
+      health_check_timeout: 300  # seconds
+      smoke_tests_enabled: true
+      smoke_test_timeout: 600  # 10 minutes
+      synthetic_monitoring: true
+      synthetic_monitoring_timeout: 1800  # 30 minutes
+      business_metrics_validation: true
+      business_metrics_timeout: 3600  # 1 hour
+      performance_baseline: "strict"
+      sla_validation: true
+      error_rate_threshold: 0.1  # 0.1%
+
+# Approval Process Configuration
+approval_process:
+  enabled: true
+  default_timeout: 3600  # 1 hour
+  escalation_enabled: true
+  escalation_timeout: 1800  # 30 minutes
+  
+  # Approval workflows
+  workflows:
+    - name: "staging_deployment_approval"
+      description: "Staging deployment approval workflow"
+      enabled: true
+      stages: ["staging_stage"]
+      approvers:
+        - role: "qa-lead"
+          required: true
+          timeout: 1800  # 30 minutes
+        - role: "staging-deployer"
+          required: true
+          timeout: 1800  # 30 minutes
+        - role: "developer"
+          required: false
+          timeout: 900  # 15 minutes
+      escalation:
+        enabled: true
+        escalation_roles: ["qa-manager", "development-manager"]
+        escalation_timeout: 900  # 15 minutes
+    
+    - name: "production_deployment_approval"
+      description: "Production deployment approval workflow"
+      enabled: true
+      stages: ["production_stage"]
+      approvers:
+        - role: "production-deployer"
+          required: true
+          timeout: 3600  # 1 hour
+        - role: "security-reviewer"
+          required: true
+          timeout: 1800  # 30 minutes
+        - role: "business-stakeholder"
+          required: true
+          timeout: 1800  # 30 minutes
+      escalation:
+        enabled: true
+        escalation_roles: ["deployment-manager", "security-manager", "business-director"]
+        escalation_timeout: 1800  # 30 minutes
+      emergency_approval:
+        enabled: true
+        emergency_roles: ["incident-commander", "cto"]
+        emergency_timeout: 300  # 5 minutes
+    
+    - name: "emergency_deployment_approval"
+      description: "Emergency deployment approval workflow"
+      enabled: true
+      stages: ["production_stage"]
+      emergency: true
+      approvers:
+        - role: "incident-commander"
+          required: true
+          timeout: 300  # 5 minutes
+        - role: "oncall-engineer"
+          required: true
+          timeout: 300  # 5 minutes
+      post_emergency_review:
+        enabled: true
+        review_timeout: 86400  # 24 hours
+        review_roles: ["security-manager", "deployment-manager"]
+
+# Promotion Criteria Configuration
+promotion_criteria:
+  enabled: true
+  auto_promotion: true
+  promotion_timeout: 3600  # 1 hour
+  
+  # Environment-specific promotion criteria
+  criteria:
+    - name: "development_to_integration"
+      description: "Promotion from development to integration"
+      enabled: true
+      from_stage: "development_stage"
+      to_stage: "integration_stage"
+      auto_promote: true
+      conditions:
+        - "all_quality_gates_passed"
+        - "no_critical_issues"
+        - "build_successful"
+        - "tests_passed"
+      validation:
+        - "health_check_passed"
+        - "smoke_tests_passed"
+        - "performance_baseline_met"
+    
+    - name: "integration_to_staging"
+      description: "Promotion from integration to staging"
+      enabled: true
+      from_stage: "integration_stage"
+      to_stage: "staging_stage"
+      auto_promote: false
+      conditions:
+        - "all_quality_gates_passed"
+        - "no_high_severity_issues"
+        - "integration_tests_passed"
+        - "security_scan_passed"
+        - "compliance_check_passed"
+      validation:
+        - "health_check_passed"
+        - "integration_tests_passed"
+        - "api_contract_tests_passed"
+        - "performance_baseline_met"
+    
+    - name: "staging_to_production"
+      description: "Promotion from staging to production"
+      enabled: true
+      from_stage: "staging_stage"
+      to_stage: "production_stage"
+      auto_promote: false
+      approval_required: true
+      conditions:
+        - "all_quality_gates_passed"
+        - "no_issues_of_any_severity"
+        - "end_to_end_tests_passed"
+        - "performance_tests_passed"
+        - "security_tests_passed"
+        - "user_acceptance_tests_passed"
+        - "business_validation_passed"
+      validation:
+        - "health_check_passed"
+        - "smoke_tests_passed"
+        - "synthetic_monitoring_passed"
+        - "business_metrics_validated"
+        - "sla_requirements_met"
+
+# Deployment Monitoring and Alerting
+deployment_monitoring:
+  enabled: true
+  metrics:
+    - name: "deployment_success_rate"
+      description: "Deployment success rate"
+      threshold: 95.0  # 95%
+      alert_severity: "warning"
+    
+    - name: "deployment_duration"
+      description: "Average deployment duration"
+      threshold: 1800  # 30 minutes
+      alert_severity: "warning"
+    
+    - name: "gate_failure_rate"
+      description: "Quality gate failure rate"
+      threshold: 10.0  # 10%
+      alert_severity: "warning"
+    
+    - name: "approval_response_time"
+      description: "Approval response time"
+      threshold: 1800  # 30 minutes
+      alert_severity: "warning"
+    
+    - name: "rollback_frequency"
+      description: "Rollback frequency"
+      threshold: 5  # 5 rollbacks per week
+      alert_severity: "warning"
+  
+  # Deployment alerting
+  alerting:
+    enabled: true
+    channels:
+      - type: "slack"
+        webhook_url: "${{ secrets.SLACK_DEPLOYMENT_WEBHOOK }}"
+        severity_levels: ["critical", "warning"]
+        events: ["deployment_started", "deployment_completed", "deployment_failed", "gate_failed", "approval_required", "approval_completed"]
+      - type: "email"
+        recipients: ["deployment-team@example.com", "devops-team@example.com"]
+        severity_levels: ["critical", "warning", "info"]
+        events: ["deployment_started", "deployment_completed", "deployment_failed", "gate_failed", "approval_required", "approval_completed", "promotion_completed"]
+      - type: "pagerduty"
+        integration_key: "${{ secrets.PAGERDUTY_DEPLOYMENT_KEY }}"
+        severity_levels: ["critical"]
+        events: ["deployment_failed", "gate_failed", "rollback_triggered"]
+  
+  # Deployment dashboards
+  dashboards:
+    enabled: true
+    dashboard_urls:
+      - "https://grafana.example.com/d/deployment-pipeline"
+      - "https://grafana.example.com/d/quality-gates"
+      - "https://grafana.example.com/d/approval-workflows"
+
+# Deployment Error Handling and Recovery
+error_handling:
+  enabled: true
+  recovery_strategies:
+    - name: "automatic_retry"
+      description: "Automatic retry on failure"
+      enabled: true
+      max_attempts: 3
+      retry_delay: 300  # 5 minutes
+      exponential_backoff: true
+      max_delay: 1800  # 30 minutes
+      conditions:
+        - "failure_type: transient"
+        - "failure_type: network"
+        - "failure_type: timeout"
+    
+    - name: "manual_intervention"
+      description: "Manual intervention required"
+      enabled: true
+      escalation_timeout: 1800  # 30 minutes
+      escalation_roles: ["deployment-manager", "devops-manager"]
+      conditions:
+        - "failure_type: infrastructure"
+        - "failure_type: configuration"
+        - "failure_type: dependency"
+    
+    - name: "automatic_rollback"
+      description: "Automatic rollback on failure"
+      enabled: true
+      rollback_timeout: 1800  # 30 minutes
+      conditions:
+        - "failure_type: application"
+        - "failure_type: deployment"
+        - "gate_failure: critical"
+  
+  # Error reporting and logging
+  error_reporting:
+    enabled: true
+    log_level: "INFO"
+    include_stack_traces: false
+    sanitize_error_messages: true
+    error_aggregation: true
+    error_classification: true
+    alert_on_errors: true
+    error_threshold: 3
+
+# Deployment Documentation and Procedures
+deployment_documentation:
+  enabled: true
+  procedures:
+    - name: "deployment_checklist"
+      description: "Deployment checklist and procedures"
+      items:
+        - "verify_code_quality_gates"
+        - "confirm_approval_status"
+        - "validate_environment_readiness"
+        - "execute_deployment"
+        - "monitor_deployment_progress"
+        - "validate_post_deployment"
+        - "update_deployment_status"
+        - "notify_stakeholders"
+    
+    - name: "emergency_deployment_procedure"
+      description: "Emergency deployment procedure"
+      steps:
+        - "assess_emergency_severity"
+        - "obtain_emergency_approval"
+        - "execute_emergency_deployment"
+        - "monitor_emergency_deployment"
+        - "conduct_post_emergency_review"
+        - "document_emergency_changes"
+  
+  # Deployment runbooks
+  runbooks:
+    - name: "deployment_runbook"
+      description: "Standard deployment runbook"
+      url: "https://wiki.example.com/runbooks/deployment"
+    
+    - name: "emergency_deployment_runbook"
+      description: "Emergency deployment runbook"
+      url: "https://wiki.example.com/runbooks/emergency-deployment"
+    
+    - name: "rollback_runbook"
+      description: "Deployment rollback runbook"
+      url: "https://wiki.example.com/runbooks/deployment-rollback"
+  
+  # Deployment contacts
+  contacts:
+    - name: "deployment_team"
+      description: "Deployment team"
+      email: "deployment-team@example.com"
+      slack: "#deployment-team"
+      pagerduty: "deployment-team-escalation"
+    
+    - name: "qa_team"
+      description: "QA team"
+      email: "qa-team@example.com"
+      slack: "#qa-team"
+      pagerduty: "qa-team-escalation"
+    
+    - name: "security_team"
+      description: "Security team"
+      email: "security-team@example.com"
+      slack: "#security-team"
+      pagerduty: "security-team-escalation"
+    
+    - name: "business_stakeholders"
+      description: "Business stakeholders"
+      email: "business-stakeholders@example.com"
+      slack: "#business-stakeholders"

@@ -1,0 +1,185 @@
+name: Reusable Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      scan-type:
+        description: 'Type of security scan to perform'
+        required: false
+        default: 'full'
+        type: string
+      severity-threshold:
+        description: 'Minimum severity threshold for blocking'
+        required: false
+        default: 'HIGH'
+        type: string
+      upload-results:
+        description: 'Upload scan results as artifacts'
+        required: false
+        default: true
+        type: boolean
+      fail-on-findings:
+        description: 'Fail the workflow if security findings are found'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  security-scan:
+    name: Security Scan (${{ inputs.scan-type }})
+    runs-on: ubuntu-latest
+    outputs:
+      scan-results: ${{ steps.scan-results.outputs.results }}
+      critical-count: ${{ steps.scan-results.outputs.critical }}
+      high-count: ${{ steps.scan-results.outputs.high }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-security-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-security-
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety semgrep
+          npm install -g eslint eslint-plugin-security
+
+      - name: Run Bandit (Python security scanner)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'python'
+        run: |
+          bandit -r src -f json -o bandit-report.json
+
+      - name: Run Safety (Python vulnerability scanner)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'python'
+        run: |
+          safety check --output json > safety-report.json || true
+
+      - name: Run Trivy (container vulnerability scanner)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'container'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Run Semgrep (semantic code analysis)
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'code'
+        run: |
+          semgrep --config p/security-audit --json > semgrep-results.json || true
+
+      - name: Run npm audit
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'javascript'
+        run: |
+          cd frontend
+          npm audit --audit-level moderate --json > npm-audit.json || true
+
+      - name: Run ESLint security rules
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'javascript'
+        run: |
+          cd frontend
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-security.json || true
+
+      - name: Run CodeQL Analysis
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'code'
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python,javascript,typescript
+          queries: security-and-quality
+
+      - name: Run CodeQL Analysis
+        if: inputs.scan-type == 'full' || inputs.scan-type == 'code'
+        uses: github/codeql-action/analyze@v2
+
+      - name: Analyze scan results
+        id: scan-results
+        run: |
+          # Initialize counters
+          CRITICAL=0
+          HIGH=0
+          MEDIUM=0
+          LOW=0
+
+          # Count Trivy vulnerabilities
+          if [ -f trivy-results.sarif ]; then
+            CRITICAL=$((CRITICAL + $(jq '.runs[0].results[] | select(.level == "error") | .message.text' trivy-results.sarif 2>/dev/null | wc -l || echo "0")))
+            HIGH=$((HIGH + $(jq '.runs[0].results[] | select(.level == "warning") | .message.text' trivy-results.sarif 2>/dev/null | wc -l || echo "0")))
+          fi
+
+          # Count Bandit issues
+          if [ -f bandit-report.json ]; then
+            CRITICAL=$((CRITICAL + $(jq '.results[] | select(.issue_severity == "HIGH") | .filename' bandit-report.json 2>/dev/null | wc -l || echo "0")))
+            HIGH=$((HIGH + $(jq '.results[] | select(.issue_severity == "MEDIUM") | .filename' bandit-report.json 2>/dev/null | wc -l || echo "0")))
+          fi
+
+          # Count Semgrep findings
+          if [ -f semgrep-results.json ]; then
+            CRITICAL=$((CRITICAL + $(jq '.results[] | select(.extra.severity == "ERROR") | .path' semgrep-results.json 2>/dev/null | wc -l || echo "0")))
+            HIGH=$((HIGH + $(jq '.results[] | select(.extra.severity == "WARNING") | .path' semgrep-results.json 2>/dev/null | wc -l || echo "0")))
+          fi
+
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "results={\"critical\": $CRITICAL, \"high\": $HIGH, \"medium\": $MEDIUM, \"low\": $LOW}" >> $GITHUB_OUTPUT
+
+          # Check severity threshold
+          if [ "${{ inputs.severity-threshold }}" == "CRITICAL" ] && [ "$CRITICAL" -gt 0 ]; then
+            echo "Blocking due to critical severity findings"
+            if [ "${{ inputs.fail-on-findings }}" == "true" ]; then
+              exit 1
+            fi
+          elif [ "${{ inputs.severity-threshold }}" == "HIGH" ] && [ "$HIGH" -gt 0 ]; then
+            echo "Blocking due to high severity findings"
+            if [ "${{ inputs.fail-on-findings }}" == "true" ]; then
+              exit 1
+            fi
+          fi
+
+      - name: Upload security scan results
+        if: inputs.upload-results == true
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+        continue-on-error: true
+
+      - name: Upload security artifacts
+        if: inputs.upload-results == true
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-scan-results-${{ inputs.scan-type }}
+          path: |
+            bandit-report.json
+            safety-report.json
+            trivy-results.sarif
+            npm-audit.json
+            eslint-security.json
+            semgrep-results.json
+        continue-on-error: true
+
+      - name: Generate security report
+        run: |
+          echo "## Security Scan Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scan Type:** ${{ inputs.scan-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Severity Threshold:** ${{ inputs.severity-threshold }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Critical Findings:** ${{ steps.scan-results.outputs.critical }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **High Findings:** ${{ steps.scan-results.outputs.high }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY

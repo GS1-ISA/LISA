@@ -1,12 +1,191 @@
+# ISA SuperApp Pre-commit Configuration
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
     hooks:
-      - id: ruff
-        args: ["--fix"]
-      - id: ruff-format
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: requirements-txt-fixer
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.11.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        args: [--line-length=88]
+        files: \.(py)$
+
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: [--profile=black, --line-length=88]
+        files: \.(py)$
+
+  # Python linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        files: ^(?:src\/(?!docs_provider\/src\/).+|scripts|isa_superapp)/.*\.py$
+        exclude: ^ISA_SuperApp/|^scripts/tests/
+        # Keep flake8 core only to reduce noisy import-order rules
+
+  # Type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.7.1
     hooks:
       - id: mypy
-        additional_dependencies: []
+        args: [--ignore-missing-imports]
+        files: ^(src|scripts|isa_superapp)/.*\.py$
+        exclude: ^scripts/research/|^scripts/tests/|^src/orchestrator/src/|^src/docs_provider/src/docs_provider/|^src/.*/tests/
+        additional_dependencies: [types-requests, types-PyYAML]
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, isa_superapp/, src/, -f, json, -o, bandit-report.json, --exit-zero]
+        files: \.(py)$
+        exclude: ^tests/
+        additional_dependencies: [pbr]
+        pass_filenames: false
+
+  # Documentation checks
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        args: [--config=.markdownlint.json]
+        files: ^docs\/(?!audit\/).+\.md$
+
+  # YAML validation
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.32.0
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint]
+        files: \.(yaml|yml)$
+
+  # Python security vulnerabilities
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+        files: requirements.*\.txt$
+
+  # GitHub Actions validation
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.6
+    hooks:
+      - id: actionlint
+        files: ^\.github/workflows/
+        stages: [manual]
+
+  # Python docstring formatting
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: [--convention=google]
+        files: ^isa_superapp/.*\.py$
+        exclude: ^tests/
+
+  # Python code complexity
+  - repo: https://github.com/PyCQA/pylint
+    rev: v3.0.3
+    hooks:
+      - id: pylint
+        args: [--disable=all, --enable=unused-import, --enable=unused-variable]
+        files: ^(src|scripts|isa_superapp)/.*\.py$
+        exclude: ^tests/|^scripts/tests/
+
+  # JSON formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types: [json]
+        args: [--write]
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        files: \.(sh)$
+        args: ["-S", "error"]
+
+  # Commit message validation
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.12.0
+    hooks:
+      - id: commitizen
+  # Audit threshold check
+  - repo: local
+    hooks:
+      - id: audit-threshold
+        name: Audit Threshold Check
+        entry: python scripts/pre_commit_audit.py
+        language: python
+        pass_filenames: false
+        always_run: true
+        verbose: true
+
+        stages: [commit-msg]
+
+# Configuration for specific hooks
+default_language_version:
+  python: python3.11
+
+default_stages: [pre-commit]
+
+# Exclude patterns
+exclude: |
+  (?x)^(
+    \.git/|
+    \.venv/|
+    venv/|
+    env/|
+    __pycache__/|
+    \.pytest_cache/|
+    \.mypy_cache/|
+    \.coverage|
+    htmlcov/|
+    \.tox/|
+    build/|
+    dist/|
+    \.eggs/|
+    \.gitignore|
+    \.dockerignore|
+    .*\.egg-info/|
+    migrations/|
+    \.idea/|
+    \.vscode/|
+    node_modules/|
+    \.next/|
+    \.nuxt/|
+    vendor/|
+    static/|
+    media/|
+    logs/|
+    data/cache/|
+    data/vector_store/|
+    \.DS_Store|
+    Thumbs\.db
+  )

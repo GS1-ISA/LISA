@@ -1,0 +1,386 @@
+# Infrastructure Configuration
+infrastructure:
+  providers:
+    aws:
+      enabled: true
+      regions:
+        - us-east-1
+        - us-west-2
+        - eu-west-1
+      services:
+        - ec2
+        - ecs
+        - rds
+        - s3
+        - cloudfront
+        - route53
+        - acm
+        - iam
+        - cloudwatch
+        
+    azure:
+      enabled: true
+      regions:
+        - eastus
+        - westus2
+        - northeurope
+      services:
+        - virtual_machines
+        - container_instances
+        - sql_database
+        - storage_accounts
+        - cdn_profiles
+        - dns_zones
+        - key_vault
+        - monitor
+        
+    gcp:
+      enabled: true
+      regions:
+        - us-central1
+        - us-west1
+        - europe-west1
+      services:
+        - compute_engine
+        - cloud_run
+        - cloud_sql
+        - cloud_storage
+        - cloud_cdn
+        - cloud_dns
+        - secret_manager
+        - monitoring
+
+  environments:
+    development:
+      provider: aws
+      region: us-east-1
+      instance_type: t3.micro
+      auto_scaling:
+        min_instances: 1
+        max_instances: 2
+        target_cpu_utilization: 70
+        scale_up_cooldown: 60
+        scale_down_cooldown: 300
+      storage:
+        type: gp3
+        size: 20
+        encrypted: true
+      backup:
+        enabled: true
+        retention_days: 7
+        schedule: "0 2 * * *"
+        
+    integration:
+      provider: aws
+      region: us-east-1
+      instance_type: t3.small
+      auto_scaling:
+        min_instances: 1
+        max_instances: 3
+        target_cpu_utilization: 70
+        scale_up_cooldown: 60
+        scale_down_cooldown: 300
+      storage:
+        type: gp3
+        size: 50
+        encrypted: true
+      backup:
+        enabled: true
+        retention_days: 14
+        schedule: "0 2 * * *"
+        
+    staging:
+      provider: aws
+      region: us-east-1
+      instance_type: t3.medium
+      auto_scaling:
+        min_instances: 2
+        max_instances: 4
+        target_cpu_utilization: 70
+        scale_up_cooldown: 60
+        scale_down_cooldown: 300
+      storage:
+        type: gp3
+        size: 100
+        encrypted: true
+      backup:
+        enabled: true
+        retention_days: 30
+        schedule: "0 2 * * *"
+        
+    production:
+      provider: aws
+      region: us-east-1
+      instance_type: t3.large
+      auto_scaling:
+        min_instances: 3
+        max_instances: 10
+        target_cpu_utilization: 70
+        scale_up_cooldown: 60
+        scale_down_cooldown: 300
+      storage:
+        type: io2
+        size: 500
+        encrypted: true
+        iops: 3000
+      backup:
+        enabled: true
+        retention_days: 90
+        schedule: "0 2 * * *"
+      high_availability:
+        enabled: true
+        multi_az: true
+        read_replicas: 2
+
+  networking:
+    vpc:
+      cidr_block: "10.0.0.0/16"
+      enable_dns_hostnames: true
+      enable_dns_support: true
+      
+    subnets:
+      public:
+        - cidr_block: "10.0.1.0/24"
+          availability_zone: "us-east-1a"
+        - cidr_block: "10.0.2.0/24"
+          availability_zone: "us-east-1b"
+      private:
+        - cidr_block: "10.0.10.0/24"
+          availability_zone: "us-east-1a"
+        - cidr_block: "10.0.20.0/24"
+          availability_zone: "us-east-1b"
+          
+    security_groups:
+      web:
+        ingress:
+          - protocol: tcp
+            from_port: 80
+            to_port: 80
+            cidr_blocks: ["0.0.0.0/0"]
+          - protocol: tcp
+            from_port: 443
+            to_port: 443
+            cidr_blocks: ["0.0.0.0/0"]
+        egress:
+          - protocol: -1
+            from_port: 0
+            to_port: 0
+            cidr_blocks: ["0.0.0.0/0"]
+            
+      application:
+        ingress:
+          - protocol: tcp
+            from_port: 8080
+            to_port: 8080
+            security_groups: ["web"]
+        egress:
+          - protocol: -1
+            from_port: 0
+            to_port: 0
+            cidr_blocks: ["0.0.0.0/0"]
+            
+      database:
+        ingress:
+          - protocol: tcp
+            from_port: 5432
+            to_port: 5432
+            security_groups: ["application"]
+        egress:
+          - protocol: -1
+            from_port: 0
+            to_port: 0
+            cidr_blocks: ["0.0.0.0/0"]
+          
+    load_balancers:
+      application:
+        type: application
+        scheme: internet-facing
+        health_check:
+          enabled: true
+          path: "/health"
+          interval: 30
+          timeout: 5
+          healthy_threshold: 2
+          unhealthy_threshold: 3
+        ssl_policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
+        
+      network:
+        type: network
+        scheme: internal
+        health_check:
+          enabled: true
+          protocol: TCP
+          port: 8080
+          interval: 30
+          timeout: 5
+          healthy_threshold: 2
+          unhealthy_threshold: 3
+
+  databases:
+    primary:
+      engine: postgresql
+      version: "13.7"
+      instance_class: db.t3.micro
+      allocated_storage: 20
+      max_allocated_storage: 100
+      storage_encrypted: true
+      backup_retention_period: 7
+      backup_window: "03:00-04:00"
+      maintenance_window: "sun:04:00-sun:05:00"
+      multi_az: false
+      deletion_protection: false
+      
+    staging:
+      engine: postgresql
+      version: "13.7"
+      instance_class: db.t3.small
+      allocated_storage: 100
+      max_allocated_storage: 1000
+      storage_encrypted: true
+      backup_retention_period: 30
+      backup_window: "03:00-04:00"
+      maintenance_window: "sun:04:00-sun:05:00"
+      multi_az: true
+      deletion_protection: true
+      
+    production:
+      engine: postgresql
+      version: "13.7"
+      instance_class: db.t3.large
+      allocated_storage: 500
+      max_allocated_storage: 1000
+      storage_encrypted: true
+      backup_retention_period: 35
+      backup_window: "03:00-04:00"
+      maintenance_window: "sun:04:00-sun:05:00"
+      multi_az: true
+      deletion_protection: true
+      read_replicas: 2
+
+  caching:
+    redis:
+      enabled: true
+      node_type: cache.t3.micro
+      num_cache_nodes: 1
+      parameter_group: "default.redis6.x"
+      port: 6379
+      snapshot_retention_limit: 5
+      snapshot_window: "03:00-05:00"
+      maintenance_window: "sun:05:00-sun:06:00"
+      
+    memcached:
+      enabled: false
+      node_type: cache.t3.micro
+      num_cache_nodes: 2
+      port: 11211
+      maintenance_window: "sun:05:00-sun:06:00"
+
+  monitoring:
+    cloudwatch:
+      enabled: true
+      log_groups:
+        - name: "/aws/application"
+          retention_days: 14
+        - name: "/aws/database"
+          retention_days: 30
+        - name: "/aws/load-balancer"
+          retention_days: 7
+          
+    alarms:
+      - name: "HighCPUUtilization"
+        metric_name: "CPUUtilization"
+        threshold: 80
+        evaluation_periods: 2
+        period: 300
+        statistic: Average
+        comparison_operator: GreaterThanThreshold
+        
+      - name: "HighMemoryUtilization"
+        metric_name: "MemoryUtilization"
+        threshold: 85
+        evaluation_periods: 2
+        period: 300
+        statistic: Average
+        comparison_operator: GreaterThanThreshold
+        
+      - name: "HighDiskUtilization"
+        metric_name: "DiskSpaceUtilization"
+        threshold: 90
+        evaluation_periods: 1
+        period: 300
+        statistic: Average
+        comparison_operator: GreaterThanThreshold
+        
+      - name: "DatabaseConnections"
+        metric_name: "DatabaseConnections"
+        threshold: 80
+        evaluation_periods: 2
+        period: 300
+        statistic: Average
+        comparison_operator: GreaterThanThreshold
+
+  disaster_recovery:
+    enabled: true
+    backup_strategy: automated
+    recovery_time_objective: 240  # 4 hours
+    recovery_point_objective: 60   # 1 hour
+    
+    cross_region_backup:
+      enabled: true
+      regions:
+        - us-west-2
+        - eu-west-1
+        
+    failover:
+      automated: false
+      approval_required: true
+      notification_channels:
+        - "${{ secrets.DR_TEAM_EMAIL }}"
+        - "${{ secrets.DR_SLACK_WEBHOOK }}"
+
+  cost_optimization:
+    enabled: true
+    spot_instances:
+      enabled: true
+      max_bid_price: "0.05"
+      interruption_behavior: "terminate"
+      
+    reserved_instances:
+      enabled: true
+      offering_class: "standard"
+      purchase_recommendations: true
+      
+    auto_shutdown:
+      enabled: true
+      schedule:
+        development: "0 19 * * *"  # 7 PM UTC
+        integration: "0 21 * * *"  # 9 PM UTC
+        staging: "0 23 * * *"      # 11 PM UTC
+      startup_schedule:
+        development: "0 7 * * *"   # 7 AM UTC
+        integration: "0 7 * * *"   # 7 AM UTC
+        staging: "0 7 * * *"       # 7 AM UTC
+
+  compliance:
+    tagging:
+      required_tags:
+        - Environment
+        - Application
+        - Owner
+        - CostCenter
+        - Project
+        - Department
+        
+    encryption:
+      at_rest: true
+      in_transit: true
+      key_rotation: 90_days
+      
+    access_logging:
+      enabled: true
+      retention_days: 90
+      include:
+        - s3_access
+        - load_balancer
+        - cloudtrail
+        - database

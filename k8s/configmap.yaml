@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isa-superapp-config
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: isa-superapp
+    app.kubernetes.io/component: configmap
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  DATABASE_URL: "postgresql://isa_user:$(DB_PASSWORD)@isa-postgresql.isa-database.svc.cluster.local:5432/isa_superapp"
+  REDIS_URL: "redis://isa-redis.isa-database.svc.cluster.local:6379/0"
+  NEO4J_URI: "bolt://isa-neo4j.isa-database.svc.cluster.local:7687"
+  NEO4J_USER: "neo4j"
+  PROMETHEUS_URL: "http://prometheus.isa-monitoring.svc.cluster.local:9090"
+  GRAFANA_URL: "http://grafana.isa-monitoring.svc.cluster.local:3000"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.isa-monitoring.svc.cluster.local:4317"
+  OTEL_SERVICE_NAME: "isa-superapp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_LOGS_EXPORTER: "otlp"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isa-frontend-config
+  namespace: isa-superapp
+  labels:
+    app.kubernetes.io/name: isa-frontend
+    app.kubernetes.io/component: configmap
+data:
+  NEXT_PUBLIC_API_URL: "https://api.isa-superapp.com"
+  NEXT_PUBLIC_ENVIRONMENT: "production"
+  NEXT_PUBLIC_GRAFANA_URL: "https://grafana.isa-superapp.com"
+  NEXT_PUBLIC_VERSION: "1.0.0"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isa-monitoring-config
+  namespace: isa-monitoring
+  labels:
+    app.kubernetes.io/name: isa-monitoring
+    app.kubernetes.io/component: configmap
+data:
+  PROMETHEUS_RETENTION_TIME: "30d"
+  PROMETHEUS_RETENTION_SIZE: "50GB"
+  GRAFANA_ADMIN_USER: "admin"
+  ALERTMANAGER_CONFIG: |
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alerts@isa-superapp.com'
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'isa-alerts'
+    receivers:
+    - name: 'isa-alerts'
+      email_configs:
+      - to: 'alerts@isa-superapp.com'

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json
 import os
 import time
-from statistics import mean
 
 from ISA_SuperApp.src.utils.json_canonical import canonical_dumps
 
@@ -30,7 +28,9 @@ def bench(label: str, use_orjson: bool, iters: int = 20000) -> float:
         canonical_dumps(obj)
     t1 = time.perf_counter()
     dur = t1 - t0
-    print(f"{label}: {iters/dur:.1f} ops/s, {dur*1000/iters:.3f} ms/op over {iters} iters")
+    print(
+        f"{label}: {iters / dur:.1f} ops/s, {dur * 1000 / iters:.3f} ms/op over {iters} iters"
+    )
     return iters / dur
 
 
@@ -51,10 +51,9 @@ def main() -> int:
     determinism_check()
     base = bench("stdlib", use_orjson=False)
     try:
-        import orjson  # noqa: F401
-
+        __import__("orjson")
         fast = bench("orjson", use_orjson=True)
-        print(f"Speedup: {fast/base:.2f}x")
+        print(f"Speedup: {fast / base:.2f}x")
     except Exception as e:
         print(f"orjson not available or failed to import: {e}")
     return 0
@@ -62,4 +61,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1,4 +1,5 @@
-Title: High-Quality Sources — Research & Implementation
+# High-Quality Sources — Research & Implementation
+Last updated: 2025-09-02
 
 Standards & Policy
 - GS1 GDSN and sector docs (official GS1)
@@ -36,4 +37,3 @@ CI/CD & Supply Chain
 - Release automation tools (Release Please)
 
 Use this list to seed search ledgers; prefer Tier A/B evidence when possible.
-

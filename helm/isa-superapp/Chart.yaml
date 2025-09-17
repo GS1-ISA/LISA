@@ -1,0 +1,39 @@
+apiVersion: v2
+name: isa-superapp
+description: A Helm chart for ISA SuperApp deployment on Kubernetes
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - isa
+  - superapp
+  - kubernetes
+  - aws
+  - eks
+home: https://github.com/your-org/isa-superapp
+sources:
+  - https://github.com/your-org/isa-superapp
+maintainers:
+  - name: ISA Team
+    email: team@isa-superapp.com
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: neo4j
+    version: "5.x.x"
+    repository: "https://neo4j.github.io/helm-charts"
+    condition: neo4j.enabled
+  - name: prometheus
+    version: "15.x.x"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: monitoring.enabled
+  - name: grafana
+    version: "6.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: monitoring.enabled

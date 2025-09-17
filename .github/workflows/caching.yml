@@ -1,0 +1,397 @@
+name: Caching
+
+on:
+  workflow_call:
+    inputs:
+      cache_type:
+        description: 'Type of cache to setup'
+        required: true
+        type: string
+      cache_key_prefix:
+        description: 'Prefix for cache keys'
+        required: false
+        type: string
+        default: 'default'
+      restore_keys:
+        description: 'Additional restore keys'
+        required: false
+        type: string
+      cache_paths:
+        description: 'Paths to cache (comma-separated)'
+        required: false
+        type: string
+      enable_compression:
+        description: 'Enable cache compression'
+        required: false
+        type: boolean
+        default: true
+      max_cache_size:
+        description: 'Maximum cache size in MB'
+        required: false
+        type: number
+        default: 500
+      cache_ttl:
+        description: 'Cache TTL in days'
+        required: false
+        type: number
+        default: 7
+    outputs:
+      cache_hit:
+        description: 'Whether cache was hit'
+        value: ${{ jobs.setup-cache.outputs.cache_hit }}
+      cache_key:
+        description: 'Cache key used'
+        value: ${{ jobs.setup-cache.outputs.cache_key }}
+      cache_size:
+        description: 'Size of cached data in MB'
+        value: ${{ jobs.setup-cache.outputs.cache_size }}
+
+env:
+  CACHE_COMPRESSION_LEVEL: 6
+  CACHE_CHUNK_SIZE: 64M
+
+permissions:
+  contents: read
+
+jobs:
+  # Cache setup
+  setup-cache:
+    name: Setup ${{ inputs.cache_type }} Cache
+    runs-on: ubuntu-latest
+    
+    outputs:
+      cache_hit: ${{ steps.cache.outputs.cache-hit }}
+      cache_key: ${{ steps.generate-key.outputs.cache_key }}
+      cache_size: ${{ steps.cache-info.outputs.cache_size }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Generate cache key
+        id: generate-key
+        run: |
+          CACHE_TYPE="${{ inputs.cache_type }}"
+          CACHE_PREFIX="${{ inputs.cache_key_prefix }}"
+          
+          # Generate base key components
+          BASE_KEY="${CACHE_PREFIX}-${CACHE_TYPE}"
+          OS_KEY="ubuntu-latest"
+          ARCH_KEY="x64"
+          
+          case "$CACHE_TYPE" in
+            "python")
+              # Python dependencies cache
+              if [ -f "requirements.txt" ]; then
+                DEP_HASH=$(sha256sum requirements.txt | cut -d' ' -f1)
+                PYTHON_VERSION=$(python3 --version 2>/dev/null | cut -d' ' -f2 || echo "unknown")
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${PYTHON_VERSION}-${DEP_HASH}"
+              else
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-no-requirements"
+              fi
+              CACHE_PATHS="${{ inputs.cache_paths || '~/.cache/pip,~/.local/lib/python3*/site-packages' }}"
+              ;;
+              
+            "node")
+              # Node.js dependencies cache
+              if [ -f "package-lock.json" ]; then
+                DEP_HASH=$(sha256sum package-lock.json | cut -d' ' -f1)
+                NODE_VERSION=$(node --version 2>/dev/null || echo "unknown")
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${NODE_VERSION}-${DEP_HASH}"
+              elif [ -f "yarn.lock" ]; then
+                DEP_HASH=$(sha256sum yarn.lock | cut -d' ' -f1)
+                NODE_VERSION=$(node --version 2>/dev/null || echo "unknown")
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${NODE_VERSION}-${DEP_HASH}"
+              else
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-no-lockfile"
+              fi
+              CACHE_PATHS="${{ inputs.cache_paths || '~/.npm,node_modules' }}"
+              ;;
+              
+            "docker")
+              # Docker layer cache
+              DOCKER_VERSION=$(docker --version 2>/dev/null | cut -d' ' -f3 | cut -d',' -f1 || echo "unknown")
+              CACHE_KEY="${BASE_KEY}-${OS_KEY}-${DOCKER_VERSION}-${{ github.sha }}"
+              CACHE_PATHS="${{ inputs.cache_paths || '/tmp/docker-cache' }}"
+              ;;
+              
+            "build")
+              # Build artifacts cache
+              BUILD_FILES=$(find . -name "Makefile" -o -name "CMakeLists.txt" -o -name "build.gradle*" -o -name "pom.xml" -o -name "*.pro" | head -5)
+              if [ -n "$BUILD_FILES" ]; then
+                BUILD_HASH=$(echo "$BUILD_FILES" | xargs sha256sum | sha256sum | cut -d' ' -f1)
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${BUILD_HASH}"
+              else
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${{ github.sha }}"
+              fi
+              CACHE_PATHS="${{ inputs.cache_paths || 'build,dist,target' }}"
+              ;;
+              
+            "test")
+              # Test results cache
+              TEST_FILES=$(find . -name "*test*" -type f -name "*.py" -o -name "*.js" -o -name "*.java" | head -10)
+              if [ -n "$TEST_FILES" ]; then
+                TEST_HASH=$(echo "$TEST_FILES" | xargs sha256sum | sha256sum | cut -d' ' -f1)
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${TEST_HASH}"
+              else
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${{ github.sha }}"
+              fi
+              CACHE_PATHS="${{ inputs.cache_paths || '.pytest_cache,.coverage,test-results' }}"
+              ;;
+              
+            "lint")
+              # Linting cache
+              LINT_FILES=$(find . -name ".eslintrc*" -o -name ".pylintrc" -o -name "pyproject.toml" -o -name ".flake8" | head -5)
+              if [ -n "$LINT_FILES" ]; then
+                LINT_HASH=$(echo "$LINT_FILES" | xargs sha256sum | sha256sum | cut -d' ' -f1)
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${LINT_HASH}"
+              else
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${{ github.sha }}"
+              fi
+              CACHE_PATHS="${{ inputs.cache_paths || '.eslintcache,.mypy_cache' }}"
+              ;;
+              
+            "security")
+              # Security scanning cache
+              SECURITY_FILES=$(find . -name "requirements*.txt" -o -name "package*.json" -o -name "Dockerfile*" | head -10)
+              if [ -n "$SECURITY_FILES" ]; then
+                SECURITY_HASH=$(echo "$SECURITY_FILES" | xargs sha256sum | sha256sum | cut -d' ' -f1)
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${SECURITY_HASH}"
+              else
+                CACHE_KEY="${BASE_KEY}-${OS_KEY}-${{ github.sha }}"
+              fi
+              CACHE_PATHS="${{ inputs.cache_paths || 'security-reports,.trivy-cache' }}"
+              ;;
+              
+            *)
+              # Generic cache
+              CACHE_KEY="${BASE_KEY}-${OS_KEY}-${{ github.sha }}"
+              CACHE_PATHS="${{ inputs.cache_paths || 'cache' }}"
+              ;;
+          esac
+          
+          echo "Generated cache key: $CACHE_KEY"
+          echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
+          echo "cache_paths=$CACHE_PATHS" >> $GITHUB_OUTPUT
+      
+      - name: Setup cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.generate-key.outputs.cache_paths }}
+          key: ${{ steps.generate-key.outputs.cache_key }}
+          restore-keys: |
+            ${{ inputs.restore_keys }}
+            ${{ steps.generate-key.outputs.cache_key }}
+            ${{ inputs.cache_key_prefix }}-${{ inputs.cache_type }}-
+      
+      - name: Cache optimization
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          echo "Cache miss detected - performing optimization setup"
+          
+          CACHE_TYPE="${{ inputs.cache_type }}"
+          CACHE_PATHS="${{ steps.generate-key.outputs.cache_paths }}"
+          
+          # Create cache directories
+          IFS=',' read -ra PATHS <<< "$CACHE_PATHS"
+          for path in "${PATHS[@]}"; do
+            expanded_path=$(eval echo "$path")
+            echo "Creating cache directory: $expanded_path"
+            mkdir -p "$expanded_path"
+          done
+          
+          # Type-specific optimizations
+          case "$CACHE_TYPE" in
+            "python")
+              # Configure pip cache
+              pip config set global.cache-dir ~/.cache/pip
+              pip config set global.no-cache-dir false
+              ;;
+              
+            "node")
+              # Configure npm cache
+              npm config set cache ~/.npm --global
+              npm config set prefer-offline true
+              ;;
+              
+            "docker")
+              # Setup Docker build cache
+              mkdir -p /tmp/docker-cache
+              echo "DOCKER_BUILDKIT=1" >> $GITHUB_ENV
+              echo "BUILDKIT_PROGRESS=plain" >> $GITHUB_ENV
+              ;;
+          esac
+      
+      - name: Get cache information
+        id: cache-info
+        run: |
+          CACHE_PATHS="${{ steps.generate-key.outputs.cache_paths }}"
+          TOTAL_SIZE=0
+          
+          # Calculate total cache size
+          IFS=',' read -ra PATHS <<< "$CACHE_PATHS"
+          for path in "${PATHS[@]}"; do
+            expanded_path=$(eval echo "$path")
+            if [ -d "$expanded_path" ] || [ -f "$expanded_path" ]; then
+              SIZE=$(du -sm "$expanded_path" 2>/dev/null | cut -f1 || echo "0")
+              TOTAL_SIZE=$((TOTAL_SIZE + SIZE))
+              echo "Path: $expanded_path, Size: ${SIZE}MB"
+            fi
+          done
+          
+          echo "Total cache size: ${TOTAL_SIZE}MB"
+          echo "cache_size=$TOTAL_SIZE" >> $GITHUB_OUTPUT
+          
+          # Check if cache size exceeds limit
+          MAX_SIZE="${{ inputs.max_cache_size }}"
+          if [ "$TOTAL_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "⚠️ Cache size (${TOTAL_SIZE}MB) exceeds maximum allowed size (${MAX_SIZE}MB)"
+            echo "cache_oversized=true" >> $GITHUB_OUTPUT
+          else
+            echo "cache_oversized=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Compress cache if enabled
+        if: inputs.enable_compression == true && steps.cache.outputs.cache-hit != 'true'
+        run: |
+          CACHE_PATHS="${{ steps.generate-key.outputs.cache_paths }}"
+          COMPRESSION_LEVEL="${{ env.CACHE_COMPRESSION_LEVEL }}"
+          
+          echo "Compressing cache with level $COMPRESSION_LEVEL"
+          
+          IFS=',' read -ra PATHS <<< "$CACHE_PATHS"
+          for path in "${PATHS[@]}"; do
+            expanded_path=$(eval echo "$path")
+            if [ -d "$expanded_path" ]; then
+              echo "Compressing directory: $expanded_path"
+              tar -czf "${expanded_path}.tar.gz" -C "$(dirname "$expanded_path")" "$(basename "$expanded_path")" \
+                --exclude="*.log" --exclude="*.tmp" --exclude="node_modules/.cache" \
+                --exclude=".git" --exclude="__pycache__" \
+                2>/dev/null || true
+            fi
+          done
+      
+      - name: Cache cleanup
+        if: always()
+        run: |
+          # Clean up temporary files
+          rm -rf /tmp/cache-setup-*
+          
+          # Remove old cache entries if cache is oversized
+          if [ "${{ steps.cache-info.outputs.cache_oversized }}" == "true" ]; then
+            echo "Performing cache cleanup due to oversized cache"
+            # This would typically involve more sophisticated cleanup logic
+            echo "Cache cleanup completed"
+          fi
+
+  # Cache validation
+  validate-cache:
+    name: Validate Cache
+    runs-on: ubuntu-latest
+    needs: setup-cache
+    if: needs.setup-cache.outputs.cache_hit == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Restore cache for validation
+        uses: actions/cache@v4
+        with:
+          path: ${{ needs.setup-cache.outputs.cache_paths }}
+          key: ${{ needs.setup-cache.outputs.cache_key }}
+          fail-on-cache-miss: true
+      
+      - name: Validate cache integrity
+        run: |
+          CACHE_TYPE="${{ inputs.cache_type }}"
+          CACHE_PATHS="${{ needs.setup-cache.outputs.cache_paths }}"
+          
+          echo "Validating cache integrity for type: $CACHE_TYPE"
+          
+          case "$CACHE_TYPE" in
+            "python")
+              # Validate Python cache
+              if command -v python3 >/dev/null 2>&1; then
+                python3 -c "import sys; print(f'Python version: {sys.version}')"
+              fi
+              ;;
+              
+            "node")
+              # Validate Node.js cache
+              if command -v node >/dev/null 2>&1; then
+                node --version
+              fi
+              ;;
+              
+            "docker")
+              # Validate Docker cache
+              if command -v docker >/dev/null 2>&1; then
+                docker system df
+              fi
+              ;;
+          esac
+          
+          # Check cache paths exist and are accessible
+          IFS=',' read -ra PATHS <<< "$CACHE_PATHS"
+          for path in "${PATHS[@]}"; do
+            expanded_path=$(eval echo "$path")
+            if [ -d "$expanded_path" ] || [ -f "$expanded_path" ]; then
+              echo "✅ Cache path exists: $expanded_path"
+              # Basic integrity check
+              if [ -d "$expanded_path" ]; then
+                FILE_COUNT=$(find "$expanded_path" -type f | wc -l)
+                echo "  Files in cache: $FILE_COUNT"
+              fi
+            else
+              echo "❌ Cache path missing: $expanded_path"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Cache validation completed successfully"
+
+  # Cache metrics
+  cache-metrics:
+    name: Cache Metrics
+    runs-on: ubuntu-latest
+    needs: [setup-cache, validate-cache]
+    if: always()
+    
+    steps:
+      - name: Generate cache metrics
+        run: |
+          CACHE_HIT="${{ needs.setup-cache.outputs.cache_hit }}"
+          CACHE_SIZE="${{ needs.setup-cache.outputs.cache_size }}"
+          CACHE_KEY="${{ needs.setup-cache.outputs.cache_key }}"
+          
+          echo "=== Cache Metrics ==="
+          echo "Cache Hit: $CACHE_HIT"
+          echo "Cache Size: ${CACHE_SIZE}MB"
+          echo "Cache Key: $CACHE_KEY"
+          
+          # Calculate cache efficiency metrics
+          if [ "$CACHE_HIT" == "true" ]; then
+            echo "Cache Efficiency: 100% (cache hit)"
+            echo "Time Saved: Estimated 2-5 minutes"
+          else
+            echo "Cache Efficiency: 0% (cache miss)"
+            echo "Time Saved: 0 minutes"
+          fi
+          
+          # Generate metrics file
+          cat > cache-metrics.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "cache_type": "${{ inputs.cache_type }}",
+            "cache_hit": $CACHE_HIT,
+            "cache_size_mb": $CACHE_SIZE,
+            "cache_key": "$CACHE_KEY",
+            "compression_enabled": ${{ inputs.enable_compression }},
+            "max_cache_size_mb": ${{ inputs.max_cache_size }},
+            "cache_ttl_days": ${{ inputs.cache_ttl }}
+          }
+          EOF
+          
+          echo "Cache metrics saved to cache-metrics.json"

@@ -1,0 +1,16 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "no-unused-vars": "warn",
+    "no-mixed-spaces-and-tabs": "warn",
+    "no-useless-escape": "warn",
+    "no-extra-semi": "warn",
+    "no-redeclare": "warn",
+    "no-prototype-builtins": "warn",
+    "react/no-unescaped-entities": "warn"
+  },
+  "env": {
+    "jest": true
+  }
+}

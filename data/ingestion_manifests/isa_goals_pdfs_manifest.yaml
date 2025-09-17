@@ -1,0 +1,26 @@
+# Ingestion manifest for ISA goals PDFs (advisory)
+# Connects historical ISA goals/vision PDFs to the vector store schema for research memory.
+
+id: isa_goals_pdfs_manifest
+source:
+  - path: docs/ISA goals documents/
+    include: ['*.pdf']
+    parser: pdf
+chunking:
+  method: page
+  max_pages: 50
+embedding:
+  model: text-embedding-3-small
+  encoding: cosine
+metadata:
+  - document_id
+  - document_version
+  - source
+  - page
+  - chunk_id
+  - checksum
+provenance:
+  captured_at: 2025-09-10
+  ingester: local-cli
+notes: "Advisory ingestion; PDFs excluded from Sphinx. Use for agent research memory only. See docs/VECTOR_STORE_SCHEMA.md."
+

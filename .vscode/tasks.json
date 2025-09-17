@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Lint & Format (ruff)",
+      "type": "shell",
+      "command": "ruff format . && ruff check --fix .",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Typecheck (mypy)",
+      "type": "shell",
+      "command": "mypy ISA_SuperApp/src || true",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests (pytest)",
+      "type": "shell",
+      "command": "cd ISA_SuperApp && pytest -q",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Index repo",
+      "type": "shell",
+      "command": "make index",
+      "problemMatcher": []
+    },
+    {
+      "label": "Bench Q11 (determinism)",
+      "type": "shell",
+      "command": "python3 scripts/bench_q11_orjson.py | tee docs/research/q11_orjson_determinism/results.md",
+      "problemMatcher": []
+    },
+    {
+      "label": "Bench Q12 (validators)",
+      "type": "shell",
+      "command": "python3 scripts/bench_q12_validation.py | tee docs/research/q12_compiled_validators/results.md",
+      "problemMatcher": []
+    }
+  ]
+}
+

@@ -1,0 +1,196 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'isa-superapp'
+    environment: '${ENVIRONMENT:-development}'
+    region: '${REGION:-local}'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+      timeout: 10s
+      api_version: v2
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alert_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Node exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Blackbox exporter - Endpoint monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://isa-superapp:8000/health
+          - http://isa-superapp:8000/api/health
+          - http://nginx:80/health
+          - http://postgres:5432
+          - http://redis:6379
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # PostgreSQL exporter - Database metrics
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Redis exporter - Cache metrics
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Nginx exporter - Web server metrics
+  - job_name: 'nginx-exporter'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # ISA SuperApp application metrics
+  - job_name: 'isa-superapp'
+    static_configs:
+      - targets: ['isa-superapp:8000']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+    params:
+      format: ['prometheus']
+
+  # ISA SuperApp ETL metrics
+  - job_name: 'isa-superapp-etl'
+    static_configs:
+      - targets: ['isa-superapp-etl:8001']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # OpenTelemetry Collector metrics
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8888']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Loki metrics
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Tempo metrics
+  - job_name: 'tempo'
+    static_configs:
+      - targets: ['tempo:3200']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Jaeger metrics
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+  # Docker daemon metrics
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scheme: http
+    scrape_timeout: 10s
+
+# Remote write configuration for long-term storage
+remote_write:
+  - url: '${REMOTE_WRITE_URL}'
+    queue_config:
+      max_samples_per_send: 1000
+      max_shards: 200
+      capacity: 2500
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'prometheus_.*'
+        action: drop
+
+# Remote read configuration
+remote_read:
+  - url: '${REMOTE_READ_URL}'
+    read_recent: true
+
+# Storage configuration
+storage:
+  tsdb:
+    retention.time: 30d
+    retention.size: 50GB
+    path: /prometheus
+
+# Exemplars configuration
+exemplars:
+  max_exemplars: 100000
+
+# Feature flags
+enable_feature:
+  - exemplar-storage
+  - memory-snapshot-on-shutdown
+  - promql-at-modifier
+  - promql-negative-offset

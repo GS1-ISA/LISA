@@ -1,0 +1,365 @@
+# Monitoring and Alerting Configuration
+# This file defines monitoring and alerting rules for the unified CI/CD pipeline
+
+monitoring:
+  # Metrics collection configuration
+  metrics:
+    enabled: true
+    collection_interval: 30s
+    retention_period: 30d
+    
+    # Custom metrics to track
+    custom_metrics:
+      - name: "deployment_duration"
+        type: "histogram"
+        description: "Duration of deployments in seconds"
+        labels:
+          - environment
+          - strategy
+          - status
+      
+      - name: "deployment_success_rate"
+        type: "gauge"
+        description: "Success rate of deployments"
+        labels:
+          - environment
+          - strategy
+      
+      - name: "security_scan_duration"
+        type: "histogram"
+        description: "Duration of security scans in seconds"
+        labels:
+          - scan_type
+          - severity
+      
+      - name: "build_duration"
+        type: "histogram"
+        description: "Duration of build processes in seconds"
+        labels:
+          - language
+          - framework
+      
+      - name: "test_execution_duration"
+        type: "histogram"
+        description: "Duration of test execution in seconds"
+        labels:
+          - test_type
+          - test_suite
+      
+      - name: "cache_hit_rate"
+        type: "gauge"
+        description: "Cache hit rate percentage"
+        labels:
+          - cache_type
+          - environment
+      
+      - name: "rollback_count"
+        type: "counter"
+        description: "Number of rollbacks executed"
+        labels:
+          - environment
+          - reason
+      
+      - name: "approval_wait_time"
+        type: "histogram"
+        description: "Time waiting for approvals in seconds"
+        labels:
+          - environment
+          - approver_type
+
+  # Health check configuration
+  health_checks:
+    enabled: true
+    check_interval: 60s
+    timeout: 30s
+    retries: 3
+    
+    # Endpoints to monitor
+    endpoints:
+      - name: "application_health"
+        url: "${{ vars.HEALTH_CHECK_URL }}"
+        method: "GET"
+        expected_status: 200
+        timeout: 10s
+        
+      - name: "database_health"
+        url: "${{ vars.DATABASE_HEALTH_URL }}"
+        method: "GET"
+        expected_status: 200
+        timeout: 15s
+        
+      - name: "external_api_health"
+        url: "${{ vars.EXTERNAL_API_HEALTH_URL }}"
+        method: "GET"
+        expected_status: 200
+        timeout: 5s
+    
+    # Dependency checks
+    dependency_checks:
+      - name: "container_registry"
+        type: "docker_registry"
+        endpoint: "${{ vars.CONTAINER_REGISTRY_URL }}"
+        timeout: 30s
+        
+      - name: "package_registry"
+        type: "npm_registry"
+        endpoint: "${{ vars.NPM_REGISTRY_URL }}"
+        timeout: 15s
+        
+      - name: "artifact_storage"
+        type: "s3_bucket"
+        endpoint: "${{ vars.ARTIFACT_STORAGE_BUCKET }}"
+        timeout: 20s
+
+  # Alerting configuration
+  alerting:
+    enabled: true
+    
+    # Alert channels
+    channels:
+      slack:
+        enabled: true
+        webhook_url: "${{ secrets.SLACK_WEBHOOK_URL }}"
+        channel: "#deployments"
+        username: "Deployment Bot"
+        
+      email:
+        enabled: true
+        smtp_server: "${{ vars.SMTP_SERVER }}"
+        smtp_port: 587
+        username: "${{ secrets.SMTP_USERNAME }}"
+        password: "${{ secrets.SMTP_PASSWORD }}"
+        from_address: "deployments@company.com"
+        to_addresses:
+          - "devops@company.com"
+          - "oncall@company.com"
+          
+      pagerduty:
+        enabled: true
+        integration_key: "${{ secrets.PAGERDUTY_INTEGRATION_KEY }}"
+        service_key: "${{ secrets.PAGERDUTY_SERVICE_KEY }}"
+        
+      teams:
+        enabled: true
+        webhook_url: "${{ secrets.TEAMS_WEBHOOK_URL }}"
+    
+    # Alert rules
+    rules:
+      # Deployment alerts
+      - name: "deployment_failure"
+        condition: "deployment_status == 'failed'"
+        severity: "critical"
+        channels: ["slack", "email", "pagerduty"]
+        message: "Deployment to {environment} failed for version {version}"
+        
+      - name: "deployment_timeout"
+        condition: "deployment_duration > 1800"  # 30 minutes
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "Deployment to {environment} is taking longer than expected (>30 minutes)"
+        
+      - name: "high_rollback_rate"
+        condition: "rollback_count[1h] > 3"
+        severity: "critical"
+        channels: ["slack", "email", "pagerduty", "teams"]
+        message: "High rollback rate detected: {rollback_count} rollbacks in the last hour"
+        
+      # Security alerts
+      - name: "security_scan_failure"
+        condition: "security_scan_status == 'failed'"
+        severity: "critical"
+        channels: ["slack", "email", "pagerduty"]
+        message: "Security scan failed for {component} with severity {severity}"
+        
+      - name: "critical_vulnerability_found"
+        condition: "vulnerability_severity == 'critical'"
+        severity: "critical"
+        channels: ["slack", "email", "pagerduty", "teams"]
+        message: "Critical vulnerability found in {component}: {vulnerability_id}"
+        
+      - name: "security_scan_timeout"
+        condition: "security_scan_duration > 3600"  # 1 hour
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "Security scan is taking longer than expected (>1 hour)"
+        
+      # Performance alerts
+      - name: "slow_build"
+        condition: "build_duration > 900"  # 15 minutes
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "Build is taking longer than expected (>15 minutes)"
+        
+      - name: "slow_tests"
+        condition: "test_execution_duration > 600"  # 10 minutes
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "Test execution is taking longer than expected (>10 minutes)"
+        
+      - name: "low_cache_hit_rate"
+        condition: "cache_hit_rate < 0.7"  # 70%
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "Cache hit rate is low: {cache_hit_rate}%"
+        
+      # Infrastructure alerts
+      - name: "service_unavailable"
+        condition: "health_check_status == 'failed'"
+        severity: "critical"
+        channels: ["slack", "email", "pagerduty"]
+        message: "Service health check failed: {service_name}"
+        
+      - name: "dependency_failure"
+        condition: "dependency_check_status == 'failed'"
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "Dependency check failed: {dependency_name}"
+        
+      - name: "high_error_rate"
+        condition: "error_rate > 0.05"  # 5%
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "High error rate detected: {error_rate}%"
+        
+      # Approval alerts
+      - name: "approval_timeout"
+        condition: "approval_wait_time > 7200"  # 2 hours
+        severity: "warning"
+        channels: ["slack", "email"]
+        message: "Deployment approval is pending for more than 2 hours"
+        
+      - name: "approval_rejected"
+        condition: "approval_status == 'rejected'"
+        severity: "info"
+        channels: ["slack", "email"]
+        message: "Deployment approval rejected by {approver}"
+
+  # Dashboard configuration
+  dashboards:
+    enabled: true
+    
+    # Grafana dashboard configuration
+    grafana:
+      enabled: true
+      url: "${{ vars.GRAFANA_URL }}"
+      api_key: "${{ secrets.GRAFANA_API_KEY }}"
+      
+      dashboards:
+        - name: "deployment-overview"
+          title: "Deployment Overview"
+          description: "High-level deployment metrics and status"
+          
+        - name: "security-scanning"
+          title: "Security Scanning Dashboard"
+          description: "Security scan results and vulnerability tracking"
+          
+        - name: "performance-metrics"
+          title: "Performance Metrics"
+          description: "Build, test, and deployment performance metrics"
+          
+        - name: "infrastructure-health"
+          title: "Infrastructure Health"
+          description: "Health status of infrastructure components"
+          
+        - name: "rollback-analysis"
+          title: "Rollback Analysis"
+          description: "Rollback trends and analysis"
+
+  # Log aggregation configuration
+  logging:
+    enabled: true
+    
+    # Log collection
+    collection:
+      level: "INFO"
+      format: "json"
+      include_timestamps: true
+      
+    # Log shipping
+    shipping:
+      elasticsearch:
+        enabled: true
+        url: "${{ vars.ELASTICSEARCH_URL }}"
+        index: "cicd-logs-{date}"
+        
+      cloudwatch:
+        enabled: true
+        region: "${{ vars.AWS_REGION }}"
+        log_group: "/aws/cicd/pipeline"
+        log_stream: "{workflow_name}/{run_id}"
+        
+      splunk:
+        enabled: true
+        url: "${{ vars.SPLUNK_URL }}"
+        token: "${{ secrets.SPLUNK_TOKEN }}"
+        index: "cicd"
+
+  # Incident management configuration
+  incident_management:
+    enabled: true
+    
+    # Incident escalation
+    escalation:
+      enabled: true
+      levels:
+        - name: "level_1"
+          timeout: 15  # minutes
+          contacts: ["oncall-engineer"]
+          
+        - name: "level_2"
+          timeout: 30  # minutes
+          contacts: ["senior-engineer", "team-lead"]
+          
+        - name: "level_3"
+          timeout: 60  # minutes
+          contacts: ["engineering-manager", "director"]
+    
+    # Incident response
+    response:
+      auto_create_incident: true
+      incident_template: |
+        **Incident**: {alert_name}
+        **Severity**: {severity}
+        **Environment**: {environment}
+        **Description**: {description}
+        **Started**: {timestamp}
+        
+        ### Impact
+        - Services affected: {affected_services}
+        - Users impacted: {user_impact}
+        
+        ### Timeline
+        - Detection: {detection_time}
+        - Response started: {response_time}
+        
+        ### Actions Taken
+        - Initial assessment: {initial_assessment}
+        - Mitigation steps: {mitigation_steps}
+        
+        ### Next Steps
+        - Continue monitoring: {monitoring_plan}
+        - Root cause analysis: {rca_plan}
+
+environments:
+  development:
+    monitoring:
+      enabled: true
+      alert_threshold_multiplier: 1.5  # Less sensitive alerts
+      escalation_timeout_multiplier: 2.0  # Longer escalation times
+      
+  integration:
+    monitoring:
+      enabled: true
+      alert_threshold_multiplier: 1.2
+      
+  staging:
+    monitoring:
+      enabled: true
+      alert_threshold_multiplier: 1.0  # Standard thresholds
+      
+  production:
+    monitoring:
+      enabled: true
+      alert_threshold_multiplier: 0.8  # More sensitive alerts
+      escalation_timeout_multiplier: 0.5  # Faster escalation
+      require_acknowledgment: true  # Require manual acknowledgment

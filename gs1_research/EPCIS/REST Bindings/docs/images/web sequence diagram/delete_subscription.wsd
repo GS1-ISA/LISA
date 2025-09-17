@@ -1,0 +1,10 @@
+title Delete subscription
+
+Client->Server: DELETE /queries/query1/subscriptions/42
+alt: Successfully unsubscribed
+Server-->Client: 204 - unsubscribed
+else: Subscription does not exist
+Server-->Client: 404 - NoSuchResourceException
+else: Other EPCIS Exceptions
+Server-->Client: 40X ...
+end

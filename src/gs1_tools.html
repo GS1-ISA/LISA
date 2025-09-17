@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISA GS1 Tools Suite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .tool-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e1e8ed;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .tool-card h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 22px;
+        }
+
+        .tool-card p {
+            color: #7f8c8d;
+            margin: 0 0 15px 0;
+            line-height: 1.5;
+        }
+
+        .tool-link {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .tool-link:hover {
+            background-color: #2980b9;
+            color: white;
+        }
+
+        .status-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .status-item.warning {
+            border-left-color: #ffc107;
+        }
+
+        .status-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .status-icon.success {
+            background-color: #28a745;
+        }
+
+        .status-icon.warning {
+            background-color: #ffc107;
+        }
+
+        .status-icon.error {
+            background-color: #dc3545;
+        }
+
+        .status-text h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .status-text p {
+            margin: 5px 0 0 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 40px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-link">← Back to ISA Main</a>
+
+    <div class="header">
+        <h1>ISA GS1 Tools Suite</h1>
+        <p>Phase 2 GS1 Integration - Enhanced Capabilities for GS1 Identifier Resolution and Compliance</p>
+    </div>
+
+    <div class="status-section">
+        <h2 style="margin-top: 0; color: #2c3e50;">System Status</h2>
+        <div class="status-grid">
+            <div class="status-item">
+                <div class="status-icon success"></div>
+                <div class="status-text">
+                    <h4>Resolver Test Suite</h4>
+                    <p>GS1DL-resolver-testsuite integrated and operational</p>
+                </div>
+            </div>
+            <div class="status-item">
+                <div class="status-icon success"></div>
+                <div class="status-text">
+                    <h4>EUDR Compliance Tool</h4>
+                    <p>Automated European Union Deforestation Regulation reporting</p>
+                </div>
+            </div>
+            <div class="status-item">
+                <div class="status-icon success"></div>
+                <div class="status-text">
+                    <h4>Scan Interpreter</h4>
+                    <p>GS1 barcode data processing and interpretation</p>
+                </div>
+            </div>
+            <div class="status-item warning">
+                <div class="status-icon warning"></div>
+                <div class="status-text">
+                    <h4>Resolver Infrastructure</h4>
+                    <p>GS1_DigitalLink_Resolver_CE requires Docker deployment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tools-grid">
+        <div class="tool-card">
+            <div class="tool-icon">🔍</div>
+            <h3>Resolver Conformance Test</h3>
+            <p>Test GS1 resolver compliance with official GS1 standards. Validate resolver behavior, linkset functionality, and protocol conformance.</p>
+            <a href="gs1_resolver_test.html" class="tool-link">Run Tests</a>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">📋</div>
+            <h3>EUDR Compliance Tool</h3>
+            <p>Generate European Union Deforestation Regulation notifications using GS1 Web Vocabulary. Create compliant JSON-LD reports for regulatory submissions.</p>
+            <a href="eudr_compliance_tool.html" class="tool-link">Create Report</a>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">📱</div>
+            <h3>GS1 Scan Interpreter</h3>
+            <p>Process GS1 data from barcode scans and Digital Links. Interpret human-readable, FNC1, and Digital Link formats with detailed element breakdown.</p>
+            <a href="gs1_scan_interpreter.html" class="tool-link">Interpret Data</a>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-icon">🏗️</div>
+            <h3>Resolver Infrastructure</h3>
+            <p>GS1 DigitalLink Resolver Community Edition for production deployment. Requires Docker for full functionality.</p>
+            <a href="gs1_research/GS1_DigitalLink_Resolver_CE/README.md" class="tool-link" target="_blank">View Docs</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>ISA GS1 Integration Phase 2 - Official GS1 Tools for Enhanced Regulatory Compliance and Resolver Capabilities</p>
+        <p style="margin-top: 10px; font-size: 12px;">
+            Powered by GS1_DigitalLink_Resolver_CE, GS1DL-resolver-testsuite, EUDR-tool, and interpretGS1scan
+        </p>
+    </div>
+
+    <script>
+        // Add some interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('ISA GS1 Tools Suite loaded');
+
+            // Add click tracking for analytics (if needed)
+            const toolLinks = document.querySelectorAll('.tool-link');
+            toolLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    console.log('Tool accessed:', this.textContent, '->', this.href);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

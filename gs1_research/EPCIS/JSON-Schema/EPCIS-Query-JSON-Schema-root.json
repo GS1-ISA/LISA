@@ -1,0 +1,687 @@
+{
+  "$id": "https://gs1.github.io/EPCIS/JSON-Schema/EPCIS-Query-JSON-Schema-root.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EPCIS Query Schema",
+  "definitions": {
+    "date-string-or-number": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        }
+      ]
+    },
+    "string-array-or-date-string-or-number": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "$ref": "#/definitions/date-string-or-number"
+        }
+      ]
+    },
+    "uri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "EPCIS-Query": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "../JSON-Schema/schemas/definitions-JSON-Schema.json#/definitions/%40context"
+        },
+        "eventType": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/eventType"
+          }
+        },
+        "GE_eventTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "LT_eventTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "GE_recordTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "LT_recordTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "EQ_action": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/action"
+          }
+        },
+        "EQ_bizStep": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/bizStep-JSON-Schema.json#/definitions/bizStep"
+          }
+        },
+        "EQ_disposition": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/disposition-JSON-Schema.json#/definitions/disposition"
+          }
+        },
+        "EQ_persistentDisposition_set": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/disposition-JSON-Schema.json#/definitions/disposition"
+          }
+        },
+        "EQ_persistentDisposition_unset": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/disposition-JSON-Schema.json#/definitions/disposition"
+          }
+        },
+        "EQ_quantity": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/decimal"
+          }
+        },
+        "GT_quantity": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/decimal"
+        },
+        "GE_quantity": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/decimal"
+        },
+        "LT_quantity": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/decimal"
+        },
+        "LE_quantity": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/decimal"
+        },
+        "EQ_readPoint": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "WD_readPoint": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_bizLocation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "WD_bizLocation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_transformationID": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "MATCH_epc": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/definitions-JSON-Schema.json#/definitions/id"
+          }
+        },
+        "MATCH_parentID": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/definitions-JSON-Schema.json#/definitions/id"
+          }
+        },
+        "MATCH_inputEPC": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/definitions-JSON-Schema.json#/definitions/id"
+          }
+        },
+        "MATCH_outputEPC": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/definitions-JSON-Schema.json#/definitions/id"
+          }
+        },
+        "MATCH_anyEPC": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/definitions-JSON-Schema.json#/definitions/id"
+          }
+        },
+        "MATCH_epcClass": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "MATCH_inputEPCClass": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "MATCH_outputEPCClass": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "MATCH_anyEPCClass": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_eventID": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/eventID"
+          }
+        },
+        "EXISTS_errorDeclaration": {
+          "type": "integer",
+          "nullable": true
+        },
+        "GE_errorDeclaration_Time": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "LT_errorDeclaration_Time": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "EQ_errorReason": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/error-reason-JSON-Schema.json#/definitions/error-reason"
+          }
+        },
+        "EQ_correctiveEventID": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/eventID"
+          }
+        },
+        "orderBy": {
+          "type": "string"
+        },
+        "orderDirection": {
+          "type": "string",
+          "enum": [
+            "ASC",
+            "DESC"
+          ]
+        },
+        "eventCountLimit": {
+          "type": "integer"
+        },
+        "maxEventCount": {
+          "type": "integer"
+        },
+        "EXISTS_sensorElementList": {
+          "type": "integer",
+          "nullable": true
+        },
+        "GE_time": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "LT_time": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "GE_startTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "LT_startTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "GE_endTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "LT_endTime": {
+          "$ref": "../JSON-Schema/schemas/event-definitions-JSON-Schema.json#/definitions/time"
+        },
+        "EQ_type": {
+          "type": "array",
+          "items": {
+            "$ref": "../JSON-Schema/schemas/measurement-type-JSON-Schema.json#/definitions/measurementType"
+          }
+        },
+        "EQ_deviceID": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_dataProcessingMethod": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_microorganism": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_chemicalSubstance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_bizRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "EQ_stringValue": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "EQ_booleanValue": {
+          "type": "boolean"
+        },
+        "EQ_hexBinaryValue": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "EQ_uriValue": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "GE_percRank": {
+          "type": "number"
+        },
+        "LT_percRank": {
+          "type": "number"
+        },
+        "GT_percRank": {
+          "type": "number"
+        },
+        "LE_percRank": {
+          "type": "number"
+        }
+      },
+      "patternProperties": {
+        "^EQ_bizTransaction_[a-z][a-zA-Z0-9_]+$": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "^EQ_source_[a-z][a-zA-Z0-9_]+$": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "^EQ_destination_[a-z][a-zA-Z0-9_]+$": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/uri"
+          }
+        },
+        "^EQ_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_INNER_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_INNER_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_INNER_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_INNER_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_INNER_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_INNER_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_INNER_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_INNER_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_INNER_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_INNER_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EXISTS_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^EXISTS_INNER_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^EXISTS_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^EXISTS_INNER_ILMD_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^HASATTR_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "^EQ_ATTR_\\\\w+_\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^EQ_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_INNER_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_INNER_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_INNER_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_INNER_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_INNER_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EXISTS_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^EXISTS_INNER_ERROR_DECLARATION_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^EQ_value_[A-Z0-9]{2,4}$": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "^GE_minValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LT_minValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GT_minValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LE_minValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GE_maxValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LT_maxValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GT_maxValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LE_maxValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GE_meanValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LT_meanValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GT_meanValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LE_meanValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GE_sDev_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LT_sDev_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GT_sDev_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LE_sDev_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GE_value_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LT_value_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GT_value_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LE_value_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GE_percValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LT_percValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GT_percValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LE_percValue_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^EQ_quantity_[A-Z0-9]{2,4}$": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "^GE_quantity_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LT_quantity_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^GT_quantity_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^LE_quantity_[A-Z0-9]{2,4}$": {
+          "type": "number"
+        },
+        "^EQ_readPoint_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^EQ_INNER_readPoint_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^EQ_bizLocation_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^EQ_INNER_bizLocation_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^EQ_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_INNER_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_INNER_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_INNER_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_INNER_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_INNER_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_INNER_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_INNER_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_INNER_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_INNER_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_INNER_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EQ_INNER_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/string-array-or-date-string-or-number"
+        },
+        "^GT_INNER_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^GE_INNER_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LT_INNER_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^LE_INNER_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "$ref": "#/definitions/date-string-or-number"
+        },
+        "^EXISTS_SENSORELEMENT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^EXISTS_SENSORMETADATA_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        },
+        "^EXISTS_SENSORREPORT_[a-z][a-zA-Z0-9]*\\\\:\\\\w+$": {
+          "type": "integer",
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/EPCIS-Query"
+    }
+  ]
+}

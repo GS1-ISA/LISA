@@ -1,0 +1,516 @@
+# Unified CI/CD Configuration
+# This file defines the configuration for the unified CI/CD pipeline
+
+# Environment configurations
+environments:
+  development:
+    cluster: dev-cluster
+    region: us-east-1
+    namespace: development
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    auto_scaling:
+      enabled: false
+    monitoring:
+      enabled: true
+      alerts: false
+    backup:
+      enabled: false
+    security:
+      network_policies: false
+      pod_security_standards: false
+    deployment_strategy:
+      type: RollingUpdate
+      max_surge: 1
+      max_unavailable: 0
+    health_checks:
+      readiness_probe:
+        enabled: true
+        initial_delay_seconds: 10
+        period_seconds: 30
+      liveness_probe:
+        enabled: true
+        initial_delay_seconds: 30
+        period_seconds: 60
+
+  staging:
+    cluster: staging-cluster
+    region: us-east-1
+    namespace: staging
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    auto_scaling:
+      enabled: true
+      min_replicas: 2
+      max_replicas: 5
+      target_cpu_utilization: 70
+    monitoring:
+      enabled: true
+      alerts: true
+    backup:
+      enabled: true
+      schedule: "0 2 * * *"  # Daily at 2 AM
+      retention_days: 7
+    security:
+      network_policies: true
+      pod_security_standards: true
+    deployment_strategy:
+      type: RollingUpdate
+      max_surge: 1
+      max_unavailable: 1
+    health_checks:
+      readiness_probe:
+        enabled: true
+        initial_delay_seconds: 15
+        period_seconds: 20
+      liveness_probe:
+        enabled: true
+        initial_delay_seconds: 30
+        period_seconds: 30
+
+  production:
+    cluster: prod-cluster
+    region: us-east-1
+    namespace: production
+    replicas: 3
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    auto_scaling:
+      enabled: true
+      min_replicas: 3
+      max_replicas: 10
+      target_cpu_utilization: 60
+    monitoring:
+      enabled: true
+      alerts: true
+      dashboards: true
+    backup:
+      enabled: true
+      schedule: "0 1 * * *"  # Daily at 1 AM
+      retention_days: 30
+    security:
+      network_policies: true
+      pod_security_standards: true
+      pod_security_level: restricted
+    deployment_strategy:
+      type: RollingUpdate
+      max_surge: 1
+      max_unavailable: 0
+    health_checks:
+      readiness_probe:
+        enabled: true
+        initial_delay_seconds: 20
+        period_seconds: 15
+      liveness_probe:
+        enabled: true
+        initial_delay_seconds: 30
+        period_seconds: 20
+
+# Service configurations
+services:
+  api:
+    name: api-service
+    type: backend
+    language: python
+    framework: fastapi
+    port: 8000
+    health_check_path: /health
+    metrics_path: /metrics
+    database:
+      enabled: true
+      type: postgresql
+      backup: true
+    cache:
+      enabled: true
+      type: redis
+    dependencies:
+      - postgresql
+      - redis
+    environment_variables:
+      - name: DATABASE_URL
+        secret: true
+      - name: REDIS_URL
+        secret: true
+      - name: API_KEY
+        secret: true
+      - name: LOG_LEVEL
+        value: info
+      - name: ENVIRONMENT
+        value: "{{ .Values.environment }}"
+
+  etl:
+    name: etl-service
+    type: backend
+    language: python
+    framework: airflow
+    port: 8080
+    health_check_path: /health
+    metrics_path: /admin/metrics
+    database:
+      enabled: true
+      type: postgresql
+      backup: true
+    cache:
+      enabled: false
+    dependencies:
+      - postgresql
+      - s3
+    environment_variables:
+      - name: DATABASE_URL
+        secret: true
+      - name: AIRFLOW__CORE__EXECUTOR
+        value: CeleryExecutor
+      - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+        secret: true
+      - name: S3_BUCKET
+        secret: true
+
+  web:
+    name: web-service
+    type: frontend
+    language: javascript
+    framework: react
+    port: 3000
+    health_check_path: /
+    metrics_path: /metrics
+    database:
+      enabled: false
+    cache:
+      enabled: true
+      type: redis
+    dependencies:
+      - api
+      - redis
+    environment_variables:
+      - name: REACT_APP_API_URL
+        value: "https://api.{{ .Values.environment }}.example.com"
+      - name: REACT_APP_ENVIRONMENT
+        value: "{{ .Values.environment }}"
+      - name: REACT_APP_VERSION
+        value: "{{ .Values.version }}"
+
+# Security scanning configuration
+security_scanning:
+  enabled: true
+  scanners:
+    - trivy
+    - codeql
+    - semgrep
+    - dependency-check
+  severity_threshold: HIGH
+  fail_on_vulnerability: true
+  exclude_paths:
+    - "tests/**"
+    - "docs/**"
+    - "*.md"
+  timeout_minutes: 30
+
+# Testing configuration
+testing:
+  unit_tests:
+    enabled: true
+    coverage_threshold: 80
+    timeout_minutes: 15
+  integration_tests:
+    enabled: true
+    timeout_minutes: 30
+  smoke_tests:
+    enabled: true
+    timeout_minutes: 10
+  performance_tests:
+    enabled: true
+    timeout_minutes: 60
+    thresholds:
+      response_time_p95: 500  # milliseconds
+      error_rate: 1  # percentage
+      throughput: 100  # requests per second
+
+# Caching configuration
+caching:
+  enabled: true
+  strategies:
+    - name: python-dependencies
+      type: pip
+      paths:
+        - "~/.cache/pip"
+        - "~/.local/lib/python*/site-packages"
+      key_prefix: "python-deps"
+      max_age_days: 7
+    - name: node-dependencies
+      type: npm
+      paths:
+        - "~/.npm"
+        - "node_modules"
+      key_prefix: "node-deps"
+      max_age_days: 7
+    - name: docker-layers
+      type: docker
+      paths:
+        - "/var/lib/docker"
+      key_prefix: "docker"
+      max_age_days: 3
+    - name: build-artifacts
+      type: generic
+      paths:
+        - "dist/"
+        - "build/"
+      key_prefix: "build"
+      max_age_days: 1
+
+# Deployment configuration
+deployment:
+  staging:
+    approval_required: false
+    manual_trigger: false
+    rollback_enabled: true
+    rollback_timeout_minutes: 30
+    health_check_timeout_minutes: 10
+    canary_deployment:
+      enabled: true
+      traffic_percentage: 10
+      duration_minutes: 15
+    blue_green_deployment:
+      enabled: false
+
+  production:
+    approval_required: true
+    approvers:
+      - "team-leads"
+      - "senior-engineers"
+    manual_trigger: true
+    rollback_enabled: true
+    rollback_timeout_minutes: 15
+    health_check_timeout_minutes: 5
+    canary_deployment:
+      enabled: true
+      traffic_percentage: 5
+      duration_minutes: 30
+    blue_green_deployment:
+      enabled: true
+
+# Monitoring and alerting
+monitoring:
+  enabled: true
+  metrics:
+    - name: cpu_utilization
+      threshold: 80
+      duration: 5m
+    - name: memory_utilization
+      threshold: 85
+      duration: 5m
+    - name: disk_utilization
+      threshold: 90
+      duration: 10m
+    - name: response_time_p95
+      threshold: 1000
+      duration: 5m
+    - name: error_rate
+      threshold: 5
+      duration: 5m
+  alerts:
+    channels:
+      - slack
+      - email
+      - pagerduty
+    severity_levels:
+      - critical
+      - warning
+      - info
+    notification_rules:
+      - severity: critical
+        channels: [slack, pagerduty]
+        escalation_minutes: 5
+      - severity: warning
+        channels: [slack, email]
+        escalation_minutes: 15
+      - severity: info
+        channels: [slack]
+        escalation_minutes: 60
+
+# Backup and disaster recovery
+backup:
+  enabled: true
+  databases:
+    - type: postgresql
+      schedule: "0 2 * * *"
+      retention_days: 30
+    - type: redis
+      schedule: "0 3 * * *"
+      retention_days: 7
+  file_systems:
+    - path: "/data/uploads"
+      schedule: "0 4 * * *"
+      retention_days: 14
+  disaster_recovery:
+    enabled: true
+    rpo_hours: 4  # Recovery Point Objective
+    rto_hours: 2  # Recovery Time Objective
+    backup_regions:
+      - us-west-2
+      - eu-west-1
+
+# Compliance and governance
+compliance:
+  enabled: true
+  standards:
+    - soc2
+    - iso27001
+    - gdpr
+  audit_logging:
+    enabled: true
+    retention_days: 365
+    include:
+      - authentication_events
+      - authorization_events
+      - data_access_events
+      - configuration_changes
+      - deployment_events
+  data_retention:
+    enabled: true
+    policies:
+      - data_type: user_data
+        retention_days: 2555  # 7 years
+      - data_type: logs
+        retention_days: 90
+      - data_type: metrics
+        retention_days: 365
+      - data_type: backups
+        retention_days: 30
+
+# Performance optimization
+performance:
+  resource_optimization:
+    enabled: true
+    vertical_pod_autoscaling:
+      enabled: true
+      update_mode: "Auto"
+    horizontal_pod_autoscaling:
+      enabled: true
+      cpu_threshold: 70
+      memory_threshold: 80
+  network_optimization:
+    enabled: true
+    service_mesh:
+      enabled: true
+      type: istio
+    cdn:
+      enabled: true
+      provider: cloudflare
+  database_optimization:
+    enabled: true
+    connection_pooling: true
+    query_optimization: true
+    indexing: true
+
+# Environment variables and secrets
+secrets:
+  management:
+    provider: aws-secrets-manager
+    rotation:
+      enabled: true
+      schedule: "0 0 1 * *"  # Monthly
+  encryption:
+    algorithm: aes-256-gcm
+    key_rotation_days: 90
+  access_control:
+    rbac_enabled: true
+    principle_of_least_privilege: true
+    secret_access_logging: true
+
+# Rollback configuration
+rollback:
+  enabled: true
+  strategies:
+    - immediate
+    - gradual
+    - canary
+  max_history: 10
+  automatic_rollback:
+    enabled: true
+    conditions:
+      - error_rate > 5%
+      - response_time_p95 > 2000ms
+      - availability < 95%
+    evaluation_period_minutes: 5
+    rollback_timeout_minutes: 15
+
+# Feature flags
+feature_flags:
+  enabled: true
+  provider: launchdarkly
+  environment_mapping:
+    development: dev
+    staging: staging
+    production: prod
+  default_values:
+    new_ui: false
+    beta_features: false
+    experimental_apis: false
+
+# API rate limiting
+rate_limiting:
+  enabled: true
+  default_limits:
+    requests_per_minute: 60
+    requests_per_hour: 1000
+    burst_size: 10
+  per_endpoint_limits:
+    /api/auth/login:
+      requests_per_minute: 5
+      requests_per_hour: 100
+    /api/data/export:
+      requests_per_minute: 2
+      requests_per_hour: 50
+    /api/admin/**:
+      requests_per_minute: 30
+      requests_per_hour: 500
+
+# Cross-cutting concerns
+cross_cutting:
+  logging:
+    level: info
+    format: json
+    structured: true
+    correlation_ids: true
+    sampling:
+      enabled: true
+      rate: 0.1
+  tracing:
+    enabled: true
+    provider: jaeger
+    sampling_rate: 0.1
+    instrumentation:
+      - database
+      - http
+      - grpc
+      - redis
+  error_handling:
+    enabled: true
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      timeout_seconds: 30
+    retry_policy:
+      enabled: true
+      max_attempts: 3
+      backoff_strategy: exponential
+    timeout_handling:
+      enabled: true
+      default_timeout_seconds: 30

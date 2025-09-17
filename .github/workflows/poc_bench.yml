@@ -36,4 +36,3 @@ jobs:
           body: "Automated research POC results from benches."
           branch: research/benches-q11-q12
           labels: documentation
-

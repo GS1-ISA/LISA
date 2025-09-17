@@ -1,0 +1,107 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 .SFNS-Regular;\f1\fnil\fcharset0 HelveticaNeue-Bold;\f2\fnil\fcharset0 .SFNS-Semibold;
+\f3\fswiss\fcharset0 Helvetica;\f4\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red14\green14\blue14;\red0\green0\blue0;\red181\green0\blue19;
+\red13\green100\blue1;\red0\green0\blue0;\red50\green91\blue97;\red151\green0\blue126;}
+{\*\expandedcolortbl;;\cssrgb\c6700\c6700\c6700;\csgray\c0;\cssrgb\c76863\c10196\c8627;
+\cssrgb\c0\c45490\c0;\cssrgb\c0\c0\c0;\cssrgb\c24706\c43137\c45490;\cssrgb\c66667\c5098\c56863;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 Great\'97let\'92s lock in a 
+\f1\b \cf2 snapshot + one-click restore
+\f0\b0 \cf2  so you can always get back to this clean VS Code state.\
+\
+
+\f2\b\fs28 1) Create two helper scripts
+\f0\b0\fs26 \
+\
+
+\f2\b\fs24 Save snapshot (run anytime you like your current setup)
+\f3\b0 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f4\fs28 \cf3 cat > ~/vscode-backup/save_vscode_snapshot.sh <<\cf4 'EOF'\cf3 \
+\cf5 #!/usr/bin/env bash\cf3 \
+set -euo pipefail\
+STAMP=\cf4 "\cf6 $(date +%Y%m%d-%H%M%S)\cf4 "\cf3 \
+mkdir -p ~/vscode-backup\
+cp -R ~/Library/Application\\ Support/Code/User ~/vscode-backup/User-\cf7 $STAMP\cf3 \
+code --list-extensions > ~/vscode-backup/extensions-\cf7 $STAMP\cf3 .txt\
+echo \cf4 "Saved to: ~/vscode-backup/User-\cf7 $STAMP\cf4  and extensions-\cf7 $STAMP\cf4 .txt"\cf3 \
+EOF\
+chmod +x ~/vscode-backup/save_vscode_snapshot.sh
+\f3\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f2\b \cf2 Restore snapshot (returns VS Code to a chosen snapshot)
+\f3\b0 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f4\fs28 \cf3 cat > ~/vscode-backup/restore_vscode_snapshot.sh <<\cf4 'EOF'\cf3 \
+\cf5 #!/usr/bin/env bash\cf3 \
+set -euo pipefail\
+SNAP=\cf4 "\cf7 $\{1:-latest\}\cf4 "\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf8 if\cf3  [ \cf4 "\cf7 $SNAP\cf4 "\cf3  = \cf4 "latest"\cf3  ]; \cf8 then\cf3 \
+  USER_DIR=\cf4 "\cf6 $(ls -1dt ~/vscode-backup/User-* | head -n1)\cf4 "\cf3 \
+  EXT_FILE=\cf4 "\cf6 $(ls -1t ~/vscode-backup/extensions-*.txt | head -n1)\cf4 "\cf3 \
+\cf8 else\cf3 \
+  USER_DIR=\cf4 "~/vscode-backup/User-\cf7 $SNAP\cf4 "\cf3 \
+  USER_DIR=\cf4 "\cf7 $\{USER_DIR/#\\~/$HOME\}\cf4 "\cf3 \
+  EXT_FILE=\cf4 "~/vscode-backup/extensions-\cf7 $SNAP\cf4 .txt"\cf3 \
+  EXT_FILE=\cf4 "\cf7 $\{EXT_FILE/#\\~/$HOME\}\cf4 "\cf3 \
+\cf8 fi\cf3 \
+[ -d \cf4 "\cf7 $USER_DIR\cf4 "\cf3  ] || \{ echo \cf4 "User snapshot not found"\cf3 ; exit 1; \}\
+[ -f \cf4 "\cf7 $EXT_FILE\cf4 "\cf3  ] || \{ echo \cf4 "Extensions list not found"\cf3 ; exit 1; \}\
+rm -rf ~/Library/Application\\ Support/Code/User\
+cp -R \cf4 "\cf7 $USER_DIR\cf4 "\cf3  ~/Library/Application\\ Support/Code/User\
+code --list-extensions | xargs -n1 code --uninstall-extension || \cf8 true\cf3 \
+xargs -n1 code --install-extension < \cf4 "\cf7 $EXT_FILE\cf4 "\cf3 \
+echo \cf4 "Restored from: \cf7 $USER_DIR\cf4  and \cf7 $EXT_FILE\cf4 "\cf3 \
+EOF\
+chmod +x ~/vscode-backup/restore_vscode_snapshot.sh
+\f3\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f2\b\fs28 \cf2 2) Take a snapshot now (of your current clean setup)
+\f3\b0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f4\fs28 \cf3 ~/vscode-backup/save_vscode_snapshot.sh
+\f3\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f2\b\fs28 \cf2 3) If old settings ever come back, restore in seconds
+\f3\b0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f4\fs28 \cf3 ~/vscode-backup/restore_vscode_snapshot.sh
+\f3\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 Or restore a specific timestamp:
+\f3\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f4\fs28 \cf3 ~/vscode-backup/restore_vscode_snapshot.sh 20250810-153000
+\f3\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f2\b\fs28 \cf2 4) Keep Settings Sync from undoing your work
+\f0\b0\fs26 \
+\
+In VS Code: Command Palette \uc0\u8594  Settings Sync: Show Synced Data \u8594  Turn Off \u8594  Clear Synced Data.\
+Then sign out under Accounts, and keep Settings Sync disabled unless you explicitly want to sync this minimal profile.\
+\
+If you want, I can also generate a tiny script to harden VS Code against autosync by purging caches first, then restoring the snapshot\'97just say the word.}
