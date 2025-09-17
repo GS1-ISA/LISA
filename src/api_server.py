@@ -120,8 +120,81 @@ app = FastAPI(title="ISA Research API", version="0.1.0")
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=["http://localhost:3000", "http://localhost:8080"])
 socket_app = socketio.ASGIApp(sio, app)
 
-# Active chat sessions
-active_sessions = {}
+# Active chat sessions with memory pooling
+from collections import OrderedDict
+import weakref
+import threading
+
+class SessionPool:
+    """Memory-efficient session pool with automatic cleanup."""
+
+    def __init__(self, max_sessions: int = 500, session_timeout: int = 1800):
+        self.max_sessions = max_sessions
+        self.session_timeout = session_timeout
+        self._sessions = OrderedDict()  # LRU ordering
+        self._lock = threading.RLock()
+
+    def add_session(self, sid: str, session_data: dict):
+        """Add or update a session."""
+        with self._lock:
+            # Remove if exists
+            if sid in self._sessions:
+                del self._sessions[sid]
+
+            # Evict oldest if at capacity
+            if len(self._sessions) >= self.max_sessions:
+                oldest_sid, _ = self._sessions.popitem(last=False)  # FIFO eviction
+                logging.info(f"Evicted session {oldest_sid} due to capacity limit")
+
+            # Add new session with timestamp
+            session_data['created_at'] = time.time()
+            self._sessions[sid] = session_data
+            self._sessions.move_to_end(sid)  # Mark as recently used
+
+    def get_session(self, sid: str) -> dict | None:
+        """Get session data, updating LRU order."""
+        with self._lock:
+            if sid in self._sessions:
+                session_data = self._sessions[sid]
+                # Check timeout
+                if time.time() - session_data.get('created_at', 0) > self.session_timeout:
+                    del self._sessions[sid]
+                    return None
+                self._sessions.move_to_end(sid)  # Mark as recently used
+                return session_data
+            return None
+
+    def remove_session(self, sid: str):
+        """Remove a session."""
+        with self._lock:
+            self._sessions.pop(sid, None)
+
+    def cleanup_expired(self):
+        """Clean up expired sessions."""
+        with self._lock:
+            current_time = time.time()
+            expired = []
+            for sid, session_data in self._sessions.items():
+                if current_time - session_data.get('created_at', 0) > self.session_timeout:
+                    expired.append(sid)
+
+            for sid in expired:
+                del self._sessions[sid]
+
+            if expired:
+                logging.info(f"Cleaned up {len(expired)} expired sessions")
+
+    def get_stats(self) -> dict:
+        """Get session pool statistics."""
+        with self._lock:
+            return {
+                "active_sessions": len(self._sessions),
+                "max_sessions": self.max_sessions,
+                "session_timeout": self.session_timeout
+            }
+
+# Initialize session pool
+active_sessions = SessionPool(max_sessions=500, session_timeout=1800)  # 30 min timeout
 
 # Compliance Assistant Chat Handler
 class ComplianceAssistant:
@@ -157,26 +230,26 @@ compliance_assistant = None
 async def connect(sid, environ, auth):
     """Handle client connection."""
     logging.info(f"Client connected: {sid}")
-    active_sessions[sid] = {
+    session_data = {
         "connected_at": time.time(),
         "user_id": auth.get("user_id") if auth else None,
         "username": auth.get("username") if auth else None,
         "role": auth.get("role") if auth else None
     }
+    active_sessions.add_session(sid, session_data)
     await sio.emit("connected", {"message": "Connected to Compliance Assistant"}, to=sid)
 
 @sio.event
 async def disconnect(sid):
     """Handle client disconnection."""
     logging.info(f"Client disconnected: {sid}")
-    if sid in active_sessions:
-        del active_sessions[sid]
+    active_sessions.remove_session(sid)
 
 @sio.event
 async def chat_message(sid, data):
     """Handle chat messages from clients."""
     try:
-        session = active_sessions.get(sid)
+        session = active_sessions.get_session(sid)
         if not session:
             await sio.emit("error", {"message": "Session not found"}, to=sid)
             return
@@ -245,6 +318,9 @@ async def startup_event():
     # Start system health monitoring
     asyncio.create_task(monitoring_system.start_health_monitoring())
 
+    # Start session cleanup task
+    asyncio.create_task(session_cleanup_task())
+
     # Initialize GS1 capabilities
     # gs1_initialized = initialize_gs1_capabilities()
     # if gs1_initialized:
@@ -265,6 +341,16 @@ async def startup_event():
 
     logging.info("All systems initialized and health monitoring started")
 
+async def session_cleanup_task():
+    """Periodic task to clean up expired sessions."""
+    while True:
+        try:
+            active_sessions.cleanup_expired()
+            await asyncio.sleep(300)  # Clean up every 5 minutes
+        except Exception as e:
+            logging.error(f"Session cleanup task error: {e}")
+            await asyncio.sleep(60)  # Retry after 1 minute on error
+
 # Rate limiting setup
 # rate_limiter = RateLimiter(storage=MemoryStorage())
 
@@ -284,9 +370,70 @@ app.add_middleware(
 # Compression middleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# Response caching
-response_cache: dict[str, dict[str, Any]] = {}
-CACHE_TTL = 300  # 5 minutes
+# Response caching with memory-efficient LRU cache
+from collections import OrderedDict
+
+class MemoryEfficientCache:
+    """Memory-efficient LRU cache with size limits."""
+
+    def __init__(self, max_size: int = 50, ttl: int = 300):
+        self.max_size = max_size
+        self.ttl = ttl
+        self._cache = OrderedDict()  # LRU ordering
+        self._lock = threading.RLock()
+
+    def get(self, key: str) -> Any | None:
+        """Get cached value if available and not expired."""
+        with self._lock:
+            if key in self._cache:
+                entry = self._cache[key]
+                if time.time() - entry["timestamp"] < self.ttl:
+                    self._cache.move_to_end(key)  # Mark as recently used
+                    return entry["value"]
+                else:
+                    del self._cache[key]
+            return None
+
+    def set(self, key: str, value: Any):
+        """Set value in cache with LRU eviction."""
+        with self._lock:
+            # Remove if exists
+            if key in self._cache:
+                del self._cache[key]
+
+            # Evict oldest if at capacity
+            if len(self._cache) >= self.max_size:
+                self._cache.popitem(last=False)  # Remove least recently used
+
+            # Add new entry
+            self._cache[key] = {
+                "timestamp": time.time(),
+                "value": value
+            }
+            self._cache.move_to_end(key)
+
+    def clear_expired(self):
+        """Clear expired entries."""
+        with self._lock:
+            current_time = time.time()
+            expired_keys = [
+                k for k, v in self._cache.items()
+                if current_time - v["timestamp"] > self.ttl
+            ]
+            for key in expired_keys:
+                del self._cache[key]
+
+    def get_stats(self) -> dict:
+        """Get cache statistics."""
+        with self._lock:
+            return {
+                "size": len(self._cache),
+                "max_size": self.max_size,
+                "ttl": self.ttl
+            }
+
+# Initialize memory-efficient response cache
+response_cache = MemoryEfficientCache(max_size=50, ttl=300)  # Reduced from 100 to 50
 
 def get_cache_key(endpoint: str, params: dict[str, Any]) -> str:
     """Generate cache key for request."""
@@ -295,26 +442,12 @@ def get_cache_key(endpoint: str, params: dict[str, Any]) -> str:
 
 def get_cached_response(cache_key: str) -> dict[str, Any] | None:
     """Get cached response if available and not expired."""
-    if cache_key in response_cache:
-        cached = response_cache[cache_key]
-        if time.time() - cached["timestamp"] < CACHE_TTL:
-            return cached["response"]
-        else:
-            del response_cache[cache_key]
-    return None
+    return response_cache.get(cache_key)
 
 def cache_response(cache_key: str, response: dict[str, Any]):
     """Cache an API response."""
-    response_cache[cache_key] = {
-        "timestamp": time.time(),
-        "response": response
-    }
-    # Limit cache size
-    if len(response_cache) > 100:
-        oldest_keys = sorted(response_cache.keys(),
-                            key=lambda k: response_cache[k]["timestamp"])[:20]
-        for key in oldest_keys:
-            del response_cache[key]
+    response_cache.set(cache_key, response)</search>
+</search_and_replace>
 
 def get_redis_cached_response(cache_key: str) -> dict[str, Any] | None:
     """Get cached response from Redis if available."""
