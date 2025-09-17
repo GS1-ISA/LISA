@@ -4,7 +4,7 @@ Optimized for target performance metrics.
 """
 
 import os
-from typing import Dict, Any
+from typing import Any
 
 # Agent Performance Configuration
 AGENT_CONFIG = {
@@ -97,7 +97,7 @@ MONITORING_CONFIG = {
     },
 }
 
-def get_config(section: str) -> Dict[str, Any]:
+def get_config(section: str) -> dict[str, Any]:
     """Get configuration for a specific section."""
     configs = {
         "agent": AGENT_CONFIG,
@@ -115,7 +115,7 @@ def get_env_override(section: str, key: str, default_value: Any) -> Any:
     if env_value is not None:
         # Try to convert to appropriate type
         if isinstance(default_value, bool):
-            return env_value.lower() in ('true', '1', 'yes')
+            return env_value.lower() in ("true", "1", "yes")
         elif isinstance(default_value, int):
             return int(env_value)
         elif isinstance(default_value, float):

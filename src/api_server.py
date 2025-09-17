@@ -4,65 +4,99 @@ import asyncio
 import logging
 import time
 from datetime import datetime
-from typing import Optional
+
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
-from fastapi import FastAPI, Query, Depends, HTTPException, status, Request, Header, Form
-from pydantic import Field
-from fastapi.responses import JSONResponse, PlainTextResponse, Response
+import hashlib
+import json
+import os
+import secrets
+from typing import TYPE_CHECKING, Any
+
+import jwt
+import socketio
+from fastapi import (
+    Depends,
+    FastAPI,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse, PlainTextResponse, Response
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from limits import RateLimitItem
-# from limits.aio import RateLimiter
-from limits.storage import MemoryStorage
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
-from sqlalchemy.orm import Session
-import json
-import hashlib
-import redis
-from redis import Redis
-from typing import Dict, Any
-import jwt
-import socketio
-import os
-import secrets
 
+# from limits.aio import RateLimiter
+from prometheus_client import Counter, Histogram
+from redis import Redis
+
+from infra.monitoring.monitoring_system import ResearchWorkflowStatus, monitoring_system
 from src.agent_core.agents.planner import PlannerAgent
 from src.agent_core.agents.researcher import ResearcherAgent
 from src.agent_core.agents.synthesizer import SynthesizerAgent
 from src.agent_core.memory.rag_store import RAGMemory
-from src.docs_provider.context7 import get_provider as get_docs_provider
-from src.orchestrator.research_graph import ResearchGraph
-from src.tools.web_research import WebResearchTool
-from src.auth import (
-    User, UserCreate, UserUpdate, LoginRequest, Token, TokenData,
-    authenticate_user, create_access_token, verify_token, get_user_by_username,
-    check_user_permissions, UserRole, create_user, get_user_by_api_key,
-    get_user_by_email, update_user_password, generate_api_key, hash_api_key,
-    PasswordResetRequest, PasswordResetConfirm, verify_password, JWT_SECRET_KEY, JWT_ALGORITHM,
-    # OAuth2/OIDC imports
-    OAuth2Provider, OAuth2ProviderCreate, OAuth2LoginRequest, OAuth2CallbackRequest, OAuth2TokenResponse,
-    get_oauth2_provider_by_name, create_oauth2_provider, oauth2_authorize_url, oauth2_exchange_code,
-    oauth2_get_user_info, find_or_create_user_from_oauth2
-)
 from src.audit_logger import (
-    log_auth_event, log_data_access, log_security_event, log_admin_action,
-    AuditEventType, AuditEventSeverity, get_audit_logger
+    AuditEventType,
+    get_audit_logger,
+    log_admin_action,
+    log_auth_event,
+    log_data_access,
 )
-from src.database_manager import get_db, get_db_dependency
-from infra.monitoring.monitoring_system import monitoring_system, ResearchWorkflowStatus
-# from src.gs1_integration import get_gs1_integration, initialize_gs1_capabilities
-from src.docs_provider.pymupdf_processor import PyMuPDFProcessor, create_pymupdf_processor
-from src.taxonomy.efrag_esrs_loader import EFRAGESRSTaxonomyLoader, create_esrs_loader
-# from src.langgraph_agents.compliance_workflow import ComplianceWorkflowAgent, create_compliance_workflow
-# from src.langgraph_agents.document_analyzer import DocumentAnalyzerAgent, create_document_analyzer
-# from src.langgraph_agents.risk_assessor import RiskAssessorAgent, create_risk_assessor
-from src.database_manager import get_db, get_db_dependency
+from src.auth import (
+    JWT_ALGORITHM,
+    JWT_SECRET_KEY,
+    OAUTH2_REDIRECT_URI,
+    LoginRequest,
+    OAuth2CallbackRequest,
+    OAuth2LoginRequest,
+    # OAuth2/OIDC imports
+    OAuth2Provider,
+    OAuth2ProviderCreate,
+    OAuth2TokenResponse,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    Token,
+    User,
+    UserCreate,
+    UserRole,
+    UserUpdate,
+    authenticate_user,
+    check_user_permissions,
+    create_access_token,
+    create_oauth2_provider,
+    create_user,
+    find_or_create_user_from_oauth2,
+    get_oauth2_provider_by_name,
+    get_user_by_api_key,
+    get_user_by_email,
+    get_user_by_username,
+    oauth2_authorize_url,
+    oauth2_exchange_code,
+    oauth2_get_user_info,
+    update_user_password,
+    verify_password,
+    verify_token,
+)
+from src.database_manager import get_db_dependency, get_db_manager
+from src.docs_provider.context7 import get_provider as get_docs_provider
+from src.docs_provider.pymupdf_processor import (
+    create_pymupdf_processor,
+)
+from src.orchestrator.research_graph import ResearchGraph
+from src.taxonomy.efrag_esrs_loader import create_esrs_loader
+from src.tools.web_research import WebResearchTool
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 # Redis cache setup
 redis_client = None
@@ -83,7 +117,7 @@ logging.basicConfig(
 app = FastAPI(title="ISA Research API", version="0.1.0")
 
 # Socket.io server setup
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=["http://localhost:3000", "http://localhost:8080"])
+sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=["http://localhost:3000", "http://localhost:8080"])
 socket_app = socketio.ASGIApp(sio, app)
 
 # Active chat sessions
@@ -116,19 +150,20 @@ class ComplianceAssistant:
             logging.error(f"Error processing compliance query: {e}")
             return f"I apologize, but I encountered an error while processing your query: {str(e)}. Please try rephrasing your question or contact support if the issue persists."
 
-compliance_assistant = ComplianceAssistant()
+# Initialize compliance assistant lazily to avoid requiring API keys on import
+compliance_assistant = None
 
 @sio.event
 async def connect(sid, environ, auth):
     """Handle client connection."""
     logging.info(f"Client connected: {sid}")
     active_sessions[sid] = {
-        'connected_at': time.time(),
-        'user_id': auth.get('user_id') if auth else None,
-        'username': auth.get('username') if auth else None,
-        'role': auth.get('role') if auth else None
+        "connected_at": time.time(),
+        "user_id": auth.get("user_id") if auth else None,
+        "username": auth.get("username") if auth else None,
+        "role": auth.get("role") if auth else None
     }
-    await sio.emit('connected', {'message': 'Connected to Compliance Assistant'}, to=sid)
+    await sio.emit("connected", {"message": "Connected to Compliance Assistant"}, to=sid)
 
 @sio.event
 async def disconnect(sid):
@@ -143,54 +178,64 @@ async def chat_message(sid, data):
     try:
         session = active_sessions.get(sid)
         if not session:
-            await sio.emit('error', {'message': 'Session not found'}, to=sid)
+            await sio.emit("error", {"message": "Session not found"}, to=sid)
             return
 
-        query = data.get('message', '').strip()
+        query = data.get("message", "").strip()
         if not query:
-            await sio.emit('error', {'message': 'Empty message'}, to=sid)
+            await sio.emit("error", {"message": "Empty message"}, to=sid)
             return
 
         # Send typing indicator
-        await sio.emit('typing', {'status': 'thinking'}, to=sid)
+        await sio.emit("typing", {"status": "thinking"}, to=sid)
 
         # Process the query
-        user_id = session.get('user_id', 0)
-        username = session.get('username', 'anonymous')
+        user_id = session.get("user_id", 0)
+        username = session.get("username", "anonymous")
         session_id = f"chat_{sid}_{int(time.time())}"
 
         # Role-based personalization
-        role = session.get('role', 'user')
+        role = session.get("role", "user")
         personalized_query = await personalize_query(query, role, username)
+
+        # Initialize compliance assistant if needed
+        global compliance_assistant
+        if compliance_assistant is None:
+            try:
+                compliance_assistant = ComplianceAssistant()
+            except Exception as e:
+                logging.error(f"Failed to initialize compliance assistant: {e}")
+                await sio.emit("error", {"message": "Compliance assistant not available"}, to=sid)
+                return
 
         response = await compliance_assistant.process_query(
             personalized_query, user_id, username, session_id
         )
 
         # Stop typing indicator
-        await sio.emit('typing', {'status': 'stopped'}, to=sid)
+        await sio.emit("typing", {"status": "stopped"}, to=sid)
 
         # Send response
-        await sio.emit('chat_response', {
-            'message': response,
-            'timestamp': time.time(),
-            'session_id': session_id
+        await sio.emit("chat_response", {
+            "message": response,
+            "timestamp": time.time(),
+            "session_id": session_id
         }, to=sid)
 
     except Exception as e:
         logging.error(f"Error handling chat message: {e}")
-        await sio.emit('error', {'message': 'Internal server error'}, to=sid)
+        await sio.emit("error", {"message": "Internal server error"}, to=sid)
 
 async def personalize_query(query: str, role: str, username: str) -> str:
     """Personalize query based on user role."""
     role_contexts = {
-        'admin': "As an administrator, provide comprehensive compliance analysis with technical details and implementation guidance.",
-        'researcher': "As a researcher, focus on detailed regulatory analysis, evidence-based findings, and research-backed recommendations.",
-        'auditor': "As an auditor, emphasize compliance verification, risk assessment, and regulatory adherence requirements.",
-        'user': "Provide clear, practical compliance guidance suitable for general business users."
+        "admin": "As an administrator, provide comprehensive compliance analysis with technical details and implementation guidance.",
+        "researcher": "As a researcher, focus on detailed regulatory analysis, evidence-based findings, and research-backed recommendations.",
+        "auditor": "As an auditor, emphasize compliance verification, risk assessment, and regulatory adherence requirements.",
+        "user": "Provide clear, practical compliance guidance suitable for general business users."
     }
 
-    context = role_contexts.get(role, role_contexts['user'])
+    context = role_contexts.get(role, role_contexts["user"])
     return f"{context}\n\nQuery: {query}"
 
 # Startup event to initialize monitoring
@@ -240,38 +285,38 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Response caching
-response_cache: Dict[str, Dict[str, Any]] = {}
+response_cache: dict[str, dict[str, Any]] = {}
 CACHE_TTL = 300  # 5 minutes
 
-def get_cache_key(endpoint: str, params: Dict[str, Any]) -> str:
+def get_cache_key(endpoint: str, params: dict[str, Any]) -> str:
     """Generate cache key for request."""
     key_data = f"{endpoint}|{str(sorted(params.items()))}"
     return hashlib.md5(key_data.encode()).hexdigest()
 
-def get_cached_response(cache_key: str) -> Optional[Dict[str, Any]]:
+def get_cached_response(cache_key: str) -> dict[str, Any] | None:
     """Get cached response if available and not expired."""
     if cache_key in response_cache:
         cached = response_cache[cache_key]
-        if time.time() - cached['timestamp'] < CACHE_TTL:
-            return cached['response']
+        if time.time() - cached["timestamp"] < CACHE_TTL:
+            return cached["response"]
         else:
             del response_cache[cache_key]
     return None
 
-def cache_response(cache_key: str, response: Dict[str, Any]):
+def cache_response(cache_key: str, response: dict[str, Any]):
     """Cache an API response."""
     response_cache[cache_key] = {
-        'timestamp': time.time(),
-        'response': response
+        "timestamp": time.time(),
+        "response": response
     }
     # Limit cache size
     if len(response_cache) > 100:
         oldest_keys = sorted(response_cache.keys(),
-                            key=lambda k: response_cache[k]['timestamp'])[:20]
+                            key=lambda k: response_cache[k]["timestamp"])[:20]
         for key in oldest_keys:
             del response_cache[key]
 
-def get_redis_cached_response(cache_key: str) -> Optional[Dict[str, Any]]:
+def get_redis_cached_response(cache_key: str) -> dict[str, Any] | None:
     """Get cached response from Redis if available."""
     if redis_client:
         try:
@@ -284,7 +329,7 @@ def get_redis_cached_response(cache_key: str) -> Optional[Dict[str, Any]]:
     monitoring_system.update_cache_hit_rate(0.0, "redis")  # Simplified miss rate update
     return None
 
-def cache_response_redis(cache_key: str, response: Dict[str, Any], ttl: int = 300):
+def cache_response_redis(cache_key: str, response: dict[str, Any], ttl: int = 300):
     """Cache an API response in Redis."""
     if redis_client:
         try:
@@ -326,13 +371,13 @@ async def security_headers_middleware(request: Request, call_next):
 security = HTTPBearer(auto_error=False)
 
 # Rate limiting function
-async def check_rate_limit(request: Request, user_id: Optional[int] = None):
+async def check_rate_limit(request: Request, user_id: int | None = None):
     """Check rate limit for requests"""
     # Use user_id if available, otherwise use IP
     identifier = str(user_id) if user_id else request.client.host
 
     # Rate limit: 100 requests per minute per user/IP
-    rate_limit = RateLimitItem(per_minute=100, key=identifier)
+    RateLimitItem(per_minute=100, key=identifier)
 
     # if not await rate_limiter.hit(rate_limit):
     #     raise HTTPException(
@@ -342,10 +387,10 @@ async def check_rate_limit(request: Request, user_id: Optional[int] = None):
 
 # Authentication functions
 async def get_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    x_api_key: str | None = Header(None, alias="X-API-Key"),
     db: Session = Depends(get_db_dependency)
-) -> Optional[User]:
+) -> User | None:
     """Get current authenticated user from JWT token or API key"""
     if credentials:
         # JWT token authentication
@@ -389,7 +434,7 @@ CACHE_MISSES = Counter(
     labelnames=("cache_type",)
 )
 # Performance profiling decorator
-def profile_performance(operation_name: str, labels: Optional[Dict[str, str]] = None):
+def profile_performance(operation_name: str, labels: dict[str, str] | None = None):
     """Decorator to profile function performance."""
     def decorator(func):
         async def async_wrapper(*args, **kwargs):
@@ -444,7 +489,7 @@ def profile_performance(operation_name: str, labels: Optional[Dict[str, str]] = 
             return sync_wrapper
     return decorator
 
-async def get_current_active_user(current_user: Optional[User] = Depends(get_current_user)):
+async def get_current_active_user(current_user: User | None = Depends(get_current_user)):
     """Get current active user or raise 401"""
     if not current_user:
         raise HTTPException(
@@ -465,10 +510,7 @@ def require_role(required_role: UserRole):
         return current_user
     return role_checker
 
-# Audit logging
-def log_auth_event(event_type: str, user_id: Optional[int], details: dict = None):
-    """Log authentication events"""
-    logging.info(f"AUTH_EVENT: {event_type} - User: {user_id} - Details: {details}")
+# Audit logging is handled by imported functions from src.audit_logger
 
 
 # Basic Prometheus metrics (low cardinality)
@@ -501,6 +543,13 @@ async def metrics_middleware(request, call_next):
 @app.get("/", response_class=PlainTextResponse)
 def root() -> str:
     """Simple healthcheck for container HEARTCHECK."""
+    return "ok"
+
+
+# Additional container and load-balancer friendly healthcheck endpoint
+@app.get("/health", response_class=PlainTextResponse)
+def health() -> str:
+    """Container and load-balancer friendly healthcheck."""
     return "ok"
 
 
@@ -779,7 +828,7 @@ async def list_oauth2_providers(
     db: Session = Depends(get_db_dependency)
 ):
     """List OAuth2/OIDC providers (admin only)"""
-    providers = db.query(OAuth2Provider).filter(OAuth2Provider.is_active == True).all()
+    providers = db.query(OAuth2Provider).filter(OAuth2Provider.is_active).all()
     return [
         {
             "id": p.id,
@@ -796,13 +845,13 @@ async def list_oauth2_providers(
 # Audit logging endpoints
 @app.get("/admin/audit/events")
 async def get_audit_events(
-    event_type: Optional[str] = None,
-    user_id: Optional[int] = None,
-    resource: Optional[str] = None,
-    action: Optional[str] = None,
-    outcome: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    event_type: str | None = None,
+    user_id: int | None = None,
+    resource: str | None = None,
+    action: str | None = None,
+    outcome: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
     limit: int = 100,
     current_user: User = Depends(require_role(UserRole.ADMIN))
 ):
@@ -831,8 +880,8 @@ async def get_audit_events(
 
 @app.get("/admin/audit/statistics")
 async def get_audit_statistics(
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
     current_user: User = Depends(require_role(UserRole.ADMIN))
 ):
     """Get audit statistics (admin only)"""
@@ -916,187 +965,9 @@ async def update_user_role(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    old_role = user.role
     user.role = new_role.value
     user.updated_at = datetime.utcnow()
-# GS1 Integration endpoints
-@app.get("/gs1/status")
-async def get_gs1_status():
-    """Get GS1 integration capabilities status."""
-    gs1_manager = get_gs1_integration()
-    return gs1_manager.get_gs1_capabilities_summary()
-
-@app.post("/gs1/initialize")
-async def initialize_gs1():
-    """Initialize all GS1 capabilities."""
-    success = initialize_gs1_capabilities()
-    if success:
-        return {"message": "GS1 capabilities initialized successfully"}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to initialize GS1 capabilities")
-
-@app.post("/gs1/epcis/events")
-async def create_epcis_event(
-    event_data: Dict[str, Any],
-    current_user: User = Depends(get_current_active_user)
-):
-    """Create a new EPCIS event."""
-    gs1_manager = get_gs1_integration()
-    try:
-        event = gs1_manager.create_epcis_event(**event_data)
-        return {
-            "event_id": event.eventID,
-            "event_type": event.type.value,
-            "created": True
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create EPCIS event: {str(e)}")
-
-@app.post("/gs1/epcis/documents")
-async def create_epcis_document(
-    events_data: List[Dict[str, Any]],
-    current_user: User = Depends(get_current_active_user)
-):
-    """Create an EPCIS document from events."""
-    gs1_manager = get_gs1_integration()
-    try:
-        events = [gs1_manager.create_epcis_event(**event_data) for event_data in events_data]
-        document = gs1_manager.create_epcis_document(events)
-        return {
-            "document_id": document.id,
-            "events_count": len(document.epcisBody.eventList),
-            "created": True
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create EPCIS document: {str(e)}")
-
-@app.get("/gs1/webvoc/classes/{class_name}")
-async def get_webvoc_class(class_name: str):
-    """Get GS1 Web Vocabulary class definition."""
-    gs1_manager = get_gs1_integration()
-    class_def = gs1_manager.get_webvoc_class(class_name)
-    if not class_def:
-        raise HTTPException(status_code=404, detail=f"Class '{class_name}' not found in WebVoc")
-    return class_def
-
-@app.get("/gs1/webvoc/properties/{property_name}")
-async def get_webvoc_property(property_name: str):
-    """Get GS1 Web Vocabulary property definition."""
-    gs1_manager = get_gs1_integration()
-    prop_def = gs1_manager.get_webvoc_property(property_name)
-    if not prop_def:
-        raise HTTPException(status_code=404, detail=f"Property '{property_name}' not found in WebVoc")
-    return prop_def
-
-@app.post("/gs1/traceability/credentials")
-async def create_traceability_credential(
-    events_data: List[Dict[str, Any]],
-    issuer: str,
-    subject_id: str,
-    current_user: User = Depends(get_current_active_user)
-):
-    """Create a traceability credential from EPCIS events."""
-    gs1_manager = get_gs1_integration()
-    try:
-        events = [gs1_manager.create_epcis_event(**event_data) for event_data in events_data]
-        credential = gs1_manager.create_traceability_credential(events, issuer, subject_id)
-        return {
-            "credential_id": credential.id,
-            "type": credential.type,
-            "issuer": credential.issuer,
-            "issuance_date": credential.issuanceDate,
-            "created": True
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create traceability credential: {str(e)}")
-
-@app.post("/gs1/traceability/proof")
-async def create_proof_of_connectedness(
-    credential_ids: List[str],
-    issuer: str,
-    current_user: User = Depends(get_current_active_user)
-):
-    """Create a proof of connectedness from traceability credentials."""
-    gs1_manager = get_gs1_integration()
-    try:
-        # Get credentials by IDs (simplified - in production would retrieve from storage)
-        credentials = []
-        for cred_id in credential_ids:
-            if cred_id in gs1_manager.traceability_manager.traceability_credentials:
-                credentials.append(gs1_manager.traceability_manager.traceability_credentials[cred_id])
-
-        if not credentials:
-            raise HTTPException(status_code=404, detail="No valid credentials found")
-
-        proof = gs1_manager.create_proof_of_connectedness(credentials, issuer)
-        return {
-            "proof_id": proof.id,
-            "type": proof.type,
-            "issuer": proof.issuer,
-            "supply_chain_path": proof.supplyChainPath,
-            "events_count": len(proof.sanitizedEvents),
-            "created": True
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create proof of connectedness: {str(e)}")
-
-@app.post("/gs1/validate/vc")
-async def validate_gs1_vc(
-    vc_payload: Dict[str, Any],
-    current_user: User = Depends(get_current_active_user)
-):
-    """Validate a GS1 VC payload against official data models."""
-    gs1_manager = get_gs1_integration()
-    try:
-        result = gs1_manager.validate_gs1_vc(vc_payload)
-        return {
-            "is_valid": result.is_valid,
-            "errors": result.errors,
-            "warnings": result.warnings,
-            "vc_type": result.vc_type.value if result.vc_type else None
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to validate VC: {str(e)}")
-
-@app.post("/gs1/traceability/process")
-async def process_supply_chain_data(
-    raw_events_data: List[Dict[str, Any]],
-    issuer: str,
-    subject_id: str,
-    current_user: User = Depends(get_current_active_user)
-):
-    """Process supply chain data through the complete GS1 traceability pipeline."""
-    gs1_manager = get_gs1_integration()
-    try:
-        result = gs1_manager.process_supply_chain_data(raw_events_data, issuer, subject_id)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to process supply chain data: {str(e)}")
-
-@app.get("/gs1/traceability/verify/{proof_id}")
-async def verify_traceability_chain(
-    proof_id: str,
-    current_user: User = Depends(get_current_active_user)
-):
-    """Verify the integrity of a traceability chain."""
-    gs1_manager = get_gs1_integration()
-    try:
-        if proof_id not in gs1_manager.traceability_manager.proofs_of_connectedness:
-            raise HTTPException(status_code=404, detail="Proof of connectedness not found")
-
-        proof = gs1_manager.traceability_manager.proofs_of_connectedness[proof_id]
-        is_verified = gs1_manager.verify_traceability_chain(proof)
-
-        return {
-            "proof_id": proof_id,
-            "verified": is_verified,
-            "supply_chain_path": proof.supplyChainPath,
-            "events_count": len(proof.sanitizedEvents)
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to verify traceability chain: {str(e)}")
+# GS1 Integration endpoints - Temporarily disabled due to missing implementation
 
 # Protected research endpoint
 @app.get("/research")
@@ -1166,7 +1037,7 @@ async def research(
         monitoring_system.record_research_workflow("api_research", ResearchWorkflowStatus.COMPLETED, duration)
 
         return JSONResponse({"query": query, "result_markdown": result_md})
-    except Exception as e:
+    except Exception:
         # Record failure
         duration = time.time() - start_time
         monitoring_system.record_research_workflow("api_research", ResearchWorkflowStatus.FAILED, duration)
@@ -1274,82 +1145,7 @@ async def get_taxonomy_stats(
         raise HTTPException(status_code=500, detail=f"Stats retrieval error: {str(e)}")
 
 
-# Compliance Workflow endpoints
-@app.post("/compliance/analyze")
-async def run_compliance_analysis(
-    documents: List[str],
-    taxonomy_path: Optional[str] = None,
-    current_user: User = Depends(get_current_active_user)
-):
-    """Run complete compliance analysis workflow."""
-    try:
-        workflow = create_compliance_workflow()
-        result = workflow.run_compliance_analysis(documents, taxonomy_path)
-
-        return {
-            "success": result.success,
-            "overall_score": result.overall_score,
-            "analysis_results": result.analysis_results,
-            "risk_assessment": result.risk_assessment,
-            "recommendations": result.recommendations,
-            "processing_time": result.processing_time
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Compliance analysis error: {str(e)}")
-
-
-@app.post("/compliance/document/analyze")
-async def analyze_document(
-    document_path: str,
-    current_user: User = Depends(get_current_active_user)
-):
-    """Analyze a single document for compliance information."""
-    try:
-        analyzer = create_document_analyzer()
-        result = analyzer.analyze_document(document_path)
-
-        if result["success"]:
-            return result
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Document analysis failed: {result.get('error', 'Unknown error')}"
-            )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Document analysis error: {str(e)}")
-
-
-@app.post("/compliance/risk/assess")
-async def assess_risks(
-    analysis_data: Dict[str, Any],
-    current_user: User = Depends(get_current_active_user)
-):
-    """Assess compliance risks from analysis data."""
-    try:
-        assessor = create_risk_assessor()
-        result = assessor.assess_risks(analysis_data)
-
-        if result["success"]:
-            return result
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Risk assessment failed: {result.get('error', 'Unknown error')}"
-            )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Risk assessment error: {str(e)}")
-
-
-@app.get("/compliance/workflow/stats")
-async def get_workflow_stats(
-    current_user: User = Depends(get_current_active_user)
-):
-    """Get compliance workflow statistics."""
-    try:
-        workflow = create_compliance_workflow()
-        return workflow.get_workflow_stats()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Stats retrieval error: {str(e)}")
+# Compliance Workflow endpoints - Temporarily disabled due to missing implementation
 
 
 # Integration status endpoint
@@ -1369,8 +1165,12 @@ async def get_integrations_status(
                 "type": "EFRAG ESRS"
             },
             "compliance_workflow": {
-                "available": True,
-                "type": "LangGraph Multi-Agent"
+                "available": False,
+                "type": "LangGraph Multi-Agent - Implementation pending"
+            },
+            "gs1_integration": {
+                "available": False,
+                "type": "GS1 Standards - Implementation pending"
             },
             "database_integration": {
                 "available": True,
@@ -1444,14 +1244,14 @@ async def assess_supply_chain_risks(
 
 @app.post("/analytics/ingest/epcis")
 async def ingest_epcis_data(
-    events_data: List[Dict[str, Any]],
-    organization_context: Optional[Dict[str, Any]] = None,
+    events_data: list[dict[str, Any]],
+    organization_context: dict[str, Any] | None = None,
     current_user: User = Depends(get_current_active_user)
 ):
     """Ingest EPCIS events into the graph database."""
     try:
-        from src.neo4j_gds_ingestion import get_gds_ingestion
         from src.epcis_tracker import EPCISEvent
+        from src.neo4j_gds_ingestion import get_gds_ingestion
 
         ingestion = get_gds_ingestion()
 

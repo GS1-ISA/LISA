@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -67,7 +67,7 @@ def main():
     logging.info(f"Evaluating report: {args.report_path}")
     report_content = report_file.read_text()
 
-    evaluation_results: Dict[str, Any] = {}
+    evaluation_results: dict[str, Any] = {}
 
     # 1. Structural Check
     evaluation_results["structural_checks"] = {

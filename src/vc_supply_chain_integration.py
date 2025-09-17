@@ -6,22 +6,24 @@ enabling seamless attestation and verification within the supply chain processes
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timezone
+from typing import Any
 
+from .end_to_end_traceability import EndToEndTraceabilityManager, TraceabilityCredential
+from .geospatial.supply_chain_analysis import (
+    SupplyChainGeospatialAnalyzer,
+    SupplyChainNode,
+)
 from .supplier_attestation_vc import (
+    ComplianceAttestation,
+    ComplianceLevel,
+    GeolocationAttestation,
+    RiskAssessment,
     SupplierAttestationVCManager,
     SupplierInfo,
-    ComplianceAttestation,
     SustainabilityClaim,
-    RiskAssessment,
-    GeolocationAttestation,
-    ComplianceLevel,
-    AttestationType
 )
 from .vc_issuer_service import VCIssuerService, VCVerifierService
-from .geospatial.supply_chain_analysis import SupplyChainGeospatialAnalyzer, SupplyChainNode
-from .end_to_end_traceability import EndToEndTraceabilityManager, TraceabilityCredential
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +39,9 @@ class VCSupplyChainIntegrator:
 
     def integrate_supplier_attestations(
         self,
-        supplier_data: Dict[str, Any],
-        attestation_requests: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        supplier_data: dict[str, Any],
+        attestation_requests: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """
         Integrate supplier attestations into supply chain workflows.
 
@@ -103,7 +105,7 @@ class VCSupplyChainIntegrator:
 
         return results
 
-    def _issue_compliance_vc(self, supplier: SupplierInfo, request: Dict[str, Any]) -> Optional[Any]:
+    def _issue_compliance_vc(self, supplier: SupplierInfo, request: dict[str, Any]) -> Any | None:
         """Issue compliance attestation VC."""
         try:
             attestations = []
@@ -130,7 +132,7 @@ class VCSupplyChainIntegrator:
             logger.error(f"Failed to issue compliance VC: {e}")
             return None
 
-    def _issue_sustainability_vc(self, supplier: SupplierInfo, request: Dict[str, Any]) -> Optional[Any]:
+    def _issue_sustainability_vc(self, supplier: SupplierInfo, request: dict[str, Any]) -> Any | None:
         """Issue sustainability claim VC."""
         try:
             claims = []
@@ -157,7 +159,7 @@ class VCSupplyChainIntegrator:
             logger.error(f"Failed to issue sustainability VC: {e}")
             return None
 
-    def _issue_risk_assessment_vc(self, supplier: SupplierInfo, request: Dict[str, Any]) -> Optional[Any]:
+    def _issue_risk_assessment_vc(self, supplier: SupplierInfo, request: dict[str, Any]) -> Any | None:
         """Issue risk assessment VC."""
         try:
             risk_assessments = []
@@ -183,7 +185,7 @@ class VCSupplyChainIntegrator:
             logger.error(f"Failed to issue risk assessment VC: {e}")
             return None
 
-    def _issue_geolocation_vc(self, supplier: SupplierInfo, request: Dict[str, Any]) -> Optional[Any]:
+    def _issue_geolocation_vc(self, supplier: SupplierInfo, request: dict[str, Any]) -> Any | None:
         """Issue geolocation attestation VC."""
         try:
             geo_data = request.get("geolocation", {})
@@ -210,8 +212,8 @@ class VCSupplyChainIntegrator:
 
     def _integrate_with_geospatial_analysis(
         self,
-        supplier_data: Dict[str, Any],
-        issued_credentials: List[Dict[str, Any]]
+        supplier_data: dict[str, Any],
+        issued_credentials: list[dict[str, Any]]
     ):
         """Integrate VC attestations with geospatial analysis."""
         try:
@@ -244,8 +246,8 @@ class VCSupplyChainIntegrator:
     def verify_supply_chain_attestations(
         self,
         supplier_id: str,
-        required_attestations: List[str]
-    ) -> Dict[str, Any]:
+        required_attestations: list[str]
+    ) -> dict[str, Any]:
         """
         Verify attestations for a supplier in the supply chain context.
 
@@ -314,8 +316,8 @@ class VCSupplyChainIntegrator:
     def link_vc_to_traceability(
         self,
         vc_id: str,
-        epcis_events: List[Any]
-    ) -> Optional[TraceabilityCredential]:
+        epcis_events: list[Any]
+    ) -> TraceabilityCredential | None:
         """
         Link a VC attestation to traceability events.
 
@@ -353,8 +355,8 @@ class VCSupplyChainIntegrator:
 
     def get_supply_chain_compliance_dashboard(
         self,
-        supplier_ids: List[str]
-    ) -> Dict[str, Any]:
+        supplier_ids: list[str]
+    ) -> dict[str, Any]:
         """
         Generate a compliance dashboard for multiple suppliers.
 

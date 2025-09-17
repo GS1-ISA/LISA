@@ -6,7 +6,6 @@ This module provides version information and utilities for the ISA SuperApp pack
 
 import logging
 import sys
-from typing import Dict, Optional, Tuple
 
 __all__ = ["get_version_info", "parse_version", "compare_versions"]
 
@@ -14,7 +13,7 @@ __all__ = ["get_version_info", "parse_version", "compare_versions"]
 logger = logging.getLogger(__name__)
 
 
-def get_version_info() -> Dict[str, str]:
+def get_version_info() -> dict[str, str]:
     """
     Get comprehensive version information for ISA SuperApp.
 
@@ -80,7 +79,7 @@ def get_version_info() -> Dict[str, str]:
     return version_info
 
 
-def parse_version(version_string: str) -> Tuple[int, ...]:
+def parse_version(version_string: str) -> tuple[int, ...]:
     """
     Parse a version string into a tuple of integers for comparison.
 

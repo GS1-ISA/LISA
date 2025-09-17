@@ -6,8 +6,7 @@ including financial instruments, market data, and regulatory reports.
 """
 
 import json
-import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 import requests
@@ -16,12 +15,11 @@ from dagster import (
     MetadataValue,
     Output,
     asset,
-    get_dagster_logger,
 )
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from ..core.exceptions import ISAConfigurationError, ISAValidationError
-from ..core.logger import get_logger
+from isa_superapp.etl.core.exceptions import ISAConfigurationError, ISAValidationError
+from isa_superapp.etl.core.logger import get_logger
 
 
 @asset(
@@ -31,7 +29,7 @@ from ..core.logger import get_logger
 )
 def esma_financial_instruments(
     context: AssetExecutionContext,
-    esma_api: Dict[str, Any],
+    esma_api: dict[str, Any],
 ) -> Output[pd.DataFrame]:
     """Fetch financial instruments data from ESMA."""
     logger = get_logger("etl.esma.instruments")
@@ -84,7 +82,7 @@ def esma_financial_instruments(
 )
 def esma_market_data(
     context: AssetExecutionContext,
-    esma_api: Dict[str, Any],
+    esma_api: dict[str, Any],
 ) -> Output[pd.DataFrame]:
     """Fetch market data from ESMA."""
     logger = get_logger("etl.esma.market")
@@ -132,7 +130,7 @@ def esma_market_data(
 )
 def esma_regulatory_reports(
     context: AssetExecutionContext,
-    esma_api: Dict[str, Any],
+    esma_api: dict[str, Any],
 ) -> Output[pd.DataFrame]:
     """Fetch regulatory reports from ESMA."""
     logger = get_logger("etl.esma.regulatory")
@@ -179,9 +177,9 @@ def esma_regulatory_reports(
 )
 def _fetch_esma_endpoint(
     endpoint: str,
-    api_config: Dict[str, Any],
+    api_config: dict[str, Any],
     context: AssetExecutionContext,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Fetch data from a specific ESMA endpoint."""
     base_url = api_config["base_url"]
     timeout = api_config["timeout"]
@@ -216,7 +214,7 @@ def _fetch_esma_endpoint(
         raise ISAConfigurationError(f"API request failed for {endpoint}: {e}")
 
 
-def _parse_esma_json_response(data: Dict[str, Any], endpoint: str) -> List[Dict[str, Any]]:
+def _parse_esma_json_response(data: dict[str, Any], endpoint: str) -> list[dict[str, Any]]:
     """Parse ESMA JSON response into records."""
     records = []
 
@@ -249,7 +247,7 @@ def _parse_esma_json_response(data: Dict[str, Any], endpoint: str) -> List[Dict[
     return records
 
 
-def _parse_esma_xml_response(xml_text: str, endpoint: str) -> List[Dict[str, Any]]:
+def _parse_esma_xml_response(xml_text: str, endpoint: str) -> list[dict[str, Any]]:
     """Parse ESMA XML response into records."""
     # Placeholder for XML parsing
     # In a real implementation, use lxml or xml.etree
@@ -261,7 +259,7 @@ def _parse_esma_xml_response(xml_text: str, endpoint: str) -> List[Dict[str, Any
     }]
 
 
-def _parse_esma_text_response(text: str, endpoint: str) -> List[Dict[str, Any]]:
+def _parse_esma_text_response(text: str, endpoint: str) -> list[dict[str, Any]]:
     """Parse ESMA text response into records."""
     return [{
         "endpoint": endpoint,

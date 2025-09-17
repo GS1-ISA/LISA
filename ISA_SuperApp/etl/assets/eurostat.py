@@ -5,25 +5,21 @@ This module contains Dagster assets for ingesting data from Eurostat APIs,
 including economic indicators, population data, and trade statistics.
 """
 
-import json
-import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 import requests
 from dagster import (
     AssetExecutionContext,
-    AssetIn,
     MetadataValue,
     Output,
     asset,
-    get_dagster_logger,
 )
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from ..core.exceptions import ISAConfigurationError, ISAValidationError
-from ..core.logger import get_logger
-from ..openlineage_config import emit_etl_lineage
+from isa_superapp.etl.core.exceptions import ISAConfigurationError, ISAValidationError
+from isa_superapp.etl.core.logger import get_logger
+from isa_superapp.etl.openlineage_config import emit_etl_lineage
 
 
 @asset(
@@ -33,7 +29,7 @@ from ..openlineage_config import emit_etl_lineage
 )
 def eurostat_economic_indicators(
     context: AssetExecutionContext,
-    eurostat_api: Dict[str, Any],
+    eurostat_api: dict[str, Any],
 ) -> Output[pd.DataFrame]:
     """Fetch economic indicators from Eurostat."""
     logger = get_logger("etl.eurostat.economic")
@@ -101,7 +97,7 @@ def eurostat_economic_indicators(
 )
 def eurostat_population_data(
     context: AssetExecutionContext,
-    eurostat_api: Dict[str, Any],
+    eurostat_api: dict[str, Any],
 ) -> Output[pd.DataFrame]:
     """Fetch population data from Eurostat."""
     logger = get_logger("etl.eurostat.population")
@@ -164,7 +160,7 @@ def eurostat_population_data(
 )
 def eurostat_trade_statistics(
     context: AssetExecutionContext,
-    eurostat_api: Dict[str, Any],
+    eurostat_api: dict[str, Any],
 ) -> Output[pd.DataFrame]:
     """Fetch trade statistics from Eurostat."""
     logger = get_logger("etl.eurostat.trade")
@@ -226,9 +222,9 @@ def eurostat_trade_statistics(
 )
 def _fetch_eurostat_dataset(
     dataset_code: str,
-    api_config: Dict[str, Any],
+    api_config: dict[str, Any],
     context: AssetExecutionContext,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Fetch data from a specific Eurostat dataset."""
     base_url = api_config["base_url"]
     timeout = api_config["timeout"]
@@ -253,7 +249,7 @@ def _fetch_eurostat_dataset(
         raise ISAConfigurationError(f"API request failed for {dataset_code}: {e}")
 
 
-def _parse_eurostat_response(data: Dict[str, Any], dataset_code: str) -> List[Dict[str, Any]]:
+def _parse_eurostat_response(data: dict[str, Any], dataset_code: str) -> list[dict[str, Any]]:
     """Parse Eurostat JSON response into records."""
     records = []
 

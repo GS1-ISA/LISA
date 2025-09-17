@@ -14,18 +14,15 @@ Features:
 """
 
 import logging
-import time
-from typing import Dict, List, Any, Optional, Union, Iterator
-from datetime import datetime, timezone
-from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from queue import Queue
-import json
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any
 
-from .neo4j_gds_client import Neo4jGDSClient, get_gds_client
-from .neo4j_gds_schema import SupplyChainGraphSchema, NodeType, RelationshipType
-from .epcis_tracker import EPCISEvent, EPCISDocument, EventType, Action, BizStep
+from .epcis_tracker import EPCISEvent, EventType
 from .gs1_integration import GS1IntegrationManager
+from .neo4j_gds_client import Neo4jGDSClient, get_gds_client
+from .neo4j_gds_schema import RelationshipType, SupplyChainGraphSchema
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +49,8 @@ class IngestionStats:
     failed_events: int = 0
     total_nodes: int = 0
     total_relationships: int = 0
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     batches_processed: int = 0
     batches_failed: int = 0
 
@@ -87,10 +84,10 @@ class GS1EPCISGraphTransformer:
     including hierarchical product structures, supply chain flows, and temporal aspects.
     """
 
-    def __init__(self, schema: Optional[SupplyChainGraphSchema] = None):
+    def __init__(self, schema: SupplyChainGraphSchema | None = None):
         self.schema = schema or SupplyChainGraphSchema()
 
-    def transform_epcis_event(self, event: EPCISEvent) -> Dict[str, List[Dict[str, Any]]]:
+    def transform_epcis_event(self, event: EPCISEvent) -> dict[str, list[dict[str, Any]]]:
         """
         Transform a single EPCIS event into graph nodes and relationships.
 
@@ -161,7 +158,7 @@ class GS1EPCISGraphTransformer:
             "relationships": relationships
         }
 
-    def _transform_object_event(self, event: EPCISEvent, event_node) -> Dict[str, List]:
+    def _transform_object_event(self, event: EPCISEvent, event_node) -> dict[str, list]:
         """Transform Object Event to graph elements."""
         nodes = []
         relationships = []
@@ -190,7 +187,7 @@ class GS1EPCISGraphTransformer:
 
         return {"nodes": nodes, "relationships": relationships}
 
-    def _transform_aggregation_event(self, event: EPCISEvent, event_node) -> Dict[str, List]:
+    def _transform_aggregation_event(self, event: EPCISEvent, event_node) -> dict[str, list]:
         """Transform Aggregation Event to graph elements."""
         nodes = []
         relationships = []
@@ -247,7 +244,7 @@ class GS1EPCISGraphTransformer:
 
         return {"nodes": nodes, "relationships": relationships}
 
-    def _transform_transformation_event(self, event: EPCISEvent, event_node) -> Dict[str, List]:
+    def _transform_transformation_event(self, event: EPCISEvent, event_node) -> dict[str, list]:
         """Transform Transformation Event to graph elements."""
         nodes = []
         relationships = []
@@ -308,7 +305,7 @@ class GS1EPCISGraphTransformer:
 
         return {"nodes": nodes, "relationships": relationships}
 
-    def _extract_gtin_from_epc(self, epc: str) -> Optional[str]:
+    def _extract_gtin_from_epc(self, epc: str) -> str | None:
         """Extract GTIN from EPC if possible."""
         # EPC format: urn:epc:id:sgtin:CompanyPrefix.ItemReference.SerialNumber
         try:
@@ -333,8 +330,8 @@ class Neo4jGDSDataIngestion:
     with existing ISA GS1/EPCIS modules.
     """
 
-    def __init__(self, gds_client: Optional[Neo4jGDSClient] = None,
-                 config: Optional[IngestionConfig] = None):
+    def __init__(self, gds_client: Neo4jGDSClient | None = None,
+                 config: IngestionConfig | None = None):
         self.gds_client = gds_client or get_gds_client()
         self.config = config or IngestionConfig()
         self.transformer = GS1EPCISGraphTransformer()
@@ -356,8 +353,8 @@ class Neo4jGDSDataIngestion:
             except Exception as e:
                 logger.warning(f"Progress callback failed: {e}")
 
-    def ingest_epcis_events(self, events: List[EPCISEvent],
-                           organization_context: Optional[Dict[str, Any]] = None) -> IngestionStats:
+    def ingest_epcis_events(self, events: list[EPCISEvent],
+                           organization_context: dict[str, Any] | None = None) -> IngestionStats:
         """
         Ingest EPCIS events into Neo4j graph database.
 
@@ -404,7 +401,7 @@ class Neo4jGDSDataIngestion:
             self.stats.end_time = datetime.now(timezone.utc)
             raise
 
-    def ingest_from_gs1_integration(self, raw_events_data: List[Dict[str, Any]],
+    def ingest_from_gs1_integration(self, raw_events_data: list[dict[str, Any]],
                                    issuer: str, subject_id: str) -> IngestionStats:
         """
         Ingest data directly from GS1 integration pipeline.
@@ -436,7 +433,7 @@ class Neo4jGDSDataIngestion:
             logger.error(f"GS1 integration ingestion failed: {e}")
             raise
 
-    def _extract_events_from_gs1_result(self, gs1_result: Dict[str, Any]) -> List[EPCISEvent]:
+    def _extract_events_from_gs1_result(self, gs1_result: dict[str, Any]) -> list[EPCISEvent]:
         """Extract EPCIS events from GS1 integration result."""
         events = []
 
@@ -452,7 +449,7 @@ class Neo4jGDSDataIngestion:
 
         return events
 
-    def _create_batches(self, events: List[EPCISEvent]) -> List[List[EPCISEvent]]:
+    def _create_batches(self, events: list[EPCISEvent]) -> list[list[EPCISEvent]]:
         """Create batches of events for processing."""
         batches = []
         for i in range(0, len(events), self.config.batch_size):
@@ -460,8 +457,8 @@ class Neo4jGDSDataIngestion:
             batches.append(batch)
         return batches
 
-    def _process_batch(self, batch: List[EPCISEvent],
-                      organization_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _process_batch(self, batch: list[EPCISEvent],
+                      organization_context: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Process a batch of EPCIS events.
 
@@ -508,8 +505,8 @@ class Neo4jGDSDataIngestion:
 
         return batch_stats
 
-    def _batch_insert_graph_data(self, nodes: List[Dict[str, Any]],
-                                relationships: List[Dict[str, Any]]) -> tuple[int, int]:
+    def _batch_insert_graph_data(self, nodes: list[dict[str, Any]],
+                                relationships: list[dict[str, Any]]) -> tuple[int, int]:
         """
         Batch insert nodes and relationships into Neo4j.
 
@@ -527,7 +524,7 @@ class Neo4jGDSDataIngestion:
         if nodes:
             node_query = self._build_batch_node_query(nodes)
             try:
-                result = self.gds_client.execute_query(node_query, {"nodes": nodes})
+                self.gds_client.execute_query(node_query, {"nodes": nodes})
                 nodes_created = len(nodes)
                 logger.debug(f"Created {nodes_created} nodes")
             except Exception as e:
@@ -537,7 +534,7 @@ class Neo4jGDSDataIngestion:
         if relationships:
             relationship_query = self._build_batch_relationship_query(relationships)
             try:
-                result = self.gds_client.execute_query(relationship_query, {"relationships": relationships})
+                self.gds_client.execute_query(relationship_query, {"relationships": relationships})
                 relationships_created = len(relationships)
                 logger.debug(f"Created {relationships_created} relationships")
             except Exception as e:
@@ -546,7 +543,7 @@ class Neo4jGDSDataIngestion:
 
         return nodes_created, relationships_created
 
-    def _build_batch_node_query(self, nodes: List[Dict[str, Any]]) -> str:
+    def _build_batch_node_query(self, nodes: list[dict[str, Any]]) -> str:
         """Build Cypher query for batch node insertion."""
         # Group nodes by label for efficiency
         node_labels = {}
@@ -559,7 +556,7 @@ class Neo4jGDSDataIngestion:
         # Build query with UNION ALL for different node types
         query_parts = []
         for label, node_list in node_labels.items():
-            props = ", ".join([f"{k}: node.{k}" for k in node_list[0].keys()])
+            props = ", ".join([f"{k}: node.{k}" for k in node_list[0]])
             query_parts.append(f"""
                 UNWIND $nodes AS node
                 CREATE (n:{label} {{ {props} }})
@@ -567,7 +564,7 @@ class Neo4jGDSDataIngestion:
 
         return " UNION ALL ".join(query_parts)
 
-    def _build_batch_relationship_query(self, relationships: List[Dict[str, Any]]) -> str:
+    def _build_batch_relationship_query(self, relationships: list[dict[str, Any]]) -> str:
         """Build Cypher query for batch relationship insertion."""
         # This is a simplified version - actual implementation would be more complex
         # to handle different relationship types and properties
@@ -578,7 +575,7 @@ class Neo4jGDSDataIngestion:
             CREATE (from)-[:rel.type {properties: rel.properties}]->(to)
         """
 
-    def _update_stats(self, batch_stats: Dict[str, Any]) -> None:
+    def _update_stats(self, batch_stats: dict[str, Any]) -> None:
         """Update global statistics with batch results."""
         self.stats.processed_events += batch_stats["events_processed"]
         self.stats.failed_events += batch_stats["events_failed"]
@@ -594,7 +591,7 @@ class Neo4jGDSDataIngestion:
                 progress
             )
 
-    def validate_ingestion_data(self, events: List[EPCISEvent]) -> Dict[str, Any]:
+    def validate_ingestion_data(self, events: list[EPCISEvent]) -> dict[str, Any]:
         """
         Validate EPCIS events before ingestion.
 
@@ -640,7 +637,7 @@ class Neo4jGDSDataIngestion:
 
         return validation_results
 
-    def get_ingestion_status(self) -> Dict[str, Any]:
+    def get_ingestion_status(self) -> dict[str, Any]:
         """
         Get current ingestion status and statistics.
 
@@ -671,7 +668,7 @@ class Neo4jGDSDataIngestion:
 
 
 # Global ingestion instance
-_gds_ingestion: Optional[Neo4jGDSDataIngestion] = None
+_gds_ingestion: Neo4jGDSDataIngestion | None = None
 
 
 def get_gds_ingestion() -> Neo4jGDSDataIngestion:
@@ -684,8 +681,8 @@ def get_gds_ingestion() -> Neo4jGDSDataIngestion:
     return _gds_ingestion
 
 
-def initialize_gds_ingestion(gds_client: Optional[Neo4jGDSClient] = None,
-                           config: Optional[IngestionConfig] = None) -> Neo4jGDSDataIngestion:
+def initialize_gds_ingestion(gds_client: Neo4jGDSClient | None = None,
+                           config: IngestionConfig | None = None) -> Neo4jGDSDataIngestion:
     """
     Initialize the global GDS ingestion instance.
 

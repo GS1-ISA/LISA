@@ -12,31 +12,35 @@ This module provides:
 import os
 import secrets
 import string
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any
 
 import bcrypt
 import jwt
-from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from src.database_manager import get_db_manager, get_db
 
 # OAuth2/OIDC imports
 from authlib.integrations.base_client import OAuthError
 from authlib.integrations.httpx_client import AsyncOAuth2Client
-import httpx
+from fastapi import HTTPException
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
+
+from src.database_manager import get_db_manager
 
 # Encryption imports
-from src.encryption import EncryptedText, encrypt_sensitive_data, decrypt_sensitive_data
+from src.encryption import EncryptedText
+from src.shared.paths import DEFAULT_DATABASE_URL
 
 # Database setup with connection pooling
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./isa_auth.db")
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 db_manager = get_db_manager(DATABASE_URL)
 Base = declarative_base()
 
+# SessionLocal for backward compatibility with tests
+SessionLocal = db_manager._session_maker
 # JWT Configuration
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 JWT_ALGORITHM = "HS256"
@@ -126,18 +130,18 @@ class OAuth2User(Base):
 class UserBase(BaseModel):
     email: EmailStr
     username: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
     role: UserRole = UserRole.VIEWER
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
 
 class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = None
-    username: Optional[str] = None
-    full_name: Optional[str] = None
-    role: Optional[UserRole] = None
-    is_active: Optional[bool] = None
+    email: EmailStr | None = None
+    username: str | None = None
+    full_name: str | None = None
+    role: UserRole | None = None
+    is_active: bool | None = None
 
 class UserInDB(UserBase):
     id: int
@@ -145,15 +149,15 @@ class UserInDB(UserBase):
     is_verified: bool
     created_at: datetime
     updated_at: datetime
-    last_login: Optional[datetime]
+    last_login: datetime | None
 
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
 class TokenData(BaseModel):
-    username: Optional[str] = None
-    role: Optional[UserRole] = None
+    username: str | None = None
+    role: UserRole | None = None
 
 class LoginRequest(BaseModel):
     username: str
@@ -186,7 +190,7 @@ class OAuth2ProviderInDB(OAuth2ProviderBase):
 
 class OAuth2LoginRequest(BaseModel):
     provider: str
-    redirect_uri: Optional[str] = None
+    redirect_uri: str | None = None
 
 class OAuth2CallbackRequest(BaseModel):
     code: str
@@ -197,31 +201,31 @@ class OAuth2TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     provider: str
-    user_info: Dict[str, Any]
+    user_info: dict[str, Any]
 
 # Authentication functions
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt"""
     salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """Create a JWT access token"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-def verify_token(token: str) -> Optional[TokenData]:
+def verify_token(token: str) -> TokenData | None:
     """Verify and decode a JWT token"""
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
@@ -236,34 +240,34 @@ def verify_token(token: str) -> Optional[TokenData]:
 def generate_api_key() -> str:
     """Generate a secure API key"""
     alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for _ in range(32))
+    return "".join(secrets.choice(alphabet) for _ in range(32))
 
 def hash_api_key(api_key: str) -> str:
     """Hash an API key for storage"""
-    return bcrypt.hashpw(api_key.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    return bcrypt.hashpw(api_key.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 def verify_api_key(plain_key: str, hashed_key: str) -> bool:
     """Verify an API key against its hash"""
-    return bcrypt.checkpw(plain_key.encode('utf-8'), hashed_key.encode('utf-8'))
+    return bcrypt.checkpw(plain_key.encode("utf-8"), hashed_key.encode("utf-8"))
 
 
 # Database operations
 # get_db is now imported from database_manager
 
-def get_user_by_username(db: Session, username: str) -> Optional[User]:
+def get_user_by_username(db: Session, username: str) -> User | None:
     """Get user by username"""
     return db.query(User).filter(User.username == username).first()
 
-def get_user_by_email(db: Session, email: str) -> Optional[User]:
+def get_user_by_email(db: Session, email: str) -> User | None:
     """Get user by email"""
     return db.query(User).filter(User.email == email).first()
 
-def get_user_by_api_key(db: Session, api_key: str) -> Optional[User]:
+def get_user_by_api_key(db: Session, api_key: str) -> User | None:
     """Get user by API key"""
     # Find API key record
     api_key_record = db.query(APIKey).filter(
-        APIKey.is_active == True,
-        APIKey.expires_at > datetime.utcnow() if APIKey.expires_at else True
+        APIKey.is_active,
+        APIKey.expires_at > datetime.now(timezone.utc) if APIKey.expires_at else True
     ).first()
 
     if not api_key_record:
@@ -274,7 +278,7 @@ def get_user_by_api_key(db: Session, api_key: str) -> Optional[User]:
         return None
 
     # Update last used
-    api_key_record.last_used = datetime.utcnow()
+    api_key_record.last_used = datetime.now(timezone.utc)
     db.commit()
 
     # Return the user
@@ -311,7 +315,7 @@ def create_user(db: Session, user: UserCreate) -> User:
 
     return db_user
 
-def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
+def authenticate_user(db: Session, username: str, password: str) -> User | None:
     """Authenticate a user with username and password"""
     user = get_user_by_username(db, username)
     if not user:
@@ -320,7 +324,7 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
         return None
 
     # Update last login
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     db.commit()
 
     return user
@@ -328,7 +332,7 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
 def update_user_password(db: Session, user: User, new_password: str):
     """Update user password"""
     user.hashed_password = hash_password(new_password)
-    user.updated_at = datetime.utcnow()
+    user.updated_at = datetime.now(timezone.utc)
     db.commit()
 
 def check_user_permissions(user: User, required_role: UserRole) -> bool:
@@ -345,11 +349,11 @@ def check_user_permissions(user: User, required_role: UserRole) -> bool:
     return user_level >= required_level
 
 # OAuth2/OIDC functions
-def get_oauth2_provider_by_name(db: Session, name: str) -> Optional[OAuth2Provider]:
+def get_oauth2_provider_by_name(db: Session, name: str) -> OAuth2Provider | None:
     """Get OAuth2 provider by name"""
     return db.query(OAuth2Provider).filter(
         OAuth2Provider.name == name,
-        OAuth2Provider.is_active == True
+        OAuth2Provider.is_active
     ).first()
 
 def create_oauth2_provider(db: Session, provider: OAuth2ProviderCreate) -> OAuth2Provider:
@@ -369,7 +373,7 @@ def create_oauth2_provider(db: Session, provider: OAuth2ProviderCreate) -> OAuth
     db.refresh(db_provider)
     return db_provider
 
-def get_oauth2_user_association(db: Session, user_id: int, provider_id: int) -> Optional[OAuth2User]:
+def get_oauth2_user_association(db: Session, user_id: int, provider_id: int) -> OAuth2User | None:
     """Get OAuth2 user association"""
     return db.query(OAuth2User).filter(
         OAuth2User.user_id == user_id,
@@ -419,7 +423,7 @@ def update_oauth2_tokens(
     if token_expires_at:
         oauth_user.token_expires_at = token_expires_at
 
-    oauth_user.updated_at = datetime.utcnow()
+    oauth_user.updated_at = datetime.now(timezone.utc)
     db.commit()
 
 async def get_oauth2_client(provider: OAuth2Provider) -> AsyncOAuth2Client:
@@ -451,7 +455,7 @@ async def oauth2_exchange_code(
     provider: OAuth2Provider,
     code: str,
     redirect_uri: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Exchange authorization code for tokens"""
     client = await get_oauth2_client(provider)
 
@@ -464,7 +468,7 @@ async def oauth2_exchange_code(
     except OAuthError as e:
         raise HTTPException(status_code=400, detail=f"OAuth2 token exchange failed: {str(e)}")
 
-async def oauth2_get_user_info(provider: OAuth2Provider, access_token: str) -> Dict[str, Any]:
+async def oauth2_get_user_info(provider: OAuth2Provider, access_token: str) -> dict[str, Any]:
     """Get user info from OAuth2 provider"""
     client = await get_oauth2_client(provider)
 
@@ -478,7 +482,7 @@ def find_or_create_user_from_oauth2(
     db: Session,
     provider: OAuth2Provider,
     provider_user_id: str,
-    user_info: Dict[str, Any]
+    user_info: dict[str, Any]
 ) -> User:
     """Find existing user or create new one from OAuth2 user info"""
     # Check if user already exists with this OAuth2 association

@@ -11,16 +11,18 @@ This serves as the main integration point for ISA's advanced GS1 traceability fe
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Union
-from .config.gs1_config import get_gs1_config
-from pathlib import Path
-import json
 from datetime import datetime, timezone
+from typing import Any
 
-from .epcis_tracker import EPCISTracker, EPCISEvent, EPCISDocument
-from .webvoc_loader import GS1WebVocLoader
-from .end_to_end_traceability import EndToEndTraceabilityManager, TraceabilityCredential, ProofOfConnectedness
+from .config.gs1_config import get_gs1_config
+from .end_to_end_traceability import (
+    EndToEndTraceabilityManager,
+    ProofOfConnectedness,
+    TraceabilityCredential,
+)
+from .epcis_tracker import EPCISDocument, EPCISEvent, EPCISTracker
 from .vc_data_model_verifier import GS1VCDataModelVerifier, ValidationResult, VCType
+from .webvoc_loader import GS1WebVocLoader
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +30,10 @@ class GS1IntegrationManager:
     """Main manager for all GS1 integration capabilities in ISA."""
 
     def __init__(self,
-                 epcis_tracker: Optional[EPCISTracker] = None,
-                 webvoc_loader: Optional[GS1WebVocLoader] = None,
-                 traceability_manager: Optional[EndToEndTraceabilityManager] = None,
-                 vc_verifier: Optional[GS1VCDataModelVerifier] = None):
+                 epcis_tracker: EPCISTracker | None = None,
+                 webvoc_loader: GS1WebVocLoader | None = None,
+                 traceability_manager: EndToEndTraceabilityManager | None = None,
+                 vc_verifier: GS1VCDataModelVerifier | None = None):
         """Initialize GS1 integration components."""
         self.config = get_gs1_config()
 
@@ -95,7 +97,7 @@ class GS1IntegrationManager:
             logger.error(f"Failed to initialize GS1 capabilities: {e}")
             return False
 
-    def get_capabilities_status(self) -> Dict[str, bool]:
+    def get_capabilities_status(self) -> dict[str, bool]:
         """Get the status of all GS1 capabilities."""
         return self.capabilities_status.copy()
 
@@ -104,7 +106,7 @@ class GS1IntegrationManager:
                           event_type: str,
                           action: str,
                           biz_step: str,
-                          epc_list: Optional[List[str]] = None,
+                          epc_list: list[str] | None = None,
                           **kwargs) -> EPCISEvent:
         """Create a new EPCIS event."""
         return self.epcis_tracker.create_event(
@@ -115,7 +117,7 @@ class GS1IntegrationManager:
             **kwargs
         )
 
-    def create_epcis_document(self, events: List[EPCISEvent], **kwargs) -> EPCISDocument:
+    def create_epcis_document(self, events: list[EPCISEvent], **kwargs) -> EPCISDocument:
         """Create an EPCIS document from events."""
         return self.epcis_tracker.create_document(events, **kwargs)
 
@@ -123,26 +125,26 @@ class GS1IntegrationManager:
         """Serialize EPCIS document to specified format."""
         return self.epcis_tracker.serialize_document(document, format)
 
-    def parse_epcis_document(self, data: Union[str, Dict], format: str = "json") -> EPCISDocument:
+    def parse_epcis_document(self, data: str | dict, format: str = "json") -> EPCISDocument:
         """Parse EPCIS document from data."""
         return self.epcis_tracker.parse_document(data, format)
 
     # WebVoc Integration Methods
-    def get_webvoc_class(self, class_name: str) -> Optional[Dict[str, Any]]:
+    def get_webvoc_class(self, class_name: str) -> dict[str, Any] | None:
         """Get GS1 Web Vocabulary class definition."""
         if not self.capabilities_status["webvoc"]:
             logger.warning("WebVoc not initialized")
             return None
         return self.webvoc_loader.get_class_definition(class_name)
 
-    def get_webvoc_property(self, property_name: str) -> Optional[Dict[str, Any]]:
+    def get_webvoc_property(self, property_name: str) -> dict[str, Any] | None:
         """Get GS1 Web Vocabulary property definition."""
         if not self.capabilities_status["webvoc"]:
             logger.warning("WebVoc not initialized")
             return None
         return self.webvoc_loader.get_property_definition(property_name)
 
-    def create_semantic_document(self, data: Dict[str, Any], context: Optional[List[str]] = None) -> Dict[str, Any]:
+    def create_semantic_document(self, data: dict[str, Any], context: list[str] | None = None) -> dict[str, Any]:
         """Create a semantic JSON-LD document using GS1 Web Vocabulary."""
         if not self.capabilities_status["webvoc"]:
             logger.warning("WebVoc not initialized")
@@ -157,7 +159,7 @@ class GS1IntegrationManager:
 
     # End-to-End Traceability Methods
     def create_traceability_credential(self,
-                                     events: List[EPCISEvent],
+                                     events: list[EPCISEvent],
                                      issuer: str,
                                      subject_id: str,
                                      **kwargs) -> TraceabilityCredential:
@@ -170,7 +172,7 @@ class GS1IntegrationManager:
         )
 
     def create_proof_of_connectedness(self,
-                                    credentials: List[TraceabilityCredential],
+                                    credentials: list[TraceabilityCredential],
                                     issuer: str) -> ProofOfConnectedness:
         """Create a proof of connectedness from traceability credentials."""
         if not self.capabilities_status["traceability"]:
@@ -187,7 +189,7 @@ class GS1IntegrationManager:
         return self.traceability_manager.verify_traceability_chain(proof)
 
     # VC Verification Methods
-    def validate_gs1_vc(self, vc_payload: Dict[str, Any]) -> ValidationResult:
+    def validate_gs1_vc(self, vc_payload: dict[str, Any]) -> ValidationResult:
         """Validate a GS1 VC payload against official data models."""
         if not self.capabilities_status["vc_verification"]:
             logger.warning("VC verification not initialized")
@@ -195,7 +197,7 @@ class GS1IntegrationManager:
 
         return self.vc_verifier.validate_vc(vc_payload)
 
-    def get_supported_vc_types(self) -> List[VCType]:
+    def get_supported_vc_types(self) -> list[VCType]:
         """Get list of supported GS1 VC types."""
         if not self.capabilities_status["vc_verification"]:
             return []
@@ -203,9 +205,9 @@ class GS1IntegrationManager:
 
     # Unified Processing Pipeline
     def process_supply_chain_data(self,
-                                raw_events_data: List[Dict[str, Any]],
+                                raw_events_data: list[dict[str, Any]],
                                 issuer: str,
-                                subject_id: str) -> Dict[str, Any]:
+                                subject_id: str) -> dict[str, Any]:
         """
         Unified pipeline for processing supply chain data through all GS1 capabilities.
 
@@ -300,7 +302,7 @@ class GS1IntegrationManager:
             logger.error(f"Failed to process supply chain data: {e}")
             raise
 
-    def get_gs1_capabilities_summary(self) -> Dict[str, Any]:
+    def get_gs1_capabilities_summary(self) -> dict[str, Any]:
         """Get a comprehensive summary of GS1 capabilities and their status."""
         return {
             "initialized": self._initialized,

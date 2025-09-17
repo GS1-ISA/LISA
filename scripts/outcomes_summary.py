@@ -4,7 +4,10 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 OUT_DIR = Path("agent/outcomes")
 REPORT = Path("docs/audit/agent_outcomes_summary.md")

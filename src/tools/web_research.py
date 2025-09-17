@@ -51,7 +51,7 @@ class WebResearchTool:
 
         if cache_path.exists():
             logging.info(f"Cache hit for search query: {query}")
-            with open(cache_path, "r") as f:
+            with open(cache_path) as f:
                 return json.load(f)
 
         if not self._is_live_research_allowed():
@@ -87,7 +87,7 @@ class WebResearchTool:
 
         if cache_path.exists():
             logging.info(f"Cache hit for URL: {url}")
-            with open(cache_path, "r") as f:
+            with open(cache_path) as f:
                 return f.read()
 
         if not self._is_live_research_allowed():

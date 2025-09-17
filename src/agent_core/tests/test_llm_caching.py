@@ -1,8 +1,9 @@
-import pytest
 import json
-import time
-from unittest.mock import Mock, patch, MagicMock
-from src.agent_core.llm_client import CachedOpenRouterClient, OpenRouterFreeClient
+from unittest.mock import Mock, patch
+
+import pytest
+
+from src.agent_core.llm_client import CachedOpenRouterClient
 
 
 class TestCachedOpenRouterClient:
@@ -11,7 +12,7 @@ class TestCachedOpenRouterClient:
         """Setup test fixtures."""
         self.redis_mock = Mock()
         self.client = CachedOpenRouterClient(
-            redis_host='localhost',
+            redis_host="localhost",
             redis_port=6379,
             redis_db=0,
             ttl_seconds=3600
@@ -42,9 +43,9 @@ class TestCachedOpenRouterClient:
         """Test cache hit scenario."""
         messages = [{"role": "user", "content": "Test query"}]
         cached_response = {
-            'content': 'Cached response',
-            'model': 'test-model',
-            'usage': {'total_tokens': 50}
+            "content": "Cached response",
+            "model": "test-model",
+            "usage": {"total_tokens": 50}
         }
 
         # Mock Redis get to return cached data
@@ -64,15 +65,15 @@ class TestCachedOpenRouterClient:
         """Test cache miss scenario."""
         messages = [{"role": "user", "content": "Test query"}]
         api_response = {
-            'content': 'API response',
-            'model': 'test-model',
-            'usage': {'total_tokens': 50}
+            "content": "API response",
+            "model": "test-model",
+            "usage": {"total_tokens": 50}
         }
 
         # Mock Redis get to return None (cache miss)
         self.redis_mock.get.return_value = None
         # Mock the underlying client
-        with patch.object(self.client.underlying_client, 'chat_completion', return_value=api_response) as mock_chat:
+        with patch.object(self.client.underlying_client, "chat_completion", return_value=api_response) as mock_chat:
             result = self.client.chat_completion(messages)
 
             # Should return API response
@@ -90,9 +91,9 @@ class TestCachedOpenRouterClient:
         """Test cache error handling."""
         messages = [{"role": "user", "content": "Test query"}]
         api_response = {
-            'content': 'API response',
-            'model': 'test-model',
-            'usage': {'total_tokens': 50}
+            "content": "API response",
+            "model": "test-model",
+            "usage": {"total_tokens": 50}
         }
 
         # Mock Redis operations to fail
@@ -100,7 +101,7 @@ class TestCachedOpenRouterClient:
         self.redis_mock.setex.side_effect = Exception("Redis write error")
 
         # Mock the underlying client
-        with patch.object(self.client.underlying_client, 'chat_completion', return_value=api_response) as mock_chat:
+        with patch.object(self.client.underlying_client, "chat_completion", return_value=api_response) as mock_chat:
             result = self.client.chat_completion(messages)
 
             # Should still work despite cache errors
@@ -115,10 +116,10 @@ class TestCachedOpenRouterClient:
 
         stats = self.client._get_cache_stats()
 
-        assert stats['hits'] == 5
-        assert stats['misses'] == 3
-        assert stats['total'] == 8
-        assert stats['hit_rate_percent'] == 62.5
+        assert stats["hits"] == 5
+        assert stats["misses"] == 3
+        assert stats["total"] == 8
+        assert stats["hit_rate_percent"] == 62.5
 
     def test_cache_stats_zero_requests(self):
         """Test cache stats with zero requests."""
@@ -127,10 +128,10 @@ class TestCachedOpenRouterClient:
 
         stats = self.client._get_cache_stats()
 
-        assert stats['hits'] == 0
-        assert stats['misses'] == 0
-        assert stats['total'] == 0
-        assert stats['hit_rate_percent'] == 0
+        assert stats["hits"] == 0
+        assert stats["misses"] == 0
+        assert stats["total"] == 0
+        assert stats["hit_rate_percent"] == 0
 
     def test_clear_cache(self):
         """Test cache clearing."""
@@ -152,14 +153,14 @@ class TestCachedOpenRouterClient:
         assert result == 0
         self.redis_mock.delete.assert_not_called()
 
-    @patch('src.agent_core.llm_client.CachedOpenRouterClient.chat_completion')
+    @patch("src.agent_core.llm_client.CachedOpenRouterClient.chat_completion")
     def test_async_chat_completion_cache_hit(self, mock_sync_chat):
         """Test async cache hit."""
         messages = [{"role": "user", "content": "Test query"}]
         cached_response = {
-            'content': 'Cached async response',
-            'model': 'test-model',
-            'usage': {'total_tokens': 50}
+            "content": "Cached async response",
+            "model": "test-model",
+            "usage": {"total_tokens": 50}
         }
 
         # Mock Redis get to return cached data
@@ -172,21 +173,21 @@ class TestCachedOpenRouterClient:
         assert result == cached_response
         assert self.client.cache_hits == 1
 
-    @patch('src.agent_core.llm_client.CachedOpenRouterClient.chat_completion')
+    @patch("src.agent_core.llm_client.CachedOpenRouterClient.chat_completion")
     def test_async_chat_completion_cache_miss(self, mock_sync_chat):
         """Test async cache miss."""
         messages = [{"role": "user", "content": "Test query"}]
         api_response = {
-            'content': 'Async API response',
-            'model': 'test-model',
-            'usage': {'total_tokens': 50}
+            "content": "Async API response",
+            "model": "test-model",
+            "usage": {"total_tokens": 50}
         }
 
         # Mock Redis get to return None (cache miss)
         self.redis_mock.get.return_value = None
 
         # Mock the underlying async client
-        with patch.object(self.client.underlying_client, 'async_chat_completion', return_value=api_response) as mock_async_chat:
+        with patch.object(self.client.underlying_client, "async_chat_completion", return_value=api_response) as mock_async_chat:
             import asyncio
             result = asyncio.run(self.client.async_chat_completion(messages))
 
@@ -204,26 +205,26 @@ class TestCachedOpenRouterClient:
 
         stats = self.client.get_cache_stats()
 
-        assert stats['hits'] == 10
-        assert stats['misses'] == 5
-        assert stats['total'] == 15
-        assert stats['hit_rate_percent'] == 66.67
+        assert stats["hits"] == 10
+        assert stats["misses"] == 5
+        assert stats["total"] == 15
+        assert stats["hit_rate_percent"] == 66.67
 
     def test_delegated_methods(self):
         """Test methods delegated to underlying client."""
-        with patch.object(self.client.underlying_client, 'get_available_free_models', return_value=['model1', 'model2']) as mock_get_models:
+        with patch.object(self.client.underlying_client, "get_available_free_models", return_value=["model1", "model2"]) as mock_get_models:
             result = self.client.get_available_free_models()
-            assert result == ['model1', 'model2']
+            assert result == ["model1", "model2"]
             mock_get_models.assert_called_once()
 
-        with patch.object(self.client.underlying_client, 'get_model_rankings', return_value={'best': 'model1'}) as mock_get_rankings:
+        with patch.object(self.client.underlying_client, "get_model_rankings", return_value={"best": "model1"}) as mock_get_rankings:
             result = self.client.get_model_rankings()
-            assert result == {'best': 'model1'}
+            assert result == {"best": "model1"}
             mock_get_rankings.assert_called_once()
 
-        with patch.object(self.client.underlying_client, 'get_optimizer_stats', return_value={'stats': 'data'}) as mock_get_stats:
+        with patch.object(self.client.underlying_client, "get_optimizer_stats", return_value={"stats": "data"}) as mock_get_stats:
             result = self.client.get_optimizer_stats()
-            assert result == {'stats': 'data'}
+            assert result == {"stats": "data"}
             mock_get_stats.assert_called_once()
 
     def test_cache_ttl_configuration(self):
@@ -239,7 +240,7 @@ class TestCachedOpenRouterClient:
         """Test cache size limits (though this is more of an internal Redis concern)."""
         # This would be tested more thoroughly in integration tests
         # Here we just verify the attribute exists
-        assert hasattr(self.client, 'cache_size')
+        assert hasattr(self.client, "cache_size")
 
     def test_isa_specific_caching(self):
         """Test caching with ISA-specific queries."""
@@ -250,11 +251,11 @@ class TestCachedOpenRouterClient:
         ]
 
         # Mock cache miss followed by hits
-        self.redis_mock.get.side_effect = [None, 'cached_data', 'cached_data']
+        self.redis_mock.get.side_effect = [None, "cached_data", "cached_data"]
 
-        api_response = {'content': 'ISA analysis', 'model': 'test-model'}
+        api_response = {"content": "ISA analysis", "model": "test-model"}
 
-        with patch.object(self.client.underlying_client, 'chat_completion', return_value=api_response):
+        with patch.object(self.client.underlying_client, "chat_completion", return_value=api_response):
             # First call - cache miss
             result1 = self.client.chat_completion(isa_queries[0])
             assert result1 == api_response
@@ -262,7 +263,7 @@ class TestCachedOpenRouterClient:
 
             # Second call with same query - should hit cache
             result2 = self.client.chat_completion(isa_queries[0])
-            assert result2 == 'cached_data'  # JSON parsed
+            assert result2 == "cached_data"  # JSON parsed
             assert self.client.cache_hits == 1
 
     def test_cache_key_uniqueness(self):
@@ -294,8 +295,8 @@ class TestCachedOpenRouterClient:
 
         # Mock cache misses
         self.redis_mock.get.return_value = None
-        api_response = {'content': 'Response', 'model': 'test'}
-        with patch.object(self.client.underlying_client, 'chat_completion', return_value=api_response):
+        api_response = {"content": "Response", "model": "test"}
+        with patch.object(self.client.underlying_client, "chat_completion", return_value=api_response):
             # Simulate concurrent requests
             threads = []
             for i in range(5):
@@ -318,8 +319,8 @@ class TestCachedOpenRouterClient:
         # Test TTL expiration (simulated)
         self.redis_mock.get.return_value = None  # Simulate expired entry
 
-        api_response = {'content': 'Fresh response'}
-        with patch.object(self.client.underlying_client, 'chat_completion', return_value=api_response):
+        api_response = {"content": "Fresh response"}
+        with patch.object(self.client.underlying_client, "chat_completion", return_value=api_response):
             result = self.client.chat_completion(messages)
             assert result == api_response
             assert self.client.cache_misses == 1

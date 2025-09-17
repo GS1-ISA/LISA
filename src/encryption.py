@@ -9,21 +9,20 @@ This module provides:
 - Database field encryption decorators
 """
 
-import os
 import base64
-from typing import Optional, Any
+import os
+
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from sqlalchemy import Column, String, Text
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property
 
 
 class EncryptionService:
     """Service for encrypting/decrypting sensitive data"""
 
-    def __init__(self, key: Optional[str] = None):
+    def __init__(self, key: str | None = None):
         """Initialize encryption service with key"""
         self.key = key or os.getenv("ENCRYPTION_KEY", "your-encryption-key-change-in-production")
         self._fernet = None
@@ -33,7 +32,7 @@ class EncryptionService:
         if self._fernet is None:
             # Derive encryption key from password
             password = self.key.encode()
-            salt = b'static_salt_for_db_encryption'  # In production, use a proper salt per deployment
+            salt = b"static_salt_for_db_encryption"  # In production, use a proper salt per deployment
             kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
                 length=32,
@@ -85,7 +84,7 @@ def get_encryption_service() -> EncryptionService:
 class EncryptedColumn:
     """SQLAlchemy column type for encrypted data"""
 
-    def __init__(self, column_type=Text, encryption_service: Optional[EncryptionService] = None):
+    def __init__(self, column_type=Text, encryption_service: EncryptionService | None = None):
         self.column_type = column_type
         self.encryption_service = encryption_service or get_encryption_service()
 
@@ -98,7 +97,7 @@ class EncryptedColumn:
         def getter(instance):
             if instance is None:
                 return None
-            encrypted_value = getattr(instance, f'_{self.name}_encrypted')
+            encrypted_value = getattr(instance, f"_{self.name}_encrypted")
             if encrypted_value:
                 try:
                     return self.encryption_service.decrypt(encrypted_value)
@@ -112,7 +111,7 @@ class EncryptedColumn:
                 encrypted_value = None
             else:
                 encrypted_value = self.encryption_service.encrypt(str(value))
-            setattr(instance, f'_{self.name}_encrypted', encrypted_value)
+            setattr(instance, f"_{self.name}_encrypted", encrypted_value)
 
         # Create hybrid property
         return column_property(

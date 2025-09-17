@@ -6,18 +6,16 @@ all components of the ISA SuperApp system.
 """
 
 import asyncio
-import logging
 import signal
 import sys
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .agent_system import AgentOrchestrator
 from .api import APIServer
 from .config import ConfigManager, ISAConfig, get_config
-from .exceptions import ISAConfigurationError, ISAError, ISANotFoundError
+from .exceptions import ISAConfigurationError, ISAError
 from .logger import get_logger, setup_logging
-from .models import Document, SearchQuery, Task, TaskStatus
+from .models import Document, SearchQuery, Task
 from .vector_store import VectorStoreManager
 from .workflow import WorkflowEngine
 
@@ -25,7 +23,7 @@ from .workflow import WorkflowEngine
 class ISASuperApp:
     """Main ISA SuperApp application class."""
 
-    def __init__(self, config_path: Optional[str] = None) -> None:
+    def __init__(self, config_path: str | None = None) -> None:
         """
         Initialize ISA SuperApp.
 
@@ -34,14 +32,14 @@ class ISASuperApp:
         """
         self.logger = get_logger("isa_superapp")
         self.config_path = config_path
-        self.config: Optional[ISAConfig] = None
-        self.config_manager: Optional[ConfigManager] = None
+        self.config: ISAConfig | None = None
+        self.config_manager: ConfigManager | None = None
 
         # Core components
-        self.vector_store: Optional[VectorStoreManager] = None
-        self.agent_orchestrator: Optional[AgentOrchestrator] = None
-        self.workflow_engine: Optional[WorkflowEngine] = None
-        self.api_server: Optional[APIServer] = None
+        self.vector_store: VectorStoreManager | None = None
+        self.agent_orchestrator: AgentOrchestrator | None = None
+        self.workflow_engine: WorkflowEngine | None = None
+        self.api_server: APIServer | None = None
 
         # Application state
         self.is_initialized = False
@@ -276,7 +274,7 @@ class ISASuperApp:
         return await self.agent_orchestrator.submit_task(task)
 
     async def execute_workflow(
-        self, workflow_name: str, input_data: Dict[str, Any]
+        self, workflow_name: str, input_data: dict[str, Any]
     ) -> str:
         """
         Execute a workflow.
@@ -296,7 +294,7 @@ class ISASuperApp:
 
         return await self.workflow_engine.execute_workflow(workflow_name, input_data)
 
-    async def search_documents(self, query: SearchQuery) -> List[Document]:
+    async def search_documents(self, query: SearchQuery) -> list[Document]:
         """
         Search documents in the vector store.
 
@@ -332,7 +330,7 @@ class ISASuperApp:
 
         return await self.vector_store.index_document(document)
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get application status.
 
@@ -364,7 +362,7 @@ class ISASuperApp:
 
         return status
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform health check.
 
@@ -417,7 +415,7 @@ class ISASuperApp:
 
 
 # Application factory
-async def create_app(config_path: Optional[str] = None) -> ISASuperApp:
+async def create_app(config_path: str | None = None) -> ISASuperApp:
     """
     Create ISA SuperApp instance.
 
@@ -432,7 +430,7 @@ async def create_app(config_path: Optional[str] = None) -> ISASuperApp:
     return app
 
 
-async def run_app(config_path: Optional[str] = None) -> None:
+async def run_app(config_path: str | None = None) -> None:
     """
     Run ISA SuperApp.
 

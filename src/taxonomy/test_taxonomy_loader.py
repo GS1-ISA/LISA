@@ -10,13 +10,15 @@ This script tests the complete taxonomy loading pipeline including:
 
 import json
 import os
+import sys
 import tempfile
-from pathlib import Path
 from datetime import datetime
 
-from .efrag_esrs_loader import EFRAGESRSTaxonomyLoader, ESRSTaxonomy, TaxonomyElement, TaxonomyTable
-from .models import create_taxonomy_tables
-from ..database_manager import get_db_manager
+from src.database_manager import get_db_manager
+
+from .efrag_esrs_loader import (
+    EFRAGESRSTaxonomyLoader,
+)
 
 
 def create_sample_taxonomy_json():
@@ -82,7 +84,7 @@ def test_taxonomy_loading():
     # Create sample taxonomy file
     sample_data = create_sample_taxonomy_json()
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(sample_data, f, indent=2)
         temp_file_path = f.name
 
@@ -123,7 +125,7 @@ def test_taxonomy_loading():
         print(f"   ✓ Supported formats: {stats.get('supported_formats')}")
         print(f"   ✓ Database integration: {stats.get('database_integration')}")
 
-        if stats.get('database_integration'):
+        if stats.get("database_integration"):
             print(f"   ✓ Total taxonomies: {stats.get('total_taxonomies', 0)}")
             print(f"   ✓ Total elements: {stats.get('total_elements', 0)}")
             print(f"   ✓ Total tables: {stats.get('total_tables', 0)}")
@@ -197,4 +199,4 @@ if __name__ == "__main__":
         print("\nThe EFRAG ESRS taxonomy loader is ready for production use.")
     else:
         print("\n❌ Some tests failed. Please review the implementation.")
-        exit(1)
+        sys.exit(1)

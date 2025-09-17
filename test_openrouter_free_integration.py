@@ -4,8 +4,8 @@ Test script for OpenRouter free model integration in ISA_D.
 This script tests all the free models and ISA-specific use cases.
 """
 
-import os
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from src.agent_core.llm_client import get_openrouter_free_client, test_free_models
+
 
 async def test_isa_compliance_scenarios():
     """Test ISA-specific compliance scenarios with free models."""
@@ -54,19 +55,19 @@ async def test_isa_compliance_scenarios():
         print(f"Query: {test_case['query'][:80]}...")
 
         try:
-            messages = [{"role": "user", "content": test_case['query']}]
+            messages = [{"role": "user", "content": test_case["query"]}]
             result = client.chat_completion(messages)
 
             print(f"✅ Model Used: {result['model_used']}")
             print(f"📊 Tokens: {result['usage']['total_tokens']}")
-            print(f"💰 Cost: FREE")
+            print("💰 Cost: FREE")
             print(f"📝 Response Preview: {result['content'][:150]}...")
 
             # Verify model selection logic
-            if test_case['expected_model'] in result['model_used'].lower():
+            if test_case["expected_model"] in result["model_used"].lower():
                 print(f"✅ Correct model selected for {test_case['expected_model']} scenario")
             else:
-                print(f"⚠️  Model selection may need optimization")
+                print("⚠️  Model selection may need optimization")
 
         except Exception as e:
             print(f"❌ Error: {e}")

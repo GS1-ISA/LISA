@@ -1,13 +1,11 @@
 import hashlib
-import json
-import time
-from pathlib import Path
-from typing import Any, Optional
-import sys
 import os
+import sys
+from pathlib import Path
+from typing import Any
 
 # Add the src directory to the path to import MultiLevelCache
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 from src.cache.multi_level_cache import get_multilevel_cache
 
 
@@ -23,18 +21,18 @@ class DiskCache:
         self.multilevel_cache = get_multilevel_cache()
 
     def _get_cache_key(
-        self, query: str, libs: list[str], version: Optional[str]
+        self, query: str, libs: list[str], version: str | None
     ) -> str:
         """Creates a deterministic cache key."""
         key_string = f"{query}|{'|'.join(sorted(libs))}|{version or ''}"
         return hashlib.sha256(key_string.encode()).hexdigest()
 
-    def get(self, query: str, libs: list[str], version: Optional[str]) -> Optional[Any]:
+    def get(self, query: str, libs: list[str], version: str | None) -> Any | None:
         """Retrieves an item from the multi-level cache."""
         key = self._get_cache_key(query, libs, version)
         return self.multilevel_cache.get(f"docs:{key}")
 
-    def set(self, query: str, libs: list[str], version: Optional[str], payload: Any):
+    def set(self, query: str, libs: list[str], version: str | None, payload: Any):
         """Saves an item to the multi-level cache."""
         key = self._get_cache_key(query, libs, version)
         self.multilevel_cache.set(f"docs:{key}", payload)

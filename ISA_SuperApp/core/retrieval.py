@@ -7,17 +7,13 @@ and hybrid retrieval strategies.
 
 import abc
 import asyncio
-import json
-import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
-import numpy as np
-
-from .embedding import BaseEmbeddingProvider, EmbeddingFactory
-from .exceptions import ISAConfigurationError, ISANotFoundError, ISAValidationError
+from .embedding import BaseEmbeddingProvider, EmbeddingConfig, EmbeddingProviderFactory
+from .exceptions import ISAConfigurationError, ISAValidationError
 from .logger import get_logger
-from .models import Document, RetrievalStrategy, SearchResult, Vector
+from .models import Document, SearchResult, Vector
 from .vector_store import BaseVectorStore, VectorStoreConfig, VectorStoreFactory
 
 
@@ -123,9 +119,9 @@ class BaseRetrievalStrategy(abc.ABC):
     async def retrieve(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[SearchResult]:
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[SearchResult]:
         """
         Retrieve documents for a query.
 
@@ -142,10 +138,10 @@ class BaseRetrievalStrategy(abc.ABC):
     @abc.abstractmethod
     async def retrieve_batch(
         self,
-        queries: List[str],
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[List[SearchResult]]:
+        queries: list[str],
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[list[SearchResult]]:
         """
         Retrieve documents for multiple queries.
 
@@ -168,7 +164,7 @@ class BaseRetrievalStrategy(abc.ABC):
                 "Query too long (max 10000 characters)", field="query"
             )
 
-    def _validate_queries(self, queries: List[str]) -> None:
+    def _validate_queries(self, queries: list[str]) -> None:
         """Validate queries input."""
         if not queries:
             raise ISAValidationError("Queries list cannot be empty", field="queries")
@@ -183,8 +179,8 @@ class BaseRetrievalStrategy(abc.ABC):
             raise ISAValidationError("top_k cannot be greater than 1000", field="top_k")
 
     def _filter_by_similarity(
-        self, results: List[SearchResult], threshold: float
-    ) -> List[SearchResult]:
+        self, results: list[SearchResult], threshold: float
+    ) -> list[SearchResult]:
         """Filter results by similarity threshold."""
         filtered = []
         for result in results:
@@ -193,8 +189,8 @@ class BaseRetrievalStrategy(abc.ABC):
         return filtered
 
     def _rerank_results(
-        self, query: str, results: List[SearchResult], top_k: int
-    ) -> List[SearchResult]:
+        self, query: str, results: list[SearchResult], top_k: int
+    ) -> list[SearchResult]:
         """Rerank results using query relevance."""
         if not self.config.enable_reranking or len(results) <= 1:
             return results[:top_k]
@@ -240,8 +236,8 @@ class DenseRetrievalStrategy(BaseRetrievalStrategy):
             config: Retrieval configuration
         """
         super().__init__(config)
-        self.vector_store: Optional[BaseVectorStore] = None
-        self.embedding_provider: Optional[BaseEmbeddingProvider] = None
+        self.vector_store: BaseVectorStore | None = None
+        self.embedding_provider: BaseEmbeddingProvider | None = None
 
     async def initialize(
         self, vector_store: BaseVectorStore, embedding_provider: BaseEmbeddingProvider
@@ -255,9 +251,9 @@ class DenseRetrievalStrategy(BaseRetrievalStrategy):
     async def retrieve(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[SearchResult]:
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[SearchResult]:
         """Retrieve documents using dense embeddings."""
         self._validate_query(query)
 
@@ -294,10 +290,10 @@ class DenseRetrievalStrategy(BaseRetrievalStrategy):
 
     async def retrieve_batch(
         self,
-        queries: List[str],
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[List[SearchResult]]:
+        queries: list[str],
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[list[SearchResult]]:
         """Retrieve documents for multiple queries."""
         self._validate_queries(queries)
 
@@ -327,8 +323,8 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
             config: Retrieval configuration
         """
         super().__init__(config)
-        self.vector_store: Optional[BaseVectorStore] = None
-        self.embedding_provider: Optional[BaseEmbeddingProvider] = None
+        self.vector_store: BaseVectorStore | None = None
+        self.embedding_provider: BaseEmbeddingProvider | None = None
 
     async def initialize(
         self, vector_store: BaseVectorStore, embedding_provider: BaseEmbeddingProvider
@@ -342,9 +338,9 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
     async def retrieve(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[SearchResult]:
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[SearchResult]:
         """Retrieve documents using hybrid approach."""
         self._validate_query(query)
 
@@ -369,10 +365,10 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
 
     async def retrieve_batch(
         self,
-        queries: List[str],
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[List[SearchResult]]:
+        queries: list[str],
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[list[SearchResult]]:
         """Retrieve documents for multiple queries."""
         self._validate_queries(queries)
 
@@ -391,8 +387,8 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
         return results
 
     async def _dense_retrieve(
-        self, query: str, top_k: int, filter_metadata: Optional[Dict[str, Any]] = None
-    ) -> List[SearchResult]:
+        self, query: str, top_k: int, filter_metadata: dict[str, Any] | None = None
+    ) -> list[SearchResult]:
         """Dense retrieval component."""
         # Generate query embedding
         query_embedding = await self.embedding_provider.embed_query(query)
@@ -405,14 +401,13 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
         return results
 
     async def _sparse_retrieve(
-        self, query: str, top_k: int, filter_metadata: Optional[Dict[str, Any]] = None
-    ) -> List[SearchResult]:
+        self, query: str, top_k: int, filter_metadata: dict[str, Any] | None = None
+    ) -> list[SearchResult]:
         """Sparse retrieval component (simplified BM25-like approach)."""
         # This is a simplified implementation
         # In a real system, this would use a proper sparse retrieval system like BM25
 
         query_words = set(query.lower().split())
-        all_vectors = []
 
         # Get all vectors (in a real system, this would be more efficient)
         # For now, we'll simulate by getting some results and filtering
@@ -448,10 +443,10 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
 
     def _combine_results(
         self,
-        dense_results: List[SearchResult],
-        sparse_results: List[SearchResult],
+        dense_results: list[SearchResult],
+        sparse_results: list[SearchResult],
         top_k: int,
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """Combine dense and sparse results."""
         # Normalize scores
         dense_results = self._normalize_scores(dense_results)
@@ -483,7 +478,7 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
 
         # Calculate combined scores
         combined_results = []
-        for vector_id, scores in result_map.items():
+        for _vector_id, scores in result_map.items():
             combined_score = (
                 self.config.dense_weight * scores["dense_score"]
                 + self.config.sparse_weight * scores["sparse_score"]
@@ -511,7 +506,7 @@ class HybridRetrievalStrategy(BaseRetrievalStrategy):
 
         return filtered_results[:top_k]
 
-    def _normalize_scores(self, results: List[SearchResult]) -> List[SearchResult]:
+    def _normalize_scores(self, results: list[SearchResult]) -> list[SearchResult]:
         """Normalize scores to 0-1 range."""
         if not results:
             return results
@@ -543,9 +538,9 @@ class RetrievalSystem:
         """
         self.config = config
         self.logger = get_logger("retrieval.system")
-        self.vector_store: Optional[BaseVectorStore] = None
-        self.embedding_provider: Optional[BaseEmbeddingProvider] = None
-        self.strategy: Optional[BaseRetrievalStrategy] = None
+        self.vector_store: BaseVectorStore | None = None
+        self.embedding_provider: BaseEmbeddingProvider | None = None
+        self.strategy: BaseRetrievalStrategy | None = None
         self._initialized = False
 
     async def initialize(self) -> None:
@@ -564,9 +559,12 @@ class RetrievalSystem:
             await self.vector_store.initialize()
 
             # Create embedding provider
-            self.embedding_provider = EmbeddingFactory.create_provider(
-                self.config.embedding_provider,
-                model_name="sentence-transformers/all-MiniLM-L6-v2",  # Default model
+            self.embedding_provider = EmbeddingProviderFactory.create_provider(
+                EmbeddingConfig(
+                    provider=self.config.embedding_provider,
+                    model="sentence-transformers/all-MiniLM-L6-v2",  # Default model
+                    dimension=self.config.vector_dimension,
+                )
             )
 
             # Create retrieval strategy
@@ -602,9 +600,9 @@ class RetrievalSystem:
     async def retrieve(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[SearchResult]:
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[SearchResult]:
         """
         Retrieve documents for a query.
 
@@ -626,10 +624,10 @@ class RetrievalSystem:
 
     async def retrieve_batch(
         self,
-        queries: List[str],
-        top_k: Optional[int] = None,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[List[SearchResult]]:
+        queries: list[str],
+        top_k: int | None = None,
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[list[SearchResult]]:
         """
         Retrieve documents for multiple queries.
 
@@ -664,7 +662,7 @@ class RetrievalSystem:
         self.logger.debug(f"Added document {document.id} to retrieval system")
 
     async def add_documents(
-        self, documents: List[Document], vectors: List[Vector]
+        self, documents: list[Document], vectors: list[Vector]
     ) -> None:
         """
         Add multiple documents to the retrieval system.
@@ -773,7 +771,7 @@ async def create_retrieval_system(
 
 
 async def create_retrieval_system_from_config(
-    config_dict: Dict[str, Any],
+    config_dict: dict[str, Any],
 ) -> RetrievalSystem:
     """
     Create a retrieval system from configuration dictionary.

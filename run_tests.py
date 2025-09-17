@@ -9,15 +9,14 @@ and generate reports.
 import argparse
 import subprocess
 import sys
-from typing import List, Optional
 
 
 def run_command(
-    cmd: List[str], capture_output: bool = True
+    cmd: list[str], capture_output: bool = True
 ) -> subprocess.CompletedProcess:
     """Run a command and return the result."""
     print(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=capture_output, text=True)
+    result = subprocess.run(cmd, check=False, capture_output=capture_output, text=True)
 
     if result.returncode != 0 and capture_output:
         print(f"Error output: {result.stderr}")
@@ -27,7 +26,7 @@ def run_command(
 
 def run_tests(
     test_path: str = "tests",
-    markers: Optional[List[str]] = None,
+    markers: list[str] | None = None,
     coverage: bool = True,
     verbose: bool = False,
     parallel: bool = False,
@@ -74,7 +73,7 @@ def run_tests(
     return result.returncode == 0
 
 
-def run_specific_test(test_file: str, test_function: Optional[str] = None) -> bool:
+def run_specific_test(test_file: str, test_function: str | None = None) -> bool:
     """Run a specific test file or function."""
     cmd = ["python", "-m", "pytest", "-v"]
 
@@ -139,7 +138,7 @@ def check_test_coverage() -> bool:
 
     # Parse coverage report
     try:
-        with open("coverage.xml", "r") as f:
+        with open("coverage.xml") as f:
             coverage_data = f.read()
 
         # Simple check for coverage percentage (you might want to use a proper XML parser)

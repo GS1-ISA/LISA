@@ -1,8 +1,9 @@
-import pytest
-import time
 import threading
+import time
 from pathlib import Path
-from unittest.mock import Mock, patch
+
+import pytest
+
 from src.agent_core.memory.rag_store import RAGMemory, SearchFilters
 
 
@@ -48,7 +49,7 @@ class TestRAGMemoryEnhanced:
         self.rag.cache_ttl = 0.1  # 100ms
 
         query = "test query"
-        result1 = self.rag.query(query)
+        self.rag.query(query)
 
         # Wait for cache to expire
         time.sleep(0.2)
@@ -119,7 +120,7 @@ class TestRAGMemoryEnhanced:
         result = self.rag.batch_add(documents, batch_size=5)
         end_time = time.time()
 
-        assert result == True
+        assert result
         assert (end_time - start_time) < 5.0  # Should be reasonably fast
 
         # Verify documents were added
@@ -129,7 +130,7 @@ class TestRAGMemoryEnhanced:
     def test_conversation_history_caching(self):
         """Test conversation history with caching."""
         # Enable conversation history
-        assert self.rag.enable_conversation_history == True
+        assert self.rag.enable_conversation_history
 
         # Add conversation entries
         self.rag.add_conversation_entry("user", "Hello")
@@ -173,7 +174,6 @@ class TestRAGMemoryEnhanced:
     def test_advanced_filters(self):
         """Test advanced search filters."""
         # Add documents with different metadata
-        now = "2024-01-01T00:00:00Z"
         self.rag.add("Content 1", "source1", "doc1")
         self.rag.add("Content 2", "source2", "doc2")
         self.rag.add("Content 3", "source1", "doc3")
@@ -197,23 +197,23 @@ class TestRAGMemoryEnhanced:
         stats = self.rag.get_stats()
 
         required_keys = [
-            'total_chunks', 'unique_documents', 'unique_sources',
-            'language_distribution', 'embedding_model', 'conversation_history_enabled'
+            "total_chunks", "unique_documents", "unique_sources",
+            "language_distribution", "embedding_model", "conversation_history_enabled"
         ]
 
         for key in required_keys:
             assert key in stats
 
-        assert stats['total_chunks'] >= 1
-        assert stats['unique_documents'] >= 1
-        assert stats['unique_sources'] >= 1
-        assert stats['conversation_history_enabled'] == True
+        assert stats["total_chunks"] >= 1
+        assert stats["unique_documents"] >= 1
+        assert stats["unique_sources"] >= 1
+        assert stats["conversation_history_enabled"]
 
     def test_error_handling_robustness(self):
         """Test error handling and robustness."""
         # Test adding document with invalid data
         result = self.rag.add("", "", "")  # Invalid empty inputs
-        assert result == False
+        assert not result
 
         # Test querying empty collection
         results = self.rag.query("nonexistent")
@@ -227,7 +227,7 @@ class TestRAGMemoryEnhanced:
         )
 
         result = rag_no_history.add_conversation_entry("user", "test")
-        assert result == False
+        assert not result
 
         history = rag_no_history.get_conversation_history()
         assert history == []
@@ -290,7 +290,7 @@ class TestRAGMemoryEnhanced:
             })
 
         result = self.rag.batch_add(documents)
-        assert result == True
+        assert result
 
         final_count = self.rag.get_collection_count()
         assert final_count >= initial_count + 50

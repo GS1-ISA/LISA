@@ -5,14 +5,15 @@ This module provides integration with EPCIS (Electronic Product Code Information
 for supply chain event tracking and GS1-based traceability systems.
 """
 
-import json
 import hashlib
-from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
-from dataclasses import dataclass, asdict
-from enum import Enum
+import json
 import logging
 import os
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any
+
 import requests
 
 
@@ -74,7 +75,7 @@ class EPCISLocation:
     """Represents a location in EPCIS events."""
     id: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"id": self.id}
 
 
@@ -84,7 +85,7 @@ class BizTransaction:
     type: str
     bizTransaction: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"type": self.type, "bizTransaction": self.bizTransaction}
 
 
@@ -95,20 +96,20 @@ class EPCISEvent:
     type: EventType
     action: Action
     bizStep: BizStep
-    disposition: Optional[Disposition] = None
-    epcList: Optional[List[str]] = None
-    eventTime: Optional[str] = None
-    eventTimeZoneOffset: Optional[str] = None
-    readPoint: Optional[EPCISLocation] = None
-    bizLocation: Optional[EPCISLocation] = None
-    bizTransactionList: Optional[List[BizTransaction]] = None
-    parentID: Optional[str] = None
-    childEPCs: Optional[List[str]] = None
-    inputEPCList: Optional[List[str]] = None
-    outputEPCList: Optional[List[str]] = None
-    transformationID: Optional[str] = None
-    ilmd: Optional[Dict[str, Any]] = None
-    customFields: Optional[Dict[str, Any]] = None
+    disposition: Disposition | None = None
+    epcList: list[str] | None = None
+    eventTime: str | None = None
+    eventTimeZoneOffset: str | None = None
+    readPoint: EPCISLocation | None = None
+    bizLocation: EPCISLocation | None = None
+    bizTransactionList: list[BizTransaction] | None = None
+    parentID: str | None = None
+    childEPCs: list[str] | None = None
+    inputEPCList: list[str] | None = None
+    outputEPCList: list[str] | None = None
+    transformationID: str | None = None
+    ilmd: dict[str, Any] | None = None
+    customFields: dict[str, Any] | None = None
 
     def __post_init__(self):
         if self.eventTime is None:
@@ -126,7 +127,7 @@ class EPCISEvent:
         hash_obj = hashlib.sha256(content.encode())
         return f"ni:///sha-256;{hash_obj.hexdigest()}?ver=CBV2.0"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary representation."""
         data = asdict(self)
         data["type"] = self.type.value
@@ -149,9 +150,9 @@ class EPCISDocument:
     """Represents an EPCIS document containing events."""
     id: str
     schemaVersion: str = "2.0"
-    creationDate: Optional[str] = None
-    eventList: Optional[List[EPCISEvent]] = None
-    context: Optional[List[Any]] = None
+    creationDate: str | None = None
+    eventList: list[EPCISEvent] | None = None
+    context: list[Any] | None = None
 
     def __post_init__(self):
         if self.creationDate is None:
@@ -174,7 +175,7 @@ class EPCISDocument:
         return json.dumps(data, indent=2)
 
     @classmethod
-    def from_jsonld(cls, jsonld_str: str) -> 'EPCISDocument':
+    def from_jsonld(cls, jsonld_str: str) -> "EPCISDocument":
         """Create document from JSON-LD string."""
         data = json.loads(jsonld_str)
         event_list = []
@@ -192,7 +193,7 @@ class EPCISDocument:
         )
 
     @staticmethod
-    def _parse_event(event_data: Dict[str, Any]) -> EPCISEvent:
+    def _parse_event(event_data: dict[str, Any]) -> EPCISEvent:
         """Parse event data from dictionary."""
         # Parse nested objects
         read_point = None
@@ -229,7 +230,7 @@ class EPCISDocument:
             outputEPCList=event_data.get("outputEPCList"),
             transformationID=event_data.get("transformationID"),
             ilmd=event_data.get("ilmd"),
-            customFields={k: v for k, v in event_data.items() if k.startswith(('example:', 'vendor:'))}
+            customFields={k: v for k, v in event_data.items() if k.startswith(("example:", "vendor:"))}
         )
 
 
@@ -237,8 +238,8 @@ class EPCISTracker:
     """Main class for EPCIS supply chain event tracking."""
 
     def __init__(self):
-        self.documents: List[EPCISDocument] = []
-        self.events: List[EPCISEvent] = []
+        self.documents: list[EPCISDocument] = []
+        self.events: list[EPCISEvent] = []
         self.openeepcis_url = os.getenv("OPENEPCIS_URL", "http://openeepcis:8080")
         self.logger = logging.getLogger(__name__)
     def _send_to_openeepcis(self, event: EPCISEvent) -> None:
@@ -255,7 +256,7 @@ class EPCISTracker:
         except Exception as e:
             self.logger.error(f"Error sending event to OpenEPCIS: {e}")
 
-    def create_event(self, event_type: str, action: str, biz_step: str, epc_list: Optional[List[str]] = None, **kwargs) -> EPCISEvent:
+    def create_event(self, event_type: str, action: str, biz_step: str, epc_list: list[str] | None = None, **kwargs) -> EPCISEvent:
         """Create an EPCIS event based on type."""
         event_type_enum = EventType(event_type)
         action_enum = Action(action)
@@ -292,11 +293,11 @@ class EPCISTracker:
         return event
 
 
-    def create_object_event(self, epc_list: List[str], action: Action, biz_step: BizStep,
-                          disposition: Optional[Disposition] = None,
-                          read_point: Optional[EPCISLocation] = None,
-                          biz_location: Optional[EPCISLocation] = None,
-                          biz_transactions: Optional[List[BizTransaction]] = None) -> EPCISEvent:
+    def create_object_event(self, epc_list: list[str], action: Action, biz_step: BizStep,
+                          disposition: Disposition | None = None,
+                          read_point: EPCISLocation | None = None,
+                          biz_location: EPCISLocation | None = None,
+                          biz_transactions: list[BizTransaction] | None = None) -> EPCISEvent:
         """Create an Object Event for tracking individual objects."""
         event = EPCISEvent(
             eventID=None,  # Will be auto-generated
@@ -312,10 +313,10 @@ class EPCISTracker:
         self.events.append(event)
         return event
 
-    def create_aggregation_event(self, parent_id: str, child_epcs: List[str], action: Action,
-                               biz_step: BizStep, disposition: Optional[Disposition] = None,
-                               read_point: Optional[EPCISLocation] = None,
-                               biz_location: Optional[EPCISLocation] = None) -> EPCISEvent:
+    def create_aggregation_event(self, parent_id: str, child_epcs: list[str], action: Action,
+                               biz_step: BizStep, disposition: Disposition | None = None,
+                               read_point: EPCISLocation | None = None,
+                               biz_location: EPCISLocation | None = None) -> EPCISEvent:
         """Create an Aggregation Event for tracking parent-child relationships."""
         event = EPCISEvent(
             eventID=None,
@@ -331,11 +332,11 @@ class EPCISTracker:
         self.events.append(event)
         return event
 
-    def create_transformation_event(self, input_epcs: List[str], output_epcs: List[str],
+    def create_transformation_event(self, input_epcs: list[str], output_epcs: list[str],
                                   transformation_id: str, biz_step: BizStep,
-                                  disposition: Optional[Disposition] = None,
-                                  read_point: Optional[EPCISLocation] = None,
-                                  biz_location: Optional[EPCISLocation] = None) -> EPCISEvent:
+                                  disposition: Disposition | None = None,
+                                  read_point: EPCISLocation | None = None,
+                                  biz_location: EPCISLocation | None = None) -> EPCISEvent:
         """Create a Transformation Event for tracking product transformations."""
         event = EPCISEvent(
             eventID=None,
@@ -352,7 +353,7 @@ class EPCISTracker:
         self.events.append(event)
         return event
 
-    def create_document(self, document_id: str, events: Optional[List[EPCISEvent]] = None) -> EPCISDocument:
+    def create_document(self, document_id: str, events: list[EPCISEvent] | None = None) -> EPCISDocument:
         """Create an EPCIS document containing events."""
         if events is None:
             events = self.events[-len(events or []):]  # Use recent events if none specified
@@ -364,7 +365,7 @@ class EPCISTracker:
         self.documents.append(document)
         return document
 
-    def track_supply_chain(self, epc: str, events: List[EPCISEvent]) -> List[EPCISEvent]:
+    def track_supply_chain(self, epc: str, events: list[EPCISEvent]) -> list[EPCISEvent]:
         """Track the supply chain history for a specific EPC."""
         return [event for event in events if epc in (event.epcList or [])]
 
@@ -385,10 +386,7 @@ class EPCISTracker:
             return False
         if event.type == EventType.AGGREGATION_EVENT and (not event.parentID or not event.childEPCs):
             return False
-        if event.type == EventType.TRANSFORMATION_EVENT and (not event.inputEPCList or not event.outputEPCList):
-            return False
-
-        return True
+        return not (event.type == EventType.TRANSFORMATION_EVENT and (not event.inputEPCList or not event.outputEPCList))
 
     def export_to_jsonld(self, document: EPCISDocument) -> str:
         """Export EPCIS document to JSON-LD format."""

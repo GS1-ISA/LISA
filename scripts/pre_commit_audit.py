@@ -10,7 +10,6 @@ infrastructure and provides clear failure messages with improvement suggestions.
 import json
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 # Configuration
 DEFAULT_THRESHOLD = 70.0
@@ -28,12 +27,12 @@ class AuditThresholdError(Exception):
 class AuditChecker:
     """Handles audit threshold checking and reporting."""
 
-    def __init__(self, threshold: Optional[float] = None):
+    def __init__(self, threshold: float | None = None):
         self.threshold = threshold or self._load_threshold()
         self.audit_dir = AUDIT_DIR
-        self.errors: List[str] = []
-        self.warnings: List[str] = []
-        self.suggestions: List[str] = []
+        self.errors: list[str] = []
+        self.warnings: list[str] = []
+        self.suggestions: list[str] = []
 
     def _load_threshold(self) -> float:
         """Load threshold from configuration file or use default."""
@@ -67,7 +66,7 @@ class AuditChecker:
 
         return True
 
-    def _extract_current_score(self) -> Optional[float]:
+    def _extract_current_score(self) -> float | None:
         """Extract current audit score from audit report."""
         audit_report = self.audit_dir / "audit_report.md"
         if not audit_report.exists():
@@ -82,12 +81,12 @@ class AuditChecker:
                 match = re.search(r"Overall Rule Confidence:\s*([0-9.]+)", content)
                 if match:
                     return float(match.group(1))
-        except (IOError, ValueError):
+        except (OSError, ValueError):
             pass
 
         return None
 
-    def _extract_rule_summary(self) -> Tuple[int, int, int]:
+    def _extract_rule_summary(self) -> tuple[int, int, int]:
         """Extract rule summary (pass, warn, fail) from audit report."""
         audit_report = self.audit_dir / "audit_report.md"
         if not audit_report.exists():
@@ -104,12 +103,12 @@ class AuditChecker:
                 )
                 if match:
                     return int(match.group(1)), int(match.group(2)), int(match.group(3))
-        except IOError:
+        except OSError:
             pass
 
         return 0, 0, 0
 
-    def _get_remediation_suggestions(self) -> List[str]:
+    def _get_remediation_suggestions(self) -> list[str]:
         """Get remediation suggestions from remediation plan."""
         remediation_plan = self.audit_dir / "remediation_plan.md"
         if not remediation_plan.exists():
@@ -126,7 +125,7 @@ class AuditChecker:
                 # Get incomplete items (not checked)
                 incomplete = [item for item in items if not item.startswith("[x]")]
                 suggestions.extend(incomplete[:3])  # Top 3 incomplete items
-        except IOError:
+        except OSError:
             pass
 
         return suggestions

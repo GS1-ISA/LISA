@@ -6,7 +6,7 @@ risk assessment components used in EUDR compliance screening.
 """
 
 import os
-from typing import Dict, Any, Optional
+from typing import Any
 
 
 class GeospatialConfig:
@@ -28,11 +28,11 @@ class GeospatialConfig:
 
     # Scoring Weights
     RISK_WEIGHTS = {
-        'temporal': 0.25,
-        'spatial': 0.20,
-        'intensity': 0.30,
-        'contextual': 0.15,
-        'supply_chain': 0.10
+        "temporal": 0.25,
+        "spatial": 0.20,
+        "intensity": 0.30,
+        "contextual": 0.15,
+        "supply_chain": 0.10
     }
 
     # GFW Data Parameters
@@ -77,28 +77,28 @@ class GeospatialConfig:
 
     # EUDR Compliance Thresholds
     EUDR_THRESHOLDS = {
-        'maximum_risk_score': 0.3,
-        'minimum_forest_cover': 30,  # percentage
-        'maximum_recent_deforestation': 50,  # hectares in analysis period
-        'minimum_traceability_depth': 3,  # supply chain levels
-        'compliance_review_frequency_days': 365  # annual reviews
+        "maximum_risk_score": 0.3,
+        "minimum_forest_cover": 30,  # percentage
+        "maximum_recent_deforestation": 50,  # hectares in analysis period
+        "minimum_traceability_depth": 3,  # supply chain levels
+        "compliance_review_frequency_days": 365  # annual reviews
     }
 
     # Data Source Priorities (higher = more reliable)
     DATA_SOURCE_PRIORITIES = {
-        'gfw_alerts': 0.9,
-        'gfw_tree_cover_loss': 0.8,
-        'corine_land_cover': 0.7,
-        'corine_changes': 0.6,
-        'supply_chain_data': 0.5
+        "gfw_alerts": 0.9,
+        "gfw_tree_cover_loss": 0.8,
+        "corine_land_cover": 0.7,
+        "corine_changes": 0.6,
+        "supply_chain_data": 0.5
     }
 
     # Caching Configuration
     CACHE_TTL_SECONDS = {
-        'gfw_data': 86400,  # 24 hours
-        'corine_data': 604800,  # 7 days
-        'risk_assessments': 3600,  # 1 hour
-        'screening_results': 1800  # 30 minutes
+        "gfw_data": 86400,  # 24 hours
+        "corine_data": 604800,  # 7 days
+        "risk_assessments": 3600,  # 1 hour
+        "screening_results": 1800  # 30 minutes
     }
 
     # Performance Limits
@@ -111,55 +111,55 @@ class GeospatialConfig:
     REQUEST_TIMEOUT_SECONDS = 30
 
     @classmethod
-    def get_gfw_config(cls) -> Dict[str, Any]:
+    def get_gfw_config(cls) -> dict[str, Any]:
         """Get GFW-specific configuration."""
         return {
-            'base_url': cls.GFW_BASE_URL,
-            'api_key': cls.GFW_API_KEY,
-            'confidence_level': cls.GFW_CONFIDENCE_LEVEL,
-            'tree_cover_threshold': cls.GFW_TREE_COVER_THRESHOLD,
-            'timeout': cls.REQUEST_TIMEOUT_SECONDS,
-            'max_retries': cls.MAX_RETRY_ATTEMPTS
+            "base_url": cls.GFW_BASE_URL,
+            "api_key": cls.GFW_API_KEY,
+            "confidence_level": cls.GFW_CONFIDENCE_LEVEL,
+            "tree_cover_threshold": cls.GFW_TREE_COVER_THRESHOLD,
+            "timeout": cls.REQUEST_TIMEOUT_SECONDS,
+            "max_retries": cls.MAX_RETRY_ATTEMPTS
         }
 
     @classmethod
-    def get_corine_config(cls) -> Dict[str, Any]:
+    def get_corine_config(cls) -> dict[str, Any]:
         """Get CORINE-specific configuration."""
         return {
-            'base_url': cls.CORINE_BASE_URL,
-            'api_key': cls.CORINE_API_KEY,
-            'forest_classes': cls.FOREST_CLASSES,
-            'risk_classes': cls.DEFORESTATION_RISK_CLASSES,
-            'timeout': cls.REQUEST_TIMEOUT_SECONDS,
-            'max_retries': cls.MAX_RETRY_ATTEMPTS
+            "base_url": cls.CORINE_BASE_URL,
+            "api_key": cls.CORINE_API_KEY,
+            "forest_classes": cls.FOREST_CLASSES,
+            "risk_classes": cls.DEFORESTATION_RISK_CLASSES,
+            "timeout": cls.REQUEST_TIMEOUT_SECONDS,
+            "max_retries": cls.MAX_RETRY_ATTEMPTS
         }
 
     @classmethod
-    def get_risk_assessment_config(cls) -> Dict[str, Any]:
+    def get_risk_assessment_config(cls) -> dict[str, Any]:
         """Get risk assessment configuration."""
         return {
-            'default_buffer_km': cls.DEFAULT_BUFFER_KM,
-            'default_lookback_years': cls.DEFAULT_LOOKBACK_YEARS,
-            'high_risk_threshold': cls.HIGH_RISK_THRESHOLD,
-            'medium_risk_threshold': cls.MEDIUM_RISK_THRESHOLD,
-            'weights': cls.RISK_WEIGHTS,
-            'eudr_thresholds': cls.EUDR_THRESHOLDS,
-            'data_source_priorities': cls.DATA_SOURCE_PRIORITIES
+            "default_buffer_km": cls.DEFAULT_BUFFER_KM,
+            "default_lookback_years": cls.DEFAULT_LOOKBACK_YEARS,
+            "high_risk_threshold": cls.HIGH_RISK_THRESHOLD,
+            "medium_risk_threshold": cls.MEDIUM_RISK_THRESHOLD,
+            "weights": cls.RISK_WEIGHTS,
+            "eudr_thresholds": cls.EUDR_THRESHOLDS,
+            "data_source_priorities": cls.DATA_SOURCE_PRIORITIES
         }
 
     @classmethod
-    def get_performance_config(cls) -> Dict[str, Any]:
+    def get_performance_config(cls) -> dict[str, Any]:
         """Get performance-related configuration."""
         return {
-            'max_locations_per_screening': cls.MAX_LOCATIONS_PER_SCREENING,
-            'max_buffer_km': cls.MAX_BUFFER_KM,
-            'max_lookback_years': cls.MAX_LOOKBACK_YEARS,
-            'cache_ttl': cls.CACHE_TTL_SECONDS,
-            'request_timeout': cls.REQUEST_TIMEOUT_SECONDS
+            "max_locations_per_screening": cls.MAX_LOCATIONS_PER_SCREENING,
+            "max_buffer_km": cls.MAX_BUFFER_KM,
+            "max_lookback_years": cls.MAX_LOOKBACK_YEARS,
+            "cache_ttl": cls.CACHE_TTL_SECONDS,
+            "request_timeout": cls.REQUEST_TIMEOUT_SECONDS
         }
 
     @classmethod
-    def validate_config(cls) -> Dict[str, Any]:
+    def validate_config(cls) -> dict[str, Any]:
         """Validate configuration and return status."""
         issues = []
 
@@ -183,13 +183,13 @@ class GeospatialConfig:
             issues.append(f"Risk weights don't sum to 1.0: {total_weight}")
 
         return {
-            'valid': len(issues) == 0,
-            'issues': issues,
-            'config_summary': {
-                'gfw_configured': bool(cls.GFW_API_KEY),
-                'corine_configured': bool(cls.CORINE_API_KEY),
-                'risk_thresholds_valid': True,
-                'weights_normalized': abs(total_weight - 1.0) <= 0.001
+            "valid": len(issues) == 0,
+            "issues": issues,
+            "config_summary": {
+                "gfw_configured": bool(cls.GFW_API_KEY),
+                "corine_configured": bool(cls.CORINE_API_KEY),
+                "risk_thresholds_valid": True,
+                "weights_normalized": abs(total_weight - 1.0) <= 0.001
             }
         }
 

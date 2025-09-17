@@ -14,15 +14,16 @@ Features:
 - Thread-safe operations
 """
 
+import contextlib
 import hashlib
 import json
-import os
 import pickle
 import threading
 import time
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict, Optional, Union, Callable
+from typing import Any
+
 import redis
 
 
@@ -64,7 +65,7 @@ class ISAL1Cache:
             3: OrderedDict()   # High priority
         }
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from L1 cache."""
         with self.lock:
             if key in self.cache:
@@ -79,7 +80,7 @@ class ISAL1Cache:
                     del self.cache[key]
             return None
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None, priority: int = 1, tags: list = None):
+    def set(self, key: str, value: Any, ttl: int | None = None, priority: int = 1, tags: list = None):
         """Set value in L1 cache with ISA optimizations."""
         with self.lock:
             ttl = ttl or self.default_ttl
@@ -120,7 +121,7 @@ class ISAL1Cache:
             for queue in self.priority_queues.values():
                 queue.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get L1 cache statistics."""
         with self.lock:
             total_entries = len(self.cache)
@@ -129,20 +130,20 @@ class ISAL1Cache:
             total_accesses = sum(entry.access_count for entry in self.cache.values())
 
             return {
-                'total_entries': total_entries,
-                'expired_entries': expired_count,
-                'active_entries': total_entries - expired_count,
-                'priority_distribution': priority_counts,
-                'total_accesses': total_accesses,
-                'hit_rate_estimate': total_accesses / max(1, total_entries)
+                "total_entries": total_entries,
+                "expired_entries": expired_count,
+                "active_entries": total_entries - expired_count,
+                "priority_distribution": priority_counts,
+                "total_accesses": total_accesses,
+                "hit_rate_estimate": total_accesses / max(1, total_entries)
             }
 
 
 class ISAL2Cache:
     """L2 Redis cache with ISA optimizations."""
 
-    def __init__(self, host: str = 'localhost', port: int = 6379, db: int = 0,
-                 default_ttl: int = 3600, prefix: str = 'isa_l2:'):
+    def __init__(self, host: str = "localhost", port: int = 6379, db: int = 0,
+                 default_ttl: int = 3600, prefix: str = "isa_l2:"):
         self.redis = redis.Redis(host=host, port=port, db=db, decode_responses=True)
         self.default_ttl = default_ttl
         self.prefix = prefix
@@ -151,7 +152,7 @@ class ISAL2Cache:
         """Create prefixed key."""
         return f"{self.prefix}{key}"
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from Redis cache."""
         try:
             data = self.redis.get(self._make_key(key))
@@ -161,7 +162,7 @@ class ISAL2Cache:
             pass
         return None
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None):
         """Set value in Redis cache."""
         try:
             ttl = ttl or self.default_ttl
@@ -172,10 +173,8 @@ class ISAL2Cache:
 
     def delete(self, key: str):
         """Delete key from Redis cache."""
-        try:
+        with contextlib.suppress(Exception):
             self.redis.delete(self._make_key(key))
-        except Exception:
-            pass
 
     def clear(self, pattern: str = "*"):
         """Clear cache entries matching pattern."""
@@ -186,19 +185,19 @@ class ISAL2Cache:
         except Exception:
             pass
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get Redis cache statistics."""
         try:
             info = self.redis.info()
             keys_count = len(self.redis.keys(f"{self.prefix}*"))
             return {
-                'redis_connected': True,
-                'cached_keys': keys_count,
-                'redis_memory_used': info.get('used_memory_human', 'unknown'),
-                'redis_uptime': info.get('uptime_in_seconds', 0)
+                "redis_connected": True,
+                "cached_keys": keys_count,
+                "redis_memory_used": info.get("used_memory_human", "unknown"),
+                "redis_uptime": info.get("uptime_in_seconds", 0)
             }
         except Exception:
-            return {'redis_connected': False, 'error': 'Redis connection failed'}
+            return {"redis_connected": False, "error": "Redis connection failed"}
 
 
 class ISAL3Cache:
@@ -215,7 +214,7 @@ class ISAL3Cache:
         hash_key = hashlib.sha256(key.encode()).hexdigest()
         return self.cache_dir / f"{hash_key}.cache"
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from file cache."""
         file_path = self._get_file_path(key)
 
@@ -223,32 +222,32 @@ class ISAL3Cache:
             return None
 
         try:
-            with file_path.open('rb') as f:
+            with file_path.open("rb") as f:
                 data = pickle.load(f)
 
             # Check TTL
-            if time.time() - data['timestamp'] > data['ttl']:
+            if time.time() - data["timestamp"] > data["ttl"]:
                 file_path.unlink()  # Remove expired file
                 return None
 
-            return data['value']
+            return data["value"]
         except Exception:
             return None
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None):
         """Set value in file cache."""
         file_path = self._get_file_path(key)
         ttl = ttl or self.default_ttl
 
         try:
             data = {
-                'value': value,
-                'timestamp': time.time(),
-                'ttl': ttl,
-                'key': key
+                "value": value,
+                "timestamp": time.time(),
+                "ttl": ttl,
+                "key": key
             }
 
-            with file_path.open('wb') as f:
+            with file_path.open("wb") as f:
                 pickle.dump(data, f)
         except Exception:
             pass  # Fail silently
@@ -264,7 +263,7 @@ class ISAL3Cache:
         for file_path in self.cache_dir.glob("*.cache"):
             file_path.unlink()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get file cache statistics."""
         try:
             files = list(self.cache_dir.glob("*.cache"))
@@ -273,22 +272,22 @@ class ISAL3Cache:
 
             for file_path in files:
                 try:
-                    with file_path.open('rb') as f:
+                    with file_path.open("rb") as f:
                         data = pickle.load(f)
-                    if time.time() - data['timestamp'] > data['ttl']:
+                    if time.time() - data["timestamp"] > data["ttl"]:
                         expired_count += 1
                 except Exception:
                     expired_count += 1
 
             return {
-                'total_files': len(files),
-                'expired_files': expired_count,
-                'active_files': len(files) - expired_count,
-                'total_size_bytes': total_size,
-                'cache_dir': str(self.cache_dir)
+                "total_files": len(files),
+                "expired_files": expired_count,
+                "active_files": len(files) - expired_count,
+                "total_size_bytes": total_size,
+                "cache_dir": str(self.cache_dir)
             }
         except Exception:
-            return {'error': 'Failed to read cache directory'}
+            return {"error": "Failed to read cache directory"}
 
 
 class MultiLevelCache:
@@ -310,12 +309,12 @@ class MultiLevelCache:
     def __init__(self,
                  l1_max_size: int = 1000,
                  l1_ttl: int = 300,
-                 l2_host: str = 'localhost',
+                 l2_host: str = "localhost",
                  l2_port: int = 6379,
                  l2_ttl: int = 3600,
                  l3_dir: str = ".cache/isa_multilevel",
                  l3_ttl: int = 86400,
-                 isa_optimization_rules: Dict[str, Any] = None):
+                 isa_optimization_rules: dict[str, Any] = None):
 
         # Initialize cache layers
         self.l1 = ISAL1Cache(max_size=l1_max_size, default_ttl=l1_ttl)
@@ -324,28 +323,28 @@ class MultiLevelCache:
 
         # ISA-specific optimization rules
         self.isa_rules = isa_optimization_rules or {
-            'high_priority_patterns': ['llm_', 'agent_', 'research_'],
-            'medium_priority_patterns': ['doc_', 'data_', 'query_'],
-            'long_ttl_patterns': ['static_', 'config_', 'metadata_'],
-            'short_ttl_patterns': ['temp_', 'session_', 'volatile_']
+            "high_priority_patterns": ["llm_", "agent_", "research_"],
+            "medium_priority_patterns": ["doc_", "data_", "query_"],
+            "long_ttl_patterns": ["static_", "config_", "metadata_"],
+            "short_ttl_patterns": ["temp_", "session_", "volatile_"]
         }
 
         # Statistics
         self.stats = {
-            'l1_hits': 0, 'l1_misses': 0,
-            'l2_hits': 0, 'l2_misses': 0,
-            'l3_hits': 0, 'l3_misses': 0,
-            'promotions': 0, 'demotions': 0,
-            'total_requests': 0
+            "l1_hits": 0, "l1_misses": 0,
+            "l2_hits": 0, "l2_misses": 0,
+            "l3_hits": 0, "l3_misses": 0,
+            "promotions": 0, "demotions": 0,
+            "total_requests": 0
         }
         self.stats_lock = threading.Lock()
 
     def _determine_priority(self, key: str) -> int:
         """Determine cache priority based on ISA rules."""
-        for pattern in self.isa_rules['high_priority_patterns']:
+        for pattern in self.isa_rules["high_priority_patterns"]:
             if pattern in key:
                 return 3
-        for pattern in self.isa_rules['medium_priority_patterns']:
+        for pattern in self.isa_rules["medium_priority_patterns"]:
             if pattern in key:
                 return 2
         return 1
@@ -353,82 +352,82 @@ class MultiLevelCache:
     def _determine_ttl(self, key: str, layer: str) -> int:
         """Determine TTL based on ISA rules and layer."""
         base_ttl = {
-            'l1': self.l1.default_ttl,
-            'l2': self.l2.default_ttl,
-            'l3': self.l3.default_ttl
+            "l1": self.l1.default_ttl,
+            "l2": self.l2.default_ttl,
+            "l3": self.l3.default_ttl
         }[layer]
 
         # Adjust based on patterns
-        for pattern in self.isa_rules['long_ttl_patterns']:
+        for pattern in self.isa_rules["long_ttl_patterns"]:
             if pattern in key:
                 return base_ttl * 4  # 4x longer
-        for pattern in self.isa_rules['short_ttl_patterns']:
+        for pattern in self.isa_rules["short_ttl_patterns"]:
             if pattern in key:
                 return base_ttl // 4  # 4x shorter
 
         return base_ttl
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from multi-level cache with promotion."""
         with self.stats_lock:
-            self.stats['total_requests'] += 1
+            self.stats["total_requests"] += 1
 
         # Try L1 first
         value = self.l1.get(key)
         if value is not None:
             with self.stats_lock:
-                self.stats['l1_hits'] += 1
+                self.stats["l1_hits"] += 1
             return value
 
         with self.stats_lock:
-            self.stats['l1_misses'] += 1
+            self.stats["l1_misses"] += 1
 
         # Try L2
         value = self.l2.get(key)
         if value is not None:
             with self.stats_lock:
-                self.stats['l2_hits'] += 1
+                self.stats["l2_hits"] += 1
             # Promote to L1
             priority = self._determine_priority(key)
-            l1_ttl = self._determine_ttl(key, 'l1')
+            l1_ttl = self._determine_ttl(key, "l1")
             self.l1.set(key, value, ttl=l1_ttl, priority=priority)
             with self.stats_lock:
-                self.stats['promotions'] += 1
+                self.stats["promotions"] += 1
             return value
 
         with self.stats_lock:
-            self.stats['l2_misses'] += 1
+            self.stats["l2_misses"] += 1
 
         # Try L3
         value = self.l3.get(key)
         if value is not None:
             with self.stats_lock:
-                self.stats['l3_hits'] += 1
+                self.stats["l3_hits"] += 1
             # Promote to L2 and L1
-            l2_ttl = self._determine_ttl(key, 'l2')
+            l2_ttl = self._determine_ttl(key, "l2")
             self.l2.set(key, value, ttl=l2_ttl)
 
             priority = self._determine_priority(key)
-            l1_ttl = self._determine_ttl(key, 'l1')
+            l1_ttl = self._determine_ttl(key, "l1")
             self.l1.set(key, value, ttl=l1_ttl, priority=priority)
 
             with self.stats_lock:
-                self.stats['promotions'] += 2  # L3->L2 and L2->L1
+                self.stats["promotions"] += 2  # L3->L2 and L2->L1
             return value
 
         with self.stats_lock:
-            self.stats['l3_misses'] += 1
+            self.stats["l3_misses"] += 1
 
         return None
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None, priority: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None, priority: int | None = None):
         """Set value in all cache layers."""
         # Determine priority and TTLs
         priority = priority or self._determine_priority(key)
 
-        l1_ttl = ttl or self._determine_ttl(key, 'l1')
-        l2_ttl = ttl or self._determine_ttl(key, 'l2')
-        l3_ttl = ttl or self._determine_ttl(key, 'l3')
+        l1_ttl = ttl or self._determine_ttl(key, "l1")
+        l2_ttl = ttl or self._determine_ttl(key, "l2")
+        l3_ttl = ttl or self._determine_ttl(key, "l3")
 
         # Set in all layers
         self.l1.set(key, value, ttl=l1_ttl, priority=priority)
@@ -447,30 +446,30 @@ class MultiLevelCache:
         self.l2.clear()
         self.l3.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get comprehensive cache statistics."""
         with self.stats_lock:
             stats = self.stats.copy()
 
         # Calculate rates
-        total = stats['total_requests']
+        total = stats["total_requests"]
         if total > 0:
-            stats['overall_hit_rate'] = (stats['l1_hits'] + stats['l2_hits'] + stats['l3_hits']) / total * 100
-            stats['l1_hit_rate'] = stats['l1_hits'] / total * 100
-            stats['l2_hit_rate'] = stats['l2_hits'] / total * 100
-            stats['l3_hit_rate'] = stats['l3_hits'] / total * 100
+            stats["overall_hit_rate"] = (stats["l1_hits"] + stats["l2_hits"] + stats["l3_hits"]) / total * 100
+            stats["l1_hit_rate"] = stats["l1_hits"] / total * 100
+            stats["l2_hit_rate"] = stats["l2_hits"] / total * 100
+            stats["l3_hit_rate"] = stats["l3_hits"] / total * 100
 
         # Layer-specific stats
-        stats['l1_stats'] = self.l1.get_stats()
-        stats['l2_stats'] = self.l2.get_stats()
-        stats['l3_stats'] = self.l3.get_stats()
+        stats["l1_stats"] = self.l1.get_stats()
+        stats["l2_stats"] = self.l2.get_stats()
+        stats["l3_stats"] = self.l3.get_stats()
 
         # ISA optimizations summary
-        stats['isa_optimizations'] = {
-            'high_priority_patterns': self.isa_rules['high_priority_patterns'],
-            'medium_priority_patterns': self.isa_rules['medium_priority_patterns'],
-            'long_ttl_patterns': self.isa_rules['long_ttl_patterns'],
-            'short_ttl_patterns': self.isa_rules['short_ttl_patterns']
+        stats["isa_optimizations"] = {
+            "high_priority_patterns": self.isa_rules["high_priority_patterns"],
+            "medium_priority_patterns": self.isa_rules["medium_priority_patterns"],
+            "long_ttl_patterns": self.isa_rules["long_ttl_patterns"],
+            "short_ttl_patterns": self.isa_rules["short_ttl_patterns"]
         }
 
         return stats
@@ -483,7 +482,7 @@ class MultiLevelCache:
 
 
 # Global instance
-_multilevel_cache: Optional[MultiLevelCache] = None
+_multilevel_cache: MultiLevelCache | None = None
 
 def get_multilevel_cache() -> MultiLevelCache:
     """Get or create global MultiLevelCache instance."""

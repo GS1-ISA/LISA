@@ -6,10 +6,10 @@ risk mitigation strategies using multi-agent workflows.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, TypedDict
+from typing import Any, TypedDict
 
 try:
-    from langgraph.graph import StateGraph, END
+    from langgraph.graph import END, StateGraph
     from langgraph.prebuilt import ToolNode
     LANGGRAPH_AVAILABLE = True
 except ImportError:
@@ -20,18 +20,18 @@ except ImportError:
     class ToolNode:
         pass
 
-from ..agent_core.llm_client import get_openrouter_free_client
+from src.agent_core.llm_client import get_openrouter_free_client
 
 
 class RiskAssessmentState(TypedDict):
     """State for risk assessment workflow."""
-    analysis_data: Dict[str, Any]
-    risk_factors: List[Dict[str, Any]]
-    risk_scores: Dict[str, float]
-    mitigation_strategies: List[Dict[str, Any]]
-    risk_report: Dict[str, Any]
+    analysis_data: dict[str, Any]
+    risk_factors: list[dict[str, Any]]
+    risk_scores: dict[str, float]
+    mitigation_strategies: list[dict[str, Any]]
+    risk_report: dict[str, Any]
     current_step: str
-    errors: List[str]
+    errors: list[str]
 
 
 class RiskAssessorAgent:
@@ -73,7 +73,7 @@ class RiskAssessorAgent:
 
         return workflow.compile()
 
-    def assess_risks(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+    def assess_risks(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
         """
         Assess compliance risks from analysis data using LangGraph workflow.
 
@@ -297,7 +297,7 @@ class RiskAssessorAgent:
 
         return state
 
-    def _enhance_risk_factors_with_llm(self, risk_factors: List[Dict[str, Any]], analysis_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _enhance_risk_factors_with_llm(self, risk_factors: list[dict[str, Any]], analysis_data: dict[str, Any]) -> list[dict[str, Any]]:
         """Use LLM to enhance risk factor identification."""
         try:
             if not self.llm_client:
@@ -324,7 +324,7 @@ class RiskAssessorAgent:
             self.logger.warning(f"LLM risk enhancement failed: {str(e)}")
             return risk_factors
 
-    def _enhance_mitigations_with_llm(self, strategies: List[Dict[str, Any]], risk_factors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _enhance_mitigations_with_llm(self, strategies: list[dict[str, Any]], risk_factors: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Use LLM to enhance mitigation strategies."""
         try:
             if not self.llm_client:
@@ -351,7 +351,7 @@ class RiskAssessorAgent:
             self.logger.warning(f"LLM mitigation enhancement failed: {str(e)}")
             return strategies
 
-    def _get_basic_mitigation_strategies(self, factor_type: str, severity: str) -> List[str]:
+    def _get_basic_mitigation_strategies(self, factor_type: str, severity: str) -> list[str]:
         """Get basic mitigation strategies based on risk type and severity."""
         strategies_map = {
             "compliance_gap": {
@@ -400,7 +400,7 @@ class RiskAssessorAgent:
         }
         return timelines.get(severity, "To be determined")
 
-    def _categorize_risks_by_type(self, risk_factors: List[Dict[str, Any]]) -> Dict[str, int]:
+    def _categorize_risks_by_type(self, risk_factors: list[dict[str, Any]]) -> dict[str, int]:
         """Categorize risks by type."""
         categories = {}
         for factor in risk_factors:
@@ -408,7 +408,7 @@ class RiskAssessorAgent:
             categories[category] = categories.get(category, 0) + 1
         return categories
 
-    def _generate_recommendations(self, risk_scores: Dict[str, float], strategies: List[Dict[str, Any]]) -> List[str]:
+    def _generate_recommendations(self, risk_scores: dict[str, float], strategies: list[dict[str, Any]]) -> list[str]:
         """Generate high-level recommendations."""
         recommendations = []
         overall_score = risk_scores.get("overall", 0.0)
@@ -437,7 +437,7 @@ class RiskAssessorAgent:
         else:
             return "low"
 
-    def _parse_llm_risk_response(self, response: str) -> List[Dict[str, Any]]:
+    def _parse_llm_risk_response(self, response: str) -> list[dict[str, Any]]:
         """Parse LLM response for additional risk factors."""
         try:
             import json
@@ -450,7 +450,7 @@ class RiskAssessorAgent:
             pass
         return []
 
-    def _parse_llm_mitigation_response(self, response: str) -> List[Dict[str, Any]]:
+    def _parse_llm_mitigation_response(self, response: str) -> list[dict[str, Any]]:
         """Parse LLM response for enhanced mitigation strategies."""
         try:
             import json

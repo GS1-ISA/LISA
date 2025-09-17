@@ -14,7 +14,7 @@ from dagster import (
     asset,
 )
 
-from ..core.logger import get_logger
+from isa_superapp.etl.core.logger import get_logger
 
 
 @asset(
@@ -188,7 +188,7 @@ def validate_data_quality(
     df["quality_issues"] = df.apply(_identify_quality_issues, axis=1)
 
     # Filter out low-quality records if configured
-    high_quality_df = df[df["quality_valid"] == True]
+    high_quality_df = df[df["quality_valid"]]
 
     logger.info(f"Quality validation complete: {len(high_quality_df)} high-quality records")
 

@@ -6,7 +6,8 @@ enabling computations on encrypted values without decryption.
 """
 
 import logging
-from typing import List, Union, Optional, Dict, Any
+from typing import Any
+
 import numpy as np
 
 try:
@@ -23,7 +24,7 @@ class FHEContext:
     Manages FHE context and key management for secure computations.
     """
 
-    def __init__(self, poly_modulus_degree: int = 8192, coeff_mod_bit_sizes: List[int] = None,
+    def __init__(self, poly_modulus_degree: int = 8192, coeff_mod_bit_sizes: list[int] = None,
                  global_scale: int = 2**40):
         """
         Initialize FHE context.
@@ -73,7 +74,7 @@ class FHEContext:
             logger.error(f"Failed to initialize FHE context: {e}")
             raise
 
-    def encrypt(self, data: Union[float, List[float], np.ndarray]) -> Optional[Any]:
+    def encrypt(self, data: float | list[float] | np.ndarray) -> Any | None:
         """
         Encrypt data using FHE.
 
@@ -91,7 +92,7 @@ class FHEContext:
             raise ValueError("FHE context not initialized")
 
         try:
-            if isinstance(data, (int, float)):
+            if isinstance(data, int | float):
                 data = [float(data)]
             elif isinstance(data, np.ndarray):
                 data = data.flatten().tolist()
@@ -102,7 +103,7 @@ class FHEContext:
             logger.error(f"Encryption failed: {e}")
             return None
 
-    def decrypt(self, encrypted_data: Any) -> Optional[List[float]]:
+    def decrypt(self, encrypted_data: Any) -> list[float] | None:
         """
         Decrypt FHE encrypted data.
 
@@ -128,20 +129,20 @@ class FHEContext:
             logger.error(f"Decryption failed: {e}")
             return None
 
-    def serialize_context(self) -> Optional[bytes]:
+    def serialize_context(self) -> bytes | None:
         """Serialize the FHE context for distribution."""
         if ts is None or self.context is None:
             return None
         return self.context.serialize()
 
-    def serialize_public_key(self) -> Optional[bytes]:
+    def serialize_public_key(self) -> bytes | None:
         """Serialize public key for distribution to clients."""
         if ts is None or self.public_key is None:
             return None
         return self.public_key.serialize()
 
     @classmethod
-    def from_serialized(cls, context_bytes: bytes) -> 'FHEContext':
+    def from_serialized(cls, context_bytes: bytes) -> "FHEContext":
         """Create FHE context from serialized data."""
         instance = cls.__new__(cls)
         if ts is None:
@@ -159,7 +160,7 @@ class FHEOperations:
     def __init__(self, context: FHEContext):
         self.context = context
 
-    def add_encrypted_vectors(self, vec1: Any, vec2: Any) -> Optional[Any]:
+    def add_encrypted_vectors(self, vec1: Any, vec2: Any) -> Any | None:
         """Add two encrypted vectors."""
         if ts is None:
             return f"mock_add_{vec1}_{vec2}"
@@ -169,7 +170,7 @@ class FHEOperations:
             logger.error(f"Encrypted addition failed: {e}")
             return None
 
-    def multiply_encrypted_vectors(self, vec1: Any, vec2: Any) -> Optional[Any]:
+    def multiply_encrypted_vectors(self, vec1: Any, vec2: Any) -> Any | None:
         """Multiply two encrypted vectors."""
         if ts is None:
             return f"mock_mul_{vec1}_{vec2}"
@@ -181,7 +182,7 @@ class FHEOperations:
             logger.error(f"Encrypted multiplication failed: {e}")
             return None
 
-    def sum_encrypted_vector(self, vec: Any) -> Optional[Any]:
+    def sum_encrypted_vector(self, vec: Any) -> Any | None:
         """Compute sum of encrypted vector elements."""
         if ts is None:
             return f"mock_sum_{vec}"
@@ -193,7 +194,7 @@ class FHEOperations:
             logger.error(f"Encrypted sum failed: {e}")
             return None
 
-    def mean_encrypted_vector(self, vec: Any, length: int) -> Optional[Any]:
+    def mean_encrypted_vector(self, vec: Any, length: int) -> Any | None:
         """Compute mean of encrypted vector."""
         if ts is None:
             return f"mock_mean_{vec}"
@@ -212,7 +213,7 @@ class FHEOperations:
             logger.error(f"Encrypted mean failed: {e}")
             return None
 
-    def dot_product_encrypted(self, vec1: Any, vec2: Any) -> Optional[Any]:
+    def dot_product_encrypted(self, vec1: Any, vec2: Any) -> Any | None:
         """Compute dot product of two encrypted vectors."""
         if ts is None:
             return f"mock_dot_{vec1}_{vec2}"
@@ -234,7 +235,7 @@ class ESGDataEncryptor:
         self.fhe_context = fhe_context
         self.operations = FHEOperations(fhe_context)
 
-    def encrypt_esg_metrics(self, metrics: Dict[str, Union[float, List[float]]]) -> Dict[str, Any]:
+    def encrypt_esg_metrics(self, metrics: dict[str, float | list[float]]) -> dict[str, Any]:
         """
         Encrypt ESG metrics data.
 
@@ -253,7 +254,7 @@ class ESGDataEncryptor:
                 logger.warning(f"Failed to encrypt metric: {key}")
         return encrypted_metrics
 
-    def compute_encrypted_esg_analytics(self, encrypted_data: Dict[str, Any]) -> Dict[str, Any]:
+    def compute_encrypted_esg_analytics(self, encrypted_data: dict[str, Any]) -> dict[str, Any]:
         """
         Perform analytics on encrypted ESG data.
 
@@ -266,29 +267,29 @@ class ESGDataEncryptor:
         results = {}
 
         # Example: Compute total emissions (scope1 + scope2 + scope3)
-        if all(k in encrypted_data for k in ['scope1_emissions', 'scope2_emissions', 'scope3_emissions']):
-            scope1 = encrypted_data['scope1_emissions']
-            scope2 = encrypted_data['scope2_emissions']
-            scope3 = encrypted_data['scope3_emissions']
+        if all(k in encrypted_data for k in ["scope1_emissions", "scope2_emissions", "scope3_emissions"]):
+            scope1 = encrypted_data["scope1_emissions"]
+            scope2 = encrypted_data["scope2_emissions"]
+            scope3 = encrypted_data["scope3_emissions"]
 
             total_emissions = self.operations.add_encrypted_vectors(
                 self.operations.add_encrypted_vectors(scope1, scope2), scope3
             )
             if total_emissions is not None:
-                results['total_emissions'] = total_emissions
+                results["total_emissions"] = total_emissions
 
         # Example: Compute emissions per employee
-        if 'total_emissions' in results and 'employees' in encrypted_data:
+        if "total_emissions" in results and "employees" in encrypted_data:
             emissions_per_employee = self.operations.multiply_encrypted_vectors(
-                results['total_emissions'],
+                results["total_emissions"],
                 self.fhe_context.encrypt(1.0)  # Will be divided by employee count
             )
             if emissions_per_employee is not None:
-                results['emissions_per_employee'] = emissions_per_employee
+                results["emissions_per_employee"] = emissions_per_employee
 
         return results
 
-    def decrypt_analytics_results(self, encrypted_results: Dict[str, Any]) -> Dict[str, float]:
+    def decrypt_analytics_results(self, encrypted_results: dict[str, Any]) -> dict[str, float]:
         """
         Decrypt analytics results.
 

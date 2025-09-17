@@ -7,16 +7,14 @@ tree cover loss data, and forest monitoring information for EUDR compliance scre
 
 import logging
 import time
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
 import requests
-import geopandas as gpd
 from shapely.geometry import Point, Polygon
-import pandas as pd
 
-from ..config.performance_config import get_request_timeout
+from src.config.performance_config import get_request_timeout
 
 
 @dataclass
@@ -54,7 +52,7 @@ class GFWClient:
     ALERTS_ENDPOINT = "/v2/glad-alerts"
     TREE_COVER_LOSS_ENDPOINT = "/v2/tree-cover-loss"
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """
         Initialize GFW client.
 
@@ -67,12 +65,12 @@ class GFWClient:
 
         # Set default headers
         self.session.headers.update({
-            'User-Agent': 'ISA-D EUDR Compliance Tool/1.0',
-            'Accept': 'application/json'
+            "User-Agent": "ISA-D EUDR Compliance Tool/1.0",
+            "Accept": "application/json"
         })
 
         if api_key:
-            self.session.headers['Authorization'] = f'Bearer {api_key}'
+            self.session.headers["Authorization"] = f"Bearer {api_key}"
 
     def get_deforestation_alerts(
         self,
@@ -80,7 +78,7 @@ class GFWClient:
         start_date: datetime,
         end_date: datetime,
         confidence: int = 1
-    ) -> List[DeforestationAlert]:
+    ) -> list[DeforestationAlert]:
         """
         Retrieve deforestation alerts within a geographic area.
 
@@ -98,25 +96,25 @@ class GFWClient:
             geojson = self._polygon_to_geojson(geometry)
 
             params = {
-                'geostore': geojson,
-                'period': f"{start_date.strftime('%Y-%m-%d')},{end_date.strftime('%Y-%m-%d')}",
-                'confidence': confidence,
-                'format': 'json'
+                "geostore": geojson,
+                "period": f"{start_date.strftime('%Y-%m-%d')},{end_date.strftime('%Y-%m-%d')}",
+                "confidence": confidence,
+                "format": "json"
             }
 
-            response = self._make_request('GET', self.ALERTS_ENDPOINT, params=params)
+            response = self._make_request("GET", self.ALERTS_ENDPOINT, params=params)
             alerts_data = response.json()
 
             alerts = []
-            for alert in alerts_data.get('data', []):
+            for alert in alerts_data.get("data", []):
                 alert_obj = DeforestationAlert(
-                    alert_id=alert.get('id', ''),
-                    latitude=alert.get('attributes', {}).get('latitude', 0),
-                    longitude=alert.get('attributes', {}).get('longitude', 0),
-                    confidence=alert.get('attributes', {}).get('confidence', 0),
-                    date=datetime.fromisoformat(alert.get('attributes', {}).get('date', '').replace('Z', '+00:00')),
-                    area_ha=alert.get('attributes', {}).get('area_ha', 0),
-                    is_glad=alert.get('attributes', {}).get('is_glad', True)
+                    alert_id=alert.get("id", ""),
+                    latitude=alert.get("attributes", {}).get("latitude", 0),
+                    longitude=alert.get("attributes", {}).get("longitude", 0),
+                    confidence=alert.get("attributes", {}).get("confidence", 0),
+                    date=datetime.fromisoformat(alert.get("attributes", {}).get("date", "").replace("Z", "+00:00")),
+                    area_ha=alert.get("attributes", {}).get("area_ha", 0),
+                    is_glad=alert.get("attributes", {}).get("is_glad", True)
                 )
                 alerts.append(alert_obj)
 
@@ -133,7 +131,7 @@ class GFWClient:
         start_year: int,
         end_year: int,
         threshold: int = 30
-    ) -> List[TreeCoverLoss]:
+    ) -> list[TreeCoverLoss]:
         """
         Retrieve tree cover loss data within a geographic area.
 
@@ -150,22 +148,22 @@ class GFWClient:
             geojson = self._polygon_to_geojson(geometry)
 
             params = {
-                'geostore': geojson,
-                'period': f"{start_year},{end_year}",
-                'threshold': threshold,
-                'format': 'json'
+                "geostore": geojson,
+                "period": f"{start_year},{end_year}",
+                "threshold": threshold,
+                "format": "json"
             }
 
-            response = self._make_request('GET', self.TREE_COVER_LOSS_ENDPOINT, params=params)
+            response = self._make_request("GET", self.TREE_COVER_LOSS_ENDPOINT, params=params)
             loss_data = response.json()
 
             losses = []
-            for loss in loss_data.get('data', []):
+            for loss in loss_data.get("data", []):
                 loss_obj = TreeCoverLoss(
-                    latitude=loss.get('attributes', {}).get('latitude', 0),
-                    longitude=loss.get('attributes', {}).get('longitude', 0),
-                    loss_year=loss.get('attributes', {}).get('loss_year', 0),
-                    area_ha=loss.get('attributes', {}).get('area_ha', 0),
+                    latitude=loss.get("attributes", {}).get("latitude", 0),
+                    longitude=loss.get("attributes", {}).get("longitude", 0),
+                    loss_year=loss.get("attributes", {}).get("loss_year", 0),
+                    area_ha=loss.get("attributes", {}).get("area_ha", 0),
                     threshold=threshold
                 )
                 losses.append(loss_obj)
@@ -181,7 +179,7 @@ class GFWClient:
         self,
         geometry: Polygon,
         year: int = 2020
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get forest cover statistics for a geographic area.
 
@@ -196,19 +194,19 @@ class GFWClient:
             geojson = self._polygon_to_geojson(geometry)
 
             params = {
-                'geostore': geojson,
-                'year': year,
-                'format': 'json'
+                "geostore": geojson,
+                "year": year,
+                "format": "json"
             }
 
-            response = self._make_request('GET', '/v2/tree-cover', params=params)
+            response = self._make_request("GET", "/v2/tree-cover", params=params)
             stats = response.json()
 
             return {
-                'total_area_ha': stats.get('data', {}).get('attributes', {}).get('total_area', 0),
-                'tree_cover_area_ha': stats.get('data', {}).get('attributes', {}).get('tree_cover_area', 0),
-                'tree_cover_extent_ha': stats.get('data', {}).get('attributes', {}).get('tree_cover_extent', 0),
-                'year': year
+                "total_area_ha": stats.get("data", {}).get("attributes", {}).get("total_area", 0),
+                "tree_cover_area_ha": stats.get("data", {}).get("attributes", {}).get("tree_cover_area", 0),
+                "tree_cover_extent_ha": stats.get("data", {}).get("attributes", {}).get("tree_cover_extent", 0),
+                "year": year
             }
 
         except Exception as e:
@@ -217,10 +215,10 @@ class GFWClient:
 
     def screen_supply_chain_locations(
         self,
-        locations: List[Tuple[float, float]],
+        locations: list[tuple[float, float]],
         buffer_km: float = 50,
         lookback_years: int = 5
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Screen supply chain locations for deforestation risk.
 
@@ -255,28 +253,28 @@ class GFWClient:
                 risk_score = self._calculate_location_risk(alerts, losses, buffer_km)
 
                 results[f"location_{i}"] = {
-                    'coordinates': (lat, lon),
-                    'buffer_km': buffer_km,
-                    'alerts_count': len(alerts),
-                    'total_alert_area_ha': sum(alert.area_ha for alert in alerts),
-                    'losses_count': len(losses),
-                    'total_loss_area_ha': sum(loss.area_ha for loss in losses),
-                    'risk_score': risk_score,
-                    'risk_level': self._categorize_risk(risk_score)
+                    "coordinates": (lat, lon),
+                    "buffer_km": buffer_km,
+                    "alerts_count": len(alerts),
+                    "total_alert_area_ha": sum(alert.area_ha for alert in alerts),
+                    "losses_count": len(losses),
+                    "total_loss_area_ha": sum(loss.area_ha for loss in losses),
+                    "risk_score": risk_score,
+                    "risk_level": self._categorize_risk(risk_score)
                 }
 
             except Exception as e:
                 self.logger.error(f"Error screening location {lat},{lon}: {str(e)}")
                 results[f"location_{i}"] = {
-                    'coordinates': (lat, lon),
-                    'error': str(e),
-                    'risk_score': 1.0,
-                    'risk_level': 'unknown'
+                    "coordinates": (lat, lon),
+                    "error": str(e),
+                    "risk_score": 1.0,
+                    "risk_level": "unknown"
                 }
 
         return results
 
-    def _make_request(self, method: str, endpoint: str, params: Optional[Dict] = None) -> requests.Response:
+    def _make_request(self, method: str, endpoint: str, params: dict | None = None) -> requests.Response:
         """Make HTTP request to GFW API with retry logic."""
         url = f"{self.BASE_URL}{endpoint}"
         max_retries = 3
@@ -322,8 +320,8 @@ class GFWClient:
 
     def _calculate_location_risk(
         self,
-        alerts: List[DeforestationAlert],
-        losses: List[TreeCoverLoss],
+        alerts: list[DeforestationAlert],
+        losses: list[TreeCoverLoss],
         buffer_km: float
     ) -> float:
         """Calculate risk score for a location based on alerts and losses."""

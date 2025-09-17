@@ -24,10 +24,7 @@ EXCLUDE_DIRS = {".git", "node_modules", ".venv", "__pycache__", "context7-master
 def is_normative(path: Path) -> bool:
     if any(part in EXCLUDE_DIRS for part in path.parts):
         return False
-    for g in NORMATIVE_GLOBS:
-        if path.match(g):
-            return True
-    return False
+    return any(path.match(g) for g in NORMATIVE_GLOBS)
 
 
 def load_traceability(p: Path) -> dict[str, list[str]]:

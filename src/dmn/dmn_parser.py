@@ -6,15 +6,22 @@ This module provides parsers for loading DMN tables from various formats
 """
 
 import json
-import yaml
 import logging
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from typing import Any
+
+import yaml
 
 from .dmn_table import (
-    DMNTable, DecisionTable, Rule, InputClause, OutputClause,
-    HitPolicy, BuiltinAggregator, ExpressionLanguage
+    BuiltinAggregator,
+    DecisionTable,
+    DMNTable,
+    ExpressionLanguage,
+    HitPolicy,
+    InputClause,
+    OutputClause,
+    Rule,
 )
 
 
@@ -33,7 +40,7 @@ class DMNParser:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def parse_file(self, file_path: Union[str, Path]) -> DMNTable:
+    def parse_file(self, file_path: str | Path) -> DMNTable:
         """
         Parse DMN table from file.
 
@@ -52,18 +59,18 @@ class DMNParser:
             raise DMNParseError(f"DMN file not found: {file_path}")
 
         try:
-            if file_path.suffix.lower() == '.json':
+            if file_path.suffix.lower() == ".json":
                 return self._parse_json_file(file_path)
-            elif file_path.suffix.lower() in ['.yaml', '.yml']:
+            elif file_path.suffix.lower() in [".yaml", ".yml"]:
                 return self._parse_yaml_file(file_path)
-            elif file_path.suffix.lower() == '.xml':
+            elif file_path.suffix.lower() == ".xml":
                 return self._parse_xml_file(file_path)
             else:
                 raise DMNParseError(f"Unsupported file format: {file_path.suffix}")
         except Exception as e:
             raise DMNParseError(f"Failed to parse DMN file {file_path}: {str(e)}")
 
-    def parse_string(self, content: str, format: str = 'json') -> DMNTable:
+    def parse_string(self, content: str, format: str = "json") -> DMNTable:
         """
         Parse DMN table from string content.
 
@@ -75,11 +82,11 @@ class DMNParser:
             Parsed DMNTable object
         """
         try:
-            if format.lower() == 'json':
+            if format.lower() == "json":
                 return self._parse_json_string(content)
-            elif format.lower() == 'yaml':
+            elif format.lower() == "yaml":
                 return self._parse_yaml_string(content)
-            elif format.lower() == 'xml':
+            elif format.lower() == "xml":
                 return self._parse_xml_string(content)
             else:
                 raise DMNParseError(f"Unsupported format: {format}")
@@ -88,13 +95,13 @@ class DMNParser:
 
     def _parse_json_file(self, file_path: Path) -> DMNTable:
         """Parse DMN table from JSON file."""
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
         return self._parse_dmn_data(data)
 
     def _parse_yaml_file(self, file_path: Path) -> DMNTable:
         """Parse DMN table from YAML file."""
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         return self._parse_dmn_data(data)
 
@@ -121,7 +128,7 @@ class DMNParser:
         data = self._xml_to_dict(root)
         return self._parse_dmn_data(data)
 
-    def _xml_to_dict(self, element: ET.Element) -> Dict[str, Any]:
+    def _xml_to_dict(self, element: ET.Element) -> dict[str, Any]:
         """Convert XML element to dictionary."""
         result = {}
 
@@ -131,7 +138,7 @@ class DMNParser:
 
         # Add text content
         if element.text and element.text.strip():
-            result['text'] = element.text.strip()
+            result["text"] = element.text.strip()
 
         # Add children
         children = {}
@@ -147,27 +154,27 @@ class DMNParser:
         result.update(children)
         return {element.tag: result}
 
-    def _parse_dmn_data(self, data: Dict[str, Any]) -> DMNTable:
+    def _parse_dmn_data(self, data: dict[str, Any]) -> DMNTable:
         """Parse DMN data structure into DMNTable object."""
         try:
             # Handle different possible root structures
-            if 'dmnTable' in data:
-                dmn_data = data['dmnTable']
-            elif 'DMNTable' in data:
-                dmn_data = data['DMNTable']
+            if "dmnTable" in data:
+                dmn_data = data["dmnTable"]
+            elif "DMNTable" in data:
+                dmn_data = data["DMNTable"]
             else:
                 dmn_data = data
 
             # Extract basic DMN table info
-            dmn_id = dmn_data.get('id', 'dmn_table_1')
-            name = dmn_data.get('name', 'DMN Table')
-            namespace = dmn_data.get('namespace', 'http://www.omg.org/spec/DMN/20191111/MODEL/')
-            description = dmn_data.get('description')
-            version = dmn_data.get('version', '1.0')
+            dmn_id = dmn_data.get("id", "dmn_table_1")
+            name = dmn_data.get("name", "DMN Table")
+            namespace = dmn_data.get("namespace", "http://www.omg.org/spec/DMN/20191111/MODEL/")
+            description = dmn_data.get("description")
+            version = dmn_data.get("version", "1.0")
 
             # Parse decision tables
             decision_tables = []
-            dt_data_list = dmn_data.get('decisionTables', dmn_data.get('decision_tables', []))
+            dt_data_list = dmn_data.get("decisionTables", dmn_data.get("decision_tables", []))
 
             if isinstance(dt_data_list, dict):
                 dt_data_list = [dt_data_list]
@@ -183,33 +190,33 @@ class DMNParser:
                 decision_tables=decision_tables,
                 description=description,
                 version=version,
-                metadata=dmn_data.get('metadata', {})
+                metadata=dmn_data.get("metadata", {})
             )
 
         except Exception as e:
             raise DMNParseError(f"Failed to parse DMN data structure: {str(e)}")
 
-    def _parse_decision_table(self, dt_data: Dict[str, Any]) -> DecisionTable:
+    def _parse_decision_table(self, dt_data: dict[str, Any]) -> DecisionTable:
         """Parse decision table data."""
-        dt_id = dt_data.get('id', f"dt_{len(dt_data)}")
-        name = dt_data.get('name', 'Decision Table')
-        description = dt_data.get('description')
+        dt_id = dt_data.get("id", f"dt_{len(dt_data)}")
+        name = dt_data.get("name", "Decision Table")
+        description = dt_data.get("description")
 
         # Parse hit policy
-        hit_policy_str = dt_data.get('hitPolicy', dt_data.get('hit_policy', 'UNIQUE'))
+        hit_policy_str = dt_data.get("hitPolicy", dt_data.get("hit_policy", "UNIQUE"))
         hit_policy = HitPolicy(hit_policy_str.upper())
 
         # Parse aggregation
-        aggregation_str = dt_data.get('aggregation')
+        aggregation_str = dt_data.get("aggregation")
         aggregation = BuiltinAggregator(aggregation_str.upper()) if aggregation_str else None
 
         # Parse expression language
-        expr_lang_str = dt_data.get('expressionLanguage', dt_data.get('expression_language', 'FEEL'))
+        expr_lang_str = dt_data.get("expressionLanguage", dt_data.get("expression_language", "FEEL"))
         expression_language = ExpressionLanguage(expr_lang_str.upper())
 
         # Parse input clauses
         input_clauses = []
-        input_data = dt_data.get('inputClauses', dt_data.get('input_clauses', dt_data.get('inputs', [])))
+        input_data = dt_data.get("inputClauses", dt_data.get("input_clauses", dt_data.get("inputs", [])))
 
         if isinstance(input_data, dict):
             input_data = [input_data]
@@ -220,7 +227,7 @@ class DMNParser:
 
         # Parse output clauses
         output_clauses = []
-        output_data = dt_data.get('outputClauses', dt_data.get('output_clauses', dt_data.get('outputs', [])))
+        output_data = dt_data.get("outputClauses", dt_data.get("output_clauses", dt_data.get("outputs", [])))
 
         if isinstance(output_data, dict):
             output_data = [output_data]
@@ -231,7 +238,7 @@ class DMNParser:
 
         # Parse rules
         rules = []
-        rules_data = dt_data.get('rules', [])
+        rules_data = dt_data.get("rules", [])
 
         if isinstance(rules_data, dict):
             rules_data = [rules_data]
@@ -252,36 +259,36 @@ class DMNParser:
             expression_language=expression_language
         )
 
-    def _parse_input_clause(self, input_data: Dict[str, Any], index: int) -> InputClause:
+    def _parse_input_clause(self, input_data: dict[str, Any], index: int) -> InputClause:
         """Parse input clause data."""
         return InputClause(
-            id=input_data.get('id', f"input_{index}"),
-            label=input_data.get('label', f"Input {index}"),
-            expression=input_data.get('expression', ''),
-            type_ref=input_data.get('typeRef', input_data.get('type_ref')),
-            expression_language=ExpressionLanguage(input_data.get('expressionLanguage', 'FEEL').upper()),
-            description=input_data.get('description')
+            id=input_data.get("id", f"input_{index}"),
+            label=input_data.get("label", f"Input {index}"),
+            expression=input_data.get("expression", ""),
+            type_ref=input_data.get("typeRef", input_data.get("type_ref")),
+            expression_language=ExpressionLanguage(input_data.get("expressionLanguage", "FEEL").upper()),
+            description=input_data.get("description")
         )
 
-    def _parse_output_clause(self, output_data: Dict[str, Any], index: int) -> OutputClause:
+    def _parse_output_clause(self, output_data: dict[str, Any], index: int) -> OutputClause:
         """Parse output clause data."""
         return OutputClause(
-            id=output_data.get('id', f"output_{index}"),
-            label=output_data.get('label', f"Output {index}"),
-            name=output_data.get('name', f"output_{index}"),
-            type_ref=output_data.get('typeRef', output_data.get('type_ref')),
-            default_output_entry=output_data.get('defaultOutputEntry', output_data.get('default_output_entry')),
-            description=output_data.get('description')
+            id=output_data.get("id", f"output_{index}"),
+            label=output_data.get("label", f"Output {index}"),
+            name=output_data.get("name", f"output_{index}"),
+            type_ref=output_data.get("typeRef", output_data.get("type_ref")),
+            default_output_entry=output_data.get("defaultOutputEntry", output_data.get("default_output_entry")),
+            description=output_data.get("description")
         )
 
-    def _parse_rule(self, rule_data: Dict[str, Any], index: int,
-                   input_clauses: List[InputClause], output_clauses: List[OutputClause]) -> Rule:
+    def _parse_rule(self, rule_data: dict[str, Any], index: int,
+                   input_clauses: list[InputClause], output_clauses: list[OutputClause]) -> Rule:
         """Parse rule data."""
-        rule_id = rule_data.get('id', f"rule_{index}")
+        rule_id = rule_data.get("id", f"rule_{index}")
 
         # Parse input entries
         input_entries = {}
-        input_entries_data = rule_data.get('inputEntries', rule_data.get('input_entries', {}))
+        input_entries_data = rule_data.get("inputEntries", rule_data.get("input_entries", {}))
 
         if isinstance(input_entries_data, list):
             for i, entry in enumerate(input_entries_data):
@@ -292,7 +299,7 @@ class DMNParser:
 
         # Parse output entries
         output_entries = {}
-        output_entries_data = rule_data.get('outputEntries', rule_data.get('output_entries', {}))
+        output_entries_data = rule_data.get("outputEntries", rule_data.get("output_entries", {}))
 
         if isinstance(output_entries_data, list):
             for i, entry in enumerate(output_entries_data):
@@ -302,13 +309,13 @@ class DMNParser:
             output_entries = output_entries_data
 
         # Parse annotations
-        annotation_entries = rule_data.get('annotationEntries', rule_data.get('annotation_entries', {}))
+        annotation_entries = rule_data.get("annotationEntries", rule_data.get("annotation_entries", {}))
 
         return Rule(
             id=rule_id,
-            description=rule_data.get('description'),
+            description=rule_data.get("description"),
             input_entries=input_entries,
             output_entries=output_entries,
-            priority=rule_data.get('priority'),
+            priority=rule_data.get("priority"),
             annotation_entries=annotation_entries
         )

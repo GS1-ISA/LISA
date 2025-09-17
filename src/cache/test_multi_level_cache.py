@@ -2,12 +2,18 @@
 Unit tests for MultiLevelCache class.
 """
 
-import unittest
-import time
-import tempfile
 import os
+import tempfile
+import time
+import unittest
 from unittest.mock import Mock, patch
-from src.cache.multi_level_cache import MultiLevelCache, ISAL1Cache, ISAL2Cache, ISAL3Cache
+
+from src.cache.multi_level_cache import (
+    ISAL1Cache,
+    ISAL2Cache,
+    ISAL3Cache,
+    MultiLevelCache,
+)
 
 
 class TestISAL1Cache(unittest.TestCase):
@@ -46,9 +52,9 @@ class TestISAL2Cache(unittest.TestCase):
     """Test L2 Redis cache."""
 
     def setUp(self):
-        self.cache = ISAL2Cache(host='localhost', port=6379, default_ttl=60)
+        self.cache = ISAL2Cache(host="localhost", port=6379, default_ttl=60)
 
-    @patch('redis.Redis')
+    @patch("redis.Redis")
     def test_basic_operations(self, mock_redis):
         """Test basic operations with mocked Redis."""
         mock_instance = Mock()
@@ -96,7 +102,7 @@ class TestMultiLevelCache(unittest.TestCase):
         self.cache = MultiLevelCache(
             l1_max_size=5,
             l1_ttl=60,
-            l2_host='localhost',
+            l2_host="localhost",
             l2_port=6379,
             l2_ttl=120,
             l3_dir=self.temp_dir,
@@ -110,7 +116,7 @@ class TestMultiLevelCache(unittest.TestCase):
             os.remove(os.path.join(self.temp_dir, file))
         os.rmdir(self.temp_dir)
 
-    @patch('redis.Redis')
+    @patch("redis.Redis")
     def test_promotion_logic(self, mock_redis):
         """Test cache promotion from L3 to L1."""
         # Mock Redis to simulate misses
@@ -141,7 +147,7 @@ class TestMultiLevelCache(unittest.TestCase):
         self.cache.set("static_config", "config_data")
         # Should have longer TTL
         stats = self.cache.get_stats()
-        self.assertIn('isa_optimizations', stats)
+        self.assertIn("isa_optimizations", stats)
 
     def test_statistics_tracking(self):
         """Test comprehensive statistics."""
@@ -150,11 +156,11 @@ class TestMultiLevelCache(unittest.TestCase):
         self.cache.get("key2")  # Miss
 
         stats = self.cache.get_stats()
-        self.assertIn('l1_hits', stats)
-        self.assertIn('l1_misses', stats)
-        self.assertIn('overall_hit_rate', stats)
-        self.assertIn('isa_optimizations', stats)
+        self.assertIn("l1_hits", stats)
+        self.assertIn("l1_misses", stats)
+        self.assertIn("overall_hit_rate", stats)
+        self.assertIn("isa_optimizations", stats)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

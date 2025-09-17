@@ -8,22 +8,17 @@ workflow definition, execution, and monitoring.
 import abc
 import asyncio
 import enum
-import json
 import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Union
+from typing import Any
 
-from .agent_system import AgentOrchestrator, BaseAgent, ResearchAgent
-from .exceptions import ISAConfigurationError, ISANotFoundError, ISAValidationError
+from .agent_system import AgentOrchestrator
+from .exceptions import ISANotFoundError, ISAValidationError
 from .logger import get_logger
 from .models import (
     AgentCapability,
-    AgentType,
-    Document,
-    SearchResult,
-    Task,
     TaskPriority,
     TaskStatus,
 )
@@ -70,12 +65,12 @@ class WorkflowStep:
     step_type: WorkflowStepType
     name: str
     description: str = ""
-    config: Dict[str, Any] = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
-    condition: Optional[str] = None
-    retry_config: Dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
+    condition: str | None = None
+    retry_config: dict[str, Any] = field(default_factory=dict)
     timeout: int = 300  # 5 minutes default
-    required_capabilities: List[AgentCapability] = field(default_factory=list)
+    required_capabilities: list[AgentCapability] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Post-initialization validation."""
@@ -92,12 +87,12 @@ class WorkflowStepResult:
     step_id: str
     status: WorkflowStepStatus
     result: Any = None
-    error: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    error: str | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     execution_time: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "step_id": self.step_id,
@@ -117,14 +112,14 @@ class WorkflowExecution:
     execution_id: str
     workflow_id: str
     status: WorkflowStatus
-    current_step: Optional[str] = None
-    step_results: Dict[str, WorkflowStepResult] = field(default_factory=dict)
-    context: Dict[str, Any] = field(default_factory=dict)
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    current_step: str | None = None
+    step_results: dict[str, WorkflowStepResult] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "execution_id": self.execution_id,
@@ -150,10 +145,10 @@ class WorkflowDefinition:
     name: str
     description: str = ""
     version: str = "1.0.0"
-    steps: List[WorkflowStep] = field(default_factory=list)
-    input_schema: Dict[str, Any] = field(default_factory=dict)
-    output_schema: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    steps: list[WorkflowStep] = field(default_factory=list)
+    input_schema: dict[str, Any] = field(default_factory=dict)
+    output_schema: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
 
     def __post_init__(self) -> None:
@@ -175,19 +170,19 @@ class WorkflowDefinition:
                         field="dependencies",
                     )
 
-    def get_step(self, step_id: str) -> Optional[WorkflowStep]:
+    def get_step(self, step_id: str) -> WorkflowStep | None:
         """Get workflow step by ID."""
         for step in self.steps:
             if step.step_id == step_id:
                 return step
         return None
 
-    def get_dependencies(self, step_id: str) -> List[str]:
+    def get_dependencies(self, step_id: str) -> list[str]:
         """Get dependencies for a step."""
         step = self.get_step(step_id)
         return step.dependencies if step else []
 
-    def get_dependents(self, step_id: str) -> List[str]:
+    def get_dependents(self, step_id: str) -> list[str]:
         """Get steps that depend on this step."""
         dependents = []
         for step in self.steps:
@@ -211,7 +206,7 @@ class BaseWorkflowExecutor(abc.ABC):
 
     @abc.abstractmethod
     async def execute_step(
-        self, step: WorkflowStep, context: Dict[str, Any], execution: WorkflowExecution
+        self, step: WorkflowStep, context: dict[str, Any], execution: WorkflowExecution
     ) -> WorkflowStepResult:
         """
         Execute a workflow step.
@@ -226,7 +221,7 @@ class BaseWorkflowExecutor(abc.ABC):
         """
         pass
 
-    async def evaluate_condition(self, condition: str, context: Dict[str, Any]) -> bool:
+    async def evaluate_condition(self, condition: str, context: dict[str, Any]) -> bool:
         """
         Evaluate a condition expression.
 
@@ -241,7 +236,7 @@ class BaseWorkflowExecutor(abc.ABC):
         try:
             # Replace context variables in condition
             for key, value in context.items():
-                if isinstance(value, (str, int, float, bool)):
+                if isinstance(value, str | int | float | bool):
                     condition = condition.replace(f"${{{key}}}", str(value))
 
             # Evaluate the condition
@@ -255,7 +250,7 @@ class AgentTaskExecutor(BaseWorkflowExecutor):
     """Executor for agent task steps."""
 
     async def execute_step(
-        self, step: WorkflowStep, context: Dict[str, Any], execution: WorkflowExecution
+        self, step: WorkflowStep, context: dict[str, Any], execution: WorkflowExecution
     ) -> WorkflowStepResult:
         """
         Execute an agent task step.
@@ -324,8 +319,8 @@ class AgentTaskExecutor(BaseWorkflowExecutor):
             )
 
     async def _find_suitable_agent(
-        self, step: WorkflowStep, data: Dict[str, Any]
-    ) -> Optional[str]:
+        self, step: WorkflowStep, data: dict[str, Any]
+    ) -> str | None:
         """Find a suitable agent for the task."""
         # Get available agents
         available_agents = []
@@ -338,9 +333,9 @@ class AgentTaskExecutor(BaseWorkflowExecutor):
             ):  # Max tasks per agent
                 # Check capabilities
                 agent_capabilities = set(agent_status["capabilities"])
-                required_capabilities = set(
+                required_capabilities = {
                     cap.value for cap in step.required_capabilities
-                )
+                }
 
                 if required_capabilities.issubset(agent_capabilities):
                     available_agents.append(agent_id)
@@ -370,7 +365,7 @@ class ConditionalExecutor(BaseWorkflowExecutor):
     """Executor for conditional steps."""
 
     async def execute_step(
-        self, step: WorkflowStep, context: Dict[str, Any], execution: WorkflowExecution
+        self, step: WorkflowStep, context: dict[str, Any], execution: WorkflowExecution
     ) -> WorkflowStepResult:
         """
         Execute a conditional step.
@@ -434,7 +429,7 @@ class ParallelExecutor(BaseWorkflowExecutor):
     """Executor for parallel steps."""
 
     async def execute_step(
-        self, step: WorkflowStep, context: Dict[str, Any], execution: WorkflowExecution
+        self, step: WorkflowStep, context: dict[str, Any], execution: WorkflowExecution
     ) -> WorkflowStepResult:
         """
         Execute a parallel step.
@@ -533,9 +528,9 @@ class WorkflowEngine:
         """
         self.orchestrator = orchestrator
         self.logger = get_logger("workflow.engine")
-        self.workflows: Dict[str, WorkflowDefinition] = {}
-        self.executions: Dict[str, WorkflowExecution] = {}
-        self.executors: Dict[WorkflowStepType, BaseWorkflowExecutor] = {}
+        self.workflows: dict[str, WorkflowDefinition] = {}
+        self.executions: dict[str, WorkflowExecution] = {}
+        self.executors: dict[WorkflowStepType, BaseWorkflowExecutor] = {}
 
         # Register default executors
         self._register_executors()
@@ -582,8 +577,8 @@ class WorkflowEngine:
     async def execute_workflow(
         self,
         workflow_id: str,
-        input_data: Dict[str, Any],
-        execution_id: Optional[str] = None,
+        input_data: dict[str, Any],
+        execution_id: str | None = None,
     ) -> str:
         """
         Execute a workflow.
@@ -628,7 +623,7 @@ class WorkflowEngine:
         self.logger.info(f"Workflow {workflow_id} execution {execution_id} started")
         return execution_id
 
-    async def get_execution_status(self, execution_id: str) -> Optional[Dict[str, Any]]:
+    async def get_execution_status(self, execution_id: str) -> dict[str, Any] | None:
         """
         Get workflow execution status.
 
@@ -769,15 +764,12 @@ class WorkflowEngine:
             )
 
     def _validate_input(
-        self, input_data: Dict[str, Any], schema: Dict[str, Any]
+        self, input_data: dict[str, Any], schema: dict[str, Any]
     ) -> bool:
         """Validate input data against schema."""
         # Simple validation - in a real system, use a proper schema validator
         required_fields = schema.get("required", [])
-        for field in required_fields:
-            if field not in input_data:
-                return False
-        return True
+        return all(field in input_data for field in required_fields)
 
 
 # Predefined workflow templates
@@ -960,7 +952,7 @@ async def create_workflow_engine(orchestrator: AgentOrchestrator) -> WorkflowEng
 
 
 async def execute_research_workflow(
-    engine: WorkflowEngine, query: str, execution_id: Optional[str] = None
+    engine: WorkflowEngine, query: str, execution_id: str | None = None
 ) -> str:
     """
     Execute a research workflow.
@@ -981,8 +973,8 @@ async def execute_research_workflow(
 
 async def execute_document_processing_workflow(
     engine: WorkflowEngine,
-    document_paths: List[str],
-    execution_id: Optional[str] = None,
+    document_paths: list[str],
+    execution_id: str | None = None,
 ) -> str:
     """
     Execute a document processing workflow.

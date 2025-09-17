@@ -7,16 +7,12 @@ identify vulnerabilities and optimization opportunities.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Tuple, Set
 from dataclasses import dataclass
-from datetime import datetime
+from typing import Any
+
 import networkx as nx
 
-from shapely.geometry import Point, Polygon, LineString
-from shapely.ops import nearest_points
 from .risk_assessment import GeospatialRiskAssessor, LocationRiskAssessment
-from .gfw_client import DeforestationAlert
-from .corine_client import LandCoverChange
 
 
 @dataclass
@@ -27,8 +23,8 @@ class SupplyChainNode:
     latitude: float
     longitude: float
     node_type: str  # supplier, processor, distributor, etc.
-    risk_assessment: Optional[LocationRiskAssessment] = None
-    connections: List[str] = None  # IDs of connected nodes
+    risk_assessment: LocationRiskAssessment | None = None
+    connections: list[str] = None  # IDs of connected nodes
 
     def __post_init__(self):
         if self.connections is None:
@@ -38,20 +34,20 @@ class SupplyChainNode:
 @dataclass
 class SupplyChainPath:
     """Represents a path through the supply chain."""
-    nodes: List[SupplyChainNode]
+    nodes: list[SupplyChainNode]
     total_distance_km: float
     total_risk_score: float
     deforestation_exposure: float
-    alternative_paths: List[List[str]]
+    alternative_paths: list[list[str]]
 
 
 @dataclass
 class GeospatialOptimization:
     """Optimization recommendations for supply chain."""
-    high_risk_segments: List[Dict[str, Any]]
-    alternative_routes: List[SupplyChainPath]
+    high_risk_segments: list[dict[str, Any]]
+    alternative_routes: list[SupplyChainPath]
     risk_reduction_potential: float
-    cost_benefit_analysis: Dict[str, Any]
+    cost_benefit_analysis: dict[str, Any]
 
 
 class SupplyChainGeospatialAnalyzer:
@@ -62,7 +58,7 @@ class SupplyChainGeospatialAnalyzer:
     and provides optimization recommendations for EUDR compliance.
     """
 
-    def __init__(self, risk_assessor: Optional[GeospatialRiskAssessor] = None):
+    def __init__(self, risk_assessor: GeospatialRiskAssessor | None = None):
         """
         Initialize the supply chain analyzer.
 
@@ -74,11 +70,11 @@ class SupplyChainGeospatialAnalyzer:
 
     def analyze_supply_chain_network(
         self,
-        nodes: List[SupplyChainNode],
-        connections: List[Tuple[str, str]],
+        nodes: list[SupplyChainNode],
+        connections: list[tuple[str, str]],
         buffer_km: float = 50,
         lookback_years: int = 5
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform comprehensive geospatial analysis of supply chain network.
 
@@ -115,18 +111,18 @@ class SupplyChainGeospatialAnalyzer:
             optimizations = self._generate_network_optimizations(nodes, network_graph)
 
             analysis_result = {
-                'network_overview': {
-                    'total_nodes': len(nodes),
-                    'total_connections': len(connections),
-                    'node_types': self._categorize_nodes_by_type(nodes),
-                    'geographic_spread': self._calculate_geographic_spread(nodes)
+                "network_overview": {
+                    "total_nodes": len(nodes),
+                    "total_connections": len(connections),
+                    "node_types": self._categorize_nodes_by_type(nodes),
+                    "geographic_spread": self._calculate_geographic_spread(nodes)
                 },
-                'risk_assessments': risk_assessments,
-                'topology_analysis': topology_analysis,
-                'risk_hotspots': risk_hotspots,
-                'resilience_metrics': resilience_metrics,
-                'optimizations': optimizations,
-                'recommendations': self._generate_network_recommendations(
+                "risk_assessments": risk_assessments,
+                "topology_analysis": topology_analysis,
+                "risk_hotspots": risk_hotspots,
+                "resilience_metrics": resilience_metrics,
+                "optimizations": optimizations,
+                "recommendations": self._generate_network_recommendations(
                     risk_hotspots, resilience_metrics, optimizations
                 )
             }
@@ -136,15 +132,15 @@ class SupplyChainGeospatialAnalyzer:
 
         except Exception as e:
             self.logger.error(f"Error analyzing supply chain network: {str(e)}")
-            return {'error': str(e), 'partial_results': {}}
+            return {"error": str(e), "partial_results": {}}
 
     def optimize_supply_chain_routes(
         self,
         origin: SupplyChainNode,
         destination: SupplyChainNode,
-        intermediate_nodes: List[SupplyChainNode],
+        intermediate_nodes: list[SupplyChainNode],
         risk_tolerance: float = 0.3
-    ) -> List[SupplyChainPath]:
+    ) -> list[SupplyChainPath]:
         """
         Find optimal supply chain routes considering geospatial risks.
 
@@ -189,11 +185,11 @@ class SupplyChainGeospatialAnalyzer:
 
     def identify_alternative_suppliers(
         self,
-        target_location: Tuple[float, float],
+        target_location: tuple[float, float],
         search_radius_km: float = 500,
         max_alternatives: int = 5,
         risk_threshold: float = 0.3
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Identify alternative suppliers in low-risk areas.
 
@@ -218,18 +214,18 @@ class SupplyChainGeospatialAnalyzer:
                     distance = self._calculate_distance(target_location, (lat, lon))
 
                     alternative = {
-                        'coordinates': (lat, lon),
-                        'distance_km': distance,
-                        'risk_score': assessment.combined_risk_score,
-                        'risk_level': assessment.risk_level,
-                        'forest_cover_percentage': assessment.forest_cover_percentage,
-                        'recent_deforestation_alerts': assessment.alerts_count,
-                        'recommendations': assessment.recommendations
+                        "coordinates": (lat, lon),
+                        "distance_km": distance,
+                        "risk_score": assessment.combined_risk_score,
+                        "risk_level": assessment.risk_level,
+                        "forest_cover_percentage": assessment.forest_cover_percentage,
+                        "recent_deforestation_alerts": assessment.alerts_count,
+                        "recommendations": assessment.recommendations
                     }
                     alternatives.append(alternative)
 
             # Sort by distance and risk
-            alternatives.sort(key=lambda x: (x['distance_km'], x['risk_score']))
+            alternatives.sort(key=lambda x: (x["distance_km"], x["risk_score"]))
 
             self.logger.info(f"Identified {len(alternatives)} alternative suppliers within {search_radius_km}km")
             return alternatives[:max_alternatives]
@@ -240,8 +236,8 @@ class SupplyChainGeospatialAnalyzer:
 
     def _build_network_graph(
         self,
-        nodes: List[SupplyChainNode],
-        connections: List[Tuple[str, str]]
+        nodes: list[SupplyChainNode],
+        connections: list[tuple[str, str]]
     ) -> nx.DiGraph:
         """Build NetworkX graph from supply chain data."""
         graph = nx.DiGraph()
@@ -281,10 +277,10 @@ class SupplyChainGeospatialAnalyzer:
 
     def _assess_network_risks(
         self,
-        nodes: List[SupplyChainNode],
+        nodes: list[SupplyChainNode],
         buffer_km: float,
         lookback_years: int
-    ) -> Dict[str, LocationRiskAssessment]:
+    ) -> dict[str, LocationRiskAssessment]:
         """Assess risks for all nodes in the network."""
         assessments = {}
 
@@ -316,21 +312,21 @@ class SupplyChainGeospatialAnalyzer:
     def _analyze_network_topology(
         self,
         graph: nx.DiGraph,
-        nodes: List[SupplyChainNode]
-    ) -> Dict[str, Any]:
+        nodes: list[SupplyChainNode]
+    ) -> dict[str, Any]:
         """Analyze the topological properties of the supply chain network."""
         try:
             # Basic network metrics
             num_nodes = graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
+            graph.number_of_edges()
 
             # Connectivity analysis
             is_connected = nx.is_weakly_connected(graph)
             connected_components = list(nx.weakly_connected_components(graph))
 
             # Centrality measures
-            betweenness = nx.betweenness_centrality(graph, weight='weight')
-            degree_centrality = nx.degree_centrality(graph)
+            betweenness = nx.betweenness_centrality(graph, weight="weight")
+            nx.degree_centrality(graph)
 
             # Risk distribution
             risk_scores = [n.risk_assessment.combined_risk_score for n in nodes if n.risk_assessment]
@@ -344,32 +340,32 @@ class SupplyChainGeospatialAnalyzer:
                 criticality = betweenness_score * risk_score
                 if criticality > 0.1:  # Threshold for criticality
                     critical_nodes.append({
-                        'node_id': node_id,
-                        'name': node.name,
-                        'betweenness': betweenness_score,
-                        'risk_score': risk_score,
-                        'criticality': criticality
+                        "node_id": node_id,
+                        "name": node.name,
+                        "betweenness": betweenness_score,
+                        "risk_score": risk_score,
+                        "criticality": criticality
                     })
 
             return {
-                'is_connected': is_connected,
-                'connected_components': len(connected_components),
-                'average_degree': sum(dict(graph.degree()).values()) / num_nodes if num_nodes > 0 else 0,
-                'average_risk_score': avg_risk,
-                'critical_nodes': sorted(critical_nodes, key=lambda x: x['criticality'], reverse=True),
-                'network_density': nx.density(graph),
-                'average_clustering': nx.average_clustering(graph.to_undirected())
+                "is_connected": is_connected,
+                "connected_components": len(connected_components),
+                "average_degree": sum(dict(graph.degree()).values()) / num_nodes if num_nodes > 0 else 0,
+                "average_risk_score": avg_risk,
+                "critical_nodes": sorted(critical_nodes, key=lambda x: x["criticality"], reverse=True),
+                "network_density": nx.density(graph),
+                "average_clustering": nx.average_clustering(graph.to_undirected())
             }
 
         except Exception as e:
             self.logger.error(f"Error analyzing network topology: {str(e)}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def _identify_risk_hotspots(
         self,
-        nodes: List[SupplyChainNode],
+        nodes: list[SupplyChainNode],
         graph: nx.DiGraph
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Identify geographic and network risk hotspots."""
         hotspots = []
 
@@ -391,14 +387,14 @@ class SupplyChainGeospatialAnalyzer:
 
             if avg_distance < 500:  # Within 500km
                 hotspots.append({
-                    'type': 'geographic_cluster',
-                    'description': f"Cluster of {len(high_risk_nodes)} high-risk nodes within {avg_distance:.1f}km average distance",
-                    'nodes': [n.id for n in high_risk_nodes],
-                    'severity': 'high' if len(high_risk_nodes) > 3 else 'medium'
+                    "type": "geographic_cluster",
+                    "description": f"Cluster of {len(high_risk_nodes)} high-risk nodes within {avg_distance:.1f}km average distance",
+                    "nodes": [n.id for n in high_risk_nodes],
+                    "severity": "high" if len(high_risk_nodes) > 3 else "medium"
                 })
 
         # Network bottlenecks
-        betweenness = nx.betweenness_centrality(graph, weight='weight')
+        betweenness = nx.betweenness_centrality(graph, weight="weight")
         bottleneck_nodes = [
             node_id for node_id, score in betweenness.items()
             if score > 0.1  # High betweenness
@@ -406,10 +402,10 @@ class SupplyChainGeospatialAnalyzer:
 
         if bottleneck_nodes:
             hotspots.append({
-                'type': 'network_bottleneck',
-                'description': f"{len(bottleneck_nodes)} critical network bottlenecks identified",
-                'nodes': bottleneck_nodes,
-                'severity': 'medium'
+                "type": "network_bottleneck",
+                "description": f"{len(bottleneck_nodes)} critical network bottlenecks identified",
+                "nodes": bottleneck_nodes,
+                "severity": "medium"
             })
 
         return hotspots
@@ -417,8 +413,8 @@ class SupplyChainGeospatialAnalyzer:
     def _calculate_network_resilience(
         self,
         graph: nx.DiGraph,
-        nodes: List[SupplyChainNode]
-    ) -> Dict[str, Any]:
+        nodes: list[SupplyChainNode]
+    ) -> dict[str, Any]:
         """Calculate network resilience metrics."""
         try:
             # Remove high-risk nodes and measure impact
@@ -457,20 +453,20 @@ class SupplyChainGeospatialAnalyzer:
             path_resilience = alternative_paths / total_possible_paths if total_possible_paths > 0 else 0
 
             return {
-                'fragmentation_risk': fragmentation_risk,
-                'node_loss_impact': node_loss_percentage,
-                'remaining_nodes_percentage': remaining_nodes / graph.number_of_nodes() if graph.number_of_nodes() > 0 else 0,
-                'path_resilience': path_resilience,
-                'vulnerability_score': (fragmentation_risk * 0.4) + (node_loss_percentage * 0.6)
+                "fragmentation_risk": fragmentation_risk,
+                "node_loss_impact": node_loss_percentage,
+                "remaining_nodes_percentage": remaining_nodes / graph.number_of_nodes() if graph.number_of_nodes() > 0 else 0,
+                "path_resilience": path_resilience,
+                "vulnerability_score": (fragmentation_risk * 0.4) + (node_loss_percentage * 0.6)
             }
 
         except Exception as e:
             self.logger.error(f"Error calculating network resilience: {str(e)}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def _generate_network_optimizations(
         self,
-        nodes: List[SupplyChainNode],
+        nodes: list[SupplyChainNode],
         graph: nx.DiGraph
     ) -> GeospatialOptimization:
         """Generate optimization recommendations for the network."""
@@ -487,10 +483,10 @@ class SupplyChainGeospatialAnalyzer:
                 avg_risk = (from_risk + to_risk) / 2
                 if avg_risk > 0.6:
                     high_risk_segments.append({
-                        'from_node': edge[0],
-                        'to_node': edge[1],
-                        'risk_score': avg_risk,
-                        'distance': edge[2]['distance']
+                        "from_node": edge[0],
+                        "to_node": edge[1],
+                        "risk_score": avg_risk,
+                        "distance": edge[2]["distance"]
                     })
 
             # Find alternative routes for high-risk paths
@@ -498,7 +494,7 @@ class SupplyChainGeospatialAnalyzer:
             for segment in high_risk_segments[:3]:  # Limit to top 3
                 try:
                     paths = list(nx.all_simple_paths(
-                        graph, segment['from_node'], segment['to_node'],
+                        graph, segment["from_node"], segment["to_node"],
                         cutoff=4  # Limit path length
                     ))
 
@@ -522,7 +518,7 @@ class SupplyChainGeospatialAnalyzer:
                     self.logger.warning(f"Error finding alternatives for segment {segment}: {str(e)}")
 
             # Calculate potential risk reduction
-            current_total_risk = sum(
+            sum(
                 n.risk_assessment.combined_risk_score for n in nodes
                 if n.risk_assessment
             )
@@ -533,22 +529,22 @@ class SupplyChainGeospatialAnalyzer:
                 alternative_routes=alternative_routes,
                 risk_reduction_potential=potential_risk_reduction,
                 cost_benefit_analysis={
-                    'estimated_risk_reduction': potential_risk_reduction,
-                    'high_risk_segments_count': len(high_risk_segments),
-                    'alternative_routes_available': len(alternative_routes)
+                    "estimated_risk_reduction": potential_risk_reduction,
+                    "high_risk_segments_count": len(high_risk_segments),
+                    "alternative_routes_available": len(alternative_routes)
                 }
             )
 
         except Exception as e:
             self.logger.error(f"Error generating network optimizations: {str(e)}")
-            return GeospatialOptimization([], [], 0, {'error': str(e)})
+            return GeospatialOptimization([], [], 0, {"error": str(e)})
 
     def _generate_possible_paths(
         self,
         origin: SupplyChainNode,
         destination: SupplyChainNode,
-        intermediates: List[SupplyChainNode]
-    ) -> List[List[SupplyChainNode]]:
+        intermediates: list[SupplyChainNode]
+    ) -> list[list[SupplyChainNode]]:
         """Generate possible paths through the supply chain."""
         # Simple implementation - in practice, this would use more sophisticated routing
         paths = []
@@ -569,9 +565,9 @@ class SupplyChainGeospatialAnalyzer:
 
     def _evaluate_supply_path(
         self,
-        path_nodes: List[SupplyChainNode],
+        path_nodes: list[SupplyChainNode],
         risk_tolerance: float
-    ) -> Optional[SupplyChainPath]:
+    ) -> SupplyChainPath | None:
         """Evaluate a supply chain path."""
         try:
             if not all(node.risk_assessment for node in path_nodes):
@@ -616,10 +612,10 @@ class SupplyChainGeospatialAnalyzer:
 
     def _generate_candidate_locations(
         self,
-        center: Tuple[float, float],
+        center: tuple[float, float],
         radius_km: float,
         grid_spacing_km: float = 50
-    ) -> List[Tuple[float, float]]:
+    ) -> list[tuple[float, float]]:
         """Generate candidate locations in a grid pattern."""
         candidates = []
 
@@ -645,7 +641,7 @@ class SupplyChainGeospatialAnalyzer:
 
         return candidates
 
-    def _calculate_distance(self, point1: Tuple[float, float], point2: Tuple[float, float]) -> float:
+    def _calculate_distance(self, point1: tuple[float, float], point2: tuple[float, float]) -> float:
         """Calculate distance between two points in kilometers."""
         return self._haversine_distance(point1[0], point1[1], point2[0], point2[1])
 
@@ -663,14 +659,14 @@ class SupplyChainGeospatialAnalyzer:
 
         return R * c
 
-    def _categorize_nodes_by_type(self, nodes: List[SupplyChainNode]) -> Dict[str, int]:
+    def _categorize_nodes_by_type(self, nodes: list[SupplyChainNode]) -> dict[str, int]:
         """Categorize nodes by type."""
         categories = {}
         for node in nodes:
             categories[node.node_type] = categories.get(node.node_type, 0) + 1
         return categories
 
-    def _calculate_geographic_spread(self, nodes: List[SupplyChainNode]) -> Dict[str, Any]:
+    def _calculate_geographic_spread(self, nodes: list[SupplyChainNode]) -> dict[str, Any]:
         """Calculate geographic spread of nodes."""
         if not nodes:
             return {}
@@ -679,49 +675,49 @@ class SupplyChainGeospatialAnalyzer:
         lons = [n.longitude for n in nodes]
 
         return {
-            'latitude_range': max(lats) - min(lats),
-            'longitude_range': max(lons) - min(lons),
-            'center_lat': sum(lats) / len(lats),
-            'center_lon': sum(lons) / len(lons)
+            "latitude_range": max(lats) - min(lats),
+            "longitude_range": max(lons) - min(lons),
+            "center_lat": sum(lats) / len(lats),
+            "center_lon": sum(lons) / len(lons)
         }
 
-    def _calculate_path_risk(self, path: List[str], nodes: List[SupplyChainNode]) -> float:
+    def _calculate_path_risk(self, path: list[str], nodes: list[SupplyChainNode]) -> float:
         """Calculate risk score for a path."""
         path_nodes = [next(n for n in nodes if n.id == node_id) for node_id in path]
         risks = [n.risk_assessment.combined_risk_score for n in path_nodes if n.risk_assessment]
         return sum(risks) / len(risks) if risks else 0.5
 
-    def _calculate_path_distance(self, path: List[str], graph: nx.DiGraph) -> float:
+    def _calculate_path_distance(self, path: list[str], graph: nx.DiGraph) -> float:
         """Calculate total distance for a path."""
         total_distance = 0
         for i in range(len(path) - 1):
             edge_data = graph.get_edge_data(path[i], path[i+1])
             if edge_data:
-                total_distance += edge_data.get('distance', 0)
+                total_distance += edge_data.get("distance", 0)
         return total_distance
 
     def _generate_network_recommendations(
         self,
-        risk_hotspots: List[Dict[str, Any]],
-        resilience_metrics: Dict[str, Any],
+        risk_hotspots: list[dict[str, Any]],
+        resilience_metrics: dict[str, Any],
         optimizations: GeospatialOptimization
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate recommendations for the supply chain network."""
         recommendations = []
 
         # Risk hotspot recommendations
         for hotspot in risk_hotspots:
-            if hotspot['type'] == 'geographic_cluster':
+            if hotspot["type"] == "geographic_cluster":
                 recommendations.append(
                     f"Address geographic risk cluster: Consider diversifying suppliers outside the {hotspot['description'].split()[-2]}km radius"
                 )
-            elif hotspot['type'] == 'network_bottleneck':
+            elif hotspot["type"] == "network_bottleneck":
                 recommendations.append(
                     f"Strengthen network resilience: Develop backup suppliers for {len(hotspot['nodes'])} critical nodes"
                 )
 
         # Resilience recommendations
-        vulnerability = resilience_metrics.get('vulnerability_score', 0)
+        vulnerability = resilience_metrics.get("vulnerability_score", 0)
         if vulnerability > 0.3:
             recommendations.append(
                 "Improve network resilience: High vulnerability to node failures detected"

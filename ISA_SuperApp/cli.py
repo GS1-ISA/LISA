@@ -11,11 +11,11 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import click
 
-from .core.app import ISASuperApp, create_app
+from .core.app import create_app
 from .core.config import create_default_config_file, get_config
 from .core.exceptions import ISAError
 from .core.models import Document, SearchQuery, Task, TaskType
@@ -25,7 +25,7 @@ from .core.models import Document, SearchQuery, Task, TaskType
 @click.option("--config", "-c", help="Path to configuration file")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.pass_context
-def cli(ctx, config: Optional[str], verbose: bool):
+def cli(ctx, config: str | None, verbose: bool):
     """ISA SuperApp Command Line Interface."""
     ctx.ensure_object(dict)
     ctx.obj["config_path"] = config
@@ -56,7 +56,7 @@ def serve(ctx, host: str, port: int, reload: bool):
         sys.exit(1)
 
 
-async def _run_server(config_path: Optional[str], host: str, port: int, reload: bool):
+async def _run_server(config_path: str | None, host: str, port: int, reload: bool):
     """Run the server."""
     app = await create_app(config_path)
 
@@ -109,9 +109,9 @@ def task(
     ctx,
     task_type: str,
     query: str,
-    context: Optional[str],
+    context: str | None,
     priority: str,
-    timeout: Optional[int],
+    timeout: int | None,
 ):
     """Execute a task using the agent system."""
     config_path = ctx.obj.get("config_path")
@@ -126,12 +126,12 @@ def task(
 
 
 async def _execute_task(
-    config_path: Optional[str],
+    config_path: str | None,
     task_type: str,
     query: str,
-    context: Optional[str],
+    context: str | None,
     priority: str,
-    timeout: Optional[int],
+    timeout: int | None,
 ):
     """Execute a task."""
     app = await create_app(config_path)
@@ -156,7 +156,7 @@ async def _execute_task(
     "--input-file", "-f", type=click.Path(exists=True), help="Input data file (JSON)"
 )
 @click.pass_context
-def workflow(ctx, workflow_name: str, input: Optional[str], input_file: Optional[str]):
+def workflow(ctx, workflow_name: str, input: str | None, input_file: str | None):
     """Execute a workflow."""
     config_path = ctx.obj.get("config_path")
 
@@ -170,7 +170,7 @@ def workflow(ctx, workflow_name: str, input: Optional[str], input_file: Optional
             sys.exit(1)
     elif input_file:
         try:
-            with open(input_file, "r") as f:
+            with open(input_file) as f:
                 input_data = json.load(f)
         except Exception as e:
             click.echo(f"Error reading input file: {e}", err=True)
@@ -184,7 +184,7 @@ def workflow(ctx, workflow_name: str, input: Optional[str], input_file: Optional
 
 
 async def _execute_workflow(
-    config_path: Optional[str], workflow_name: str, input_data: Dict[str, Any]
+    config_path: str | None, workflow_name: str, input_data: dict[str, Any]
 ):
     """Execute a workflow."""
     app = await create_app(config_path)
@@ -201,7 +201,7 @@ async def _execute_workflow(
 @click.option("--collection", "-c", help="Vector store collection name")
 @click.pass_context
 def search(
-    ctx, query: str, limit: int, threshold: Optional[float], collection: Optional[str]
+    ctx, query: str, limit: int, threshold: float | None, collection: str | None
 ):
     """Search documents in the vector store."""
     config_path = ctx.obj.get("config_path")
@@ -214,11 +214,11 @@ def search(
 
 
 async def _search_documents(
-    config_path: Optional[str],
+    config_path: str | None,
     query: str,
     limit: int,
-    threshold: Optional[float],
-    collection: Optional[str],
+    threshold: float | None,
+    collection: str | None,
 ):
     """Search documents."""
     app = await create_app(config_path)
@@ -251,9 +251,9 @@ async def _search_documents(
 def index(
     ctx,
     file_path: str,
-    title: Optional[str],
-    collection: Optional[str],
-    metadata: Optional[str],
+    title: str | None,
+    collection: str | None,
+    metadata: str | None,
 ):
     """Index a document in the vector store."""
     config_path = ctx.obj.get("config_path")
@@ -277,18 +277,18 @@ def index(
 
 
 async def _index_document(
-    config_path: Optional[str],
+    config_path: str | None,
     file_path: str,
-    title: Optional[str],
-    collection: Optional[str],
-    metadata: Dict[str, Any],
+    title: str | None,
+    collection: str | None,
+    metadata: dict[str, Any],
 ):
     """Index a document."""
     app = await create_app(config_path)
 
     # Read file content
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         raise ISAError(f"Failed to read file: {e}")
@@ -319,7 +319,7 @@ def status(ctx):
         sys.exit(1)
 
 
-async def _show_status(config_path: Optional[str]):
+async def _show_status(config_path: str | None):
     """Show application status."""
     app = await create_app(config_path)
     status = app.get_status()
@@ -350,7 +350,7 @@ def health(ctx):
         sys.exit(1)
 
 
-async def _health_check(config_path: Optional[str]):
+async def _health_check(config_path: str | None):
     """Perform health check."""
     app = await create_app(config_path)
     health = await app.health_check()
@@ -373,7 +373,7 @@ async def _health_check(config_path: Optional[str]):
 @click.argument("config_key")
 @click.option("--value", "-v", help="New value for the configuration key")
 @click.pass_context
-def config(ctx, config_key: str, value: Optional[str]):
+def config(ctx, config_key: str, value: str | None):
     """Get or set configuration values."""
     config_path = ctx.obj.get("config_path")
 
@@ -401,7 +401,7 @@ def config(ctx, config_key: str, value: Optional[str]):
 @click.option("--recursive", "-r", is_flag=True, help="Process directories recursively")
 @click.pass_context
 def batch_index(
-    ctx, directory: str, pattern: str, collection: Optional[str], recursive: bool
+    ctx, directory: str, pattern: str, collection: str | None, recursive: bool
 ):
     """Batch index documents from a directory."""
     config_path = ctx.obj.get("config_path")
@@ -416,10 +416,10 @@ def batch_index(
 
 
 async def _batch_index(
-    config_path: Optional[str],
+    config_path: str | None,
     directory: str,
     pattern: str,
-    collection: Optional[str],
+    collection: str | None,
     recursive: bool,
 ):
     """Batch index documents."""
@@ -429,10 +429,7 @@ async def _batch_index(
 
     dir_path = Path(directory)
 
-    if recursive:
-        files = list(dir_path.rglob(pattern))
-    else:
-        files = list(dir_path.glob(pattern))
+    files = list(dir_path.rglob(pattern)) if recursive else list(dir_path.glob(pattern))
 
     if not files:
         click.echo(f"No files found matching pattern: {pattern}")
@@ -443,7 +440,7 @@ async def _batch_index(
     indexed_count = 0
     for file_path in files:
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             document = Document(

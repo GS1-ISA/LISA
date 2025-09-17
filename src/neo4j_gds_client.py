@@ -14,17 +14,17 @@ Features:
 
 import logging
 import time
-from typing import Dict, List, Any, Optional, Union
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Any
 
-from neo4j import GraphDatabase, Driver
-from neo4j.exceptions import ServiceUnavailable, AuthError, DatabaseError
-from graphdatascience import GraphDataScience
 import pandas as pd
+from graphdatascience import GraphDataScience
+from neo4j import Driver, GraphDatabase
+from neo4j.exceptions import AuthError, ServiceUnavailable
 
-from .neo4j_gds_schema import SupplyChainGraphSchema, GDS_ALGORITHMS
+from .neo4j_gds_schema import GDS_ALGORITHMS, SupplyChainGraphSchema
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +60,13 @@ class Neo4jGDSClient:
     and integration with ISA's supply chain data.
     """
 
-    def __init__(self, neo4j_config: Optional[Neo4jConfig] = None,
-                 gds_config: Optional[GDSConfig] = None):
+    def __init__(self, neo4j_config: Neo4jConfig | None = None,
+                 gds_config: GDSConfig | None = None):
         self.neo4j_config = neo4j_config or Neo4jConfig()
         self.gds_config = gds_config or GDSConfig()
 
-        self._driver: Optional[Driver] = None
-        self._gds: Optional[GraphDataScience] = None
+        self._driver: Driver | None = None
+        self._gds: GraphDataScience | None = None
         self._connected = False
 
         # Initialize schema
@@ -179,7 +179,7 @@ class Neo4jGDSClient:
             with self._driver.session(database=self.neo4j_config.database) as session:
                 result = session.run("MATCH () RETURN count(*) as node_count")
                 record = result.single()
-                node_count = record["node_count"]
+                record["node_count"]
 
             self._last_health_check = current_time
             self._connection_failures = 0
@@ -207,7 +207,7 @@ class Neo4jGDSClient:
         finally:
             session.close()
 
-    def execute_query(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def execute_query(self, query: str, parameters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         """
         Execute a Cypher query and return results.
 
@@ -225,8 +225,8 @@ class Neo4jGDSClient:
             result = session.run(query, parameters or {})
             return [record.data() for record in result]
 
-    def create_graph_projection(self, node_projection: Dict[str, Any],
-                              relationship_projection: Dict[str, Any]) -> bool:
+    def create_graph_projection(self, node_projection: dict[str, Any],
+                              relationship_projection: dict[str, Any]) -> bool:
         """
         Create a graph projection for GDS algorithms.
 
@@ -292,7 +292,7 @@ class Neo4jGDSClient:
             raise
 
     def run_path_analysis(self, source_name: str, target_name: str,
-                         algorithm: str = "shortest_path") -> Dict[str, Any]:
+                         algorithm: str = "shortest_path") -> dict[str, Any]:
         """
         Run path analysis between two organizations in the supply chain.
 
@@ -390,7 +390,7 @@ class Neo4jGDSClient:
             logger.error(f"Similarity analysis failed: {e}")
             raise
 
-    def calculate_supply_chain_risk_score(self, organization_name: str) -> Dict[str, Any]:
+    def calculate_supply_chain_risk_score(self, organization_name: str) -> dict[str, Any]:
         """
         Calculate comprehensive risk score for an organization in the supply chain.
 
@@ -473,7 +473,7 @@ class Neo4jGDSClient:
             return 1.0 - (community_size / max_size)
         return 0.5
 
-    def _generate_risk_recommendations(self, risk_metrics: Dict[str, Any]) -> List[str]:
+    def _generate_risk_recommendations(self, risk_metrics: dict[str, Any]) -> list[str]:
         """Generate risk mitigation recommendations."""
         recommendations = []
 
@@ -491,7 +491,7 @@ class Neo4jGDSClient:
 
         return recommendations
 
-    def get_graph_statistics(self) -> Dict[str, Any]:
+    def get_graph_statistics(self) -> dict[str, Any]:
         """
         Get comprehensive statistics about the supply chain graph.
 
@@ -544,7 +544,7 @@ class Neo4jGDSClient:
 
 
 # Global client instance
-_gds_client: Optional[Neo4jGDSClient] = None
+_gds_client: Neo4jGDSClient | None = None
 
 
 def get_gds_client() -> Neo4jGDSClient:
@@ -557,8 +557,8 @@ def get_gds_client() -> Neo4jGDSClient:
     return _gds_client
 
 
-def initialize_gds_client(neo4j_config: Optional[Neo4jConfig] = None,
-                         gds_config: Optional[GDSConfig] = None) -> bool:
+def initialize_gds_client(neo4j_config: Neo4jConfig | None = None,
+                         gds_config: GDSConfig | None = None) -> bool:
     """
     Initialize the global GDS client.
 

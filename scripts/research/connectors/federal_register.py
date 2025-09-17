@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import contextlib
 import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List
 
 
 @dataclass
@@ -20,8 +20,8 @@ def load_fixture(path: str | Path) -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def normalize_fr_entries(data: dict) -> List[FRDoc]:
-    docs: List[FRDoc] = []
+def normalize_fr_entries(data: dict) -> list[FRDoc]:
+    docs: list[FRDoc] = []
     results = data.get("results", [])
     for it in results:
         title = (it.get("title") or "").strip()
@@ -31,10 +31,8 @@ def normalize_fr_entries(data: dict) -> List[FRDoc]:
         if not title:
             continue
         # Normalize date
-        try:
+        with contextlib.suppress(Exception):
             pub = datetime.fromisoformat(pub).date().isoformat()
-        except Exception:
-            pass
         docs.append(
             FRDoc(title=title, html_url=url, publication_date=pub, doc_type=doc_type)
         )

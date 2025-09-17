@@ -6,9 +6,9 @@ including EPCIS, WebVoc, End-to-End Traceability, and VC validation.
 """
 
 import os
-from pathlib import Path
-from typing import Dict, List, Optional
 from dataclasses import dataclass
+from pathlib import Path
+
 
 @dataclass
 class GS1Paths:
@@ -98,7 +98,7 @@ class GS1Config:
         self.issuers.gs1_official_issuer = os.getenv("GS1_OFFICIAL_ISSUER", "https://gs1.org/issuer")
         self.issuers.development_issuer = os.getenv("GS1_DEV_ISSUER", "https://dev.gs1.org/issuer")
 
-    def get_enabled_capabilities(self) -> List[str]:
+    def get_enabled_capabilities(self) -> list[str]:
         """Get list of enabled GS1 capabilities."""
         capabilities = []
         if self.settings.enable_epcis:
@@ -120,7 +120,7 @@ class GS1Config:
             self.settings.enable_vc_validation
         ])
 
-    def get_config_summary(self) -> Dict:
+    def get_config_summary(self) -> dict:
         """Get a summary of the current GS1 configuration."""
         return {
             "paths": {

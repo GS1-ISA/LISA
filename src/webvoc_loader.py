@@ -7,8 +7,8 @@ for semantic web descriptions and Linked Data integration.
 
 import json
 import logging
-from typing import Dict, List, Any, Optional
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +17,11 @@ class GS1WebVocLoader:
 
     def __init__(self, vocab_path: str = "gs1_research/WebVoc/current.jsonld"):
         self.vocab_path = Path(vocab_path)
-        self.vocab_data: Dict[str, Any] = {}
-        self.classes: Dict[str, Dict] = {}
-        self.properties: Dict[str, Dict] = {}
-        self.code_lists: Dict[str, Dict] = {}
-        self.link_types: Dict[str, Dict] = {}
+        self.vocab_data: dict[str, Any] = {}
+        self.classes: dict[str, dict] = {}
+        self.properties: dict[str, dict] = {}
+        self.code_lists: dict[str, dict] = {}
+        self.link_types: dict[str, dict] = {}
         self._loaded = False
 
     def load_vocabulary(self) -> bool:
@@ -31,7 +31,7 @@ class GS1WebVocLoader:
                 logger.error(f"Vocabulary file not found: {self.vocab_path}")
                 return False
 
-            with open(self.vocab_path, 'r', encoding='utf-8') as f:
+            with open(self.vocab_path, encoding="utf-8") as f:
                 self.vocab_data = json.load(f)
 
             self._parse_vocabulary()
@@ -50,7 +50,7 @@ class GS1WebVocLoader:
             return
 
         for item in self.vocab_data["@graph"]:
-            item_id = item.get("@id", "")
+            item.get("@id", "")
             item_type = item.get("@type", [])
 
             # Handle single type or list of types
@@ -60,12 +60,10 @@ class GS1WebVocLoader:
             # Classify items
             if "owl:Class" in item_type or "rdfs:Class" in item_type:
                 self._parse_class(item)
-            elif "owl:ObjectProperty" in item_type or "owl:DatatypeProperty" in item_type:
-                self._parse_property(item)
-            elif "rdf:Property" in item_type:
+            elif "owl:ObjectProperty" in item_type or "owl:DatatypeProperty" in item_type or "rdf:Property" in item_type:
                 self._parse_property(item)
 
-    def _parse_class(self, item: Dict[str, Any]):
+    def _parse_class(self, item: dict[str, Any]):
         """Parse a class definition."""
         item_id = item.get("@id", "")
         if not item_id:
@@ -87,7 +85,7 @@ class GS1WebVocLoader:
         else:
             self.classes[item_id] = item
 
-    def _parse_property(self, item: Dict[str, Any]):
+    def _parse_property(self, item: dict[str, Any]):
         """Parse a property definition."""
         item_id = item.get("@id", "")
         if not item_id:
@@ -109,45 +107,45 @@ class GS1WebVocLoader:
         else:
             self.properties[item_id] = item
 
-    def get_class(self, class_id: str) -> Optional[Dict[str, Any]]:
+    def get_class(self, class_id: str) -> dict[str, Any] | None:
         """Get a class definition by ID."""
         return self.classes.get(class_id)
 
-    def get_property(self, property_id: str) -> Optional[Dict[str, Any]]:
+    def get_property(self, property_id: str) -> dict[str, Any] | None:
         """Get a property definition by ID."""
         return self.properties.get(property_id)
 
-    def get_code_list(self, code_list_id: str) -> Optional[Dict[str, Any]]:
+    def get_code_list(self, code_list_id: str) -> dict[str, Any] | None:
         """Get a code list definition by ID."""
         return self.code_lists.get(code_list_id)
 
-    def get_link_type(self, link_type_id: str) -> Optional[Dict[str, Any]]:
+    def get_link_type(self, link_type_id: str) -> dict[str, Any] | None:
         """Get a link type definition by ID."""
         return self.link_types.get(link_type_id)
 
-    def get_all_classes(self) -> Dict[str, Dict]:
+    def get_all_classes(self) -> dict[str, dict]:
         """Get all class definitions."""
         return self.classes
 
-    def get_all_properties(self) -> Dict[str, Dict]:
+    def get_all_properties(self) -> dict[str, dict]:
         """Get all property definitions."""
         return self.properties
 
-    def get_all_code_lists(self) -> Dict[str, Dict]:
+    def get_all_code_lists(self) -> dict[str, dict]:
         """Get all code list definitions."""
         return self.code_lists
 
-    def get_all_link_types(self) -> Dict[str, Dict]:
+    def get_all_link_types(self) -> dict[str, dict]:
         """Get all link type definitions."""
         return self.link_types
 
-    def search_by_label(self, label: str, case_sensitive: bool = False) -> List[Dict[str, Any]]:
+    def search_by_label(self, label: str, case_sensitive: bool = False) -> list[dict[str, Any]]:
         """Search for items by label."""
         results = []
         search_label = label if case_sensitive else label.lower()
 
         for collection in [self.classes, self.properties, self.code_lists, self.link_types]:
-            for item_id, item in collection.items():
+            for _item_id, item in collection.items():
                 item_label = item.get("rdfs:label", {}).get("@value", "")
                 if not case_sensitive:
                     item_label = item_label.lower()
@@ -157,11 +155,11 @@ class GS1WebVocLoader:
 
         return results
 
-    def get_context(self) -> Dict[str, Any]:
+    def get_context(self) -> dict[str, Any]:
         """Get the JSON-LD context from the vocabulary."""
         return self.vocab_data.get("@context", {})
 
-    def create_jsonld_document(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_jsonld_document(self, data: dict[str, Any]) -> dict[str, Any]:
         """Create a JSON-LD document using the vocabulary context."""
         if not self._loaded:
             self.load_vocabulary()
@@ -182,13 +180,9 @@ class GS1WebVocLoader:
         if isinstance(domain, dict):
             domain = [domain]
 
-        for d in domain:
-            if isinstance(d, dict) and d.get("@id") == class_id:
-                return True
+        return any(isinstance(d, dict) and d.get("@id") == class_id for d in domain)
 
-        return False
-
-    def get_property_range(self, property_id: str) -> Optional[str]:
+    def get_property_range(self, property_id: str) -> str | None:
         """Get the expected range (type) of a property."""
         prop = self.get_property(property_id)
         if not prop:
@@ -208,17 +202,17 @@ def load_gs1_vocabulary() -> GS1WebVocLoader:
         vocabulary_loader.load_vocabulary()
     return vocabulary_loader
 
-def get_product_class() -> Optional[Dict[str, Any]]:
+def get_product_class() -> dict[str, Any] | None:
     """Get the GS1 Product class definition."""
     loader = load_gs1_vocabulary()
     return loader.get_class("gs1:Product")
 
-def get_property_definition(property_id: str) -> Optional[Dict[str, Any]]:
+def get_property_definition(property_id: str) -> dict[str, Any] | None:
     """Get a property definition by ID."""
     loader = load_gs1_vocabulary()
     return loader.get_property(property_id)
 
-def create_semantic_product(data: Dict[str, Any]) -> Dict[str, Any]:
+def create_semantic_product(data: dict[str, Any]) -> dict[str, Any]:
     """Create a semantic product description using GS1 vocabulary."""
     loader = load_gs1_vocabulary()
 

@@ -6,10 +6,9 @@ compliance data including EUDR, CSRD, and GDPR.
 """
 
 import logging
-from typing import Dict, Any, Optional
 
-from rdflib import Graph, URIRef, Literal, BNode, Namespace
-from rdflib.namespace import RDF, RDFS, XSD
+from rdflib import BNode, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import RDF, XSD
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +48,9 @@ class RegulatorySchemas:
 
     def _load_schemas(self):
         """Load all regulatory SHACL schemas."""
-        self._schemas['eudr'] = self._create_eudr_schema()
-        self._schemas['csrd'] = self._create_csrd_regulatory_schema()
-        self._schemas['gdpr'] = self._create_gdpr_schema()
+        self._schemas["eudr"] = self._create_eudr_schema()
+        self._schemas["csrd"] = self._create_csrd_regulatory_schema()
+        self._schemas["gdpr"] = self._create_gdpr_schema()
 
         logger.info("Loaded regulatory SHACL schemas")
 

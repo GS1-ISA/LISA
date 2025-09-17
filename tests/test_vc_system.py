@@ -2,25 +2,21 @@
 Test suite for the VC system implementation.
 """
 
-import pytest
 import json
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
 import tempfile
+from datetime import datetime, timezone
+from pathlib import Path
 
 from src.supplier_attestation_vc import (
+    ComplianceAttestation,
+    ComplianceLevel,
     SupplierAttestationVCManager,
     SupplierInfo,
-    ComplianceAttestation,
-    SustainabilityClaim,
-    RiskAssessment,
-    GeolocationAttestation,
-    ComplianceLevel,
-    AttestationType
 )
 from src.vc_issuer_service import VCIssuerService, VCVerifierService
-from src.vc_storage import VCStorage, VCRegistry
+from src.vc_storage import VCStorage
 from src.vc_supply_chain_integration import VCSupplyChainIntegrator
+
 
 class TestVCSystem:
     """Test cases for the complete VC system."""

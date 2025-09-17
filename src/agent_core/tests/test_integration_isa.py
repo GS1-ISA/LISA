@@ -1,11 +1,12 @@
-import pytest
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+
+import pytest
+
+from src.agent_core.memory.rag_store import RAGMemory
 from src.agent_core.query_optimizer import QueryOptimizer
 from src.agent_core.streaming_processor import StreamingDocumentProcessor
-from src.agent_core.memory.rag_store import RAGMemory
-from src.agent_core.llm_client import CachedOpenRouterClient
 
 
 class TestISAIntegration:
@@ -60,20 +61,20 @@ class TestISAIntegration:
 
         # Step 2: Process document with streaming
         mock_response = {
-            'content': 'CSRD analysis complete',
-            'model_used': optimization.model,
-            'usage': {'total_tokens': 150}
+            "content": "CSRD analysis complete",
+            "model_used": optimization.model,
+            "usage": {"total_tokens": 150}
         }
         self.llm_client.chat_completion.return_value = mock_response
 
         result = self.streaming_processor.process_document(csrd_document, query)
 
-        assert result['metadata']['total_chunks'] > 1
-        assert 'chunks_processed' in result['metadata']
+        assert result["metadata"]["total_chunks"] > 1
+        assert "chunks_processed" in result["metadata"]
 
         # Step 3: Store in RAG memory
         success = self.rag_memory.add(csrd_document, "eu_regulatory", "csrd_article_8")
-        assert success == True
+        assert success
 
         # Step 4: Query the stored information
         search_results = self.rag_memory.query("CSRD disclosure requirements")
@@ -81,10 +82,10 @@ class TestISAIntegration:
 
         # Step 5: Add to conversation history
         conv_success = self.rag_memory.add_conversation_entry("user", query)
-        assert conv_success == True
+        assert conv_success
 
         conv_success = self.rag_memory.add_conversation_entry("assistant", "CSRD requires ESG disclosures")
-        assert conv_success == True
+        assert conv_success
 
     def test_gdsn_mapping_workflow(self):
         """Test GDSN standards mapping workflow."""
@@ -109,14 +110,14 @@ class TestISAIntegration:
 
         # Process document
         mock_response = {
-            'content': 'GDSN mapping analysis',
-            'model_used': optimization.model,
-            'usage': {'total_tokens': 120}
+            "content": "GDSN mapping analysis",
+            "model_used": optimization.model,
+            "usage": {"total_tokens": 120}
         }
         self.llm_client.chat_completion.return_value = mock_response
 
         result = self.streaming_processor.process_document(gdsn_document, query)
-        assert result['metadata']['chunks_processed'] > 0
+        assert result["metadata"]["chunks_processed"] > 0
 
         # Store and query
         self.rag_memory.add(gdsn_document, "gdsn_standards", "gdsn_mapping_guide")
@@ -128,25 +129,25 @@ class TestISAIntegration:
         # Multiple ESG-related documents
         documents = [
             {
-                'content': 'XBRL taxonomy for ESG reporting includes climate, social, and governance metrics.',
-                'source': 'xbrl_taxonomy',
-                'doc_id': 'xbrl_esg'
+                "content": "XBRL taxonomy for ESG reporting includes climate, social, and governance metrics.",
+                "source": "xbrl_taxonomy",
+                "doc_id": "xbrl_esg"
             },
             {
-                'content': 'ESG disclosure requirements under CSRD mandate quantitative and qualitative reporting.',
-                'source': 'eu_regulatory',
-                'doc_id': 'csrd_esg'
+                "content": "ESG disclosure requirements under CSRD mandate quantitative and qualitative reporting.",
+                "source": "eu_regulatory",
+                "doc_id": "csrd_esg"
             },
             {
-                'content': 'GDSN attributes can be mapped to ESG data points for product sustainability claims.',
-                'source': 'gdsn_standards',
-                'doc_id': 'gdsn_esg'
+                "content": "GDSN attributes can be mapped to ESG data points for product sustainability claims.",
+                "source": "gdsn_standards",
+                "doc_id": "gdsn_esg"
             }
         ]
 
         # Batch add to RAG memory
         success = self.rag_memory.batch_add(documents)
-        assert success == True
+        assert success
 
         # Test cross-document queries
         esg_results = self.rag_memory.query("ESG reporting requirements")
@@ -173,13 +174,13 @@ class TestISAIntegration:
         """
 
         # Process both documents
-        mock_response = {'content': 'Gap analysis', 'usage': {'total_tokens': 100}}
+        mock_response = {"content": "Gap analysis", "usage": {"total_tokens": 100}}
         self.llm_client.chat_completion.return_value = mock_response
 
-        current_result = self.streaming_processor.process_document(
+        self.streaming_processor.process_document(
             current_state, "Analyze current compliance state"
         )
-        req_result = self.streaming_processor.process_document(
+        self.streaming_processor.process_document(
             requirements, "Analyze regulatory requirements"
         )
 
@@ -189,7 +190,7 @@ class TestISAIntegration:
 
         # Query for gaps
         gap_query = "Identify compliance gaps between current state and requirements"
-        optimization = self.optimizer.optimize_query(gap_query)
+        self.optimizer.optimize_query(gap_query)
 
         gap_results = self.rag_memory.query(gap_query)
         assert len(gap_results) >= 2  # Should find both documents
@@ -204,13 +205,13 @@ class TestISAIntegration:
 
         # Optimize query
         query = "CSRD and GDSN integration requirements"
-        optimization = self.optimizer.optimize_query(query)
+        self.optimizer.optimize_query(query)
 
         # Process document
-        mock_response = {'content': 'Integrated analysis', 'usage': {'total_tokens': 200}}
+        mock_response = {"content": "Integrated analysis", "usage": {"total_tokens": 200}}
         self.llm_client.chat_completion.return_value = mock_response
 
-        result = self.streaming_processor.process_document(large_document, query)
+        self.streaming_processor.process_document(large_document, query)
 
         # Store and query
         self.rag_memory.add(large_document, "integrated", "csrd_gdsn_integration")
@@ -231,22 +232,22 @@ class TestISAIntegration:
         # Test with invalid inputs
         invalid_query = ""
         try:
-            optimization = self.optimizer.optimize_query(invalid_query)
+            self.optimizer.optimize_query(invalid_query)
             # Should handle gracefully
         except AttributeError:
             pass  # Expected for empty query
 
         # Test streaming processor with empty document
         empty_result = self.streaming_processor.process_document("", "test query")
-        assert empty_result['content'] == ''
+        assert empty_result["content"] == ""
 
         # Test RAG memory with invalid inputs
         success = self.rag_memory.add("", "", "")
-        assert success == False
+        assert not success
 
         # Test conversation history error handling
         success = self.rag_memory.add_conversation_entry("", "")
-        assert success == False
+        assert not success
 
     def test_memory_coherence_gates(self):
         """Test memory coherence and data integrity."""
@@ -265,23 +266,23 @@ class TestISAIntegration:
 
         # Verify metadata integrity
         stats = self.rag_memory.get_stats()
-        assert stats['total_chunks'] >= 3
-        assert stats['unique_documents'] >= 3
+        assert stats["total_chunks"] >= 3
+        assert stats["unique_documents"] >= 3
 
     def test_isa_domain_coverage(self):
         """Test comprehensive ISA domain coverage."""
         isa_domains = {
-            'compliance': [
+            "compliance": [
                 "CSRD regulatory requirements",
                 "ESG disclosure mandates",
                 "EU sustainability directives"
             ],
-            'standards_mapping': [
+            "standards_mapping": [
                 "GDSN attribute mappings",
                 "XBRL taxonomy integration",
                 "Ontology schema relationships"
             ],
-            'document_processing': [
+            "document_processing": [
                 "Regulatory document analysis",
                 "Compliance report extraction",
                 "Standards document parsing"
@@ -295,7 +296,7 @@ class TestISAIntegration:
                 self.rag_memory.add(content, domain, doc_id)
 
         # Test domain-specific queries
-        for domain in isa_domains.keys():
+        for domain in isa_domains:
             results = self.rag_memory.query(f"{domain} requirements", n_results=5)
             assert len(results) > 0
 
@@ -308,9 +309,9 @@ class TestISAIntegration:
         # Setup cached LLM client
         cached_client = Mock()
         cached_client.chat_completion.return_value = {
-            'content': 'Cached response',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 50}
+            "content": "Cached response",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 50}
         }
 
         # Replace the mock client
@@ -321,15 +322,15 @@ class TestISAIntegration:
         # First processing
         start_time = time.time()
         result1 = self.streaming_processor.process_document(document, "Analyze caching")
-        first_duration = time.time() - start_time
+        time.time() - start_time
 
         # Second processing (should be faster if caching works)
         start_time = time.time()
         result2 = self.streaming_processor.process_document(document, "Analyze caching")
-        second_duration = time.time() - start_time
+        time.time() - start_time
 
         # Results should be consistent
-        assert result1['metadata']['total_chunks'] == result2['metadata']['total_chunks']
+        assert result1["metadata"]["total_chunks"] == result2["metadata"]["total_chunks"]
 
     def test_conversation_context_integration(self):
         """Test conversation context integration with RAG."""
@@ -362,9 +363,9 @@ class TestISAIntegration:
         for i in range(10):
             content = f"ISA regulatory document {i} with extensive compliance requirements. " * 100
             large_docs.append({
-                'text': content,
-                'source': f'regulatory_{i}',
-                'doc_id': f'doc_{i}'
+                "text": content,
+                "source": f"regulatory_{i}",
+                "doc_id": f"doc_{i}"
             })
 
         # Batch add
@@ -372,7 +373,7 @@ class TestISAIntegration:
         success = self.rag_memory.batch_add(large_docs)
         batch_duration = time.time() - start_time
 
-        assert success == True
+        assert success
         assert batch_duration < 30.0  # Should complete reasonably fast
 
         # Query scalability

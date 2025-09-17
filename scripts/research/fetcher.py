@@ -7,7 +7,6 @@ import time
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Optional
 from urllib.parse import urlparse
 
 import requests
@@ -81,7 +80,7 @@ def fetch(
     user_agent: str = "ISA-ResearchBot",
     timeout: int = 20,
     audit_log: str | Path = "docs/audit/research_audit.jsonl",
-) -> tuple[Optional[bytes], FetchRecord]:
+) -> tuple[bytes | None, FetchRecord]:
     """Fetch url with caching, optional network, and audit logging.
 
     - If url is a local path or file://, read locally (no network).

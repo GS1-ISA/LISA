@@ -6,19 +6,19 @@ specifically designed for compliance rule evaluation and automated decision-maki
 in regulatory compliance workflows.
 """
 
-from .dmn_table import DMNTable, DecisionTable, Rule, InputClause, OutputClause
 from .dmn_engine import DMNEngine, DMNExecutionResult
-from .dmn_parser import DMNParser
 from .dmn_manager import DMNManager
+from .dmn_parser import DMNParser
+from .dmn_table import DecisionTable, DMNTable, InputClause, OutputClause, Rule
 
 __all__ = [
-    'DMNTable',
-    'DecisionTable',
-    'Rule',
-    'InputClause',
-    'OutputClause',
-    'DMNEngine',
-    'DMNExecutionResult',
-    'DMNParser',
-    'DMNManager'
+    "DMNTable",
+    "DecisionTable",
+    "Rule",
+    "InputClause",
+    "OutputClause",
+    "DMNEngine",
+    "DMNExecutionResult",
+    "DMNParser",
+    "DMNManager"
 ]

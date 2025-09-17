@@ -1,12 +1,14 @@
-import pytest
-import time
 import statistics
 import threading
+import time
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+
+import pytest
+
+from src.agent_core.memory.rag_store import RAGMemory
 from src.agent_core.query_optimizer import QueryOptimizer
 from src.agent_core.streaming_processor import StreamingDocumentProcessor
-from src.agent_core.memory.rag_store import RAGMemory
 
 
 class TestPerformanceBenchmarks:
@@ -87,9 +89,9 @@ class TestPerformanceBenchmarks:
 
         # Mock LLM responses
         self.mock_client.chat_completion.return_value = {
-            'content': 'Processed content analysis',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 100}
+            "content": "Processed content analysis",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 100}
         }
 
         results = {}
@@ -103,20 +105,20 @@ class TestPerformanceBenchmarks:
 
             duration = end_time - start_time
             results[size_name] = {
-                'duration': duration,
-                'chunks': result['metadata']['total_chunks'],
-                'chars': len(document)
+                "duration": duration,
+                "chunks": result["metadata"]["total_chunks"],
+                "chars": len(document)
             }
 
             print(f"StreamingProcessor {size_name} - {duration:.4f}s, {result['metadata']['total_chunks']} chunks")
 
         # Performance assertions
         # Small document should be fast
-        assert results['small']['duration'] < 0.1
+        assert results["small"]["duration"] < 0.1
         # Large document should still be reasonable
-        assert results['large']['duration'] < 5.0
+        assert results["large"]["duration"] < 5.0
         # Processing should scale roughly linearly
-        small_to_medium_ratio = results['medium']['duration'] / results['small']['duration']
+        small_to_medium_ratio = results["medium"]["duration"] / results["small"]["duration"]
         assert small_to_medium_ratio < 20  # Should not be excessively slower
 
     def test_rag_memory_performance(self):
@@ -126,9 +128,9 @@ class TestPerformanceBenchmarks:
         for i in range(100):
             content = f"Regulatory document {i} about CSRD compliance and ESG reporting requirements. " * 20
             documents.append({
-                'text': content,
-                'source': f'regulatory_{i % 5}',  # 5 different sources
-                'doc_id': f'doc_{i}'
+                "text": content,
+                "source": f"regulatory_{i % 5}",  # 5 different sources
+                "doc_id": f"doc_{i}"
             })
 
         # Benchmark batch add
@@ -136,7 +138,7 @@ class TestPerformanceBenchmarks:
         success = self.rag_memory.batch_add(documents)
         add_duration = time.perf_counter() - start_time
 
-        assert success == True
+        assert success
         print(f"RAG batch add (100 docs) - {add_duration:.4f}s")
 
         # Benchmark queries
@@ -175,7 +177,7 @@ class TestPerformanceBenchmarks:
 
     def test_memory_scaling_benchmark(self):
         """Benchmark memory usage scaling."""
-        initial_stats = self.rag_memory.get_stats()
+        self.rag_memory.get_stats()
 
         # Add increasing amounts of data
         scaling_points = []
@@ -184,9 +186,9 @@ class TestPerformanceBenchmarks:
             for i in range(batch_size):
                 content = f"Scaling test document {i} with regulatory content. " * 10
                 documents.append({
-                    'text': content,
-                    'source': 'scaling_test',
-                    'doc_id': f'scale_doc_{len(scaling_points)}_{i}'
+                    "text": content,
+                    "source": "scaling_test",
+                    "doc_id": f"scale_doc_{len(scaling_points)}_{i}"
                 })
 
             start_time = time.perf_counter()
@@ -195,19 +197,19 @@ class TestPerformanceBenchmarks:
 
             stats = self.rag_memory.get_stats()
             scaling_points.append({
-                'batch_size': batch_size,
-                'total_chunks': stats['total_chunks'],
-                'duration': duration
+                "batch_size": batch_size,
+                "total_chunks": stats["total_chunks"],
+                "duration": duration
             })
 
         # Analyze scaling
         for point in scaling_points:
-            chunks_per_second = point['total_chunks'] / point['duration']
+            chunks_per_second = point["total_chunks"] / point["duration"]
             print(f"Batch {point['batch_size']}: {chunks_per_second:.1f} chunks/sec")
 
         # Should maintain reasonable performance
         final_point = scaling_points[-1]
-        assert final_point['duration'] < 15.0  # Even large batches should be reasonable
+        assert final_point["duration"] < 15.0  # Even large batches should be reasonable
 
     def test_concurrent_performance(self):
         """Benchmark concurrent operations."""
@@ -232,9 +234,9 @@ class TestPerformanceBenchmarks:
 
                 duration = end_time - start_time
                 results.append({
-                    'worker': worker_id,
-                    'duration': duration,
-                    'queries_per_second': 20 / duration
+                    "worker": worker_id,
+                    "duration": duration,
+                    "queries_per_second": 20 / duration
                 })
             except Exception as e:
                 errors.append(f"Worker {worker_id}: {e}")
@@ -254,7 +256,7 @@ class TestPerformanceBenchmarks:
         assert len(errors) == 0, f"Concurrent errors: {errors}"
         assert len(results) == num_workers
 
-        total_qps = sum(r['queries_per_second'] for r in results)
+        total_qps = sum(r["queries_per_second"] for r in results)
         avg_qps = total_qps / num_workers
 
         print(f"Concurrent performance - Avg {avg_qps:.1f} queries/sec per worker")
@@ -280,7 +282,7 @@ class TestPerformanceBenchmarks:
         uncached_times = []
         for _ in range(5):
             start_time = time.perf_counter()
-            results = self.rag_memory.query(query, n_results=5)
+            self.rag_memory.query(query, n_results=5)
             end_time = time.perf_counter()
             uncached_times.append(end_time - start_time)
 
@@ -288,14 +290,14 @@ class TestPerformanceBenchmarks:
         cached_times = []
         for _ in range(10):  # More runs for cached
             start_time = time.perf_counter()
-            results = self.rag_memory.query(query, n_results=5)
+            self.rag_memory.query(query, n_results=5)
             end_time = time.perf_counter()
             cached_times.append(end_time - start_time)
 
         uncached_avg = statistics.mean(uncached_times)
         cached_avg = statistics.mean(cached_times)
 
-        improvement_ratio = uncached_avg / cached_avg if cached_avg > 0 else float('inf')
+        improvement_ratio = uncached_avg / cached_avg if cached_avg > 0 else float("inf")
 
         print(f"Caching effectiveness - Uncached: {uncached_avg:.4f}s, Cached: {cached_avg:.4f}s, Ratio: {improvement_ratio:.1f}x")
 
@@ -307,27 +309,27 @@ class TestPerformanceBenchmarks:
         # Setup comprehensive test data
         isa_documents = [
             {
-                'content': "CSRD Article 8 requires ESG disclosures including climate risks, biodiversity impacts, and social factors. " * 50,
-                'source': 'eu_regulatory',
-                'doc_id': 'csrd_article_8'
+                "content": "CSRD Article 8 requires ESG disclosures including climate risks, biodiversity impacts, and social factors. " * 50,
+                "source": "eu_regulatory",
+                "doc_id": "csrd_article_8"
             },
             {
-                'content': "GDSN standards provide attribute mappings for product data including regulatory compliance fields. " * 50,
-                'source': 'gdsn_standards',
-                'doc_id': 'gdsn_mapping'
+                "content": "GDSN standards provide attribute mappings for product data including regulatory compliance fields. " * 50,
+                "source": "gdsn_standards",
+                "doc_id": "gdsn_mapping"
             },
             {
-                'content': "XBRL taxonomy defines structured reporting formats for ESG and financial data integration. " * 50,
-                'source': 'xbrl_taxonomy',
-                'doc_id': 'xbrl_esg'
+                "content": "XBRL taxonomy defines structured reporting formats for ESG and financial data integration. " * 50,
+                "source": "xbrl_taxonomy",
+                "doc_id": "xbrl_esg"
             }
         ]
 
         # Mock streaming responses
         self.mock_client.chat_completion.return_value = {
-            'content': 'Comprehensive analysis of regulatory requirements',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 200}
+            "content": "Comprehensive analysis of regulatory requirements",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 200}
         }
 
         # Measure end-to-end workflow
@@ -346,9 +348,9 @@ class TestPerformanceBenchmarks:
             optimization = self.optimizer.optimize_query(query)
             opt_end = time.perf_counter()
             optimizations.append({
-                'query': query,
-                'optimization_time': opt_end - opt_start,
-                'result': optimization
+                "query": query,
+                "optimization_time": opt_end - opt_start,
+                "result": optimization
             })
 
         # 2. Process documents
@@ -356,13 +358,13 @@ class TestPerformanceBenchmarks:
         for doc in isa_documents:
             proc_start = time.perf_counter()
             result = self.streaming_processor.process_document(
-                doc['content'], f"Analyze {doc['source']} content"
+                doc["content"], f"Analyze {doc['source']} content"
             )
             proc_end = time.perf_counter()
             processing_results.append({
-                'doc_id': doc['doc_id'],
-                'processing_time': proc_end - proc_start,
-                'chunks': result['metadata']['total_chunks']
+                "doc_id": doc["doc_id"],
+                "processing_time": proc_end - proc_start,
+                "chunks": result["metadata"]["total_chunks"]
             })
 
         # 3. Store in RAG memory
@@ -377,16 +379,16 @@ class TestPerformanceBenchmarks:
             results = self.rag_memory.query(query, n_results=5)
             query_end = time.perf_counter()
             query_results.append({
-                'query': query,
-                'query_time': query_end - query_start,
-                'results_count': len(results)
+                "query": query,
+                "query_time": query_end - query_start,
+                "results_count": len(results)
             })
 
         workflow_end = time.perf_counter()
         total_workflow_time = workflow_end - workflow_start
 
         # Performance analysis
-        print(f"End-to-end workflow performance:")
+        print("End-to-end workflow performance:")
         print(f"Total time: {total_workflow_time:.4f}s")
         print(f"Query optimization: {sum(o['optimization_time'] for o in optimizations):.4f}s")
         print(f"Document processing: {sum(p['processing_time'] for p in processing_results):.4f}s")
@@ -395,12 +397,12 @@ class TestPerformanceBenchmarks:
 
         # Assertions
         assert total_workflow_time < 20.0  # Complete workflow should be reasonable
-        assert success == True
-        assert all(q['results_count'] > 0 for q in query_results)
+        assert success
+        assert all(q["results_count"] > 0 for q in query_results)
 
         # Individual component performance
-        avg_optimization_time = statistics.mean(o['optimization_time'] for o in optimizations)
-        avg_query_time = statistics.mean(q['query_time'] for q in query_results)
+        avg_optimization_time = statistics.mean(o["optimization_time"] for o in optimizations)
+        avg_query_time = statistics.mean(q["query_time"] for q in query_results)
 
         assert avg_optimization_time < 0.01  # Fast optimization
         assert avg_query_time < 0.1  # Fast querying
@@ -408,8 +410,9 @@ class TestPerformanceBenchmarks:
     def test_memory_efficiency_benchmark(self):
         """Benchmark memory efficiency."""
         # Track memory usage during operations
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
@@ -419,14 +422,14 @@ class TestPerformanceBenchmarks:
         for i in range(100):
             content = f"Memory efficiency test document {i}. " * 200
             large_documents.append({
-                'text': content,
-                'source': 'memory_test',
-                'doc_id': f'memory_doc_{i}'
+                "text": content,
+                "source": "memory_test",
+                "doc_id": f"memory_doc_{i}"
             })
 
         # Measure memory during batch add
         self.rag_memory.batch_add(large_documents)
-        after_add_memory = process.memory_info().rss / 1024 / 1024
+        process.memory_info().rss / 1024 / 1024
 
         # Measure memory during queries
         for i in range(50):

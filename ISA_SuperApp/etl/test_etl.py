@@ -6,7 +6,6 @@ This script provides utilities to test the ETL pipelines and validate
 data lineage tracking.
 """
 
-import asyncio
 import sys
 from pathlib import Path
 
@@ -14,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from dagster import execute_job, reconstructable
-from definitions import etl_job, eurostat_job, esma_job
+from definitions import esma_job, etl_job, eurostat_job
 
 
 def test_eurostat_pipeline():

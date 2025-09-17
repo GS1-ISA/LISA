@@ -5,11 +5,11 @@ Test script for GS1 integration in ISA
 This script validates that the GS1 parser and processing pipeline work correctly.
 """
 
-import sys
 import os
+import sys
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 def test_gs1_parser():
     """Test basic GS1 parser functionality."""

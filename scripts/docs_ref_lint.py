@@ -4,7 +4,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 ROOT = Path.cwd()
 DOCS = ROOT / "docs"
@@ -22,8 +25,7 @@ class Finding:
 
 
 def md_files() -> Iterable[Path]:
-    for p in DOCS.rglob("*.md"):
-        yield p
+    yield from DOCS.rglob("*.md")
 
 
 def check_title(path: Path) -> list[Finding]:

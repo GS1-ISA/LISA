@@ -3,14 +3,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List
 
 
-def load(path: Path) -> Dict:
+def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def speedups(before: Dict, after: Dict) -> List[str]:
+def speedups(before: dict, after: dict) -> list[str]:
     rows = []
     bb = {e["command"]: e for e in before.get("results", [])}
     aa = {e["command"]: e for e in after.get("results", [])}

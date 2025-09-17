@@ -10,22 +10,29 @@ This module provides:
 - Search and reporting capabilities
 """
 
+import hashlib
 import json
 import logging
-import hashlib
 import time
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
 from enum import Enum
-from dataclasses import dataclass, asdict
-from pathlib import Path
+from typing import Any
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, JSON, create_engine
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    String,
+    Text,
+    create_engine,
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 
-from src.database_manager import get_db_manager
 from src.encryption import EncryptedText
 
 
@@ -56,34 +63,34 @@ class AuditEvent:
     """Audit event data structure"""
     event_type: AuditEventType
     severity: AuditEventSeverity
-    user_id: Optional[int]
-    username: Optional[str]
-    session_id: Optional[str]
-    ip_address: Optional[str]
-    user_agent: Optional[str]
+    user_id: int | None
+    username: str | None
+    session_id: str | None
+    ip_address: str | None
+    user_agent: str | None
     resource: str
     action: str
     outcome: str  # success, failure, blocked, etc.
-    details: Dict[str, Any]
+    details: dict[str, Any]
     timestamp: datetime
     event_id: str
     checksum: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization"""
         data = asdict(self)
-        data['event_type'] = self.event_type.value
-        data['severity'] = self.severity.value
-        data['timestamp'] = self.timestamp.isoformat()
+        data["event_type"] = self.event_type.value
+        data["severity"] = self.severity.value
+        data["timestamp"] = self.timestamp.isoformat()
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'AuditEvent':
+    def from_dict(cls, data: dict[str, Any]) -> "AuditEvent":
         """Create from dictionary"""
         data_copy = data.copy()
-        data_copy['event_type'] = AuditEventType(data['event_type'])
-        data_copy['severity'] = AuditEventSeverity(data['severity'])
-        data_copy['timestamp'] = datetime.fromisoformat(data['timestamp'])
+        data_copy["event_type"] = AuditEventType(data["event_type"])
+        data_copy["severity"] = AuditEventSeverity(data["severity"])
+        data_copy["timestamp"] = datetime.fromisoformat(data["timestamp"])
         return cls(**data_copy)
 
 
@@ -135,7 +142,7 @@ class AuditAlert(AuditBase):
 class AuditLogger:
     """Main audit logging service"""
 
-    def __init__(self, database_url: Optional[str] = None):
+    def __init__(self, database_url: str | None = None):
         self.database_url = database_url or "sqlite:///./isa_audit.db"
         self._engine = None
         self._session_maker = None
@@ -169,12 +176,12 @@ class AuditLogger:
         resource: str,
         action: str,
         outcome: str,
-        user_id: Optional[int] = None,
-        username: Optional[str] = None,
-        session_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        user_id: int | None = None,
+        username: str | None = None,
+        session_id: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        details: dict[str, Any] | None = None,
         sensitive_data: bool = False
     ) -> str:
         """Log an audit event"""
@@ -252,15 +259,15 @@ class AuditLogger:
 
     def search_events(
         self,
-        event_type: Optional[AuditEventType] = None,
-        user_id: Optional[int] = None,
-        resource: Optional[str] = None,
-        action: Optional[str] = None,
-        outcome: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        event_type: AuditEventType | None = None,
+        user_id: int | None = None,
+        resource: str | None = None,
+        action: str | None = None,
+        outcome: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
         limit: int = 100
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """Search audit events"""
         with self._get_session() as session:
             query = session.query(AuditLogEntry)
@@ -309,9 +316,9 @@ class AuditLogger:
 
     def get_event_statistics(
         self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
-    ) -> Dict[str, Any]:
+        start_date: datetime | None = None,
+        end_date: datetime | None = None
+    ) -> dict[str, Any]:
         """Get audit event statistics"""
         with self._get_session() as session:
             query = session.query(AuditLogEntry)
@@ -364,7 +371,7 @@ class AuditLogger:
             # Mark events for archiving
             session.query(AuditLogEntry)\
                 .filter(AuditLogEntry.timestamp < cutoff_date)\
-                .filter(AuditLogEntry.archived == False)\
+                .filter(not AuditLogEntry.archived)\
                 .update({"archived": True})
 
             session.commit()
@@ -399,10 +406,10 @@ def get_audit_logger() -> AuditLogger:
 def log_auth_event(
     action: str,
     outcome: str,
-    user_id: Optional[int] = None,
-    username: Optional[str] = None,
-    ip_address: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None
+    user_id: int | None = None,
+    username: str | None = None,
+    ip_address: str | None = None,
+    details: dict[str, Any] | None = None
 ):
     """Log authentication event"""
     logger = get_audit_logger()
@@ -422,10 +429,10 @@ def log_auth_event(
 def log_data_access(
     resource: str,
     action: str,
-    user_id: Optional[int] = None,
-    username: Optional[str] = None,
-    ip_address: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None
+    user_id: int | None = None,
+    username: str | None = None,
+    ip_address: str | None = None,
+    details: dict[str, Any] | None = None
 ):
     """Log data access event"""
     logger = get_audit_logger()
@@ -446,10 +453,10 @@ def log_security_event(
     action: str,
     severity: AuditEventSeverity,
     resource: str,
-    user_id: Optional[int] = None,
-    username: Optional[str] = None,
-    ip_address: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None
+    user_id: int | None = None,
+    username: str | None = None,
+    ip_address: str | None = None,
+    details: dict[str, Any] | None = None
 ):
     """Log security event"""
     logger = get_audit_logger()
@@ -471,8 +478,8 @@ def log_admin_action(
     resource: str,
     user_id: int,
     username: str,
-    ip_address: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None
+    ip_address: str | None = None,
+    details: dict[str, Any] | None = None
 ):
     """Log admin action"""
     logger = get_audit_logger()

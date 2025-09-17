@@ -12,12 +12,12 @@ Configuration includes:
 - Environment-specific settings
 """
 
-import os
 import logging
-from typing import Dict, Any, Optional
+import os
 from pathlib import Path
+from typing import Any
 
-from .neo4j_gds_client import Neo4jConfig, GDSConfig
+from .neo4j_gds_client import GDSConfig, Neo4jConfig
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class Neo4jGDSConfiguration:
     configuration files, and provides defaults for all settings.
     """
 
-    def __init__(self, config_file: Optional[str] = None):
+    def __init__(self, config_file: str | None = None):
         self.config_file = config_file or os.getenv("NEO4J_GDS_CONFIG_FILE")
         self._config = {}
         self._load_configuration()
@@ -47,7 +47,7 @@ class Neo4jGDSConfiguration:
 
         logger.info("Neo4j GDS configuration loaded successfully")
 
-    def _load_from_environment(self) -> Dict[str, Any]:
+    def _load_from_environment(self) -> dict[str, Any]:
         """Load configuration from environment variables."""
         return {
             "neo4j": {
@@ -91,11 +91,11 @@ class Neo4jGDSConfiguration:
             }
         }
 
-    def _load_from_file(self, config_file: str) -> Dict[str, Any]:
+    def _load_from_file(self, config_file: str) -> dict[str, Any]:
         """Load configuration from YAML file."""
         try:
             import yaml
-            with open(config_file, 'r') as f:
+            with open(config_file) as f:
                 file_config = yaml.safe_load(f)
             logger.info(f"Loaded configuration from {config_file}")
             return file_config
@@ -131,25 +131,25 @@ class Neo4jGDSConfiguration:
             write_concurrency=gds_config.get("write_concurrency", 4)
         )
 
-    def get_ingestion_config(self) -> Dict[str, Any]:
+    def get_ingestion_config(self) -> dict[str, Any]:
         """Get ingestion configuration."""
         return self._config.get("ingestion", {})
 
-    def get_analytics_config(self) -> Dict[str, Any]:
+    def get_analytics_config(self) -> dict[str, Any]:
         """Get analytics configuration."""
         return self._config.get("analytics", {})
 
-    def get_monitoring_config(self) -> Dict[str, Any]:
+    def get_monitoring_config(self) -> dict[str, Any]:
         """Get monitoring configuration."""
         return self._config.get("monitoring", {})
 
-    def get_all_config(self) -> Dict[str, Any]:
+    def get_all_config(self) -> dict[str, Any]:
         """Get complete configuration."""
         return self._config.copy()
 
-    def update_config(self, updates: Dict[str, Any]) -> None:
+    def update_config(self, updates: dict[str, Any]) -> None:
         """Update configuration with new values."""
-        def update_nested_dict(base_dict: Dict[str, Any], updates: Dict[str, Any]) -> None:
+        def update_nested_dict(base_dict: dict[str, Any], updates: dict[str, Any]) -> None:
             for key, value in updates.items():
                 if isinstance(value, dict) and key in base_dict and isinstance(base_dict[key], dict):
                     update_nested_dict(base_dict[key], value)
@@ -159,7 +159,7 @@ class Neo4jGDSConfiguration:
         update_nested_dict(self._config, updates)
         logger.info("Configuration updated")
 
-    def save_config(self, config_file: Optional[str] = None) -> bool:
+    def save_config(self, config_file: str | None = None) -> bool:
         """Save current configuration to file."""
         save_file = config_file or self.config_file
         if not save_file:
@@ -168,7 +168,7 @@ class Neo4jGDSConfiguration:
 
         try:
             import yaml
-            with open(save_file, 'w') as f:
+            with open(save_file, "w") as f:
                 yaml.dump(self._config, f, default_flow_style=False, indent=2)
             logger.info(f"Configuration saved to {save_file}")
             return True
@@ -181,10 +181,10 @@ class Neo4jGDSConfiguration:
 
 
 # Global configuration instance
-_gds_configuration: Optional[Neo4jGDSConfiguration] = None
+_gds_configuration: Neo4jGDSConfiguration | None = None
 
 
-def get_gds_configuration(config_file: Optional[str] = None) -> Neo4jGDSConfiguration:
+def get_gds_configuration(config_file: str | None = None) -> Neo4jGDSConfiguration:
     """Get or create the global GDS configuration instance."""
     global _gds_configuration
 
@@ -194,7 +194,7 @@ def get_gds_configuration(config_file: Optional[str] = None) -> Neo4jGDSConfigur
     return _gds_configuration
 
 
-def initialize_gds_configuration(config_file: Optional[str] = None) -> Neo4jGDSConfiguration:
+def initialize_gds_configuration(config_file: str | None = None) -> Neo4jGDSConfiguration:
     """
     Initialize the global GDS configuration instance.
 

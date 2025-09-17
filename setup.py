@@ -19,7 +19,7 @@ if readme_path.exists():
 requirements = []
 requirements_path = this_directory / "requirements.txt"
 if requirements_path.exists():
-    with open(requirements_path, "r", encoding="utf-8") as f:
+    with open(requirements_path, encoding="utf-8") as f:
         requirements = [
             line.strip() for line in f if line.strip() and not line.startswith("#")
         ]

@@ -19,8 +19,7 @@ from dagster_dbt import dbt_cli_resource
 from openlineage.dagster import OpenLineageDagsterResource
 
 from . import assets
-from .resources import database_resource, eurostat_api_resource, esma_api_resource
-
+from .resources import database_resource, esma_api_resource, eurostat_api_resource
 
 # Load all assets from the assets module
 all_assets = load_assets_from_modules([assets])

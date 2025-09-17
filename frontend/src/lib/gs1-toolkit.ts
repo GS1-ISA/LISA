@@ -5,11 +5,7 @@
  */
 
 // Declare the global GS1DigitalLinkToolkit object
-declare global {
-  interface Window {
-    GS1DigitalLinkToolkit: any;
-  }
-}
+declare const window: any;
 
 export interface GS1DigitalLink {
   primaryKey: string;

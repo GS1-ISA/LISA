@@ -2,20 +2,15 @@
 Tests for main application components.
 """
 
-import asyncio
-import json
-from datetime import datetime
-from typing import Any, Dict, List, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from isa_superapp.core.config import Config
-from isa_superapp.core.exceptions import ConfigurationError, ISAError
+from isa_superapp.core.config import ISAConfig
+from isa_superapp.core.exceptions import ConfigurationError
 from isa_superapp.main import ISASuperApp, create_app, main
 from isa_superapp.orchestrator.base import TaskDefinition, TaskPriority, TaskStatus
 from isa_superapp.retrieval.base import Document, SearchResult
-from isa_superapp.vector_store.base import VectorDocument
 
 
 class TestISASuperApp:
@@ -24,7 +19,7 @@ class TestISASuperApp:
     @pytest.fixture
     def app_instance(self):
         """Create an ISA SuperApp instance for testing."""
-        config = Config(
+        config = ISAConfig(
             {
                 "app": {"name": "TestApp", "debug": True},
                 "vector_store": {"provider": "mock"},
@@ -256,7 +251,7 @@ class TestCreateApp:
     def mock_config_manager(self, monkeypatch):
         """Mock config manager."""
         mock_manager = Mock()
-        mock_manager.get_config.return_value = Config(
+        mock_manager.get_config.return_value = ISAConfig(
             {"app": {"name": "TestApp"}, "vector_store": {"provider": "chroma"}}
         )
         monkeypatch.setattr("isa_superapp.main.ConfigManager", lambda: mock_manager)
@@ -343,7 +338,7 @@ class TestAppIntegration:
         # that tests the actual components working together
         # For now, we'll create a basic structure
 
-        config = Config(
+        config = ISAConfig(
             {
                 "app": {"name": "IntegrationTest", "debug": True},
                 "vector_store": {
@@ -380,7 +375,7 @@ class TestAppIntegration:
     @pytest.mark.asyncio
     async def test_task_execution_workflow(self):
         """Test complete task execution workflow."""
-        config = Config(
+        config = ISAConfig(
             {
                 "app": {"name": "TaskTest", "debug": True},
                 "vector_store": {"provider": "memory"},
@@ -422,7 +417,7 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_initialization_with_missing_config(self):
         """Test initialization with missing configuration."""
-        config = Config({})  # Empty config
+        config = ISAConfig({})  # Empty config
 
         app = ISASuperApp(config)
 

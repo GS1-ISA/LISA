@@ -4,13 +4,11 @@ Test DMN Compliance System
 This module provides test cases and examples for the DMN compliance automation system.
 """
 
-import json
 import logging
 from pathlib import Path
-from typing import Dict, Any
 
-from .dmn_manager import DMNManager
 from .dmn_compliance_integration import DMNComplianceIntegration
+from .dmn_manager import DMNManager
 
 
 def test_esrs_compliance_decision():
@@ -72,7 +70,7 @@ def test_esrs_compliance_decision():
             print(f"Input: {test_case['input']}")
 
             try:
-                result = dmn_manager.execute_decision_table("dt_esrs_compliance_check", test_case['input'])
+                result = dmn_manager.execute_decision_table("dt_esrs_compliance_check", test_case["input"])
                 if result.success:
                     print(f"Result: {result.outputs}")
                     print(f"Matched Rules: {result.matched_rules}")
@@ -144,7 +142,7 @@ def test_eudr_supply_chain_decision():
             print(f"Input: {test_case['input']}")
 
             try:
-                result = dmn_manager.execute_decision_table("dt_eudr_supply_chain_check", test_case['input'])
+                result = dmn_manager.execute_decision_table("dt_eudr_supply_chain_check", test_case["input"])
                 if result.success:
                     print(f"Result: {result.outputs}")
                     print(f"Matched Rules: {result.matched_rules}")

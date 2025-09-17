@@ -25,7 +25,6 @@ export default function ResearchPage() {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<ResearchForm>({
     resolver: zodResolver(researchSchema),
   });

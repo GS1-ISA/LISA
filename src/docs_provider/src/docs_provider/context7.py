@@ -3,7 +3,6 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 try:
     # Local feature flags (ISA_D-native)
@@ -47,10 +46,10 @@ class Context7Provider(DocsProvider):
         self,
         query: str,
         *,
-        libs: List[str],
-        version: Optional[str] = None,
+        libs: list[str],
+        version: str | None = None,
         limit: int = 5,
-        section_hints: Optional[List[str]] = None,
+        section_hints: list[str] | None = None,
     ) -> ProviderResult:
         """Fetches documentation, using a cache and respecting feature flags."""
         cached_result = self.cache.get(query, libs, version)
@@ -74,8 +73,8 @@ class Context7Provider(DocsProvider):
         return ProviderResult(snippets=simulated_snippets)
 
     def _simulate_api_call(
-        self, query: str, libs: List[str], limit: int
-    ) -> List[DocsSnippet]:
+        self, query: str, libs: list[str], limit: int
+    ) -> list[DocsSnippet]:
         """Simulates a call to the external Context7 API."""
         # In a real scenario, this would make an HTTP request.
         # For now, return dummy data based on the library.
@@ -93,7 +92,7 @@ class Context7Provider(DocsProvider):
             for _ in range(limit)
         ]
 
-    def _log_memory_event(self, query: str, libs: List[str], cache_hit: bool):
+    def _log_memory_event(self, query: str, libs: list[str], cache_hit: bool):
         """Logs a memory event for the API call."""
         try:
             log_path = Path("agent/memory/memory_log.jsonl")
@@ -142,7 +141,7 @@ def get_provider() -> DocsProvider:
     return NullProvider()
 
 
-def _docs_flag_signal() -> Tuple[bool, str, int]:
+def _docs_flag_signal() -> tuple[bool, str, int]:
     """Check local flags for any ISA_REF_DOCS_PROVIDER_* set with traffic>0."""
     try:
         if not FLAGS_FILE.exists():

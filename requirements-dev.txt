@@ -1062,7 +1062,6 @@ whoosh>=2.7.4
 wireguard>=0.2.0
 xenon>=0.9.1
 xenon>=0.9.1
-xlsxwriter>=3.1.6
 xmltodict>=0.13.0
 
 # YAML linting

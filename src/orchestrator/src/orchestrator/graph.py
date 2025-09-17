@@ -4,12 +4,11 @@ import json
 import os
 import time
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
 class OrchestratorResult:
-    steps: List[str]
+    steps: list[str]
     final: str
 
 

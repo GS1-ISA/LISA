@@ -4,19 +4,22 @@ Provides comprehensive observability with performance metrics, error rates,
 business KPIs, system health, and ISA-specific metrics.
 """
 
-import time
-import logging
-import psutil
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass
-from enum import Enum
-from prometheus_client import (
-    Counter, Histogram, Gauge, Summary, CollectorRegistry,
-    generate_latest, CONTENT_TYPE_LATEST
-)
-from fastapi import Response
 import asyncio
-from datetime import datetime, timedelta
+import logging
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+
+import psutil
+from fastapi import Response
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +64,7 @@ class MonitoringSystem:
     Tracks performance, errors, business KPIs, system health, and ISA-specific metrics.
     """
 
-    def __init__(self, registry: Optional[CollectorRegistry] = None):
+    def __init__(self, registry: CollectorRegistry | None = None):
         from prometheus_client import REGISTRY
         self.registry = registry or REGISTRY
         self._initialized = False
@@ -74,173 +77,173 @@ class MonitoringSystem:
 
         # Performance Metrics
         self.http_request_duration = Histogram(
-            'isa_http_request_duration_seconds',
-            'HTTP request duration in seconds',
-            ['method', 'endpoint', 'status_code'],
+            "isa_http_request_duration_seconds",
+            "HTTP request duration in seconds",
+            ["method", "endpoint", "status_code"],
             buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
             registry=self.registry
         )
 
         self.http_requests_total = Counter(
-            'isa_http_requests_total',
-            'Total number of HTTP requests',
-            ['method', 'endpoint', 'status_code'],
+            "isa_http_requests_total",
+            "Total number of HTTP requests",
+            ["method", "endpoint", "status_code"],
             registry=self.registry
         )
 
         self.database_query_duration = Histogram(
-            'isa_database_query_duration_seconds',
-            'Database query duration in seconds',
-            ['operation', 'table'],
+            "isa_database_query_duration_seconds",
+            "Database query duration in seconds",
+            ["operation", "table"],
             buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0),
             registry=self.registry
         )
 
         # Error Rate Metrics
         self.errors_total = Counter(
-            'isa_errors_total',
-            'Total number of errors',
-            ['error_type', 'component', 'severity'],
+            "isa_errors_total",
+            "Total number of errors",
+            ["error_type", "component", "severity"],
             registry=self.registry
         )
 
         self.error_rate = Gauge(
-            'isa_error_rate_percent',
-            'Current error rate as percentage',
-            ['component', 'time_window'],
+            "isa_error_rate_percent",
+            "Current error rate as percentage",
+            ["component", "time_window"],
             registry=self.registry
         )
 
         # Business KPIs
         self.business_kpis = Gauge(
-            'isa_business_kpi',
-            'Business Key Performance Indicators',
-            ['kpi_name', 'category'],
+            "isa_business_kpi",
+            "Business Key Performance Indicators",
+            ["kpi_name", "category"],
             registry=self.registry
         )
 
         self.user_registrations = Counter(
-            'isa_user_registrations_total',
-            'Total user registrations',
-            ['source', 'user_type'],
+            "isa_user_registrations_total",
+            "Total user registrations",
+            ["source", "user_type"],
             registry=self.registry
         )
 
         self.revenue_total = Counter(
-            'isa_revenue_total_usd',
-            'Total revenue in USD',
-            ['revenue_type', 'currency'],
+            "isa_revenue_total_usd",
+            "Total revenue in USD",
+            ["revenue_type", "currency"],
             registry=self.registry
         )
 
         # System Health Metrics
         self.system_cpu_percent = Gauge(
-            'isa_system_cpu_percent',
-            'System CPU usage percentage',
+            "isa_system_cpu_percent",
+            "System CPU usage percentage",
             registry=self.registry
         )
 
         self.system_memory_percent = Gauge(
-            'isa_system_memory_percent',
-            'System memory usage percentage',
+            "isa_system_memory_percent",
+            "System memory usage percentage",
             registry=self.registry
         )
 
         self.system_disk_percent = Gauge(
-            'isa_system_disk_percent',
-            'System disk usage percentage',
-            ['mount_point'],
+            "isa_system_disk_percent",
+            "System disk usage percentage",
+            ["mount_point"],
             registry=self.registry
         )
 
         self.system_network_connections = Gauge(
-            'isa_system_network_connections',
-            'Number of active network connections',
+            "isa_system_network_connections",
+            "Number of active network connections",
             registry=self.registry
         )
 
         # ISA-Specific Metrics
         # Compliance Analysis
         self.compliance_checks_total = Counter(
-            'isa_compliance_checks_total',
-            'Total compliance checks performed',
-            ['check_type', 'status'],
+            "isa_compliance_checks_total",
+            "Total compliance checks performed",
+            ["check_type", "status"],
             registry=self.registry
         )
 
         self.compliance_violations = Gauge(
-            'isa_compliance_violations_current',
-            'Current number of active compliance violations',
-            ['violation_type', 'severity'],
+            "isa_compliance_violations_current",
+            "Current number of active compliance violations",
+            ["violation_type", "severity"],
             registry=self.registry
         )
 
         # Research Workflows
         self.research_workflows_total = Counter(
-            'isa_research_workflows_total',
-            'Total research workflows',
-            ['status', 'workflow_type'],
+            "isa_research_workflows_total",
+            "Total research workflows",
+            ["status", "workflow_type"],
             registry=self.registry
         )
 
         self.research_workflow_duration = Histogram(
-            'isa_research_workflow_duration_seconds',
-            'Research workflow duration in seconds',
-            ['workflow_type', 'status'],
+            "isa_research_workflow_duration_seconds",
+            "Research workflow duration in seconds",
+            ["workflow_type", "status"],
             buckets=(60, 300, 600, 1800, 3600, 7200, 14400),  # 1min to 4hrs
             registry=self.registry
         )
 
         # User Engagement
         self.active_users = Gauge(
-            'isa_active_users_current',
-            'Current number of active users',
-            ['user_type', 'activity_type'],
+            "isa_active_users_current",
+            "Current number of active users",
+            ["user_type", "activity_type"],
             registry=self.registry
         )
 
         self.user_sessions_total = Counter(
-            'isa_user_sessions_total',
-            'Total user sessions',
-            ['session_type', 'user_type'],
+            "isa_user_sessions_total",
+            "Total user sessions",
+            ["session_type", "user_type"],
             registry=self.registry
         )
 
         self.user_engagement_score = Gauge(
-            'isa_user_engagement_score',
-            'User engagement score (0-100)',
-            ['metric_type'],
+            "isa_user_engagement_score",
+            "User engagement score (0-100)",
+            ["metric_type"],
             registry=self.registry
         )
 
         self.session_duration = Histogram(
-            'isa_user_session_duration_seconds',
-            'User session duration in seconds',
-            ['user_type', 'session_type'],
+            "isa_user_session_duration_seconds",
+            "User session duration in seconds",
+            ["user_type", "session_type"],
             buckets=(60, 300, 600, 1800, 3600, 7200),  # 1min to 2hrs
             registry=self.registry
         )
 
         # Cache Performance
         self.cache_hit_rate = Gauge(
-            'isa_cache_hit_rate_percent',
-            'Cache hit rate percentage',
-            ['cache_type'],
+            "isa_cache_hit_rate_percent",
+            "Cache hit rate percentage",
+            ["cache_type"],
             registry=self.registry
         )
 
         # Agent Performance
         self.agent_operations_total = Counter(
-            'isa_agent_operations_total',
-            'Total agent operations',
-            ['agent_type', 'operation_type', 'status'],
+            "isa_agent_operations_total",
+            "Total agent operations",
+            ["agent_type", "operation_type", "status"],
             registry=self.registry
         )
 
         self.agent_response_time = Histogram(
-            'isa_agent_response_time_seconds',
-            'Agent response time in seconds',
-            ['agent_type', 'operation_type'],
+            "isa_agent_response_time_seconds",
+            "Agent response time in seconds",
+            ["agent_type", "operation_type"],
             buckets=(1, 5, 10, 30, 60, 120, 300),
             registry=self.registry
         )
@@ -303,7 +306,7 @@ class MonitoringSystem:
         health = SystemHealth(
             cpu_percent=psutil.cpu_percent(interval=1),
             memory_percent=psutil.virtual_memory().percent,
-            disk_percent=psutil.disk_usage('/').percent,
+            disk_percent=psutil.disk_usage("/").percent,
             network_connections=len(psutil.net_connections()),
             timestamp=datetime.now()
         )
@@ -311,7 +314,7 @@ class MonitoringSystem:
         # Update Prometheus metrics
         self.system_cpu_percent.set(health.cpu_percent)
         self.system_memory_percent.set(health.memory_percent)
-        self.system_disk_percent.labels(mount_point='/').set(health.disk_percent)
+        self.system_disk_percent.labels(mount_point="/").set(health.disk_percent)
         self.system_network_connections.set(health.network_connections)
 
         return health
@@ -334,7 +337,7 @@ class MonitoringSystem:
             violation_type=violation_type, severity=severity
         ).set(count)
 
-    def record_research_workflow(self, workflow_type: str, status: ResearchWorkflowStatus, duration: Optional[float] = None):
+    def record_research_workflow(self, workflow_type: str, status: ResearchWorkflowStatus, duration: float | None = None):
         """Record research workflow metrics."""
         self.research_workflows_total.labels(
             status=status.value, workflow_type=workflow_type

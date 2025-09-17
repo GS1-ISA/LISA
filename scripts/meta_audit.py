@@ -6,9 +6,7 @@ import hashlib
 import os
 import re
 import subprocess
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -23,7 +21,7 @@ META_RX = re.compile(
     re.IGNORECASE,
 )
 
-CONCEPTS: List[Tuple[str, str]] = [
+CONCEPTS: list[tuple[str, str]] = [
     ("Agent", r"agent"),
     ("Memory", r"memory"),
     ("Embedding", r"embed"),
@@ -48,9 +46,9 @@ def read_text(p: Path) -> str:
         return ""
 
 
-def list_meta_dirs(max_depth: int = 3) -> List[Path]:
-    out: List[Path] = []
-    for d, dirs, files in os.walk(ROOT):
+def list_meta_dirs(max_depth: int = 3) -> list[Path]:
+    out: list[Path] = []
+    for d, _dirs, _files in os.walk(ROOT):
         p = Path(d)
         rel = p.relative_to(ROOT)
         depth = len(rel.parts)
@@ -61,9 +59,9 @@ def list_meta_dirs(max_depth: int = 3) -> List[Path]:
     return sorted(set(out))
 
 
-def list_candidate_files() -> List[Path]:
-    out: List[Path] = []
-    for d, dirs, files in os.walk(ROOT):
+def list_candidate_files() -> list[Path]:
+    out: list[Path] = []
+    for d, _dirs, files in os.walk(ROOT):
         # skip .git and build dirs
         if "/.git" in d or d.endswith("/_build"):
             continue
@@ -74,7 +72,7 @@ def list_candidate_files() -> List[Path]:
     return out
 
 
-def grep_hits(text: str, rx: re.Pattern[str]) -> Tuple[int, Tuple[int, int]]:
+def grep_hits(text: str, rx: re.Pattern[str]) -> tuple[int, tuple[int, int]]:
     hits = list(rx.finditer(text))
     if not hits:
         return 0, (0, 0)
@@ -99,7 +97,7 @@ def commit_date_for(path: Path) -> str:
         return "1970-01-01"
 
 
-def build_inventory() -> Tuple[str, List[Path], List[Path]]:
+def build_inventory() -> tuple[str, list[Path], list[Path]]:
     now = dt.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     meta_dirs = list_meta_dirs()
     files = list_candidate_files()
@@ -110,7 +108,7 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
         if META_RX.search(text):
             meta_files.append(p)
 
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append(f"# Meta-Inventory – generated on {now}")
     lines.append("")
     # Section 1: Folders
@@ -135,7 +133,7 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
     for p in meta_files:
         text = read_text(ROOT / p)
         hcount, (lo, hi) = grep_hits(text, META_RX)
-        excerpt = " ".join(text.splitlines()[lo - 1 : hi])[:200].replace("|", "\|")
+        excerpt = " ".join(text.splitlines()[lo - 1 : hi])[:200].replace("|", r"\|")
         sha = hashlib.sha256(text.encode("utf-8", "ignore")).hexdigest()
         nlines = text.count("\n") + 1
         lines.append(f"| {p} | {sha} | {nlines} | {hcount} | {excerpt} |")
@@ -160,7 +158,7 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
         for line in res.stdout.splitlines():
             parts = line.split("|")
             if len(parts) >= 3:
-                h, d, s = parts[0], parts[1], "|".join(parts[2:]).replace("|", "\|")
+                h, d, s = parts[0], parts[1], "|".join(parts[2:]).replace("|", r"\|")
                 lines.append(f"| {h} | {d} | {s} |")
     except Exception:
         pass
@@ -264,8 +262,7 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
     last_date = "1970-01-01"
     for p in meta_files:
         d = commit_date_for(p)
-        if d > last_date:
-            last_date = d
+        last_date = max(last_date, d)
     try:
         res = subprocess.run(
             ["git", "log", "-n", "1", "--pretty=%h", "--", str(meta_files[-1])],
@@ -304,8 +301,8 @@ def build_inventory() -> Tuple[str, List[Path], List[Path]]:
     return "\n".join(lines), meta_dirs, meta_files
 
 
-def build_risk_xray(meta_dirs: List[Path], meta_files: List[Path]) -> str:
-    rows: List[str] = []
+def build_risk_xray(meta_dirs: list[Path], meta_files: list[Path]) -> str:
+    rows: list[str] = []
     files = [ROOT / p for p in meta_files]
     tests = [p for p in files if "test" in str(p) or "tests" in str(p)]
     now = dt.datetime.utcnow().timestamp()

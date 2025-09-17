@@ -6,7 +6,7 @@ data lineage tracking across the ETL pipelines.
 """
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 from openlineage.client import OpenLineageClient
 from openlineage.client.facet import (
@@ -22,8 +22,8 @@ class OpenLineageConfig:
 
     def __init__(
         self,
-        url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        url: str | None = None,
+        api_key: str | None = None,
         namespace: str = "isa-etl",
     ):
         """
@@ -63,9 +63,9 @@ class OpenLineageConfig:
         self,
         dataset_name: str,
         dataset_type: str,
-        schema: Optional[Dict[str, Any]] = None,
-        data_quality: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        schema: dict[str, Any] | None = None,
+        data_quality: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Create dataset facets for lineage tracking."""
         facets = {}
 
@@ -101,9 +101,9 @@ class OpenLineageConfig:
         self,
         job_name: str,
         job_namespace: str,
-        inputs: Optional[list] = None,
-        outputs: Optional[list] = None,
-        run_id: Optional[str] = None,
+        inputs: list | None = None,
+        outputs: list | None = None,
+        run_id: str | None = None,
         **facets
     ) -> None:
         """Emit a lineage event."""
@@ -123,7 +123,7 @@ class OpenLineageConfig:
 
 
 # Global instance
-_openlineage_config: Optional[OpenLineageConfig] = None
+_openlineage_config: OpenLineageConfig | None = None
 
 
 def get_openlineage_config() -> OpenLineageConfig:
@@ -138,9 +138,9 @@ def get_openlineage_config() -> OpenLineageConfig:
 
 def emit_etl_lineage(
     asset_name: str,
-    input_datasets: Optional[list] = None,
-    output_datasets: Optional[list] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    input_datasets: list | None = None,
+    output_datasets: list | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> None:
     """Emit lineage event for ETL asset."""
     config = get_openlineage_config()

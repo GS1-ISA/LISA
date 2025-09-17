@@ -18,7 +18,7 @@ __email__ = "team@isa-superapp.com"
 __license__ = "MIT"
 __description__ = "ISA SuperApp - Intelligent System Architecture"
 
-logger.debug(f"ISA SuperApp initialization started")
+logger.debug("ISA SuperApp initialization started")
 logger.debug(f"Current working directory: {os.getcwd()}")
 logger.debug(
     f"Available modules in ISA_SuperApp: {os.listdir(os.path.dirname(__file__))}"
@@ -28,10 +28,7 @@ logger.debug(
 try:
     from .core import (
         ISAConfig,
-        ISACore,
         ISAException,
-        ISALogger,
-        ISAMetrics,
         ISAValidationError,
     )
 
@@ -40,44 +37,18 @@ except ImportError as e:
     logger.error(f"Core import failed: {e}")
     raise
 
-# AI/ML imports
+# AI/ML imports from core module
 try:
-    from .ai import (
-        ISAAgent,
-        ISAEmbedding,
-        ISAModel,
-        ISAPipeline,
-        ISARetriever,
-        ISATrainer,
+    from .core import (
+        BaseAgent,
+        BaseEmbeddingProvider,
+        RetrievalSystem,
+        WorkflowEngine,
     )
 
     logger.debug("AI/ML imports successful")
 except ImportError as e:
     logger.error(f"AI/ML import failed - modules may not exist: {e}")
-    # Don't raise here - these modules might not be implemented yet
-
-# Data processing imports
-try:
-    from .data import (
-        ISADataLoader,
-        ISADataProcessor,
-        ISADataStore,
-        ISADataTransformer,
-        ISADataValidator,
-    )
-
-    logger.debug("Data processing imports successful")
-except ImportError as e:
-    logger.error(f"Data processing import failed - modules may not exist: {e}")
-    # Don't raise here - these modules might not be implemented yet
-
-# Utilities
-try:
-    from .utils import ISACrypto, ISAFileSystem, ISANetwork, ISATime, ISAUtils
-
-    logger.debug("Utilities imports successful")
-except ImportError as e:
-    logger.error(f"Utilities import failed - modules may not exist: {e}")
     # Don't raise here - these modules might not be implemented yet
 
 # Version info

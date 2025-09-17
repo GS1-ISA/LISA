@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import sys
 from importlib import import_module
-from pathlib import Path
 
 
 def test_ingest_text_writes_manifest(tmp_path, monkeypatch):

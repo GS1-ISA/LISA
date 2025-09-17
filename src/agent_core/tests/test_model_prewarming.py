@@ -1,8 +1,9 @@
-import pytest
 import time
-import threading
-from unittest.mock import Mock, patch, MagicMock
-from src.agent_core.llm_client import ModelWarmer, CachedOpenRouterClient
+from unittest.mock import Mock, patch
+
+import pytest
+
+from src.agent_core.llm_client import CachedOpenRouterClient, ModelWarmer
 
 
 class TestModelPrewarming:
@@ -15,9 +16,9 @@ class TestModelPrewarming:
 
         # Mock successful responses
         self.mock_client.chat_completion.return_value = {
-            'content': 'Warm-up successful',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 10}
+            "content": "Warm-up successful",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 10}
         }
 
     def teardown_method(self):
@@ -35,8 +36,8 @@ class TestModelPrewarming:
 
         # Check all models are initially healthy
         for model in self.warmer.models_to_warm:
-            assert self.warmer.model_health[model]['healthy'] is True
-            assert self.warmer.model_health[model]['failures'] == 0
+            assert self.warmer.model_health[model]["healthy"] is True
+            assert self.warmer.model_health[model]["failures"] == 0
 
     def test_warm_up_process(self):
         """Test the warm-up process functionality."""
@@ -79,7 +80,7 @@ class TestModelPrewarming:
 
         # Check that failures were recorded
         failed_models = [model for model, info in self.warmer.model_health.items()
-                        if info['failures'] > 0]
+                        if info["failures"] > 0]
         assert len(failed_models) > 0
 
     def test_model_recovery(self):
@@ -91,22 +92,22 @@ class TestModelPrewarming:
             self.warmer._handle_model_failure(model)
 
         # Model should be marked unhealthy
-        assert not self.warmer.model_health[model]['healthy']
+        assert not self.warmer.model_health[model]["healthy"]
 
         # Configure mock to succeed for recovery
         self.mock_client.chat_completion.side_effect = None
         self.mock_client.chat_completion.return_value = {
-            'content': 'Recovery successful',
-            'model_used': model,
-            'usage': {'total_tokens': 10}
+            "content": "Recovery successful",
+            "model_used": model,
+            "usage": {"total_tokens": 10}
         }
 
         # Attempt recovery
         self.warmer._attempt_recovery(model)
 
         # Model should be healthy again
-        assert self.warmer.model_health[model]['healthy']
-        assert self.warmer.model_health[model]['failures'] == 0
+        assert self.warmer.model_health[model]["healthy"]
+        assert self.warmer.model_health[model]["failures"] == 0
 
     def test_warm_stats_reporting(self):
         """Test warm-up statistics reporting."""
@@ -117,22 +118,22 @@ class TestModelPrewarming:
 
         stats = self.warmer.get_warm_stats()
 
-        assert 'warm_up_count' in stats
-        assert 'health_check_count' in stats
-        assert 'recovery_attempts' in stats
-        assert 'average_warm_up_latency' in stats
-        assert 'model_health_status' in stats
-        assert 'latency_reduction_estimate' in stats
+        assert "warm_up_count" in stats
+        assert "health_check_count" in stats
+        assert "recovery_attempts" in stats
+        assert "average_warm_up_latency" in stats
+        assert "model_health_status" in stats
+        assert "latency_reduction_estimate" in stats
 
-        assert stats['warm_up_count'] >= 0
-        assert stats['health_check_count'] >= 0
-        assert isinstance(stats['model_health_status'], dict)
+        assert stats["warm_up_count"] >= 0
+        assert stats["health_check_count"] >= 0
+        assert isinstance(stats["model_health_status"], dict)
 
     def test_concurrent_warm_up_operations(self):
         """Test concurrent warm-up operations."""
         # Start multiple warmers
         warmers = []
-        for i in range(3):
+        for _i in range(3):
             warmer = ModelWarmer(self.mock_client)
             warmer.start()
             warmers.append(warmer)
@@ -173,8 +174,9 @@ class TestModelPrewarming:
 
     def test_memory_efficiency(self):
         """Test memory efficiency of pre-warming system."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
@@ -194,22 +196,15 @@ class TestModelPrewarming:
 
     def test_isa_specific_scenarios(self):
         """Test pre-warming with ISA-specific query patterns."""
-        isa_queries = [
-            "CSRD compliance requirements analysis",
-            "GDSN to XBRL mapping integration",
-            "ESG reporting framework assessment",
-            "Regulatory standards ontology mapping",
-            "Compliance gap analysis for standards"
-        ]
 
         # Mock optimizer to return different models for different queries
-        with patch('src.agent_core.llm_client.QueryOptimizer') as mock_optimizer:
+        with patch("src.agent_core.llm_client.QueryOptimizer") as mock_optimizer:
             mock_optimizer.return_value.optimize_query.side_effect = [
-                Mock(model='google/gemini-2.5-flash-image-preview:free', temperature=0.1, max_tokens=2000),
-                Mock(model='meta-llama/llama-4-scout:free', temperature=0.2, max_tokens=4000),
-                Mock(model='mistralai/mistral-small-3.1-24b-instruct:free', temperature=0.1, max_tokens=3000),
-                Mock(model='deepseek/deepseek-r1:free', temperature=0.3, max_tokens=5000),
-                Mock(model='google/gemini-2.0-flash-exp:free', temperature=0.2, max_tokens=2500)
+                Mock(model="google/gemini-2.5-flash-image-preview:free", temperature=0.1, max_tokens=2000),
+                Mock(model="meta-llama/llama-4-scout:free", temperature=0.2, max_tokens=4000),
+                Mock(model="mistralai/mistral-small-3.1-24b-instruct:free", temperature=0.1, max_tokens=3000),
+                Mock(model="deepseek/deepseek-r1:free", temperature=0.3, max_tokens=5000),
+                Mock(model="google/gemini-2.0-flash-exp:free", temperature=0.2, max_tokens=2500)
             ]
 
             # Start warmer
@@ -221,8 +216,8 @@ class TestModelPrewarming:
             call_args_list = self.mock_client.chat_completion.call_args_list
             used_models = set()
             for call in call_args_list:
-                if 'model' in call[1]:
-                    used_models.add(call[1]['model'])
+                if "model" in call[1]:
+                    used_models.add(call[1]["model"])
 
             # Should have used multiple different models
             assert len(used_models) > 1
@@ -234,7 +229,7 @@ class TestModelPrewarming:
             ConnectionError("Network unreachable"),
             TimeoutError("Request timeout"),
             Exception("Generic error"),
-            {'content': 'Success', 'model_used': 'test', 'usage': {'total_tokens': 10}}  # Recovery
+            {"content": "Success", "model_used": "test", "usage": {"total_tokens": 10}}  # Recovery
         ]
 
         self.warmer.start()
@@ -246,10 +241,10 @@ class TestModelPrewarming:
 
     def test_configuration_override(self):
         """Test configuration override via environment variables."""
-        with patch.dict('os.environ', {
-            'MODEL_WARM_UP_INTERVAL_SECONDS': '10',
-            'MODEL_HEALTH_CHECK_INTERVAL_SECONDS': '5',
-            'MODEL_MAX_FAILURES_RECOVERY': '5'
+        with patch.dict("os.environ", {
+            "MODEL_WARM_UP_INTERVAL_SECONDS": "10",
+            "MODEL_HEALTH_CHECK_INTERVAL_SECONDS": "5",
+            "MODEL_MAX_FAILURES_RECOVERY": "5"
         }):
             warmer = ModelWarmer(self.mock_client)
 
@@ -264,9 +259,9 @@ class TestCachedOpenRouterClient:
     def setup_method(self):
         """Setup test fixtures."""
         self.mock_redis = Mock()
-        with patch('redis.Redis', return_value=self.mock_redis):
+        with patch("redis.Redis", return_value=self.mock_redis):
             self.client = CachedOpenRouterClient(
-                redis_host='localhost',
+                redis_host="localhost",
                 redis_port=6379,
                 ttl_seconds=300
             )
@@ -275,9 +270,9 @@ class TestCachedOpenRouterClient:
         """Test that warm stats are accessible through cached client."""
         stats = self.client.get_warm_stats()
 
-        assert 'warm_up_count' in stats
-        assert 'model_health_status' in stats
-        assert 'latency_reduction_estimate' in stats
+        assert "warm_up_count" in stats
+        assert "model_health_status" in stats
+        assert "latency_reduction_estimate" in stats
 
     def test_cache_performance_with_warming(self):
         """Test cache performance when pre-warming is active."""
@@ -286,25 +281,25 @@ class TestCachedOpenRouterClient:
         self.mock_redis.setex.return_value = True
 
         # Mock underlying client
-        with patch.object(self.client.underlying_client, 'chat_completion') as mock_chat:
+        with patch.object(self.client.underlying_client, "chat_completion") as mock_chat:
             mock_chat.return_value = {
-                'content': 'Test response',
-                'model_used': 'test-model',
-                'usage': {'total_tokens': 100}
+                "content": "Test response",
+                "model_used": "test-model",
+                "usage": {"total_tokens": 100}
             }
 
             # Make multiple identical requests
             messages = [{"role": "user", "content": "Test query"}]
             for _ in range(5):
-                result = self.client.chat_completion(messages)
+                self.client.chat_completion(messages)
 
             # Should have cache misses initially
             cache_stats = self.client.get_cache_stats()
-            assert cache_stats['misses'] >= 1
+            assert cache_stats["misses"] >= 1
 
             # Verify pre-warming is running
             warm_stats = self.client.get_warm_stats()
-            assert 'warm_up_count' in warm_stats
+            assert "warm_up_count" in warm_stats
 
 
 if __name__ == "__main__":

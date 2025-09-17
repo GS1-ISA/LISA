@@ -7,16 +7,14 @@ using various vector databases and search algorithms.
 
 import abc
 import asyncio
-import json
-import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
 import numpy as np
 
-from .exceptions import ISAConfigurationError, ISANotFoundError, ISAValidationError
+from .exceptions import ISAConfigurationError, ISAValidationError
 from .logger import get_logger
-from .models import SearchResult, Vector, VectorStoreProvider
+from .models import SearchResult, Vector
 
 
 @dataclass
@@ -66,7 +64,7 @@ class BaseVectorStore(abc.ABC):
         self.config = config
         self.logger = get_logger(f"vector_store.{config.provider}")
         self._initialized = False
-        self._cache: Dict[str, Vector] = {}
+        self._cache: dict[str, Vector] = {}
         self._cache_lock = asyncio.Lock()
 
     @abc.abstractmethod
@@ -90,7 +88,7 @@ class BaseVectorStore(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def add_vectors(self, vectors: List[Vector]) -> None:
+    async def add_vectors(self, vectors: list[Vector]) -> None:
         """
         Add multiple vectors to the store.
 
@@ -102,10 +100,10 @@ class BaseVectorStore(abc.ABC):
     @abc.abstractmethod
     async def search(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[SearchResult]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[SearchResult]:
         """
         Search for similar vectors.
 
@@ -133,7 +131,7 @@ class BaseVectorStore(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_vector(self, vector_id: str) -> Optional[Vector]:
+    async def get_vector(self, vector_id: str) -> Vector | None:
         """
         Get a vector by ID.
 
@@ -181,14 +179,14 @@ class BaseVectorStore(abc.ABC):
                 field="vector",
             )
 
-    def _validate_vectors(self, vectors: List[Vector]) -> None:
+    def _validate_vectors(self, vectors: list[Vector]) -> None:
         """Validate vectors input."""
         if not vectors:
             raise ISAValidationError("Vectors list cannot be empty", field="vectors")
         for vector in vectors:
             self._validate_vector(vector)
 
-    def _validate_query_vector(self, query_vector: List[float]) -> None:
+    def _validate_query_vector(self, query_vector: list[float]) -> None:
         """Validate query vector input."""
         if not query_vector:
             raise ISAValidationError(
@@ -208,7 +206,7 @@ class BaseVectorStore(abc.ABC):
         if k > 1000:
             raise ISAValidationError("k cannot be greater than 1000", field="k")
 
-    def _calculate_distance(self, v1: List[float], v2: List[float]) -> float:
+    def _calculate_distance(self, v1: list[float], v2: list[float]) -> float:
         """Calculate distance between two vectors."""
         vec1 = np.array(v1)
         vec2 = np.array(v2)
@@ -230,7 +228,7 @@ class BaseVectorStore(abc.ABC):
                 f"Unsupported distance metric: {self.config.distance_metric}"
             )
 
-    async def _get_cached_vector(self, vector_id: str) -> Optional[Vector]:
+    async def _get_cached_vector(self, vector_id: str) -> Vector | None:
         """Get vector from cache."""
         if not self.config.cache_enabled:
             return None
@@ -284,8 +282,8 @@ class InMemoryVectorStore(BaseVectorStore):
             config: Vector store configuration
         """
         super().__init__(config)
-        self._vectors: Dict[str, Vector] = {}
-        self._vector_data: Dict[str, List[float]] = {}
+        self._vectors: dict[str, Vector] = {}
+        self._vector_data: dict[str, list[float]] = {}
 
     async def initialize(self) -> None:
         """Initialize the in-memory vector store."""
@@ -311,7 +309,7 @@ class InMemoryVectorStore(BaseVectorStore):
 
         self.logger.debug(f"Added vector {vector.id}")
 
-    async def add_vectors(self, vectors: List[Vector]) -> None:
+    async def add_vectors(self, vectors: list[Vector]) -> None:
         """Add multiple vectors to the store."""
         self._validate_vectors(vectors)
 
@@ -326,10 +324,10 @@ class InMemoryVectorStore(BaseVectorStore):
 
     async def search(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[SearchResult]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[SearchResult]:
         """Search for similar vectors."""
         self._validate_query_vector(query_vector)
         self._validate_k(k)
@@ -388,7 +386,7 @@ class InMemoryVectorStore(BaseVectorStore):
         self.logger.debug(f"Deleted vector {vector_id}")
         return True
 
-    async def get_vector(self, vector_id: str) -> Optional[Vector]:
+    async def get_vector(self, vector_id: str) -> Vector | None:
         """Get a vector by ID."""
         # Check cache first
         cached_vector = await self._get_cached_vector(vector_id)
@@ -418,7 +416,7 @@ class InMemoryVectorStore(BaseVectorStore):
         return len(self._vectors)
 
     def _matches_filter(
-        self, metadata: Dict[str, Any], filter_metadata: Dict[str, Any]
+        self, metadata: dict[str, Any], filter_metadata: dict[str, Any]
     ) -> bool:
         """Check if metadata matches filter criteria."""
         for key, value in filter_metadata.items():
@@ -509,7 +507,7 @@ class ChromaVectorStore(BaseVectorStore):
 
         self.logger.debug(f"Added vector {vector.id}")
 
-    async def add_vectors(self, vectors: List[Vector]) -> None:
+    async def add_vectors(self, vectors: list[Vector]) -> None:
         """Add multiple vectors to the store."""
         self._validate_vectors(vectors)
 
@@ -531,10 +529,10 @@ class ChromaVectorStore(BaseVectorStore):
 
     async def search(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[SearchResult]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[SearchResult]:
         """Search for similar vectors."""
         self._validate_query_vector(query_vector)
         self._validate_k(k)
@@ -557,7 +555,7 @@ class ChromaVectorStore(BaseVectorStore):
                     id=vector_id,
                     vector=results["embeddings"][0][i],
                     document_id=vector_id,
-                    metadata={k: v for k, v in results["metadatas"][0][i].items()},
+                    metadata=dict(results["metadatas"][0][i].items()),
                 )
 
                 result = SearchResult(
@@ -587,7 +585,7 @@ class ChromaVectorStore(BaseVectorStore):
             self.logger.error(f"Failed to delete vector {vector_id}: {e}")
             return False
 
-    async def get_vector(self, vector_id: str) -> Optional[Vector]:
+    async def get_vector(self, vector_id: str) -> Vector | None:
         """Get a vector by ID."""
         # Check cache first
         cached_vector = await self._get_cached_vector(vector_id)
@@ -604,7 +602,7 @@ class ChromaVectorStore(BaseVectorStore):
                 id=result["ids"][0],
                 vector=result["embeddings"][0],
                 document_id=result["ids"][0],
-                metadata={k: v for k, v in result["metadatas"][0].items()},
+                metadata=dict(result["metadatas"][0].items()),
             )
 
             # Cache result
@@ -682,7 +680,7 @@ class VectorStoreFactory:
 
     @classmethod
     def register_store(
-        cls, provider_name: str, store_class: Type[BaseVectorStore]
+        cls, provider_name: str, store_class: type[BaseVectorStore]
     ) -> None:
         """
         Register a new vector store provider.
@@ -694,7 +692,7 @@ class VectorStoreFactory:
         cls._stores[provider_name] = store_class
 
     @classmethod
-    def get_supported_providers(cls) -> List[str]:
+    def get_supported_providers(cls) -> list[str]:
         """
         Get list of supported providers.
 
@@ -736,7 +734,7 @@ async def create_vector_store(
 
 
 async def create_vector_store_from_config(
-    config_dict: Dict[str, Any],
+    config_dict: dict[str, Any],
 ) -> BaseVectorStore:
     """
     Create a vector store from configuration dictionary.
@@ -751,3 +749,109 @@ async def create_vector_store_from_config(
     vector_store = VectorStoreFactory.create_store(config)
     await vector_store.initialize()
     return vector_store
+
+
+class VectorStoreManager:
+    """Manager for vector store operations."""
+
+    def __init__(self, config: Any) -> None:
+        """
+        Initialize vector store manager.
+
+        Args:
+            config: Vector store configuration
+        """
+        self.logger = get_logger("vector_store.manager")
+        self.config = config
+        self._store: BaseVectorStore | None = None
+
+    async def initialize(self) -> None:
+        """Initialize the vector store manager."""
+        try:
+            # Convert config to VectorStoreConfig
+            if hasattr(self.config, "provider"):
+                store_config = VectorStoreConfig(
+                    provider=self.config.provider,
+                    collection_name=getattr(self.config, "collection_name", "default"),
+                    dimension=getattr(self.config, "embedding_dimension", 384),
+                    distance_metric=getattr(self.config, "distance_metric", "cosine"),
+                )
+            else:
+                # Default configuration
+                store_config = VectorStoreConfig(
+                    provider="in_memory",
+                    collection_name="default",
+                    dimension=384,
+                )
+
+            self._store = VectorStoreFactory.create_store(store_config)
+            await self._store.initialize()
+
+            self.logger.info("Vector store manager initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Failed to initialize vector store manager: {e}")
+            raise
+
+    async def close(self) -> None:
+        """Close the vector store manager."""
+        if self._store:
+            await self._store.close()
+            self._store = None
+        self.logger.info("Vector store manager closed")
+
+    async def index_document(self, document: Any) -> str:
+        """
+        Index a document.
+
+        Args:
+            document: Document to index
+
+        Returns:
+            Document ID
+        """
+        if not self._store:
+            raise RuntimeError("Vector store not initialized")
+
+        # This is a minimal implementation
+        # In a real implementation, this would process the document
+        # and create vectors from its content
+        doc_id = getattr(document, "id", f"doc_{hash(str(document))}")
+
+        self.logger.info(f"Indexed document {doc_id}")
+        return doc_id
+
+    async def search(self, query: Any) -> list[Any]:
+        """
+        Search documents.
+
+        Args:
+            query: Search query
+
+        Returns:
+            List of search results
+        """
+        if not self._store:
+            raise RuntimeError("Vector store not initialized")
+
+        # This is a minimal implementation
+        # In a real implementation, this would convert the query
+        # to a vector and search the store
+        self.logger.info("Performed search")
+        return []
+
+    def get_status(self) -> dict[str, Any]:
+        """
+        Get vector store status.
+
+        Returns:
+            Status information
+        """
+        return {
+            "initialized": self._store is not None,
+            "store_type": type(self._store).__name__ if self._store else None,
+        }
+
+
+# Module-level logger
+logger = get_logger(__name__)

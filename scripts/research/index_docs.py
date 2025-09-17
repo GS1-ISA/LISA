@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 
 def _ensure_superapp_on_path() -> None:
@@ -30,10 +29,10 @@ def _load_json(path: str | Path) -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def _normalize_tr_entries(data: dict) -> List[Tuple[str, str, dict]]:
+def _normalize_tr_entries(data: dict) -> list[tuple[str, str, dict]]:
     """Return docs as (id, text, meta) tuples from W3C TR style JSON."""
     items = data.get("items", [])
-    docs: List[Tuple[str, str, dict]] = []
+    docs: list[tuple[str, str, dict]] = []
     for it in items:
         title = it.get("title", "").strip()
         url = it.get("url", "")
@@ -68,10 +67,10 @@ def index_tr_fixture(fixture_path: str | Path, storage_path: str | Path) -> int:
     return len(docs)
 
 
-def _normalize_fr_entries(data: dict) -> List[Tuple[str, str, dict]]:
+def _normalize_fr_entries(data: dict) -> list[tuple[str, str, dict]]:
     """Return docs as (id, text, meta) tuples from Federal Register JSON."""
     results = data.get("results", [])
-    docs: List[Tuple[str, str, dict]] = []
+    docs: list[tuple[str, str, dict]] = []
     for it in results:
         title = (it.get("title") or "").strip()
         url = it.get("html_url") or ""

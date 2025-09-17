@@ -142,10 +142,10 @@ class GS1DigitalLinkToolkit {
 		{"rule":"A trade item SHALL NOT be identified as a coupon.","condition1":"255","condition2":["01"]},
 		{"rule":"Only one ship to postal code SHALL be applied on the same physical entity","condition1":"420","condition2":["421"]},
 		{"rule":"Country of origin, initial processing, processing, or disassembly SHALL NOT be used in combination with country of full porcessing, since this would lead to ambiguous data.","condition1":"426","condition2":["422","423","424","425"]},
-		{"rule":"The element strings coupon value, percentage discount of a coupon and loyalty points of a coupon SHALL NOT be applied in combination.","condition1":"390\d","condition2":["394\d","8111"]},
-		{"rule":"Only one amount patable element string SHALL be applied on a payment slip.","condition1":"391\d","condition2":["390\d"]},
-		{"rule":"Only one amount payable element string SHALL be applied on a variable measure trade item.","condition1":"392\d","condition2":["393\d"]},
-		{"rule":"The element strings percentage discount of a coupon and the loyalty points of a coupon SHALL NOT be applied in combination.","condition1":"394\d","condition2":["8111"]},
+		{"rule":"The element strings coupon value, percentage discount of a coupon and loyalty points of a coupon SHALL NOT be applied in combination.","condition1":"390d","condition2":["394d","8111"]},
+		{"rule":"Only one amount patable element string SHALL be applied on a payment slip.","condition1":"391d","condition2":["390d"]},
+		{"rule":"Only one amount payable element string SHALL be applied on a variable measure trade item.","condition1":"392d","condition2":["393d"]},
+		{"rule":"The element strings percentage discount of a coupon and the loyalty points of a coupon SHALL NOT be applied in combination.","condition1":"394d","condition2":["8111"]},
 		{"rule":"The GTIN SHALL NOT be used in combination with the identification of an individual trade item piece.  The GTIN of the trade item to which the individual trade item piece belongs is contained in the element string","condition1":"8006","condition2":["01"]},
 		{"rule":"Only one Global Service Relation Number (recipient of provider) SHALL be applied at one time for identification of an individual in a given service relationship","condition1":"8018","condition2":["8017"]},
 		];
@@ -155,9 +155,9 @@ class GS1DigitalLinkToolkit {
 		// from Figure 4.14.2-1. Mandatory association of element strings
 		// this table is not symmetrical - it's one-way, given condition, require OR, AND, XOR to be satisfied where specified
 		var mandatoryAssociations=[
-		{"designation":"GTIN of a variable measure trade item scanned at POS","rule":"The GTIN of a variable measure trade item scanned at POS SHALL occur in combination with: * variable count of items; or * a trade measure ; Note: Master data will be needed to determine whether the GTIN represents a variable measure trade item scanned at POS. Also see the note below this table.","condition":["01"],"conditionN1":"0","OR":["30","3\d{3}"]},
+		{"designation":"GTIN of a variable measure trade item scanned at POS","rule":"The GTIN of a variable measure trade item scanned at POS SHALL occur in combination with: * variable count of items; or * a trade measure ; Note: Master data will be needed to determine whether the GTIN represents a variable measure trade item scanned at POS. Also see the note below this table.","condition":["01"],"conditionN1":"0","OR":["30","3d{3}"]},
 
-		{"designation":"GTIN of a variable measure trade item not scanned at POS","rule":"The GTIN of a variable measure trade item not scanned at POS SHALL occur in combination with: * variable count of items; or * a trade measure; or * the dimensions of a roll product. Note: The first position of the GTIN is '9' for such trade items. Also see the note below this table.","condition":["01","02"],"conditionN1":"9","OR":["30","3\d{3}","8001"]},
+		{"designation":"GTIN of a variable measure trade item not scanned at POS","rule":"The GTIN of a variable measure trade item not scanned at POS SHALL occur in combination with: * variable count of items; or * a trade measure; or * the dimensions of a roll product. Note: The first position of the GTIN is '9' for such trade items. Also see the note below this table.","condition":["01","02"],"conditionN1":"9","OR":["30","3d{3}","8001"]},
 		{"designation":"GTIN of a custom trade item.","rule":"The GTIN of a custom trade item SHALL be used in combination with the Made-to-Order variation number. Note: The first position of the GTIN is '9' for such trade items.","condition":["01"],"conditionN1":"9","EXACTLY":["242"]},
 
 		{"designation":"GTIN of contained trade items","rule":"The GTIN of contained trade items SHALL occur in combination with an SSCC and the count of the trade items.","condition":["02"],"AND":["00","37"]},
@@ -186,12 +186,12 @@ class GS1DigitalLinkToolkit {
 		{"designation":"","rule":"","condition":["254"],"EXACTLY":["414"]},
 
 		{"designation":"","rule":"","condition":["30"],"XOR":["01","02"]},
-		{"designation":"","rule":"","condition":["3\d{3}"],"XOR":["01","02"]},
-		{"designation":"","rule":"","condition":["3\d{3}"],"OR":["00","01"]},
-		{"designation":"","rule":"","condition":["337\d"],"EXACTLY":["01"]},
+		{"designation":"","rule":"","condition":["3d{3}"],"XOR":["01","02"]},
+		{"designation":"","rule":"","condition":["3d{3}"],"OR":["00","01"]},
+		{"designation":"","rule":"","condition":["337d"],"EXACTLY":["01"]},
 		{"designation":"","rule":"","condition":["37"],"EXACTLY":["02"]},
-		{"designation":"","rule":"","condition":["390\d"],"AND":["8020","415"]},
-		{"designation":"","rule":"","condition":["390\d"],"EXACTLY":["255"]},
+		{"designation":"","rule":"","condition":["390d"],"AND":["8020","415"]},
+		{"designation":"","rule":"","condition":["390d"],"EXACTLY":["255"]},
 
 
 
@@ -635,10 +635,10 @@ class GS1DigitalLinkToolkit {
 
 		// process candidates;
 		for (var k in candidates) {
-			if (candidates.hasOwnProperty(k)) {
+			if (Object.prototype.hasOwnProperty.call(candidates, k)) {
 			   if (!(allnumeric.test(k))) {
 					// for keys that are not all-numeric, attempt to convert to all-numeric AI equivalent
-			   		if (this.shortCodeToNumeric.hasOwnProperty(k)) {
+			   		if (Object.prototype.hasOwnProperty.call(this.shortCodeToNumeric, k)) {
 			   			var numkey = this.shortCodeToNumeric[k];
 			   			candidates[numkey]=candidates[k];
 			   			delete candidates[k];
@@ -648,10 +648,10 @@ class GS1DigitalLinkToolkit {
 			   		}
 			   }
 			}
-	    }			
-				
+		   }
+
 		for (var k in candidates) {
-			if (candidates.hasOwnProperty(k)) {
+			if (Object.prototype.hasOwnProperty.call(candidates, k)) {
 					this.verifySyntax(k,candidates[k]);
 					this.verifyCheckDigit(k,candidates[k]);
 					obj[k] = padGTIN(k,candidates[k]);
@@ -688,7 +688,7 @@ class GS1DigitalLinkToolkit {
 		var elementStrings=[];
 	
 		for (var a in gs1AIarray) {
-			if (gs1AIarray.hasOwnProperty(a)) {
+			if (Object.prototype.hasOwnProperty.call(gs1AIarray, a)) {
 				if (this.aiMaps.identifiers.includes(a)) {
 					identifiers.push(a);
 				}
@@ -724,8 +724,8 @@ class GS1DigitalLinkToolkit {
 			elementStrings = elementStringsPush(elementStrings,"("+identifiers[0]+")",gs1AIarray[identifiers[0]],"");
 
 			// append any valid found qualifiers for that primary identifier to the elementStrings array
-			
-			if (this.aiQualifiers.hasOwnProperty(identifiers[0])) {
+
+			if (Object.prototype.hasOwnProperty.call(this.aiQualifiers, identifiers[0])) {
 				var qualifiersForPrimary=this.aiQualifiers[identifiers[0]];
 				
 				for (var qindex in qualifiersForPrimary) {
@@ -756,7 +756,7 @@ class GS1DigitalLinkToolkit {
 		// identify which AIs in gs1AIarray are defined fixed length
 
 			var fixedLengthPrimaryIdentifier=[];
-			var fixedLengthValuesOther=fixedLengthValues.slice(0);;
+			var fixedLengthValuesOther=fixedLengthValues.slice(0);
 			
 			
 			for (var i in fixedLengthValuesOther) {

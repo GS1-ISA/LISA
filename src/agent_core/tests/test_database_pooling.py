@@ -1,11 +1,14 @@
-import pytest
-import time
-import threading
 import statistics
-from unittest.mock import Mock, patch, MagicMock
-from sqlalchemy import create_engine, text
+import threading
+import time
+from unittest.mock import Mock, patch
+
+import pytest
+from sqlalchemy import text
 from sqlalchemy.pool import QueuePool
+
 from src.database_manager import DatabaseConnectionManager, get_db_manager
+from src.shared.paths import DATABASE_URLS
 
 
 class TestDatabaseConnectionPooling:
@@ -14,7 +17,7 @@ class TestDatabaseConnectionPooling:
     def setup_method(self):
         """Setup test fixtures."""
         # Use in-memory SQLite for testing
-        self.test_db_url = "sqlite:///:memory:"
+        self.test_db_url = DATABASE_URLS["MEMORY"]
         self.manager = DatabaseConnectionManager(
             database_url=self.test_db_url,
             pool_size=5,
@@ -25,7 +28,7 @@ class TestDatabaseConnectionPooling:
 
     def teardown_method(self):
         """Cleanup test fixtures."""
-        if hasattr(self, 'manager'):
+        if hasattr(self, "manager"):
             self.manager.shutdown()
 
     def test_connection_manager_initialization(self):
@@ -53,11 +56,11 @@ class TestDatabaseConnectionPooling:
 
         # Check pool status
         status = self.manager.get_pool_status()
-        assert status['pool_size'] == 5
-        assert status['max_overflow'] == 10
-        assert 'checked_out' in status
-        assert 'checked_in' in status
-        assert 'available_connections' in status
+        assert status["pool_size"] == 5
+        assert status["max_overflow"] == 10
+        assert "checked_out" in status
+        assert "checked_in" in status
+        assert "available_connections" in status
 
     def test_session_creation_and_cleanup(self):
         """Test session creation and automatic cleanup."""
@@ -88,8 +91,8 @@ class TestDatabaseConnectionPooling:
                 end_time = time.perf_counter()
 
                 results.append({
-                    'worker': worker_id,
-                    'duration': end_time - start_time
+                    "worker": worker_id,
+                    "duration": end_time - start_time
                 })
             except Exception as e:
                 errors.append(f"Worker {worker_id}: {e}")
@@ -112,7 +115,7 @@ class TestDatabaseConnectionPooling:
 
         # Check pool status after load
         status = self.manager.get_pool_status()
-        assert status['available_connections'] >= 0
+        assert status["available_connections"] >= 0
 
     def test_connection_recovery(self):
         """Test automatic connection recovery."""
@@ -150,8 +153,9 @@ class TestDatabaseConnectionPooling:
 
     def test_memory_efficiency(self):
         """Test memory efficiency of connection pooling."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
@@ -181,7 +185,7 @@ class TestDatabaseConnectionPooling:
         ]
 
         # Execute ISA-like operations
-        for i, operation in enumerate(isa_operations):
+        for i, _operation in enumerate(isa_operations):
             with self.manager.session_scope() as session:
                 try:
                     # For this test, we'll just execute SELECT 1 since we're using in-memory SQLite
@@ -220,9 +224,9 @@ class TestDatabaseConnectionPooling:
             duration = end_time - start_time
 
             scaling_results.append({
-                'concurrency': concurrency,
-                'duration': duration,
-                'ops_per_second': concurrency / duration
+                "concurrency": concurrency,
+                "duration": duration,
+                "ops_per_second": concurrency / duration
             })
 
         # Analyze scaling
@@ -231,7 +235,7 @@ class TestDatabaseConnectionPooling:
 
         # Should maintain reasonable performance
         high_concurrency = scaling_results[-1]
-        assert high_concurrency['ops_per_second'] > 10  # At least 10 ops/sec at high concurrency
+        assert high_concurrency["ops_per_second"] > 10  # At least 10 ops/sec at high concurrency
 
     def test_error_handling_and_retry(self):
         """Test error handling and retry logic."""
@@ -239,7 +243,7 @@ class TestDatabaseConnectionPooling:
         original_execute = None
 
         def failing_execute(*args, **kwargs):
-            if not hasattr(failing_execute, 'call_count'):
+            if not hasattr(failing_execute, "call_count"):
                 failing_execute.call_count = 0
             failing_execute.call_count += 1
 
@@ -302,12 +306,12 @@ class TestDatabaseConnectionPooling:
 
     def test_global_manager_integration(self):
         """Test integration with global database manager."""
-        with patch('src.database_manager.DatabaseConnectionManager') as mock_manager:
+        with patch("src.database_manager.DatabaseConnectionManager") as mock_manager:
             mock_instance = Mock()
             mock_manager.return_value = mock_instance
 
             # Get global manager
-            manager = get_db_manager("sqlite:///test.db")
+            manager = get_db_manager(DATABASE_URLS["TEST"])
 
             # Verify it was created correctly
             mock_manager.assert_called_once_with("sqlite:///test.db")
@@ -320,7 +324,7 @@ class TestDatabaseIntegration:
     def test_full_workflow_simulation(self):
         """Simulate a full ISA database workflow."""
         manager = DatabaseConnectionManager(
-            database_url="sqlite:///:memory:",
+            database_url=DATABASE_URLS["MEMORY"],
             pool_size=10,
             max_overflow=20
         )

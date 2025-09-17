@@ -31,6 +31,7 @@ dev-install:
 lint:
 	ruff check .
 	ruff format --check .
+	./scripts/check-imports.sh
 
 # Format code
 format:

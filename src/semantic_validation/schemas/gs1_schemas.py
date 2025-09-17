@@ -6,10 +6,9 @@ including products, locations, assets, and events.
 """
 
 import logging
-from typing import Dict, Any, Optional
 
-from rdflib import Graph, URIRef, Literal, BNode, Namespace
-from rdflib.namespace import RDF, RDFS, XSD
+from rdflib import BNode, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import RDF, XSD
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +49,10 @@ class GS1Schemas:
 
     def _load_schemas(self):
         """Load all GS1 SHACL schemas."""
-        self._schemas['product'] = self._create_product_schema()
-        self._schemas['location'] = self._create_location_schema()
-        self._schemas['asset'] = self._create_asset_schema()
-        self._schemas['event'] = self._create_event_schema()
+        self._schemas["product"] = self._create_product_schema()
+        self._schemas["location"] = self._create_location_schema()
+        self._schemas["asset"] = self._create_asset_schema()
+        self._schemas["event"] = self._create_event_schema()
 
         logger.info("Loaded GS1 SHACL schemas")
 

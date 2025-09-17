@@ -6,14 +6,11 @@ on encrypted ESG data using federated learning and fully homomorphic encryption.
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
 from datetime import datetime
-import numpy as np
+from typing import Any
 
-from .fhe import FHEContext, ESGDataEncryptor, FHEOperations
-from .fl_server import create_fl_server, FederatedLearningServer
-from .fl_client import create_fl_client, FederatedLearningClient
+from .fhe import ESGDataEncryptor, FHEContext, FHEOperations
 
 logger = logging.getLogger(__name__)
 
@@ -26,18 +23,18 @@ class TrainingConfig:
     learning_rate: float = 0.01
     batch_size: int = 32
     epochs_per_round: int = 5
-    model_type: str = 'linear_regression'  # 'linear_regression', 'neural_network'
+    model_type: str = "linear_regression"  # 'linear_regression', 'neural_network'
 
 
 @dataclass
 class ESGModel:
     """Simple ESG prediction model."""
-    weights: Dict[str, float]
+    weights: dict[str, float]
     bias: float
     version: int
     training_round: int
 
-    def predict(self, features: Dict[str, float]) -> float:
+    def predict(self, features: dict[str, float]) -> float:
         """Make prediction using model."""
         prediction = self.bias
         for feature, weight in self.weights.items():
@@ -50,15 +47,15 @@ class EncryptedTrainingPipeline:
     Complete pipeline for encrypted model training on ESG data.
     """
 
-    def __init__(self, config: TrainingConfig, fhe_context: Optional[FHEContext] = None):
+    def __init__(self, config: TrainingConfig, fhe_context: FHEContext | None = None):
         self.config = config
         self.fhe_context = fhe_context or FHEContext()
         self.fhe_ops = FHEOperations(self.fhe_context)
         self.esg_encryptor = ESGDataEncryptor(self.fhe_context)
 
         # Model state
-        self.global_model: Optional[ESGModel] = None
-        self.training_history: List[Dict[str, Any]] = []
+        self.global_model: ESGModel | None = None
+        self.training_history: list[dict[str, Any]] = []
 
         logger.info("Encrypted training pipeline initialized")
 
@@ -67,11 +64,11 @@ class EncryptedTrainingPipeline:
         # Initialize with default ESG model parameters
         self.global_model = ESGModel(
             weights={
-                'employees': 0.001,  # Emissions per employee
-                'revenue': 0.0001,   # Emissions per revenue unit
-                'sector_energy': 0.1,  # Sector-specific energy intensity
-                'scope1_baseline': 100.0,  # Baseline scope 1 emissions
-                'scope2_baseline': 50.0,   # Baseline scope 2 emissions
+                "employees": 0.001,  # Emissions per employee
+                "revenue": 0.0001,   # Emissions per revenue unit
+                "sector_energy": 0.1,  # Sector-specific energy intensity
+                "scope1_baseline": 100.0,  # Baseline scope 1 emissions
+                "scope2_baseline": 50.0,   # Baseline scope 2 emissions
             },
             bias=10.0,
             version=0,
@@ -79,7 +76,7 @@ class EncryptedTrainingPipeline:
         )
         logger.info("Global model initialized")
 
-    def prepare_esg_training_data(self, raw_esg_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def prepare_esg_training_data(self, raw_esg_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Prepare and validate ESG data for encrypted training.
 
@@ -94,25 +91,25 @@ class EncryptedTrainingPipeline:
         for record in raw_esg_data:
             # Extract relevant features for ESG emissions prediction
             features = {
-                'employees': record.get('social_totalEmployees', 0),
-                'revenue': record.get('financial_revenue', 0),
-                'sector_energy': record.get('sector_energy_intensity', 1.0),
-                'scope1_baseline': record.get('environmental_scope1Emissions', 0),
-                'scope2_baseline': record.get('environmental_scope2Emissions', 0),
+                "employees": record.get("social_totalEmployees", 0),
+                "revenue": record.get("financial_revenue", 0),
+                "sector_energy": record.get("sector_energy_intensity", 1.0),
+                "scope1_baseline": record.get("environmental_scope1Emissions", 0),
+                "scope2_baseline": record.get("environmental_scope2Emissions", 0),
             }
 
             # Target: total emissions (scope1 + scope2 + scope3)
             target_emissions = (
-                record.get('environmental_scope1Emissions', 0) +
-                record.get('environmental_scope2Emissions', 0) +
-                record.get('environmental_scope3Emissions', 0)
+                record.get("environmental_scope1Emissions", 0) +
+                record.get("environmental_scope2Emissions", 0) +
+                record.get("environmental_scope3Emissions", 0)
             )
 
             processed_record = {
-                'features': features,
-                'target': target_emissions,
-                'company_id': record.get('lei', 'unknown'),
-                'timestamp': record.get('timestamp', datetime.now().isoformat())
+                "features": features,
+                "target": target_emissions,
+                "company_id": record.get("lei", "unknown"),
+                "timestamp": record.get("timestamp", datetime.now().isoformat())
             }
 
             processed_data.append(processed_record)
@@ -120,7 +117,7 @@ class EncryptedTrainingPipeline:
         logger.info(f"Processed {len(processed_data)} ESG training records")
         return processed_data
 
-    def encrypt_training_data(self, training_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def encrypt_training_data(self, training_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Encrypt training data for secure computation.
 
@@ -134,16 +131,16 @@ class EncryptedTrainingPipeline:
 
         for record in training_data:
             # Encrypt features
-            encrypted_features = self.esg_encryptor.encrypt_esg_metrics(record['features'])
+            encrypted_features = self.esg_encryptor.encrypt_esg_metrics(record["features"])
 
             # Encrypt target
-            encrypted_target = self.fhe_context.encrypt(record['target'])
+            encrypted_target = self.fhe_context.encrypt(record["target"])
 
             encrypted_record = {
-                'encrypted_features': encrypted_features,
-                'encrypted_target': encrypted_target,
-                'company_id': record['company_id'],
-                'timestamp': record['timestamp']
+                "encrypted_features": encrypted_features,
+                "encrypted_target": encrypted_target,
+                "company_id": record["company_id"],
+                "timestamp": record["timestamp"]
             }
 
             encrypted_data.append(encrypted_record)
@@ -151,8 +148,8 @@ class EncryptedTrainingPipeline:
         logger.info(f"Encrypted {len(encrypted_data)} training records")
         return encrypted_data
 
-    def perform_encrypted_gradient_computation(self, encrypted_data: List[Dict[str, Any]],
-                                             current_model: ESGModel) -> Dict[str, Any]:
+    def perform_encrypted_gradient_computation(self, encrypted_data: list[dict[str, Any]],
+                                             current_model: ESGModel) -> dict[str, Any]:
         """
         Compute gradients on encrypted data.
 
@@ -165,20 +162,20 @@ class EncryptedTrainingPipeline:
         """
         total_samples = len(encrypted_data)
         encrypted_gradients = {
-            'weights': {},
-            'bias': None
+            "weights": {},
+            "bias": None
         }
 
         # Initialize gradient accumulators
-        for weight_name in current_model.weights.keys():
-            encrypted_gradients['weights'][weight_name] = self.fhe_context.encrypt(0.0)
+        for weight_name in current_model.weights:
+            encrypted_gradients["weights"][weight_name] = self.fhe_context.encrypt(0.0)
 
-        encrypted_gradients['bias'] = self.fhe_context.encrypt(0.0)
+        encrypted_gradients["bias"] = self.fhe_context.encrypt(0.0)
 
         # Compute gradients for each sample
         for record in encrypted_data:
-            encrypted_features = record['encrypted_features']
-            encrypted_target = record['encrypted_target']
+            encrypted_features = record["encrypted_features"]
+            encrypted_target = record["encrypted_target"]
 
             # Compute prediction: y_pred = X * w + b
             encrypted_prediction = self.fhe_context.encrypt(current_model.bias)
@@ -208,31 +205,31 @@ class EncryptedTrainingPipeline:
                         encrypted_feature, encrypted_error
                     )
                     if feature_gradient:
-                        encrypted_gradients['weights'][feature_name] = self.fhe_ops.add_encrypted_vectors(
-                            encrypted_gradients['weights'][feature_name], feature_gradient
+                        encrypted_gradients["weights"][feature_name] = self.fhe_ops.add_encrypted_vectors(
+                            encrypted_gradients["weights"][feature_name], feature_gradient
                         )
 
             # Bias gradient
-            encrypted_gradients['bias'] = self.fhe_ops.add_encrypted_vectors(
-                encrypted_gradients['bias'], encrypted_error
+            encrypted_gradients["bias"] = self.fhe_ops.add_encrypted_vectors(
+                encrypted_gradients["bias"], encrypted_error
             )
 
         # Average gradients
         num_samples_encrypted = self.fhe_context.encrypt(1.0 / total_samples)
 
-        for weight_name in encrypted_gradients['weights']:
-            encrypted_gradients['weights'][weight_name] = self.fhe_ops.multiply_encrypted_vectors(
-                encrypted_gradients['weights'][weight_name], num_samples_encrypted
+        for weight_name in encrypted_gradients["weights"]:
+            encrypted_gradients["weights"][weight_name] = self.fhe_ops.multiply_encrypted_vectors(
+                encrypted_gradients["weights"][weight_name], num_samples_encrypted
             )
 
-        encrypted_gradients['bias'] = self.fhe_ops.multiply_encrypted_vectors(
-            encrypted_gradients['bias'], num_samples_encrypted
+        encrypted_gradients["bias"] = self.fhe_ops.multiply_encrypted_vectors(
+            encrypted_gradients["bias"], num_samples_encrypted
         )
 
         return encrypted_gradients
 
     def update_model_with_encrypted_gradients(self, model: ESGModel,
-                                            encrypted_gradients: Dict[str, Any]) -> ESGModel:
+                                            encrypted_gradients: dict[str, Any]) -> ESGModel:
         """
         Update model parameters using encrypted gradients.
 
@@ -248,19 +245,19 @@ class EncryptedTrainingPipeline:
 
         # Mock gradient decryption (in real FHE, this wouldn't be possible)
         decrypted_gradients = {}
-        for weight_name, encrypted_grad in encrypted_gradients['weights'].items():
+        for weight_name, encrypted_grad in encrypted_gradients["weights"].items():
             # Simulate decryption
-            if hasattr(encrypted_grad, 'decrypt'):
+            if hasattr(encrypted_grad, "decrypt"):
                 decrypted_grad = encrypted_grad.decrypt()[0]
             else:
-                decrypted_grad = float(str(encrypted_grad).split('_')[-1])  # Mock
+                decrypted_grad = float(str(encrypted_grad).split("_")[-1])  # Mock
             decrypted_gradients[weight_name] = decrypted_grad
 
-        bias_grad = encrypted_gradients['bias']
-        if hasattr(bias_grad, 'decrypt'):
+        bias_grad = encrypted_gradients["bias"]
+        if hasattr(bias_grad, "decrypt"):
             bias_grad = bias_grad.decrypt()[0]
         else:
-            bias_grad = float(str(bias_grad).split('_')[-1])  # Mock
+            bias_grad = float(str(bias_grad).split("_")[-1])  # Mock
 
         # Update model parameters
         updated_weights = {}
@@ -277,7 +274,7 @@ class EncryptedTrainingPipeline:
             training_round=model.training_round + 1
         )
 
-    def aggregate_client_updates(self, client_updates: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def aggregate_client_updates(self, client_updates: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Aggregate encrypted model updates from multiple clients.
 
@@ -292,47 +289,47 @@ class EncryptedTrainingPipeline:
 
         # Initialize aggregated gradients
         aggregated = {
-            'weights': {},
-            'bias': None
+            "weights": {},
+            "bias": None
         }
 
         # Initialize with first client's gradients
-        first_update = client_updates[0]['encrypted_gradients']
-        for weight_name, encrypted_grad in first_update['weights'].items():
-            aggregated['weights'][weight_name] = encrypted_grad
+        first_update = client_updates[0]["encrypted_gradients"]
+        for weight_name, encrypted_grad in first_update["weights"].items():
+            aggregated["weights"][weight_name] = encrypted_grad
 
-        aggregated['bias'] = first_update['bias']
+        aggregated["bias"] = first_update["bias"]
 
         # Aggregate remaining updates
         for update in client_updates[1:]:
-            client_gradients = update['encrypted_gradients']
+            client_gradients = update["encrypted_gradients"]
 
-            for weight_name, encrypted_grad in client_gradients['weights'].items():
-                if weight_name in aggregated['weights']:
-                    aggregated['weights'][weight_name] = self.fhe_ops.add_encrypted_vectors(
-                        aggregated['weights'][weight_name], encrypted_grad
+            for weight_name, encrypted_grad in client_gradients["weights"].items():
+                if weight_name in aggregated["weights"]:
+                    aggregated["weights"][weight_name] = self.fhe_ops.add_encrypted_vectors(
+                        aggregated["weights"][weight_name], encrypted_grad
                     )
 
-            aggregated['bias'] = self.fhe_ops.add_encrypted_vectors(
-                aggregated['bias'], client_gradients['bias']
+            aggregated["bias"] = self.fhe_ops.add_encrypted_vectors(
+                aggregated["bias"], client_gradients["bias"]
             )
 
         # Average across clients
         num_clients = len(client_updates)
         avg_factor = self.fhe_context.encrypt(1.0 / num_clients)
 
-        for weight_name in aggregated['weights']:
-            aggregated['weights'][weight_name] = self.fhe_ops.multiply_encrypted_vectors(
-                aggregated['weights'][weight_name], avg_factor
+        for weight_name in aggregated["weights"]:
+            aggregated["weights"][weight_name] = self.fhe_ops.multiply_encrypted_vectors(
+                aggregated["weights"][weight_name], avg_factor
             )
 
-        aggregated['bias'] = self.fhe_ops.multiply_encrypted_vectors(
-            aggregated['bias'], avg_factor
+        aggregated["bias"] = self.fhe_ops.multiply_encrypted_vectors(
+            aggregated["bias"], avg_factor
         )
 
         return aggregated
 
-    def train_federated_model(self, client_datasets: List[List[Dict[str, Any]]]) -> ESGModel:
+    def train_federated_model(self, client_datasets: list[list[dict[str, Any]]]) -> ESGModel:
         """
         Train model using federated learning on encrypted data.
 
@@ -364,9 +361,9 @@ class EncryptedTrainingPipeline:
                 )
 
                 client_update = {
-                    'client_id': client_id,
-                    'encrypted_gradients': encrypted_gradients,
-                    'num_samples': len(encrypted_data)
+                    "client_id": client_id,
+                    "encrypted_gradients": encrypted_gradients,
+                    "num_samples": len(encrypted_data)
                 }
 
                 round_updates.append(client_update)
@@ -381,10 +378,10 @@ class EncryptedTrainingPipeline:
 
             # Record training history
             round_stats = {
-                'round': round_num + 1,
-                'num_clients': len(client_datasets),
-                'total_samples': sum(len(data) for data in client_datasets),
-                'model_version': self.global_model.version
+                "round": round_num + 1,
+                "num_clients": len(client_datasets),
+                "total_samples": sum(len(data) for data in client_datasets),
+                "model_version": self.global_model.version
             }
             self.training_history.append(round_stats)
 
@@ -393,7 +390,7 @@ class EncryptedTrainingPipeline:
         logger.info("Federated training completed")
         return self.global_model
 
-    def predict_encrypted(self, encrypted_features: Dict[str, Any]) -> Optional[Any]:
+    def predict_encrypted(self, encrypted_features: dict[str, Any]) -> Any | None:
         """
         Make encrypted predictions using the trained model.
 
@@ -426,6 +423,6 @@ class EncryptedTrainingPipeline:
 
         return encrypted_prediction
 
-    def get_training_history(self) -> List[Dict[str, Any]]:
+    def get_training_history(self) -> list[dict[str, Any]]:
         """Get training history."""
         return self.training_history.copy()

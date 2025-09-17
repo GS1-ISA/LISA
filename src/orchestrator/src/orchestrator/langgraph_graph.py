@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional
 
 from .graph import PlanToolReflect
 
@@ -16,9 +15,9 @@ except Exception:  # pragma: no cover - optional import
 
 @dataclass
 class LGState:
-    steps: List[str]
+    steps: list[str]
     goal: str
-    final: Optional[str] = None
+    final: str | None = None
 
 
 def _plan(state: LGState) -> LGState:

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
 class OpenAIResponsesStub:
-    def chat(self, messages: List[Dict[str, str]], model: str, **kw) -> Dict[str, Any]:
+    def chat(self, messages: list[dict[str, str]], model: str, **kw) -> dict[str, Any]:
         return {
             "model": model,
             "choices": [
@@ -19,7 +19,7 @@ class OpenAIResponsesStub:
 
 
 class BedrockAgentsStub:
-    def chat(self, messages: List[Dict[str, str]], model: str, **kw) -> Dict[str, Any]:
+    def chat(self, messages: list[dict[str, str]], model: str, **kw) -> dict[str, Any]:
         return {
             "model": model,
             "choices": [
@@ -39,7 +39,7 @@ class LlmRuntime:
         self._openai = OpenAIResponsesStub()
         self._bedrock = BedrockAgentsStub()
 
-    def chat(self, messages: List[Dict[str, str]], model: str, **kw) -> Dict[str, Any]:
+    def chat(self, messages: list[dict[str, str]], model: str, **kw) -> dict[str, Any]:
         if self.backend == "bedrock":
             return self._bedrock.chat(messages, model, **kw)
         return self._openai.chat(messages, model, **kw)

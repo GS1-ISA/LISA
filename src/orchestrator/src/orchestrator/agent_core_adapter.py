@@ -9,8 +9,6 @@ that importing this module never pulls heavy optional dependencies in CI.
 
 import os
 from dataclasses import dataclass
-from typing import List
-
 
 try:  # pragma: no cover - optional dependency boundary
     from src.agent_core.agents.planner import PlannerAgent
@@ -26,7 +24,7 @@ except Exception:  # pragma: no cover - optional import path
 
 @dataclass
 class AgentCoreResult:
-    steps: List[str]
+    steps: list[str]
     final: str
 
 
@@ -43,18 +41,18 @@ class OrchestratorAgentRunner:
         if force_stub or not _AGENT_CORE_AVAILABLE:
             steps = [
                 f"plan: stub for '{goal}'",
-                f"research: stub-web",
-                f"synthesize: stub-report",
+                "research: stub-web",
+                "synthesize: stub-report",
             ]
             return AgentCoreResult(steps=steps, final=f"Final answer: {goal.lower()}")
 
         # Real path using agent_core with default light components
         planner = PlannerAgent()  # NullProvider by default
         plan = planner.run(goal)
-        steps: List[str] = [f"plan: {len(plan)} steps"]
+        steps: list[str] = [f"plan: {len(plan)} steps"]
 
         researcher = ResearcherAgent(WebResearchTool(), RAGMemory())
-        research_summary = researcher.run(f"search for {goal}", max_steps=2)
+        researcher.run(f"search for {goal}", max_steps=2)
         steps.append("research: completed")
 
         synthesizer = SynthesizerAgent()

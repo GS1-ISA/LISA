@@ -5,7 +5,6 @@ This module provides the main entry point for the ISA SuperApp
 when run as a module (python -m isa_superapp).
 """
 
-import asyncio
 import sys
 from pathlib import Path
 

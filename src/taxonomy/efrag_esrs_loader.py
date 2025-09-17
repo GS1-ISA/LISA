@@ -5,17 +5,20 @@ Provides automated loading and processing of EFRAG ESRS (European Sustainability
 Reporting Standards) taxonomies for regulatory compliance and data ingestion.
 """
 
+import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime
-import json
-import xml.etree.ElementTree as ET
+from pathlib import Path
+from typing import Any
 
-from ..database_manager import DatabaseConnectionManager
+from src.database_manager import DatabaseConnectionManager
 
-from .models import ESRSTaxonomy as ESRSTaxonomyModel, TaxonomyElement as TaxonomyElementModel, TaxonomyTable as TaxonomyTableModel, TaxonomyLoadLog, create_taxonomy_tables
+from .models import ESRSTaxonomy as ESRSTaxonomyModel
+from .models import TaxonomyElement as TaxonomyElementModel
+from .models import TaxonomyLoadLog
+from .models import TaxonomyTable as TaxonomyTableModel
 
 
 @dataclass
@@ -24,11 +27,11 @@ class TaxonomyElement:
     id: str
     name: str
     label: str
-    definition: Optional[str] = None
-    data_type: Optional[str] = None
-    period_type: Optional[str] = None
-    balance_type: Optional[str] = None
-    references: List[Dict[str, Any]] = None
+    definition: str | None = None
+    data_type: str | None = None
+    period_type: str | None = None
+    balance_type: str | None = None
+    references: list[dict[str, Any]] = None
 
     def __post_init__(self):
         if self.references is None:
@@ -41,8 +44,8 @@ class TaxonomyTable:
     id: str
     name: str
     label: str
-    elements: List[TaxonomyElement]
-    dimensions: List[Dict[str, Any]] = None
+    elements: list[TaxonomyElement]
+    dimensions: list[dict[str, Any]] = None
 
     def __post_init__(self):
         if self.dimensions is None:
@@ -55,9 +58,9 @@ class ESRSTaxonomy:
     name: str
     version: str
     namespace: str
-    elements: List[TaxonomyElement]
-    tables: List[TaxonomyTable]
-    metadata: Dict[str, Any]
+    elements: list[TaxonomyElement]
+    tables: list[TaxonomyTable]
+    metadata: dict[str, Any]
     loaded_at: datetime
 
 
@@ -71,17 +74,17 @@ class EFRAGESRSTaxonomyLoader:
     - CSV exports
     """
 
-    def __init__(self, db_manager: Optional[DatabaseConnectionManager] = None):
+    def __init__(self, db_manager: DatabaseConnectionManager | None = None):
         self.db_manager = db_manager
         self.logger = logging.getLogger(__name__)
 
         # XBRL namespaces
         self.namespaces = {
-            'xbrl': 'http://www.xbrl.org/2003/instance',
-            'link': 'http://www.xbrl.org/2003/linkbase',
-            'xlink': 'http://www.w3.org/1999/xlink',
-            'xsd': 'http://www.w3.org/2001/XMLSchema',
-            'esrs': 'https://www.efrag.org/taxonomy/esrs'
+            "xbrl": "http://www.xbrl.org/2003/instance",
+            "link": "http://www.xbrl.org/2003/linkbase",
+            "xlink": "http://www.w3.org/1999/xlink",
+            "xsd": "http://www.w3.org/2001/XMLSchema",
+            "esrs": "https://www.efrag.org/taxonomy/esrs"
         }
 
     def load_from_file(self, file_path: str) -> ESRSTaxonomy:
@@ -100,11 +103,11 @@ class EFRAGESRSTaxonomyLoader:
 
         file_extension = path.suffix.lower()
 
-        if file_extension == '.xsd':
+        if file_extension == ".xsd":
             return self._load_xbrl_taxonomy(file_path)
-        elif file_extension == '.json':
+        elif file_extension == ".json":
             return self._load_json_taxonomy(file_path)
-        elif file_extension == '.xml':
+        elif file_extension == ".xml":
             return self._load_xml_taxonomy(file_path)
         else:
             raise ValueError(f"Unsupported taxonomy format: {file_extension}")
@@ -196,9 +199,9 @@ class EFRAGESRSTaxonomyLoader:
             tables = self._extract_xbrl_tables(root)
 
             metadata = {
-                'source': file_path,
-                'format': 'XBRL',
-                'schema_location': root.get('{http://www.w3.org/2001/XMLSchema}schemaLocation')
+                "source": file_path,
+                "format": "XBRL",
+                "schema_location": root.get("{http://www.w3.org/2001/XMLSchema}schemaLocation")
             }
 
             return ESRSTaxonomy(
@@ -218,48 +221,48 @@ class EFRAGESRSTaxonomyLoader:
     def _load_json_taxonomy(self, file_path: str) -> ESRSTaxonomy:
         """Load taxonomy from JSON file."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Parse JSON structure
-            name = data.get('name', 'Unknown')
-            version = data.get('version', '1.0')
-            namespace = data.get('namespace', '')
+            name = data.get("name", "Unknown")
+            version = data.get("version", "1.0")
+            namespace = data.get("namespace", "")
 
             elements = []
-            for elem_data in data.get('elements', []):
+            for elem_data in data.get("elements", []):
                 elements.append(TaxonomyElement(
-                    id=elem_data['id'],
-                    name=elem_data['name'],
-                    label=elem_data['label'],
-                    definition=elem_data.get('definition'),
-                    data_type=elem_data.get('dataType'),
-                    period_type=elem_data.get('periodType'),
-                    balance_type=elem_data.get('balanceType'),
-                    references=elem_data.get('references', [])
+                    id=elem_data["id"],
+                    name=elem_data["name"],
+                    label=elem_data["label"],
+                    definition=elem_data.get("definition"),
+                    data_type=elem_data.get("dataType"),
+                    period_type=elem_data.get("periodType"),
+                    balance_type=elem_data.get("balanceType"),
+                    references=elem_data.get("references", [])
                 ))
 
             tables = []
-            for table_data in data.get('tables', []):
+            for table_data in data.get("tables", []):
                 table_elements = []
-                for elem_id in table_data.get('elementIds', []):
+                for elem_id in table_data.get("elementIds", []):
                     # Find element by ID
                     element = next((e for e in elements if e.id == elem_id), None)
                     if element:
                         table_elements.append(element)
 
                 tables.append(TaxonomyTable(
-                    id=table_data['id'],
-                    name=table_data['name'],
-                    label=table_data['label'],
+                    id=table_data["id"],
+                    name=table_data["name"],
+                    label=table_data["label"],
                     elements=table_elements,
-                    dimensions=table_data.get('dimensions', [])
+                    dimensions=table_data.get("dimensions", [])
                 ))
 
             metadata = {
-                'source': file_path,
-                'format': 'JSON',
-                **data.get('metadata', {})
+                "source": file_path,
+                "format": "JSON",
+                **data.get("metadata", {})
             }
 
             return ESRSTaxonomy(
@@ -284,41 +287,41 @@ class EFRAGESRSTaxonomyLoader:
     def _extract_xbrl_name(self, root: ET.Element) -> str:
         """Extract taxonomy name from XBRL."""
         # Look for schema name in various places
-        name = root.get('name') or root.get('id') or 'ESRS Taxonomy'
+        name = root.get("name") or root.get("id") or "ESRS Taxonomy"
         return name
 
     def _extract_xbrl_version(self, root: ET.Element) -> str:
         """Extract taxonomy version from XBRL."""
-        version = root.get('version') or '1.0'
+        version = root.get("version") or "1.0"
         return version
 
     def _extract_xbrl_namespace(self, root: ET.Element) -> str:
         """Extract taxonomy namespace from XBRL."""
         # Look for targetNamespace
-        ns = root.get('targetNamespace') or 'https://www.efrag.org/taxonomy/esrs'
+        ns = root.get("targetNamespace") or "https://www.efrag.org/taxonomy/esrs"
         return ns
 
-    def _extract_xbrl_elements(self, root: ET.Element) -> List[TaxonomyElement]:
+    def _extract_xbrl_elements(self, root: ET.Element) -> list[TaxonomyElement]:
         """Extract elements from XBRL taxonomy."""
         elements = []
 
         # Find all element declarations
-        for elem in root.findall('.//xsd:element', self.namespaces):
-            element_id = elem.get('id') or elem.get('name')
+        for elem in root.findall(".//xsd:element", self.namespaces):
+            element_id = elem.get("id") or elem.get("name")
             if element_id:
                 elements.append(TaxonomyElement(
                     id=element_id,
-                    name=elem.get('name', ''),
-                    label=elem.get('name', ''),  # XBRL doesn't always have labels
-                    definition=elem.get('documentation'),
-                    data_type=elem.get('type'),
-                    period_type=elem.get('periodType'),
-                    balance_type=elem.get('balanceType')
+                    name=elem.get("name", ""),
+                    label=elem.get("name", ""),  # XBRL doesn't always have labels
+                    definition=elem.get("documentation"),
+                    data_type=elem.get("type"),
+                    period_type=elem.get("periodType"),
+                    balance_type=elem.get("balanceType")
                 ))
 
         return elements
 
-    def _extract_xbrl_tables(self, root: ET.Element) -> List[TaxonomyTable]:
+    def _extract_xbrl_tables(self, root: ET.Element) -> list[TaxonomyTable]:
         """Extract tables from XBRL taxonomy."""
         # Tables are more complex in XBRL, this is a simplified implementation
         tables = []
@@ -333,8 +336,8 @@ class EFRAGESRSTaxonomyLoader:
                 name=taxonomy.name,
                 version=taxonomy.version,
                 namespace=taxonomy.namespace,
-                source_file=taxonomy.metadata.get('source'),
-                format_type=taxonomy.metadata.get('format', 'UNKNOWN'),
+                source_file=taxonomy.metadata.get("source"),
+                format_type=taxonomy.metadata.get("format", "UNKNOWN"),
                 metadata_json=taxonomy.metadata,
                 loaded_at=taxonomy.loaded_at
             )
@@ -405,9 +408,9 @@ class EFRAGESRSTaxonomyLoader:
             self.logger.error(f"Error inserting table record {table.id}: {str(e)}")
             raise
 
-    def _log_load_operation(self, session, taxonomy_id: Optional[int], operation: str,
+    def _log_load_operation(self, session, taxonomy_id: int | None, operation: str,
                           status: str, elements_loaded: int = 0, tables_loaded: int = 0,
-                          processing_time_ms: Optional[int] = None, error_message: Optional[str] = None):
+                          processing_time_ms: int | None = None, error_message: str | None = None):
         """Log a taxonomy loading operation."""
         try:
             log_entry = TaxonomyLoadLog(
@@ -423,13 +426,13 @@ class EFRAGESRSTaxonomyLoader:
         except Exception as e:
             self.logger.warning(f"Failed to log load operation: {str(e)}")
 
-    def get_taxonomy_stats(self) -> Dict[str, Any]:
+    def get_taxonomy_stats(self) -> dict[str, Any]:
         """Get loading statistics."""
         if not self.db_manager:
             return {
-                'loader_type': 'EFRAG ESRS',
-                'supported_formats': ['XBRL', 'JSON', 'XML'],
-                'database_integration': False
+                "loader_type": "EFRAG ESRS",
+                "supported_formats": ["XBRL", "JSON", "XML"],
+                "database_integration": False
             }
 
         try:
@@ -446,21 +449,21 @@ class EFRAGESRSTaxonomyLoader:
                 ).limit(5).all()
 
                 return {
-                    'loader_type': 'EFRAG ESRS',
-                    'supported_formats': ['XBRL', 'JSON', 'XML'],
-                    'database_integration': True,
-                    'total_taxonomies': taxonomy_count,
-                    'total_elements': element_count,
-                    'total_tables': table_count,
-                    'total_load_operations': load_count,
-                    'recent_loads': [
+                    "loader_type": "EFRAG ESRS",
+                    "supported_formats": ["XBRL", "JSON", "XML"],
+                    "database_integration": True,
+                    "total_taxonomies": taxonomy_count,
+                    "total_elements": element_count,
+                    "total_tables": table_count,
+                    "total_load_operations": load_count,
+                    "recent_loads": [
                         {
-                            'operation': load.operation,
-                            'status': load.status,
-                            'elements_loaded': load.elements_loaded,
-                            'tables_loaded': load.tables_loaded,
-                            'processing_time_ms': load.processing_time_ms,
-                            'created_at': load.created_at.isoformat()
+                            "operation": load.operation,
+                            "status": load.status,
+                            "elements_loaded": load.elements_loaded,
+                            "tables_loaded": load.tables_loaded,
+                            "processing_time_ms": load.processing_time_ms,
+                            "created_at": load.created_at.isoformat()
                         }
                         for load in recent_loads
                     ]
@@ -469,13 +472,13 @@ class EFRAGESRSTaxonomyLoader:
         except Exception as e:
             self.logger.error(f"Error getting taxonomy stats: {str(e)}")
             return {
-                'loader_type': 'EFRAG ESRS',
-                'supported_formats': ['XBRL', 'JSON', 'XML'],
-                'database_integration': True,
-                'error': str(e)
+                "loader_type": "EFRAG ESRS",
+                "supported_formats": ["XBRL", "JSON", "XML"],
+                "database_integration": True,
+                "error": str(e)
             }
 
 
-def create_esrs_loader(db_manager: Optional[DatabaseConnectionManager] = None) -> EFRAGESRSTaxonomyLoader:
+def create_esrs_loader(db_manager: DatabaseConnectionManager | None = None) -> EFRAGESRSTaxonomyLoader:
     """Factory function to create ESRS taxonomy loader."""
     return EFRAGESRSTaxonomyLoader(db_manager=db_manager)

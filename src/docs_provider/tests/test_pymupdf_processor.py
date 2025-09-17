@@ -2,15 +2,16 @@
 Tests for PyMuPDF4LLM PDF Processor with Unstructured fallback.
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.docs_provider.pymupdf_processor import (
-    PyMuPDFProcessor,
-    PDFProcessingResult,
-    PDFMetadata,
     PYMUPDF_AVAILABLE,
-    UNSTRUCTURED_AVAILABLE
+    UNSTRUCTURED_AVAILABLE,
+    PDFMetadata,
+    PyMuPDFProcessor,
 )
 
 
@@ -34,12 +35,12 @@ class TestPyMuPDFProcessor:
         processor = PyMuPDFProcessor()
         stats = processor.get_processing_stats()
 
-        assert 'primary_processor' in stats
-        assert 'fallback_processor' in stats
-        assert 'pymupdf_available' in stats
-        assert 'unstructured_available' in stats
-        assert stats['primary_processor'] == 'PyMuPDF4LLM'
-        assert stats['fallback_processor'] == 'Unstructured'
+        assert "primary_processor" in stats
+        assert "fallback_processor" in stats
+        assert "pymupdf_available" in stats
+        assert "unstructured_available" in stats
+        assert stats["primary_processor"] == "PyMuPDF4LLM"
+        assert stats["fallback_processor"] == "Unstructured"
 
     def test_process_nonexistent_file(self):
         """Test processing a non-existent file returns error."""
@@ -57,12 +58,12 @@ class TestPyMuPDFProcessor:
         processor = PyMuPDFProcessor()
 
         # Mock PyMuPDF4LLM to fail
-        with patch('src.docs_provider.pymupdf_processor.pymupdf4llm') as mock_pymupdf:
+        with patch("src.docs_provider.pymupdf_processor.pymupdf4llm") as mock_pymupdf:
             mock_pymupdf.to_markdown.side_effect = Exception("PyMuPDF failed")
 
             # Mock Unstructured to succeed
             if UNSTRUCTURED_AVAILABLE:
-                with patch('src.docs_provider.pymupdf_processor.partition_pdf') as mock_partition:
+                with patch("src.docs_provider.pymupdf_processor.partition_pdf") as mock_partition:
                     from unstructured.documents.elements import Text
                     mock_elements = [Text("Test content from Unstructured")]
                     mock_partition.return_value = mock_elements
@@ -89,13 +90,13 @@ class TestPyMuPDFProcessor:
         chunks = processor._create_chunks(test_text)
 
         assert len(chunks) > 0
-        assert all('text' in chunk for chunk in chunks)
-        assert all('start_pos' in chunk for chunk in chunks)
-        assert all('end_pos' in chunk for chunk in chunks)
+        assert all("text" in chunk for chunk in chunks)
+        assert all("start_pos" in chunk for chunk in chunks)
+        assert all("end_pos" in chunk for chunk in chunks)
 
         # Verify chunk sizes are reasonable
         for chunk in chunks:
-            assert len(chunk['text']) <= processor.chunk_size + 50  # Allow some tolerance
+            assert len(chunk["text"]) <= processor.chunk_size + 50  # Allow some tolerance
 
     def test_chunk_overlap(self):
         """Test that chunks have proper overlap."""
@@ -107,12 +108,12 @@ class TestPyMuPDFProcessor:
 
         if len(chunks) > 1:
             # Check that consecutive chunks have overlapping content
-            first_chunk_end = chunks[0]['text'][-20:]  # Last 20 chars of first chunk
-            second_chunk_start = chunks[1]['text'][:20]  # First 20 chars of second chunk
+            first_chunk_end = chunks[0]["text"][-20:]  # Last 20 chars of first chunk
+            second_chunk_start = chunks[1]["text"][:20]  # First 20 chars of second chunk
 
             # There should be some overlap
             overlap_found = any(word in second_chunk_start for word in first_chunk_end.split())
-            assert overlap_found or len(chunks[0]['text']) < 100  # Or chunk was smaller than max size
+            assert overlap_found or len(chunks[0]["text"]) < 100  # Or chunk was smaller than max size
 
     def test_empty_text_chunking(self):
         """Test chunking with empty text."""

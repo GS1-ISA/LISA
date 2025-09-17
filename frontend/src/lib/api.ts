@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import {
   User,
   UserCreate,
@@ -8,8 +8,7 @@ import {
   PasswordResetRequest,
   PasswordResetConfirm,
   ResearchResponse,
-  UserListItem,
-  ApiError
+  UserListItem
 } from '@/types/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';

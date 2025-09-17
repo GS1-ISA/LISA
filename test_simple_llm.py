@@ -7,7 +7,7 @@ import os
 import sys
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 try:
     from src.agent_core.llm_client import LLMClient

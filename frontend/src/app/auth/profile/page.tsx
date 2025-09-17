@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/lib/api';
@@ -29,7 +29,6 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 
 export default function ProfilePage() {
   const { user, refetch } = useAuth();
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
 
   const {

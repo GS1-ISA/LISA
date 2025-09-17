@@ -2,9 +2,7 @@
 Tests for LLM provider functionality.
 """
 
-import json
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -418,7 +416,7 @@ class TestMockProvider:
         provider = MockProvider(responses=custom_responses)
 
         # Test multiple generations
-        for i in range(3):
+        for _i in range(3):
             response = await provider.generate("Test prompt")
             assert response in custom_responses
 
@@ -573,7 +571,7 @@ class TestLLMProviderPerformance:
         num_requests = 50
         start_time = time.time()
 
-        for i in range(num_requests):
+        for _i in range(num_requests):
             await provider.chat(messages)
 
         chat_time = time.time() - start_time

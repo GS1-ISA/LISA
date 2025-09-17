@@ -6,30 +6,30 @@ and provide comprehensive geospatial analysis for supply chain screening.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
 from shapely.geometry import Point, Polygon
-from .gfw_client import GFWClient, DeforestationAlert, TreeCoverLoss
-from .corine_client import CORINEClient, LandCoverChange
-from .deforestation_scorer import DeforestationRiskScorer
+
+from .corine_client import CORINEClient
+from .gfw_client import DeforestationAlert, GFWClient, TreeCoverLoss
 
 
 @dataclass
 class LocationRiskAssessment:
     """Comprehensive risk assessment for a location."""
-    coordinates: Tuple[float, float]
+    coordinates: tuple[float, float]
     gfw_risk_score: float
     corine_risk_score: float
     combined_risk_score: float
     risk_level: str
-    risk_factors: Dict[str, Any]
+    risk_factors: dict[str, Any]
     alerts_count: int
     recent_deforestation_ha: float
     forest_cover_percentage: float
     land_use_risk: float
-    recommendations: List[str]
+    recommendations: list[str]
 
 
 @dataclass
@@ -40,9 +40,9 @@ class SupplyChainRiskProfile:
     medium_risk_locations: int
     low_risk_locations: int
     overall_risk_score: float
-    risk_distribution: Dict[str, int]
-    critical_risk_factors: List[Dict[str, Any]]
-    mitigation_priorities: List[str]
+    risk_distribution: dict[str, int]
+    critical_risk_factors: list[dict[str, Any]]
+    mitigation_priorities: list[str]
 
 
 class GeospatialRiskAssessor:
@@ -53,7 +53,7 @@ class GeospatialRiskAssessor:
     to provide comprehensive risk assessments for EUDR compliance.
     """
 
-    def __init__(self, gfw_api_key: Optional[str] = None, corine_api_key: Optional[str] = None):
+    def __init__(self, gfw_api_key: str | None = None, corine_api_key: str | None = None):
         """
         Initialize the geospatial risk assessor.
 
@@ -97,8 +97,8 @@ class GeospatialRiskAssessor:
 
             # Combine assessments
             combined_score = self._combine_risk_scores(
-                gfw_results['risk_score'],
-                corine_results['risk_score']
+                gfw_results["risk_score"],
+                corine_results["risk_score"]
             )
 
             risk_factors = self._identify_risk_factors(gfw_results, corine_results)
@@ -106,15 +106,15 @@ class GeospatialRiskAssessor:
 
             assessment = LocationRiskAssessment(
                 coordinates=(latitude, longitude),
-                gfw_risk_score=gfw_results['risk_score'],
-                corine_risk_score=corine_results['risk_score'],
+                gfw_risk_score=gfw_results["risk_score"],
+                corine_risk_score=corine_results["risk_score"],
                 combined_risk_score=combined_score,
                 risk_level=self._categorize_risk(combined_score),
                 risk_factors=risk_factors,
-                alerts_count=gfw_results.get('alerts_count', 0),
-                recent_deforestation_ha=gfw_results.get('total_alert_area_ha', 0),
-                forest_cover_percentage=corine_results.get('forest_percentage', 0),
-                land_use_risk=corine_results.get('risk_score', 0),
+                alerts_count=gfw_results.get("alerts_count", 0),
+                recent_deforestation_ha=gfw_results.get("total_alert_area_ha", 0),
+                forest_cover_percentage=corine_results.get("forest_percentage", 0),
+                land_use_risk=corine_results.get("risk_score", 0),
                 recommendations=recommendations
             )
 
@@ -139,7 +139,7 @@ class GeospatialRiskAssessor:
 
     def assess_supply_chain_risk(
         self,
-        locations: List[Tuple[float, float]],
+        locations: list[tuple[float, float]],
         buffer_km: float = 50,
         lookback_years: int = 5
     ) -> SupplyChainRiskProfile:
@@ -208,7 +208,7 @@ class GeospatialRiskAssessor:
                 mitigation_priorities=["Unable to complete assessment"]
             )
 
-    def _assess_gfw_risk(self, geometry: Polygon, lookback_years: int) -> Dict[str, Any]:
+    def _assess_gfw_risk(self, geometry: Polygon, lookback_years: int) -> dict[str, Any]:
         """Assess risk using GFW data."""
         try:
             end_date = datetime.now()
@@ -226,40 +226,40 @@ class GeospatialRiskAssessor:
             risk_score = self._calculate_gfw_risk_score(alerts, losses, geometry.area)
 
             return {
-                'risk_score': risk_score,
-                'alerts_count': len(alerts),
-                'total_alert_area_ha': sum(alert.area_ha for alert in alerts),
-                'losses_count': len(losses),
-                'total_loss_area_ha': sum(loss.area_ha for loss in losses),
-                'recent_alerts': len([a for a in alerts if (end_date - a.date).days <= 365])
+                "risk_score": risk_score,
+                "alerts_count": len(alerts),
+                "total_alert_area_ha": sum(alert.area_ha for alert in alerts),
+                "losses_count": len(losses),
+                "total_loss_area_ha": sum(loss.area_ha for loss in losses),
+                "recent_alerts": len([a for a in alerts if (end_date - a.date).days <= 365])
             }
 
         except Exception as e:
             self.logger.warning(f"GFW assessment failed: {str(e)}")
-            return {'risk_score': 0.5, 'error': str(e)}
+            return {"risk_score": 0.5, "error": str(e)}
 
-    def _assess_corine_risk(self, geometry: Polygon) -> Dict[str, Any]:
+    def _assess_corine_risk(self, geometry: Polygon) -> dict[str, Any]:
         """Assess risk using CORINE data."""
         try:
             # Get land cover analysis
             land_cover = self.corine_client.get_land_cover(geometry)
 
             if not land_cover:
-                return {'risk_score': 0.5, 'error': 'No land cover data available'}
+                return {"risk_score": 0.5, "error": "No land cover data available"}
 
             # Assess deforestation risk
             risk_assessment = self.corine_client.assess_deforestation_risk(geometry)
 
             return {
-                'risk_score': risk_assessment.get('risk_score', 0.5),
-                'forest_percentage': risk_assessment.get('forest_percentage', 0),
-                'development_percentage': risk_assessment.get('development_percentage', 0),
-                'risk_factors': risk_assessment.get('risk_factors', {})
+                "risk_score": risk_assessment.get("risk_score", 0.5),
+                "forest_percentage": risk_assessment.get("forest_percentage", 0),
+                "development_percentage": risk_assessment.get("development_percentage", 0),
+                "risk_factors": risk_assessment.get("risk_factors", {})
             }
 
         except Exception as e:
             self.logger.warning(f"CORINE assessment failed: {str(e)}")
-            return {'risk_score': 0.5, 'error': str(e)}
+            return {"risk_score": 0.5, "error": str(e)}
 
     def _combine_risk_scores(self, gfw_score: float, corine_score: float) -> float:
         """Combine GFW and CORINE risk scores."""
@@ -271,43 +271,43 @@ class GeospatialRiskAssessor:
         combined = (gfw_score * gfw_weight) + (corine_score * corine_weight)
         return min(1.0, combined)
 
-    def _identify_risk_factors(self, gfw_results: Dict, corine_results: Dict) -> Dict[str, Any]:
+    def _identify_risk_factors(self, gfw_results: dict, corine_results: dict) -> dict[str, Any]:
         """Identify specific risk factors from assessment results."""
         factors = {}
 
         # GFW-based factors
-        if gfw_results.get('alerts_count', 0) > 0:
-            factors['recent_deforestation'] = {
-                'alerts': gfw_results['alerts_count'],
-                'area_ha': gfw_results.get('total_alert_area_ha', 0),
-                'severity': 'high' if gfw_results['alerts_count'] > 5 else 'medium'
+        if gfw_results.get("alerts_count", 0) > 0:
+            factors["recent_deforestation"] = {
+                "alerts": gfw_results["alerts_count"],
+                "area_ha": gfw_results.get("total_alert_area_ha", 0),
+                "severity": "high" if gfw_results["alerts_count"] > 5 else "medium"
             }
 
-        if gfw_results.get('losses_count', 0) > 0:
-            factors['historical_loss'] = {
-                'losses': gfw_results['losses_count'],
-                'area_ha': gfw_results.get('total_loss_area_ha', 0),
-                'severity': 'medium'
+        if gfw_results.get("losses_count", 0) > 0:
+            factors["historical_loss"] = {
+                "losses": gfw_results["losses_count"],
+                "area_ha": gfw_results.get("total_loss_area_ha", 0),
+                "severity": "medium"
             }
 
         # CORINE-based factors
-        forest_pct = corine_results.get('forest_percentage', 0)
+        forest_pct = corine_results.get("forest_percentage", 0)
         if forest_pct < 30:
-            factors['low_forest_cover'] = {
-                'percentage': forest_pct,
-                'severity': 'high' if forest_pct < 10 else 'medium'
+            factors["low_forest_cover"] = {
+                "percentage": forest_pct,
+                "severity": "high" if forest_pct < 10 else "medium"
             }
 
-        dev_pct = corine_results.get('development_percentage', 0)
+        dev_pct = corine_results.get("development_percentage", 0)
         if dev_pct > 40:
-            factors['high_development'] = {
-                'percentage': dev_pct,
-                'severity': 'high' if dev_pct > 60 else 'medium'
+            factors["high_development"] = {
+                "percentage": dev_pct,
+                "severity": "high" if dev_pct > 60 else "medium"
             }
 
         return factors
 
-    def _generate_recommendations(self, risk_score: float, risk_factors: Dict) -> List[str]:
+    def _generate_recommendations(self, risk_score: float, risk_factors: dict) -> list[str]:
         """Generate risk mitigation recommendations."""
         recommendations = []
 
@@ -326,17 +326,17 @@ class GeospatialRiskAssessor:
             recommendations.append("Maintain documentation of low-risk sourcing")
 
         # Factor-specific recommendations
-        if 'recent_deforestation' in risk_factors:
+        if "recent_deforestation" in risk_factors:
             recommendations.append("Verify supplier sustainability certifications")
             recommendations.append("Request recent geolocation data from suppliers")
 
-        if 'low_forest_cover' in risk_factors:
+        if "low_forest_cover" in risk_factors:
             recommendations.append("Assess alternative sourcing options")
             recommendations.append("Implement forest conservation requirements in contracts")
 
         return recommendations
 
-    def _identify_critical_supply_chain_risks(self, assessments: List[LocationRiskAssessment]) -> List[Dict[str, Any]]:
+    def _identify_critical_supply_chain_risks(self, assessments: list[LocationRiskAssessment]) -> list[dict[str, Any]]:
         """Identify critical risks across the supply chain."""
         critical_factors = []
 
@@ -344,35 +344,35 @@ class GeospatialRiskAssessor:
         high_risk_locs = [a for a in assessments if a.risk_level == "high"]
         if high_risk_locs:
             critical_factors.append({
-                'type': 'high_risk_locations',
-                'severity': 'high',
-                'description': f"{len(high_risk_locs)} locations with high deforestation risk",
-                'affected_locations': len(high_risk_locs)
+                "type": "high_risk_locations",
+                "severity": "high",
+                "description": f"{len(high_risk_locs)} locations with high deforestation risk",
+                "affected_locations": len(high_risk_locs)
             })
 
         # Recent deforestation activity
         total_alerts = sum(a.alerts_count for a in assessments)
         if total_alerts > 10:
             critical_factors.append({
-                'type': 'widespread_deforestation',
-                'severity': 'high',
-                'description': f"{total_alerts} deforestation alerts across supply chain",
-                'total_alerts': total_alerts
+                "type": "widespread_deforestation",
+                "severity": "high",
+                "description": f"{total_alerts} deforestation alerts across supply chain",
+                "total_alerts": total_alerts
             })
 
         # Low forest cover areas
         low_forest = [a for a in assessments if a.forest_cover_percentage < 20]
         if low_forest:
             critical_factors.append({
-                'type': 'deforestation_vulnerable_areas',
-                'severity': 'medium',
-                'description': f"{len(low_forest)} locations in low forest cover areas",
-                'affected_locations': len(low_forest)
+                "type": "deforestation_vulnerable_areas",
+                "severity": "medium",
+                "description": f"{len(low_forest)} locations in low forest cover areas",
+                "affected_locations": len(low_forest)
             })
 
         return critical_factors
 
-    def _prioritize_mitigations(self, assessments: List[LocationRiskAssessment]) -> List[str]:
+    def _prioritize_mitigations(self, assessments: list[LocationRiskAssessment]) -> list[str]:
         """Prioritize mitigation actions for the supply chain."""
         priorities = []
 
@@ -393,7 +393,7 @@ class GeospatialRiskAssessor:
 
         return priorities
 
-    def _calculate_gfw_risk_score(self, alerts: List[DeforestationAlert], losses: List[TreeCoverLoss], area_sq_degrees: float) -> float:
+    def _calculate_gfw_risk_score(self, alerts: list[DeforestationAlert], losses: list[TreeCoverLoss], area_sq_degrees: float) -> float:
         """Calculate risk score from GFW data."""
         if not alerts and not losses:
             return 0.0

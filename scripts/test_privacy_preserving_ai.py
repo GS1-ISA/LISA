@@ -8,19 +8,19 @@ for encrypted analytics and federated learning on ESG data.
 
 import asyncio
 import logging
-import sys
 import os
+import sys
 
 # Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from privacy_preserving_ai.isa_integration import ISA_D_PrivacyPreserving_Workflow
-from privacy_preserving_ai.fhe import FHEContext, ESGDataEncryptor
 from privacy_preserving_ai.analytics_coordinator import FederatedAnalyticsCoordinator
+from privacy_preserving_ai.fhe import ESGDataEncryptor, FHEContext
+from privacy_preserving_ai.isa_integration import ISA_D_PrivacyPreserving_Workflow
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -34,10 +34,10 @@ async def test_fhe_operations():
 
     # Test ESG data encryption
     esg_data = {
-        'environmental_scope1Emissions': 1000.5,
-        'environmental_scope2Emissions': 500.2,
-        'social_totalEmployees': 5000,
-        'financial_revenue': 50000000.0
+        "environmental_scope1Emissions": 1000.5,
+        "environmental_scope2Emissions": 500.2,
+        "social_totalEmployees": 5000,
+        "financial_revenue": 50000000.0
     }
 
     print(f"Original ESG data: {esg_data}")
@@ -65,17 +65,17 @@ async def test_federated_analytics():
 
     # Register mock clients
     mock_clients = [
-        ('client_1', [
-            {'lei': 'COMP001', 'social_totalEmployees': 1000, 'financial_revenue': 100000000,
-             'environmental_scope1Emissions': 500, 'environmental_scope2Emissions': 300, 'environmental_scope3Emissions': 1000}
+        ("client_1", [
+            {"lei": "COMP001", "social_totalEmployees": 1000, "financial_revenue": 100000000,
+             "environmental_scope1Emissions": 500, "environmental_scope2Emissions": 300, "environmental_scope3Emissions": 1000}
         ]),
-        ('client_2', [
-            {'lei': 'COMP002', 'social_totalEmployees': 2000, 'financial_revenue': 200000000,
-             'environmental_scope1Emissions': 800, 'environmental_scope2Emissions': 400, 'environmental_scope3Emissions': 1500}
+        ("client_2", [
+            {"lei": "COMP002", "social_totalEmployees": 2000, "financial_revenue": 200000000,
+             "environmental_scope1Emissions": 800, "environmental_scope2Emissions": 400, "environmental_scope3Emissions": 1500}
         ]),
-        ('client_3', [
-            {'lei': 'COMP003', 'social_totalEmployees': 1500, 'financial_revenue': 150000000,
-             'environmental_scope1Emissions': 600, 'environmental_scope2Emissions': 350, 'environmental_scope3Emissions': 1200}
+        ("client_3", [
+            {"lei": "COMP003", "social_totalEmployees": 1500, "financial_revenue": 150000000,
+             "environmental_scope1Emissions": 600, "environmental_scope2Emissions": 350, "environmental_scope3Emissions": 1200}
         ])
     ]
 
@@ -88,15 +88,15 @@ async def test_federated_analytics():
 
     # Query 1: Compute emissions aggregate
     query1_id = await coordinator.submit_analytics_query(
-        'compute_emissions_aggregate',
-        {'scope': 'total'}
+        "compute_emissions_aggregate",
+        {"scope": "total"}
     )
     print(f"Emissions aggregate query submitted: {query1_id}")
 
     # Query 2: Train ESG prediction model
     query2_id = await coordinator.submit_analytics_query(
-        'train_esg_model',
-        {'num_rounds': 3}
+        "train_esg_model",
+        {"num_rounds": 3}
     )
     print(f"Model training query submitted: {query2_id}")
 

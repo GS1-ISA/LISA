@@ -1,8 +1,8 @@
-import logging
 import asyncio
+import logging
 
-from src.agent_core.memory.rag_store import RAGMemory
 from src.agent_core.llm_client import get_openrouter_free_client
+from src.agent_core.memory.rag_store import RAGMemory
 
 # Configure logging
 logging.basicConfig(
@@ -67,7 +67,7 @@ Please synthesize this information into a comprehensive research report."""
 
             result = await self.llm_client.async_chat_completion(messages)
 
-            report = result['content']
+            report = result["content"]
             logging.info(f"Generated synthesis report using {result['model_used']}")
             return report
 
@@ -85,7 +85,7 @@ Please synthesize this information into a comprehensive research report."""
                 report += f"- From source [{source}]({source}): {summary_snippet}\n"
 
             report += "\n## Sources Consulted\n\n"
-            for source in sorted(list(seen_sources)):
+            for source in sorted(seen_sources):
                 report += f"- {source}\n"
 
             return report

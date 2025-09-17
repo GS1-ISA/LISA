@@ -13,10 +13,9 @@ import traceback
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from .config import ISAConfig, LogLevel
-from .exceptions import ISAConfigurationError
 
 
 class ISALogger:
@@ -30,7 +29,7 @@ class ISALogger:
     - Automatic error details
     """
 
-    def __init__(self, name: str, config: Optional[ISAConfig] = None) -> None:
+    def __init__(self, name: str, config: ISAConfig | None = None) -> None:
         """
         Initialize the logger.
 
@@ -73,7 +72,7 @@ class ISALogger:
         """Add console handler."""
         console_handler = logging.StreamHandler(sys.stdout)
 
-        if self.config.logging.enable_json:
+        if self.config.logging.enable_structured_logging:
             formatter = ISAJSONFormatter()
         else:
             formatter = logging.Formatter(self.config.logging.format)
@@ -88,12 +87,12 @@ class ISALogger:
 
         file_handler = RotatingFileHandler(
             log_file,
-            maxBytes=self.config.logging.max_file_size_mb * 1024 * 1024,
+            maxBytes=self.config.logging.max_file_size,
             backupCount=self.config.logging.backup_count,
             encoding="utf-8",
         )
 
-        if self.config.logging.enable_json:
+        if self.config.logging.enable_structured_logging:
             formatter = ISAJSONFormatter()
         else:
             formatter = logging.Formatter(self.config.logging.format)
@@ -110,7 +109,7 @@ class ISALogger:
         """
         self._context.correlation_id = correlation_id
 
-    def get_correlation_id(self) -> Optional[str]:
+    def get_correlation_id(self) -> str | None:
         """Get correlation ID for the current thread."""
         return getattr(self._context, "correlation_id", None)
 
@@ -123,8 +122,8 @@ class ISALogger:
         self,
         level: int,
         message: str,
-        exc_info: Optional[Exception] = None,
-        extra: Optional[Dict[str, Any]] = None,
+        exc_info: Exception | None = None,
+        extra: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -167,13 +166,13 @@ class ISALogger:
         self._log(logging.WARNING, message, **kwargs)
 
     def error(
-        self, message: str, exc_info: Optional[Exception] = None, **kwargs: Any
+        self, message: str, exc_info: Exception | None = None, **kwargs: Any
     ) -> None:
         """Log error message."""
         self._log(logging.ERROR, message, exc_info=exc_info, **kwargs)
 
     def critical(
-        self, message: str, exc_info: Optional[Exception] = None, **kwargs: Any
+        self, message: str, exc_info: Exception | None = None, **kwargs: Any
     ) -> None:
         """Log critical message."""
         self._log(logging.CRITICAL, message, exc_info=exc_info, **kwargs)
@@ -186,7 +185,7 @@ class ISALogger:
         self,
         operation: str,
         status: str,
-        duration_ms: Optional[float] = None,
+        duration_ms: float | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -216,8 +215,8 @@ class ISALogger:
         path: str,
         status_code: int,
         duration_ms: float,
-        user_agent: Optional[str] = None,
-        client_ip: Optional[str] = None,
+        user_agent: str | None = None,
+        client_ip: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -256,9 +255,9 @@ class ISALogger:
         self,
         operation: str,
         model: str,
-        input_tokens: Optional[int] = None,
-        output_tokens: Optional[int] = None,
-        cost_usd: Optional[float] = None,
+        input_tokens: int | None = None,
+        output_tokens: int | None = None,
+        cost_usd: float | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -342,19 +341,85 @@ class ISAJSONFormatter(logging.Formatter):
         return json.dumps(log_data, ensure_ascii=False, separators=(",", ":"))
 
 
-def get_logger(name: str, config: Optional[ISAConfig] = None) -> ISALogger:
+def get_logger(name: str, config: ISAConfig | None = None, level: str | None = None) -> ISALogger:
     """
     Get logger instance.
 
     Args:
         name: Logger name (typically __name__)
         config: Configuration instance
+        level: Optional log level override
 
     Returns:
         ISALogger instance
     """
-    return ISALogger(name, config)
+    logger = ISALogger(name, config)
+    if level:
+        # Override the log level if specified
+        try:
+            import logging
+            numeric_level = getattr(logging, level.upper(), None)
+            if numeric_level is not None:
+                logger._logger.setLevel(numeric_level)
+        except (AttributeError, ValueError):
+            pass  # Ignore invalid level
+    return logger
 
+def setup_logging(config: Any) -> None:
+    """
+    Setup logging configuration.
+
+    Args:
+        config: Logging configuration object
+    """
+    # Get the root logger
+    root_logger = logging.getLogger()
+
+    # Clear existing handlers
+    root_logger.handlers.clear()
+
+    # Set log level
+    try:
+        if hasattr(config, "level"):
+            level = getattr(logging, config.level.upper(), logging.INFO)
+            root_logger.setLevel(level)
+        else:
+            root_logger.setLevel(logging.INFO)
+    except (AttributeError, ValueError):
+        root_logger.setLevel(logging.INFO)
+
+    # Add console handler if enabled
+    if hasattr(config, "enable_console") and config.enable_console:
+        console_handler = logging.StreamHandler()
+        if hasattr(config, "format"):
+            formatter = logging.Formatter(config.format)
+            console_handler.setFormatter(formatter)
+        root_logger.addHandler(console_handler)
+
+    # Add file handler if enabled
+    if hasattr(config, "enable_file") and config.enable_file and hasattr(config, "file_path"):
+        from pathlib import Path
+        log_file = Path(config.file_path)
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+
+        from logging.handlers import RotatingFileHandler
+        file_handler = RotatingFileHandler(
+            log_file,
+            maxBytes=getattr(config, "max_file_size", 10 * 1024 * 1024),
+            backupCount=getattr(config, "backup_count", 5),
+            encoding="utf-8"
+        )
+        if hasattr(config, "format"):
+            formatter = logging.Formatter(config.format)
+            file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+    # Prevent duplicate messages
+    root_logger.propagate = False
+
+
+# Module-level logger
+logger = get_logger(__name__)
 
 # Module-level logger
 logger = get_logger(__name__)

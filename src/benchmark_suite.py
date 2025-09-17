@@ -3,20 +3,19 @@ Comprehensive Benchmarking Suite for ISA_D
 Advanced benchmarking framework with automated performance testing and optimization validation.
 """
 
-import asyncio
+import json
 import logging
-import time
 import statistics
-from typing import Dict, List, Optional, Any, Tuple
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-import json
+from typing import Any
 
 from .docs_provider.optimized_processor import get_optimized_document_processor
-from .optimized_pipeline import get_optimized_regulatory_pipeline
-from .optimized_graph_analytics import get_optimized_graph_analytics
 from .optimized_agent_workflow import get_optimized_agent_workflow
+from .optimized_graph_analytics import get_optimized_graph_analytics
+from .optimized_pipeline import get_optimized_regulatory_pipeline
 from .performance_monitor import get_performance_monitor
 
 logger = logging.getLogger(__name__)
@@ -31,7 +30,7 @@ class BenchmarkResult:
     value: float
     unit: str
     timestamp: datetime
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -39,7 +38,7 @@ class BenchmarkSuite:
     """Configuration for a benchmark suite."""
     name: str
     description: str
-    tests: List[Dict[str, Any]]
+    tests: list[dict[str, Any]]
     warm_up_iterations: int = 5
     measurement_iterations: int = 20
     cooldown_seconds: int = 10
@@ -69,8 +68,8 @@ class ISABenchmarkSuite:
         self.monitor = get_performance_monitor()
 
         # Benchmark results storage
-        self.results: List[BenchmarkResult] = []
-        self.baselines: Dict[str, float] = {}
+        self.results: list[BenchmarkResult] = []
+        self.baselines: dict[str, float] = {}
 
         # Test data
         self.test_documents = self._generate_test_documents()
@@ -81,7 +80,7 @@ class ISABenchmarkSuite:
 
         logger.info("Initialized ISA Benchmark Suite")
 
-    def _generate_test_documents(self) -> List[str]:
+    def _generate_test_documents(self) -> list[str]:
         """Generate test documents of various sizes."""
         documents = []
 
@@ -111,7 +110,7 @@ class ISABenchmarkSuite:
 
         return documents
 
-    async def run_full_benchmark_suite(self) -> Dict[str, Any]:
+    async def run_full_benchmark_suite(self) -> dict[str, Any]:
         """Run the complete benchmark suite."""
         logger.info("Starting full ISA benchmark suite")
 
@@ -119,19 +118,19 @@ class ISABenchmarkSuite:
         suite_results = {}
 
         # Document Processing Benchmarks
-        suite_results['document_processing'] = await self._run_document_processing_benchmarks()
+        suite_results["document_processing"] = await self._run_document_processing_benchmarks()
 
         # Pipeline Benchmarks
-        suite_results['pipeline'] = await self._run_pipeline_benchmarks()
+        suite_results["pipeline"] = await self._run_pipeline_benchmarks()
 
         # Graph Analytics Benchmarks
-        suite_results['graph_analytics'] = await self._run_graph_analytics_benchmarks()
+        suite_results["graph_analytics"] = await self._run_graph_analytics_benchmarks()
 
         # Agent Workflow Benchmarks
-        suite_results['agent_workflow'] = await self._run_agent_workflow_benchmarks()
+        suite_results["agent_workflow"] = await self._run_agent_workflow_benchmarks()
 
         # Cross-Component Benchmarks
-        suite_results['integration'] = await self._run_integration_benchmarks()
+        suite_results["integration"] = await self._run_integration_benchmarks()
 
         total_time = time.time() - start_time
 
@@ -144,7 +143,7 @@ class ISABenchmarkSuite:
         logger.info(f"Benchmark suite completed in {total_time:.2f} seconds")
         return report
 
-    async def _run_document_processing_benchmarks(self) -> Dict[str, Any]:
+    async def _run_document_processing_benchmarks(self) -> dict[str, Any]:
         """Run document processing performance benchmarks."""
         logger.info("Running document processing benchmarks")
 
@@ -158,7 +157,7 @@ class ISABenchmarkSuite:
 
                 # Create temporary file for testing
                 import tempfile
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False) as f:
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".pdf", delete=False) as f:
                     # Simulate PDF content (in real scenario, would be actual PDF)
                     f.write(document)
                     temp_path = f.name
@@ -175,15 +174,15 @@ class ISABenchmarkSuite:
             p95_time = statistics.quantiles(times, n=20)[18] if len(times) >= 20 else max(times)
 
             results[f"{doc_name}_document"] = {
-                'avg_processing_time': round(avg_time, 4),
-                'p95_processing_time': round(p95_time, 4),
-                'throughput': round(len(document) / avg_time, 2),  # chars/second
-                'cache_hit_rate': self.doc_processor.get_performance_stats().get('cache_hit_rate', 0)
+                "avg_processing_time": round(avg_time, 4),
+                "p95_processing_time": round(p95_time, 4),
+                "throughput": round(len(document) / avg_time, 2),  # chars/second
+                "cache_hit_rate": self.doc_processor.get_performance_stats().get("cache_hit_rate", 0)
             }
 
         return results
 
-    async def _run_pipeline_benchmarks(self) -> Dict[str, Any]:
+    async def _run_pipeline_benchmarks(self) -> dict[str, Any]:
         """Run regulatory pipeline performance benchmarks."""
         logger.info("Running pipeline benchmarks")
 
@@ -191,8 +190,8 @@ class ISABenchmarkSuite:
         test_paths = []
         import tempfile
 
-        for i, (doc_name, document) in enumerate(self.test_documents):
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False) as f:
+        for _i, (_doc_name, document) in enumerate(self.test_documents):
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".pdf", delete=False) as f:
                 f.write(document)
                 test_paths.append(f.name)
 
@@ -205,12 +204,12 @@ class ISABenchmarkSuite:
             pipeline_stats = self.pipeline.get_pipeline_stats()
 
             benchmark_results = {
-                'total_processing_time': round(total_time, 2),
-                'documents_processed': results.get('processed_documents', 0),
-                'throughput': round(results.get('processed_documents', 0) / total_time, 2),
-                'cache_hit_rate': results.get('cache_hit_rate', 0),
-                'avg_batch_throughput': pipeline_stats.get('avg_throughput', 0),
-                'circuit_breaker_status': pipeline_stats.get('circuit_breaker_status', 'unknown')
+                "total_processing_time": round(total_time, 2),
+                "documents_processed": results.get("processed_documents", 0),
+                "throughput": round(results.get("processed_documents", 0) / total_time, 2),
+                "cache_hit_rate": results.get("cache_hit_rate", 0),
+                "avg_batch_throughput": pipeline_stats.get("avg_throughput", 0),
+                "circuit_breaker_status": pipeline_stats.get("circuit_breaker_status", "unknown")
             }
 
         finally:
@@ -220,7 +219,7 @@ class ISABenchmarkSuite:
 
         return benchmark_results
 
-    async def _run_graph_analytics_benchmarks(self) -> Dict[str, Any]:
+    async def _run_graph_analytics_benchmarks(self) -> dict[str, Any]:
         """Run graph analytics performance benchmarks."""
         logger.info("Running graph analytics benchmarks")
 
@@ -238,9 +237,9 @@ class ISABenchmarkSuite:
 
             avg_time = statistics.mean(times)
             results[f"{org}_risk_analysis"] = {
-                'avg_query_time': round(avg_time, 4),
-                'cache_hit_rate': self.analytics.get_performance_stats().get('cache_hit_rate', 0),
-                'risk_score': risk_metrics.overall_risk_score if hasattr(risk_metrics, 'overall_risk_score') else 0.5
+                "avg_query_time": round(avg_time, 4),
+                "cache_hit_rate": self.analytics.get_performance_stats().get("cache_hit_rate", 0),
+                "risk_score": risk_metrics.overall_risk_score if hasattr(risk_metrics, "overall_risk_score") else 0.5
             }
 
         # Benchmark batch analysis
@@ -248,20 +247,20 @@ class ISABenchmarkSuite:
         batch_results = await self.analytics.batch_analyze_organizations(self.test_organizations[:3])
         batch_time = time.time() - start_time
 
-        results['batch_analysis'] = {
-            'total_time': round(batch_time, 2),
-            'organizations_processed': len(batch_results),
-            'avg_time_per_org': round(batch_time / len(batch_results), 4),
-            'throughput': round(len(batch_results) / batch_time, 2)
+        results["batch_analysis"] = {
+            "total_time": round(batch_time, 2),
+            "organizations_processed": len(batch_results),
+            "avg_time_per_org": round(batch_time / len(batch_results), 4),
+            "throughput": round(len(batch_results) / batch_time, 2)
         }
 
         return results
 
-    async def _run_agent_workflow_benchmarks(self) -> Dict[str, Any]:
+    async def _run_agent_workflow_benchmarks(self) -> dict[str, Any]:
         """Run agent workflow performance benchmarks."""
         logger.info("Running agent workflow benchmarks")
 
-        from .optimized_agent_workflow import AgentTask, AgentRole
+        from .optimized_agent_workflow import AgentRole, AgentTask
 
         # Create test tasks
         test_tasks = [
@@ -282,18 +281,18 @@ class ISABenchmarkSuite:
         workflow_stats = self.workflow.get_workflow_stats()
 
         results = {
-            'total_execution_time': round(total_time, 2),
-            'tasks_completed': workflow_results.get('completed_tasks', 0),
-            'tasks_failed': workflow_results.get('failed_tasks', 0),
-            'throughput': workflow_results.get('throughput', 0),
-            'cache_hit_rate': workflow_results.get('cache_hit_rate', 0),
-            'avg_agent_throughput': workflow_stats.get('avg_throughput', 0),
-            'agent_utilization': workflow_results.get('agent_utilization', {})
+            "total_execution_time": round(total_time, 2),
+            "tasks_completed": workflow_results.get("completed_tasks", 0),
+            "tasks_failed": workflow_results.get("failed_tasks", 0),
+            "throughput": workflow_results.get("throughput", 0),
+            "cache_hit_rate": workflow_results.get("cache_hit_rate", 0),
+            "avg_agent_throughput": workflow_stats.get("avg_throughput", 0),
+            "agent_utilization": workflow_results.get("agent_utilization", {})
         }
 
         return results
 
-    async def _run_integration_benchmarks(self) -> Dict[str, Any]:
+    async def _run_integration_benchmarks(self) -> dict[str, Any]:
         """Run cross-component integration benchmarks."""
         logger.info("Running integration benchmarks")
 
@@ -302,9 +301,9 @@ class ISABenchmarkSuite:
 
         # Phase 1: Process documents
         doc_results = []
-        for doc_name, document in self.test_documents[:2]:  # Use smaller set
+        for _doc_name, document in self.test_documents[:2]:  # Use smaller set
             import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".pdf", delete=False) as f:
                 f.write(document)
                 temp_path = f.name
 
@@ -322,7 +321,7 @@ class ISABenchmarkSuite:
         analytics_results = await self.analytics.batch_analyze_organizations(self.test_organizations[:2])
 
         # Phase 4: Workflow
-        from .optimized_agent_workflow import AgentTask, AgentRole
+        from .optimized_agent_workflow import AgentRole, AgentTask
         workflow_tasks = [
             AgentTask(
                 task_id="integration_task_1",
@@ -336,42 +335,42 @@ class ISABenchmarkSuite:
         total_integration_time = time.time() - start_time
 
         results = {
-            'total_integration_time': round(total_integration_time, 2),
-            'documents_processed': len(doc_results),
-            'pipeline_success': pipeline_results.get('success', False),
-            'analytics_completed': len(analytics_results),
-            'workflow_completed': workflow_results.get('completed_tasks', 0),
-            'end_to_end_throughput': round(
-                (len(doc_results) + len(analytics_results) + workflow_results.get('completed_tasks', 0))
+            "total_integration_time": round(total_integration_time, 2),
+            "documents_processed": len(doc_results),
+            "pipeline_success": pipeline_results.get("success", False),
+            "analytics_completed": len(analytics_results),
+            "workflow_completed": workflow_results.get("completed_tasks", 0),
+            "end_to_end_throughput": round(
+                (len(doc_results) + len(analytics_results) + workflow_results.get("completed_tasks", 0))
                 / total_integration_time, 2
             )
         }
 
         return results
 
-    def _generate_benchmark_report(self, suite_results: Dict[str, Any], total_time: float) -> Dict[str, Any]:
+    def _generate_benchmark_report(self, suite_results: dict[str, Any], total_time: float) -> dict[str, Any]:
         """Generate comprehensive benchmark report."""
         report = {
-            'suite_name': 'ISA_D Performance Benchmark Suite',
-            'timestamp': datetime.now().isoformat(),
-            'total_execution_time': round(total_time, 2),
-            'results': suite_results,
-            'performance_summary': self._calculate_performance_summary(suite_results),
-            'recommendations': self._generate_optimization_recommendations(suite_results),
-            'regression_analysis': self._analyze_performance_regression(suite_results)
+            "suite_name": "ISA_D Performance Benchmark Suite",
+            "timestamp": datetime.now().isoformat(),
+            "total_execution_time": round(total_time, 2),
+            "results": suite_results,
+            "performance_summary": self._calculate_performance_summary(suite_results),
+            "recommendations": self._generate_optimization_recommendations(suite_results),
+            "regression_analysis": self._analyze_performance_regression(suite_results)
         }
 
         return report
 
-    def _calculate_performance_summary(self, suite_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _calculate_performance_summary(self, suite_results: dict[str, Any]) -> dict[str, Any]:
         """Calculate overall performance summary."""
         summary = {
-            'overall_health_score': 0.0,
-            'bottlenecks': [],
-            'strengths': [],
-            'avg_cache_hit_rate': 0.0,
-            'avg_throughput': 0.0,
-            'total_tests_run': 0
+            "overall_health_score": 0.0,
+            "bottlenecks": [],
+            "strengths": [],
+            "avg_cache_hit_rate": 0.0,
+            "avg_throughput": 0.0,
+            "total_tests_run": 0
         }
 
         cache_rates = []
@@ -380,51 +379,51 @@ class ISABenchmarkSuite:
 
         # Analyze each component
         for component, results in suite_results.items():
-            if component == 'integration':
+            if component == "integration":
                 continue
 
             for test_name, metrics in results.items():
                 test_count += 1
 
                 # Collect cache hit rates
-                if 'cache_hit_rate' in metrics:
-                    cache_rates.append(metrics['cache_hit_rate'])
+                if "cache_hit_rate" in metrics:
+                    cache_rates.append(metrics["cache_hit_rate"])
 
                 # Collect throughputs
-                if 'throughput' in metrics:
-                    throughputs.append(metrics['throughput'])
+                if "throughput" in metrics:
+                    throughputs.append(metrics["throughput"])
 
                 # Identify bottlenecks (slow performance)
-                if 'avg_processing_time' in metrics and metrics['avg_processing_time'] > 1.0:
-                    summary['bottlenecks'].append(f"{component}.{test_name}: slow processing")
-                elif 'avg_query_time' in metrics and metrics['avg_query_time'] > 0.5:
-                    summary['bottlenecks'].append(f"{component}.{test_name}: slow queries")
+                if "avg_processing_time" in metrics and metrics["avg_processing_time"] > 1.0:
+                    summary["bottlenecks"].append(f"{component}.{test_name}: slow processing")
+                elif "avg_query_time" in metrics and metrics["avg_query_time"] > 0.5:
+                    summary["bottlenecks"].append(f"{component}.{test_name}: slow queries")
 
         # Calculate averages
         if cache_rates:
-            summary['avg_cache_hit_rate'] = round(statistics.mean(cache_rates), 2)
+            summary["avg_cache_hit_rate"] = round(statistics.mean(cache_rates), 2)
         if throughputs:
-            summary['avg_throughput'] = round(statistics.mean(throughputs), 2)
+            summary["avg_throughput"] = round(statistics.mean(throughputs), 2)
 
-        summary['total_tests_run'] = test_count
+        summary["total_tests_run"] = test_count
 
         # Calculate health score
         health_factors = []
-        if summary['avg_cache_hit_rate'] > 0.7:
+        if summary["avg_cache_hit_rate"] > 0.7:
             health_factors.append(0.3)
-            summary['strengths'].append("Good cache performance")
-        if summary['avg_throughput'] > 10:
+            summary["strengths"].append("Good cache performance")
+        if summary["avg_throughput"] > 10:
             health_factors.append(0.3)
-            summary['strengths'].append("High throughput")
-        if len(summary['bottlenecks']) == 0:
+            summary["strengths"].append("High throughput")
+        if len(summary["bottlenecks"]) == 0:
             health_factors.append(0.4)
-            summary['strengths'].append("No performance bottlenecks")
+            summary["strengths"].append("No performance bottlenecks")
 
-        summary['overall_health_score'] = round(sum(health_factors), 2)
+        summary["overall_health_score"] = round(sum(health_factors), 2)
 
         return summary
 
-    def _generate_optimization_recommendations(self, suite_results: Dict[str, Any]) -> List[str]:
+    def _generate_optimization_recommendations(self, suite_results: dict[str, Any]) -> list[str]:
         """Generate optimization recommendations based on benchmark results."""
         recommendations = []
 
@@ -433,8 +432,8 @@ class ISABenchmarkSuite:
         for component_results in suite_results.values():
             if isinstance(component_results, dict):
                 for metrics in component_results.values():
-                    if isinstance(metrics, dict) and 'cache_hit_rate' in metrics:
-                        cache_rates.append(metrics['cache_hit_rate'])
+                    if isinstance(metrics, dict) and "cache_hit_rate" in metrics:
+                        cache_rates.append(metrics["cache_hit_rate"])
 
         if cache_rates and statistics.mean(cache_rates) < 0.6:
             recommendations.append("Improve cache hit rates by increasing cache sizes or optimizing cache keys")
@@ -445,42 +444,42 @@ class ISABenchmarkSuite:
         for component_results in suite_results.values():
             if isinstance(component_results, dict):
                 for metrics in component_results.values():
-                    if isinstance(metrics, dict) and 'throughput' in metrics:
-                        throughputs.append(metrics['throughput'])
+                    if isinstance(metrics, dict) and "throughput" in metrics:
+                        throughputs.append(metrics["throughput"])
 
         if throughputs and statistics.mean(throughputs) < 5:
             recommendations.append("Increase parallel processing capacity for better throughput")
             recommendations.append("Optimize batch sizes and concurrent operation limits")
 
         # Component-specific recommendations
-        if 'document_processing' in suite_results:
-            doc_results = suite_results['document_processing']
+        if "document_processing" in suite_results:
+            doc_results = suite_results["document_processing"]
             slow_docs = [name for name, metrics in doc_results.items()
-                        if isinstance(metrics, dict) and metrics.get('avg_processing_time', 0) > 2.0]
+                        if isinstance(metrics, dict) and metrics.get("avg_processing_time", 0) > 2.0]
             if slow_docs:
                 recommendations.append(f"Optimize processing for large documents: {', '.join(slow_docs)}")
 
-        if 'graph_analytics' in suite_results:
-            analytics_results = suite_results['graph_analytics']
+        if "graph_analytics" in suite_results:
+            analytics_results = suite_results["graph_analytics"]
             slow_queries = [name for name, metrics in analytics_results.items()
-                           if isinstance(metrics, dict) and metrics.get('avg_query_time', 0) > 1.0]
+                           if isinstance(metrics, dict) and metrics.get("avg_query_time", 0) > 1.0]
             if slow_queries:
                 recommendations.append(f"Optimize slow graph queries: {', '.join(slow_queries)}")
 
         return recommendations
 
-    def _analyze_performance_regression(self, suite_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_performance_regression(self, suite_results: dict[str, Any]) -> dict[str, Any]:
         """Analyze performance regression compared to baselines."""
         regression_analysis = {
-            'regressions_detected': [],
-            'improvements_detected': [],
-            'baseline_comparison': {}
+            "regressions_detected": [],
+            "improvements_detected": [],
+            "baseline_comparison": {}
         }
 
         # Compare with stored baselines (if available)
         baseline_file = self.results_dir / "baselines.json"
         if baseline_file.exists():
-            with open(baseline_file, 'r') as f:
+            with open(baseline_file) as f:
                 stored_baselines = json.load(f)
 
             for component, results in suite_results.items():
@@ -493,69 +492,69 @@ class ISABenchmarkSuite:
                             baseline_value = baseline_metrics[metric_name]
 
                             # Check for regression (performance degradation)
-                            if 'processing_time' in metric_name or 'query_time' in metric_name:
+                            if "processing_time" in metric_name or "query_time" in metric_name:
                                 if current_value > baseline_value * 1.1:  # 10% degradation
-                                    regression_analysis['regressions_detected'].append(
+                                    regression_analysis["regressions_detected"].append(
                                         f"{component}.{metric_name}: {current_value:.2f} vs {baseline_value:.2f} baseline"
                                     )
                                 elif current_value < baseline_value * 0.9:  # 10% improvement
-                                    regression_analysis['improvements_detected'].append(
+                                    regression_analysis["improvements_detected"].append(
                                         f"{component}.{metric_name}: {current_value:.2f} vs {baseline_value:.2f} baseline"
                                     )
 
         return regression_analysis
 
-    def _save_benchmark_results(self, suite_results: Dict[str, Any], report: Dict[str, Any]):
+    def _save_benchmark_results(self, suite_results: dict[str, Any], report: dict[str, Any]):
         """Save benchmark results to files."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Save detailed results
         results_file = self.results_dir / f"benchmark_results_{timestamp}.json"
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(suite_results, f, indent=2, default=str)
 
         # Save report
         report_file = self.results_dir / f"benchmark_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         # Update baselines
         baseline_file = self.results_dir / "baselines.json"
-        with open(baseline_file, 'w') as f:
+        with open(baseline_file, "w") as f:
             json.dump(suite_results, f, indent=2, default=str)
 
         logger.info(f"Benchmark results saved to {self.results_dir}")
 
-    async def run_quick_benchmark(self, component: str) -> Dict[str, Any]:
+    async def run_quick_benchmark(self, component: str) -> dict[str, Any]:
         """Run a quick benchmark for a specific component."""
         logger.info(f"Running quick benchmark for {component}")
 
-        if component == 'document_processing':
+        if component == "document_processing":
             return await self._run_document_processing_benchmarks()
-        elif component == 'pipeline':
+        elif component == "pipeline":
             return await self._run_pipeline_benchmarks()
-        elif component == 'graph_analytics':
+        elif component == "graph_analytics":
             return await self._run_graph_analytics_benchmarks()
-        elif component == 'agent_workflow':
+        elif component == "agent_workflow":
             return await self._run_agent_workflow_benchmarks()
         else:
             raise ValueError(f"Unknown component: {component}")
 
-    def get_benchmark_history(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_benchmark_history(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get historical benchmark results."""
         result_files = sorted(self.results_dir.glob("benchmark_report_*.json"))
 
         history = []
         for result_file in result_files[-limit:]:
             try:
-                with open(result_file, 'r') as f:
+                with open(result_file) as f:
                     data = json.load(f)
                     history.append({
-                        'timestamp': data.get('timestamp'),
-                        'execution_time': data.get('total_execution_time'),
-                        'health_score': data.get('performance_summary', {}).get('overall_health_score', 0),
-                        'cache_hit_rate': data.get('performance_summary', {}).get('avg_cache_hit_rate', 0),
-                        'throughput': data.get('performance_summary', {}).get('avg_throughput', 0)
+                        "timestamp": data.get("timestamp"),
+                        "execution_time": data.get("total_execution_time"),
+                        "health_score": data.get("performance_summary", {}).get("overall_health_score", 0),
+                        "cache_hit_rate": data.get("performance_summary", {}).get("avg_cache_hit_rate", 0),
+                        "throughput": data.get("performance_summary", {}).get("avg_throughput", 0)
                     })
             except Exception as e:
                 logger.warning(f"Failed to load historical result {result_file}: {e}")
@@ -564,7 +563,7 @@ class ISABenchmarkSuite:
 
 
 # Global instance
-_benchmark_suite: Optional[ISABenchmarkSuite] = None
+_benchmark_suite: ISABenchmarkSuite | None = None
 
 
 def get_benchmark_suite() -> ISABenchmarkSuite:
@@ -575,19 +574,19 @@ def get_benchmark_suite() -> ISABenchmarkSuite:
     return _benchmark_suite
 
 
-async def run_full_benchmark_suite() -> Dict[str, Any]:
+async def run_full_benchmark_suite() -> dict[str, Any]:
     """Run the complete benchmark suite."""
     suite = get_benchmark_suite()
     return await suite.run_full_benchmark_suite()
 
 
-async def run_component_benchmark(component: str) -> Dict[str, Any]:
+async def run_component_benchmark(component: str) -> dict[str, Any]:
     """Run benchmark for a specific component."""
     suite = get_benchmark_suite()
     return await suite.run_quick_benchmark(component)
 
 
-def get_benchmark_history(limit: int = 10) -> List[Dict[str, Any]]:
+def get_benchmark_history(limit: int = 10) -> list[dict[str, Any]]:
     """Get historical benchmark results."""
     suite = get_benchmark_suite()
     return suite.get_benchmark_history(limit)

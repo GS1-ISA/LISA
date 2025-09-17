@@ -1,10 +1,10 @@
-import logging
-import json
 import asyncio
+import json
+import logging
 
-from src.docs_provider.base import DocsProvider, NullProvider
 from src.agent_core.llm_client import get_openrouter_free_client
-from src.audit_logger import log_data_access, AuditEventSeverity
+from src.audit_logger import log_data_access
+from src.docs_provider.base import DocsProvider, NullProvider
 
 # Configure logging
 logging.basicConfig(
@@ -67,7 +67,7 @@ Generate a research plan by creating specific questions that will guide the inve
             result = await self.llm_client.async_chat_completion(messages)
 
             # Parse JSON response
-            plan = json.loads(result['content'].strip())
+            plan = json.loads(result["content"].strip())
             if not isinstance(plan, list):
                 raise ValueError("Response is not a list")
 

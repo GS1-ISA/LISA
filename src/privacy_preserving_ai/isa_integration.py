@@ -5,22 +5,21 @@ This module provides seamless integration between the privacy-preserving
 AI system and ISA_D's existing AI agents, research workflows, and data processing.
 """
 
-import logging
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime
 import asyncio
+import logging
+from datetime import datetime
+from typing import Any
 
 from .analytics_coordinator import FederatedAnalyticsCoordinator
-from .fhe import FHEContext, ESGDataEncryptor
-from .training_pipeline import TrainingConfig
+from .fhe import FHEContext
 
 # Import ISA_D components (these would be the actual imports in the real system)
 try:
-    from src.orchestrator.research_graph import ResearchGraph
     from src.agent_core.agents.planner import PlannerAgent
     from src.agent_core.agents.researcher import ResearcherAgent
     from src.agent_core.agents.synthesizer import SynthesizerAgent
     from src.agent_core.memory.rag_store import RAGMemory
+    from src.orchestrator.research_graph import ResearchGraph
     from src.semantic_validation.schemas.esg_schemas import ESGSchemas
 except ImportError:
     # Mock imports for development
@@ -85,9 +84,9 @@ class PrivacyPreservingAIAgent:
             True if privacy preservation is needed
         """
         privacy_keywords = [
-            'confidential', 'sensitive', 'private', 'proprietary',
-            'emissions data', 'financial metrics', 'employee data',
-            'supply chain', 'competitor analysis', 'market share'
+            "confidential", "sensitive", "private", "proprietary",
+            "emissions data", "financial metrics", "employee data",
+            "supply chain", "competitor analysis", "market share"
         ]
 
         query_lower = query.lower()
@@ -107,22 +106,22 @@ class PrivacyPreservingAIAgent:
         analytics_type = self._parse_query_type(query)
 
         try:
-            if analytics_type == 'emissions_aggregate':
+            if analytics_type == "emissions_aggregate":
                 query_id = await self.coordinator.submit_analytics_query(
-                    'compute_emissions_aggregate',
-                    {'scope': 'total'}
+                    "compute_emissions_aggregate",
+                    {"scope": "total"}
                 )
-            elif analytics_type == 'train_prediction_model':
+            elif analytics_type == "train_prediction_model":
                 query_id = await self.coordinator.submit_analytics_query(
-                    'train_esg_model',
-                    {'num_rounds': 5}
+                    "train_esg_model",
+                    {"num_rounds": 5}
                 )
-            elif analytics_type == 'company_prediction':
+            elif analytics_type == "company_prediction":
                 # Extract company features from query (simplified)
                 features = self._extract_company_features(query)
                 query_id = await self.coordinator.submit_analytics_query(
-                    'predict_company_emissions',
-                    {'features': features}
+                    "predict_company_emissions",
+                    {"features": features}
                 )
             else:
                 return f"Unsupported analytics type: {analytics_type}"
@@ -178,36 +177,36 @@ class PrivacyPreservingAIAgent:
         """Parse query to determine analytics type."""
         query_lower = query.lower()
 
-        if 'aggregate' in query_lower or 'total' in query_lower or 'average' in query_lower:
-            return 'emissions_aggregate'
-        elif 'train' in query_lower or 'model' in query_lower or 'predict' in query_lower:
-            if 'company' in query_lower:
-                return 'company_prediction'
+        if "aggregate" in query_lower or "total" in query_lower or "average" in query_lower:
+            return "emissions_aggregate"
+        elif "train" in query_lower or "model" in query_lower or "predict" in query_lower:
+            if "company" in query_lower:
+                return "company_prediction"
             else:
-                return 'train_prediction_model'
+                return "train_prediction_model"
         else:
-            return 'emissions_aggregate'  # Default
+            return "emissions_aggregate"  # Default
 
-    def _extract_company_features(self, query: str) -> Dict[str, float]:
+    def _extract_company_features(self, query: str) -> dict[str, float]:
         """Extract company features from query (simplified implementation)."""
         # In practice, this would use NLP to extract features from the query
         # For now, return default features
         return {
-            'employees': 1000.0,
-            'revenue': 1000000.0,
-            'sector_energy': 1.0,
-            'scope1_baseline': 500.0,
-            'scope2_baseline': 250.0
+            "employees": 1000.0,
+            "revenue": 1000000.0,
+            "sector_energy": 1.0,
+            "scope1_baseline": 500.0,
+            "scope2_baseline": 250.0
         }
 
     def _format_analytics_result(self, result: Any) -> str:
         """Format analytics result for presentation."""
-        if not hasattr(result, 'decrypted_result') or not result.decrypted_result:
+        if not hasattr(result, "decrypted_result") or not result.decrypted_result:
             return "Analysis completed, results encrypted."
 
         decrypted = result.decrypted_result
 
-        if result.result_type == 'compute_emissions_aggregate':
+        if result.result_type == "compute_emissions_aggregate":
             return f"""
 Privacy-Preserving ESG Emissions Analysis Result:
 
@@ -218,7 +217,7 @@ Analysis completed using federated learning with {result.participating_clients} 
 Computation time: {result.computation_time:.2f} seconds.
 """
 
-        elif result.result_type == 'predict_company_emissions':
+        elif result.result_type == "predict_company_emissions":
             return f"""
 Privacy-Preserving ESG Emissions Prediction:
 
@@ -227,7 +226,7 @@ Predicted Total Emissions: {decrypted.get('predicted_emissions', 0):.2f} tons CO
 Prediction based on federated model (version {decrypted.get('model_version', 0)}).
 """
 
-        elif result.result_type == 'train_esg_model':
+        elif result.result_type == "train_esg_model":
             return f"""
 Privacy-Preserving ESG Model Training Completed:
 
@@ -242,7 +241,7 @@ Model trained using federated learning across {result.participating_clients} cli
 
         return f"Analysis completed: {decrypted}"
 
-    async def validate_esg_data_privacy(self, esg_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def validate_esg_data_privacy(self, esg_data: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Validate ESG data while preserving privacy.
 
@@ -253,14 +252,14 @@ Model trained using federated learning across {result.participating_clients} cli
             Validation results
         """
         if not self.esg_schemas:
-            return {'valid': True, 'message': 'ESG validation not available'}
+            return {"valid": True, "message": "ESG validation not available"}
 
         validation_results = {
-            'total_records': len(esg_data),
-            'valid_records': 0,
-            'invalid_records': 0,
-            'privacy_preserved': True,
-            'validation_details': []
+            "total_records": len(esg_data),
+            "valid_records": 0,
+            "invalid_records": 0,
+            "privacy_preserved": True,
+            "validation_details": []
         }
 
         for record in esg_data:
@@ -271,25 +270,25 @@ Model trained using federated learning across {result.participating_clients} cli
             is_valid = self._validate_encrypted_structure(encrypted_data)
 
             if is_valid:
-                validation_results['valid_records'] += 1
+                validation_results["valid_records"] += 1
             else:
-                validation_results['invalid_records'] += 1
+                validation_results["invalid_records"] += 1
 
-            validation_results['validation_details'].append({
-                'record_id': record.get('lei', 'unknown'),
-                'valid': is_valid,
-                'privacy_preserved': True
+            validation_results["validation_details"].append({
+                "record_id": record.get("lei", "unknown"),
+                "valid": is_valid,
+                "privacy_preserved": True
             })
 
         return validation_results
 
-    def _validate_encrypted_structure(self, encrypted_data: Dict[str, Any]) -> bool:
+    def _validate_encrypted_structure(self, encrypted_data: dict[str, Any]) -> bool:
         """Validate the structure of encrypted ESG data."""
         required_fields = [
-            'environmental_scope1Emissions',
-            'environmental_scope2Emissions',
-            'environmental_scope3Emissions',
-            'social_totalEmployees'
+            "environmental_scope1Emissions",
+            "environmental_scope2Emissions",
+            "environmental_scope3Emissions",
+            "social_totalEmployees"
         ]
 
         # Check if all required encrypted fields are present
@@ -367,25 +366,25 @@ class ISA_D_PrivacyPreserving_Workflow:
         mock_client_data = [
             # Client 1: Tech company
             [
-                {'lei': 'TECH001', 'social_totalEmployees': 5000, 'financial_revenue': 50000000,
-                 'environmental_scope1Emissions': 1200, 'environmental_scope2Emissions': 800, 'environmental_scope3Emissions': 3000},
-                {'lei': 'TECH002', 'social_totalEmployees': 3000, 'financial_revenue': 30000000,
-                 'environmental_scope1Emissions': 800, 'environmental_scope2Emissions': 600, 'environmental_scope3Emissions': 2000},
+                {"lei": "TECH001", "social_totalEmployees": 5000, "financial_revenue": 50000000,
+                 "environmental_scope1Emissions": 1200, "environmental_scope2Emissions": 800, "environmental_scope3Emissions": 3000},
+                {"lei": "TECH002", "social_totalEmployees": 3000, "financial_revenue": 30000000,
+                 "environmental_scope1Emissions": 800, "environmental_scope2Emissions": 600, "environmental_scope3Emissions": 2000},
             ],
             # Client 2: Manufacturing company
             [
-                {'lei': 'MANU001', 'social_totalEmployees': 8000, 'financial_revenue': 80000000,
-                 'environmental_scope1Emissions': 5000, 'environmental_scope2Emissions': 3000, 'environmental_scope3Emissions': 10000},
+                {"lei": "MANU001", "social_totalEmployees": 8000, "financial_revenue": 80000000,
+                 "environmental_scope1Emissions": 5000, "environmental_scope2Emissions": 3000, "environmental_scope3Emissions": 10000},
             ],
             # Client 3: Financial services
             [
-                {'lei': 'FIN001', 'social_totalEmployees': 2000, 'financial_revenue': 20000000,
-                 'environmental_scope1Emissions': 200, 'environmental_scope2Emissions': 150, 'environmental_scope3Emissions': 500},
+                {"lei": "FIN001", "social_totalEmployees": 2000, "financial_revenue": 20000000,
+                 "environmental_scope1Emissions": 200, "environmental_scope2Emissions": 150, "environmental_scope3Emissions": 500},
             ]
         ]
 
         for i, data in enumerate(mock_client_data):
-            client_id = f'isa_client_{i+1}'
+            client_id = f"isa_client_{i+1}"
             await self.coordinator.register_client(client_id, data)
 
     async def process_research_query(self, query: str, user_id: int = None) -> str:
@@ -401,11 +400,11 @@ class ISA_D_PrivacyPreserving_Workflow:
         """
         return await self.privacy_agent.process_privacy_sensitive_query(query, user_id)
 
-    async def get_system_health(self) -> Dict[str, Any]:
+    async def get_system_health(self) -> dict[str, Any]:
         """Get system health and status."""
         status = self.coordinator.get_system_status()
-        status['fhe_status'] = 'operational' if self.fhe_context.context else 'initializing'
-        status['timestamp'] = datetime.now().isoformat()
+        status["fhe_status"] = "operational" if self.fhe_context.context else "initializing"
+        status["timestamp"] = datetime.now().isoformat()
         return status
 
     async def shutdown_system(self):

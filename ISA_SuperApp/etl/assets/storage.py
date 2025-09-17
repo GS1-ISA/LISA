@@ -5,22 +5,20 @@ This module contains Dagster assets for storing processed data in
 the database and updating the vector store.
 """
 
-import json
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 from dagster import (
     AssetExecutionContext,
     AssetIn,
-    MetadataValue,
     Output,
     asset,
 )
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
-from ..core.logger import get_logger
-from ..core.vector_store import create_vector_store
+from isa_superapp.etl.core.logger import get_logger
+from isa_superapp.etl.core.vector_store import create_vector_store
 
 
 @asset(
@@ -211,7 +209,7 @@ def _insert_dataframe(engine: Engine, table_name: str, df: pd.DataFrame) -> int:
     return result.rowcount
 
 
-def _prepare_vectors_for_storage(df: pd.DataFrame) -> List[Dict[str, Any]]:
+def _prepare_vectors_for_storage(df: pd.DataFrame) -> list[dict[str, Any]]:
     """Prepare data for vector store storage."""
     vectors = []
 

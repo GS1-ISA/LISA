@@ -19,7 +19,7 @@ def ensure_dir(path):
 
 
 def load_yaml(path):
-    with open(path, "r") as f:
+    with open(path) as f:
         return yaml.safe_load(f)
 
 

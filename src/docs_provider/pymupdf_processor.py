@@ -6,9 +6,9 @@ for extracting text and metadata from PDF documents optimized for LLM consumptio
 """
 
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 try:
     import pymupdf4llm
@@ -18,26 +18,26 @@ except ImportError:
     logging.warning("PyMuPDF4LLM not available. Install with: pip install PyMuPDF4LLM")
 
 try:
-    from unstructured.partition.pdf import partition_pdf
     from unstructured.documents.elements import Text
+    from unstructured.partition.pdf import partition_pdf
     UNSTRUCTURED_AVAILABLE = True
 except ImportError:
     UNSTRUCTURED_AVAILABLE = False
     logging.warning("Unstructured not available. Install with: pip install unstructured[pdf]")
 
-from .base import DocsProvider, DocsSnippet, ProviderResult
+from .base import DocsProvider, ProviderResult
 
 
 @dataclass
 class PDFMetadata:
     """Metadata extracted from PDF document."""
-    title: Optional[str] = None
-    author: Optional[str] = None
-    subject: Optional[str] = None
-    creator: Optional[str] = None
-    producer: Optional[str] = None
-    creation_date: Optional[str] = None
-    modification_date: Optional[str] = None
+    title: str | None = None
+    author: str | None = None
+    subject: str | None = None
+    creator: str | None = None
+    producer: str | None = None
+    creation_date: str | None = None
+    modification_date: str | None = None
     pages: int = 0
     file_size: int = 0
 
@@ -47,9 +47,9 @@ class PDFProcessingResult:
     """Result of PDF processing operation."""
     text: str
     metadata: PDFMetadata
-    chunks: List[Dict[str, Any]]
+    chunks: list[dict[str, Any]]
     success: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class PyMuPDFProcessor(DocsProvider):
@@ -75,10 +75,10 @@ class PyMuPDFProcessor(DocsProvider):
         self,
         query: str,
         *,
-        libs: List[str],
-        version: Optional[str] = None,
+        libs: list[str],
+        version: str | None = None,
         limit: int = 5,
-        section_hints: Optional[List[str]] = None,
+        section_hints: list[str] | None = None,
     ) -> ProviderResult:
         """
         Get documentation snippets based on query.
@@ -319,21 +319,21 @@ class PyMuPDFProcessor(DocsProvider):
         try:
             info = doc.metadata
             return PDFMetadata(
-                title=info.get('title'),
-                author=info.get('author'),
-                subject=info.get('subject'),
-                creator=info.get('creator'),
-                producer=info.get('producer'),
-                creation_date=info.get('creationDate'),
-                modification_date=info.get('modDate'),
+                title=info.get("title"),
+                author=info.get("author"),
+                subject=info.get("subject"),
+                creator=info.get("creator"),
+                producer=info.get("producer"),
+                creation_date=info.get("creationDate"),
+                modification_date=info.get("modDate"),
                 pages=len(doc),
                 file_size=file_path.stat().st_size if file_path.exists() else 0
             )
         except Exception as e:
             self.logger.warning(f"Error extracting metadata: {str(e)}")
-            return PDFMetadata(pages=len(doc) if hasattr(doc, '__len__') else 0)
+            return PDFMetadata(pages=len(doc) if hasattr(doc, "__len__") else 0)
 
-    def _create_chunks(self, text: str) -> List[Dict[str, Any]]:
+    def _create_chunks(self, text: str) -> list[dict[str, Any]]:
         """Create text chunks optimized for LLM processing."""
         if not text:
             return []
@@ -348,10 +348,10 @@ class PyMuPDFProcessor(DocsProvider):
             if end < len(text):
                 # Look for sentence endings within the last 100 characters
                 sentence_end = max(
-                    text.rfind('. ', start, end),
-                    text.rfind('! ', start, end),
-                    text.rfind('? ', start, end),
-                    text.rfind('\n\n', start, end)
+                    text.rfind(". ", start, end),
+                    text.rfind("! ", start, end),
+                    text.rfind("? ", start, end),
+                    text.rfind("\n\n", start, end)
                 )
 
                 if sentence_end > start + self.chunk_size - 100:
@@ -361,10 +361,10 @@ class PyMuPDFProcessor(DocsProvider):
 
             if chunk_text:
                 chunks.append({
-                    'text': chunk_text,
-                    'start_pos': start,
-                    'end_pos': end,
-                    'length': len(chunk_text)
+                    "text": chunk_text,
+                    "start_pos": start,
+                    "end_pos": end,
+                    "length": len(chunk_text)
                 })
 
             # Move start position with overlap
@@ -372,15 +372,15 @@ class PyMuPDFProcessor(DocsProvider):
 
         return chunks
 
-    def get_processing_stats(self) -> Dict[str, Any]:
+    def get_processing_stats(self) -> dict[str, Any]:
         """Get processing statistics."""
         return {
-            'primary_processor': 'PyMuPDF4LLM',
-            'fallback_processor': 'Unstructured',
-            'chunk_size': self.chunk_size,
-            'overlap': self.overlap,
-            'pymupdf_available': PYMUPDF_AVAILABLE,
-            'unstructured_available': UNSTRUCTURED_AVAILABLE
+            "primary_processor": "PyMuPDF4LLM",
+            "fallback_processor": "Unstructured",
+            "chunk_size": self.chunk_size,
+            "overlap": self.overlap,
+            "pymupdf_available": PYMUPDF_AVAILABLE,
+            "unstructured_available": UNSTRUCTURED_AVAILABLE
         }
 
 

@@ -278,9 +278,6 @@ describe('ApiClient Deduplication', () => {
       await Promise.all(allPromises);
 
       // Should deduplicate GET requests but not POST requests
-      const getRequests = Math.floor(50 / methods.length); // Half are GET
-      const postRequests = Math.ceil(50 / methods.length); // Half are POST
-
       // GET requests should be deduplicated to 4 (one per endpoint)
       // POST requests should all be separate (25)
       expect(mockedAxios.request).toHaveBeenCalledTimes(4 + 25);

@@ -3,22 +3,21 @@ Performance Monitoring and Alerting System for ISA_D
 Comprehensive performance monitoring with intelligent alerting and optimization recommendations.
 """
 
-import asyncio
-import logging
-import time
-import threading
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass
-from datetime import datetime, timedelta
-from enum import Enum
 import json
+import logging
 import statistics
+import threading
+import time
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any
 
 from .cache.multi_level_cache import get_multilevel_cache
 from .docs_provider.optimized_processor import get_optimized_document_processor
-from .optimized_pipeline import get_optimized_regulatory_pipeline
-from .optimized_graph_analytics import get_optimized_graph_analytics
 from .optimized_agent_workflow import get_optimized_agent_workflow
+from .optimized_graph_analytics import get_optimized_graph_analytics
+from .optimized_pipeline import get_optimized_regulatory_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -52,20 +51,20 @@ class PerformanceAlert:
     current_value: float
     threshold_value: float
     timestamp: datetime
-    recommendations: List[str]
-    context: Dict[str, Any]
+    recommendations: list[str]
+    context: dict[str, Any]
 
 
 @dataclass
 class PerformanceMetrics:
     """Comprehensive performance metrics snapshot."""
     timestamp: datetime
-    document_processing: Dict[str, Any]
-    pipeline_performance: Dict[str, Any]
-    graph_analytics: Dict[str, Any]
-    agent_workflow: Dict[str, Any]
-    cache_performance: Dict[str, Any]
-    system_resources: Dict[str, Any]
+    document_processing: dict[str, Any]
+    pipeline_performance: dict[str, Any]
+    graph_analytics: dict[str, Any]
+    agent_workflow: dict[str, Any]
+    cache_performance: dict[str, Any]
+    system_resources: dict[str, Any]
 
 
 class PerformanceMonitor:
@@ -98,17 +97,17 @@ class PerformanceMonitor:
         # Monitoring state
         self.monitoring_active = False
         self.monitoring_thread = None
-        self.metrics_history: List[PerformanceMetrics] = []
-        self.active_alerts: Dict[str, PerformanceAlert] = {}
-        self.alert_history: List[PerformanceAlert] = []
+        self.metrics_history: list[PerformanceMetrics] = []
+        self.active_alerts: dict[str, PerformanceAlert] = {}
+        self.alert_history: list[PerformanceAlert] = []
 
         # Alert thresholds
         self.thresholds = {
-            'latency_p95': {'warning': 2.0, 'error': 5.0, 'critical': 10.0},
-            'throughput_min': {'warning': 5.0, 'error': 2.0, 'critical': 1.0},
-            'cache_hit_rate_min': {'warning': 0.7, 'error': 0.5, 'critical': 0.3},
-            'memory_usage_max': {'warning': 0.8, 'error': 0.9, 'critical': 0.95},
-            'error_rate_max': {'warning': 0.05, 'error': 0.1, 'critical': 0.2}
+            "latency_p95": {"warning": 2.0, "error": 5.0, "critical": 10.0},
+            "throughput_min": {"warning": 5.0, "error": 2.0, "critical": 1.0},
+            "cache_hit_rate_min": {"warning": 0.7, "error": 0.5, "critical": 0.3},
+            "memory_usage_max": {"warning": 0.8, "error": 0.9, "critical": 0.95},
+            "error_rate_max": {"warning": 0.05, "error": 0.1, "critical": 0.2}
         }
 
         # Anomaly detection
@@ -181,142 +180,142 @@ class PerformanceMonitor:
             system_resources=self._get_system_resources()
         )
 
-    def _get_document_processing_metrics(self) -> Dict[str, Any]:
+    def _get_document_processing_metrics(self) -> dict[str, Any]:
         """Get document processing performance metrics."""
         try:
             stats = self.doc_processor.get_performance_stats()
             return {
-                'total_processed': stats.get('total_processed', 0),
-                'cache_hit_rate': stats.get('cache_hit_rate', 0.0),
-                'avg_processing_time': stats.get('avg_processing_time', 0.0),
-                'p95_processing_time': stats.get('p95_processing_time', 0.0),
-                'avg_chunk_count': stats.get('avg_chunk_count', 0),
-                'thread_pool_workers': stats.get('thread_pool_workers', 0)
+                "total_processed": stats.get("total_processed", 0),
+                "cache_hit_rate": stats.get("cache_hit_rate", 0.0),
+                "avg_processing_time": stats.get("avg_processing_time", 0.0),
+                "p95_processing_time": stats.get("p95_processing_time", 0.0),
+                "avg_chunk_count": stats.get("avg_chunk_count", 0),
+                "thread_pool_workers": stats.get("thread_pool_workers", 0)
             }
         except Exception as e:
             logger.warning(f"Failed to get document processing metrics: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
-    def _get_pipeline_metrics(self) -> Dict[str, Any]:
+    def _get_pipeline_metrics(self) -> dict[str, Any]:
         """Get regulatory pipeline performance metrics."""
         try:
             stats = self.pipeline.get_pipeline_stats()
             return {
-                'total_runs': stats.get('total_runs', 0),
-                'avg_throughput': stats.get('avg_throughput', 0.0),
-                'avg_cache_hit_rate': stats.get('avg_cache_hit_rate', 0.0),
-                'total_documents_processed': stats.get('total_documents_processed', 0),
-                'circuit_breaker_status': stats.get('circuit_breaker_status', 'unknown'),
-                'current_batch_size': stats.get('current_batch_size', 0),
-                'failure_count': stats.get('failure_count', 0)
+                "total_runs": stats.get("total_runs", 0),
+                "avg_throughput": stats.get("avg_throughput", 0.0),
+                "avg_cache_hit_rate": stats.get("avg_cache_hit_rate", 0.0),
+                "total_documents_processed": stats.get("total_documents_processed", 0),
+                "circuit_breaker_status": stats.get("circuit_breaker_status", "unknown"),
+                "current_batch_size": stats.get("current_batch_size", 0),
+                "failure_count": stats.get("failure_count", 0)
             }
         except Exception as e:
             logger.warning(f"Failed to get pipeline metrics: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
-    def _get_graph_analytics_metrics(self) -> Dict[str, Any]:
+    def _get_graph_analytics_metrics(self) -> dict[str, Any]:
         """Get graph analytics performance metrics."""
         try:
             stats = self.analytics.get_performance_stats()
             return {
-                'total_queries': stats.get('total_queries', 0),
-                'cache_hit_rate': stats.get('cache_hit_rate', 0.0),
-                'avg_query_time': stats.get('avg_query_time', 0.0),
-                'p95_query_time': stats.get('p95_query_time', 0.0),
-                'avg_nodes_processed': stats.get('avg_nodes_processed', 0),
-                'avg_edges_processed': stats.get('avg_edges_processed', 0),
-                'concurrent_queries_max': stats.get('concurrent_queries_max', 0)
+                "total_queries": stats.get("total_queries", 0),
+                "cache_hit_rate": stats.get("cache_hit_rate", 0.0),
+                "avg_query_time": stats.get("avg_query_time", 0.0),
+                "p95_query_time": stats.get("p95_query_time", 0.0),
+                "avg_nodes_processed": stats.get("avg_nodes_processed", 0),
+                "avg_edges_processed": stats.get("avg_edges_processed", 0),
+                "concurrent_queries_max": stats.get("concurrent_queries_max", 0)
             }
         except Exception as e:
             logger.warning(f"Failed to get graph analytics metrics: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
-    def _get_agent_workflow_metrics(self) -> Dict[str, Any]:
+    def _get_agent_workflow_metrics(self) -> dict[str, Any]:
         """Get agent workflow performance metrics."""
         try:
             stats = self.workflow.get_workflow_stats()
             return {
-                'total_workflows': stats.get('total_workflows', 0),
-                'avg_throughput': stats.get('avg_throughput', 0.0),
-                'avg_cache_hit_rate': stats.get('avg_cache_hit_rate', 0.0),
-                'total_tasks_processed': stats.get('total_tasks_processed', 0),
-                'agent_pool_sizes': stats.get('agent_pool_sizes', {}),
-                'load_balancing_enabled': stats.get('load_balancing_enabled', False)
+                "total_workflows": stats.get("total_workflows", 0),
+                "avg_throughput": stats.get("avg_throughput", 0.0),
+                "avg_cache_hit_rate": stats.get("avg_cache_hit_rate", 0.0),
+                "total_tasks_processed": stats.get("total_tasks_processed", 0),
+                "agent_pool_sizes": stats.get("agent_pool_sizes", {}),
+                "load_balancing_enabled": stats.get("load_balancing_enabled", False)
             }
         except Exception as e:
             logger.warning(f"Failed to get agent workflow metrics: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
-    def _get_cache_metrics(self) -> Dict[str, Any]:
+    def _get_cache_metrics(self) -> dict[str, Any]:
         """Get cache performance metrics."""
         try:
             stats = self.cache.get_stats()
             return {
-                'overall_hit_rate': stats.get('overall_hit_rate', 0.0),
-                'l1_hit_rate': stats.get('l1_hit_rate', 0.0),
-                'l2_hit_rate': stats.get('l2_hit_rate', 0.0),
-                'l3_hit_rate': stats.get('l3_hit_rate', 0.0),
-                'total_requests': stats.get('total_requests', 0),
-                'l1_stats': stats.get('l1_stats', {}),
-                'l2_stats': stats.get('l2_stats', {}),
-                'l3_stats': stats.get('l3_stats', {})
+                "overall_hit_rate": stats.get("overall_hit_rate", 0.0),
+                "l1_hit_rate": stats.get("l1_hit_rate", 0.0),
+                "l2_hit_rate": stats.get("l2_hit_rate", 0.0),
+                "l3_hit_rate": stats.get("l3_hit_rate", 0.0),
+                "total_requests": stats.get("total_requests", 0),
+                "l1_stats": stats.get("l1_stats", {}),
+                "l2_stats": stats.get("l2_stats", {}),
+                "l3_stats": stats.get("l3_stats", {})
             }
         except Exception as e:
             logger.warning(f"Failed to get cache metrics: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
-    def _get_system_resources(self) -> Dict[str, Any]:
+    def _get_system_resources(self) -> dict[str, Any]:
         """Get system resource usage metrics."""
         try:
             import psutil
             process = psutil.Process()
 
             return {
-                'cpu_percent': psutil.cpu_percent(interval=1),
-                'memory_percent': psutil.virtual_memory().percent,
-                'process_memory_mb': process.memory_info().rss / 1024 / 1024,
-                'disk_usage_percent': psutil.disk_usage('/').percent,
-                'network_connections': len(psutil.net_connections())
+                "cpu_percent": psutil.cpu_percent(interval=1),
+                "memory_percent": psutil.virtual_memory().percent,
+                "process_memory_mb": process.memory_info().rss / 1024 / 1024,
+                "disk_usage_percent": psutil.disk_usage("/").percent,
+                "network_connections": len(psutil.net_connections())
             }
         except ImportError:
-            return {'error': 'psutil not available'}
+            return {"error": "psutil not available"}
         except Exception as e:
             logger.warning(f"Failed to get system resources: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def _check_alerts(self, metrics: PerformanceMetrics):
         """Check metrics against thresholds and create alerts."""
         # Document processing alerts
-        self._check_latency_alert(metrics.document_processing, 'document_processing')
-        self._check_cache_hit_rate_alert(metrics.document_processing, 'document_processing')
+        self._check_latency_alert(metrics.document_processing, "document_processing")
+        self._check_cache_hit_rate_alert(metrics.document_processing, "document_processing")
 
         # Pipeline alerts
-        self._check_throughput_alert(metrics.pipeline_performance, 'pipeline')
-        self._check_error_rate_alert(metrics.pipeline_performance, 'pipeline')
+        self._check_throughput_alert(metrics.pipeline_performance, "pipeline")
+        self._check_error_rate_alert(metrics.pipeline_performance, "pipeline")
 
         # Graph analytics alerts
-        self._check_latency_alert(metrics.graph_analytics, 'graph_analytics')
+        self._check_latency_alert(metrics.graph_analytics, "graph_analytics")
 
         # Agent workflow alerts
-        self._check_throughput_alert(metrics.agent_workflow, 'agent_workflow')
+        self._check_throughput_alert(metrics.agent_workflow, "agent_workflow")
 
         # System resource alerts
-        self._check_memory_alert(metrics.system_resources, 'system')
+        self._check_memory_alert(metrics.system_resources, "system")
 
-    def _check_latency_alert(self, component_metrics: Dict[str, Any], component: str):
+    def _check_latency_alert(self, component_metrics: dict[str, Any], component: str):
         """Check latency thresholds and create alerts."""
-        p95_time = component_metrics.get('p95_processing_time') or component_metrics.get('p95_query_time')
+        p95_time = component_metrics.get("p95_processing_time") or component_metrics.get("p95_query_time")
         if p95_time is None:
             return
 
-        thresholds = self.thresholds['latency_p95']
+        thresholds = self.thresholds["latency_p95"]
         severity = None
 
-        if p95_time >= thresholds['critical']:
+        if p95_time >= thresholds["critical"]:
             severity = AlertSeverity.CRITICAL
-        elif p95_time >= thresholds['error']:
+        elif p95_time >= thresholds["error"]:
             severity = AlertSeverity.ERROR
-        elif p95_time >= thresholds['warning']:
+        elif p95_time >= thresholds["warning"]:
             severity = AlertSeverity.WARNING
 
         if severity:
@@ -330,20 +329,20 @@ class PerformanceMonitor:
                 recommendations=self._get_latency_recommendations(component)
             )
 
-    def _check_throughput_alert(self, component_metrics: Dict[str, Any], component: str):
+    def _check_throughput_alert(self, component_metrics: dict[str, Any], component: str):
         """Check throughput thresholds and create alerts."""
-        throughput = component_metrics.get('avg_throughput')
+        throughput = component_metrics.get("avg_throughput")
         if throughput is None:
             return
 
-        thresholds = self.thresholds['throughput_min']
+        thresholds = self.thresholds["throughput_min"]
         severity = None
 
-        if throughput <= thresholds['critical']:
+        if throughput <= thresholds["critical"]:
             severity = AlertSeverity.CRITICAL
-        elif throughput <= thresholds['error']:
+        elif throughput <= thresholds["error"]:
             severity = AlertSeverity.ERROR
-        elif throughput <= thresholds['warning']:
+        elif throughput <= thresholds["warning"]:
             severity = AlertSeverity.WARNING
 
         if severity:
@@ -357,20 +356,20 @@ class PerformanceMonitor:
                 recommendations=self._get_throughput_recommendations(component)
             )
 
-    def _check_cache_hit_rate_alert(self, component_metrics: Dict[str, Any], component: str):
+    def _check_cache_hit_rate_alert(self, component_metrics: dict[str, Any], component: str):
         """Check cache hit rate thresholds and create alerts."""
-        hit_rate = component_metrics.get('cache_hit_rate')
+        hit_rate = component_metrics.get("cache_hit_rate")
         if hit_rate is None:
             return
 
-        thresholds = self.thresholds['cache_hit_rate_min']
+        thresholds = self.thresholds["cache_hit_rate_min"]
         severity = None
 
-        if hit_rate <= thresholds['critical']:
+        if hit_rate <= thresholds["critical"]:
             severity = AlertSeverity.CRITICAL
-        elif hit_rate <= thresholds['error']:
+        elif hit_rate <= thresholds["error"]:
             severity = AlertSeverity.ERROR
-        elif hit_rate <= thresholds['warning']:
+        elif hit_rate <= thresholds["warning"]:
             severity = AlertSeverity.WARNING
 
         if severity:
@@ -384,20 +383,20 @@ class PerformanceMonitor:
                 recommendations=self._get_cache_recommendations(component)
             )
 
-    def _check_memory_alert(self, system_metrics: Dict[str, Any], component: str):
+    def _check_memory_alert(self, system_metrics: dict[str, Any], component: str):
         """Check memory usage thresholds and create alerts."""
-        memory_percent = system_metrics.get('memory_percent')
+        memory_percent = system_metrics.get("memory_percent")
         if memory_percent is None:
             return
 
-        thresholds = self.thresholds['memory_usage_max']
+        thresholds = self.thresholds["memory_usage_max"]
         severity = None
 
-        if memory_percent >= thresholds['critical']:
+        if memory_percent >= thresholds["critical"]:
             severity = AlertSeverity.CRITICAL
-        elif memory_percent >= thresholds['error']:
+        elif memory_percent >= thresholds["error"]:
             severity = AlertSeverity.ERROR
-        elif memory_percent >= thresholds['warning']:
+        elif memory_percent >= thresholds["warning"]:
             severity = AlertSeverity.WARNING
 
         if severity:
@@ -411,20 +410,20 @@ class PerformanceMonitor:
                 recommendations=self._get_memory_recommendations()
             )
 
-    def _check_error_rate_alert(self, component_metrics: Dict[str, Any], component: str):
+    def _check_error_rate_alert(self, component_metrics: dict[str, Any], component: str):
         """Check error rate thresholds and create alerts."""
-        failure_count = component_metrics.get('failure_count', 0)
-        total_runs = component_metrics.get('total_runs', 1)
+        failure_count = component_metrics.get("failure_count", 0)
+        total_runs = component_metrics.get("total_runs", 1)
         error_rate = failure_count / total_runs if total_runs > 0 else 0
 
-        thresholds = self.thresholds['error_rate_max']
+        thresholds = self.thresholds["error_rate_max"]
         severity = None
 
-        if error_rate >= thresholds['critical']:
+        if error_rate >= thresholds["critical"]:
             severity = AlertSeverity.CRITICAL
-        elif error_rate >= thresholds['error']:
+        elif error_rate >= thresholds["error"]:
             severity = AlertSeverity.ERROR
-        elif error_rate >= thresholds['warning']:
+        elif error_rate >= thresholds["warning"]:
             severity = AlertSeverity.WARNING
 
         if severity:
@@ -440,7 +439,7 @@ class PerformanceMonitor:
 
     def _create_alert(self, severity: AlertSeverity, metric_type: MetricType,
                      component: str, message: str, current_value: float,
-                     threshold_value: float, recommendations: List[str]):
+                     threshold_value: float, recommendations: list[str]):
         """Create and store a performance alert."""
         alert_id = f"{component}_{metric_type.value}_{int(time.time())}"
 
@@ -458,7 +457,7 @@ class PerformanceMonitor:
             threshold_value=threshold_value,
             timestamp=datetime.now(),
             recommendations=recommendations,
-            context={'component': component, 'metric_type': metric_type.value}
+            context={"component": component, "metric_type": metric_type.value}
         )
 
         with self.alerts_lock:
@@ -471,15 +470,15 @@ class PerformanceMonitor:
 
         logger.warning(f"Performance Alert [{severity.value.upper()}]: {message}")
 
-    def _create_anomaly_alert(self, anomaly: Dict[str, Any]):
+    def _create_anomaly_alert(self, anomaly: dict[str, Any]):
         """Create alert for detected anomaly."""
         self._create_alert(
             severity=AlertSeverity.WARNING,
             metric_type=MetricType.RESOURCE_UTILIZATION,
-            component=anomaly.get('component', 'unknown'),
+            component=anomaly.get("component", "unknown"),
             message=f"Anomaly detected: {anomaly.get('description', 'Unknown anomaly')}",
-            current_value=anomaly.get('value', 0),
-            threshold_value=anomaly.get('expected_value', 0),
+            current_value=anomaly.get("value", 0),
+            threshold_value=anomaly.get("expected_value", 0),
             recommendations=["Investigate anomaly cause", "Check system logs", "Review recent changes"]
         )
 
@@ -487,12 +486,12 @@ class PerformanceMonitor:
         """Check if alert is in cooldown period."""
         with self.alerts_lock:
             for alert in self.alert_history[-10:]:  # Check recent alerts
-                if alert.alert_id.startswith(alert_id.split('_')[0]) and \
+                if alert.alert_id.startswith(alert_id.split("_")[0]) and \
                    (datetime.now() - alert.timestamp).seconds < self.alert_cooldown:
                     return True
         return False
 
-    def _get_latency_recommendations(self, component: str) -> List[str]:
+    def _get_latency_recommendations(self, component: str) -> list[str]:
         """Get latency optimization recommendations."""
         recommendations = [
             "Increase cache size for frequently accessed data",
@@ -501,13 +500,13 @@ class PerformanceMonitor:
             "Review and optimize algorithm complexity"
         ]
 
-        if component == 'document_processing':
+        if component == "document_processing":
             recommendations.extend([
                 "Use parallel processing for batch operations",
                 "Implement document pre-processing caching",
                 "Optimize chunking strategy for document type"
             ])
-        elif component == 'graph_analytics':
+        elif component == "graph_analytics":
             recommendations.extend([
                 "Add database indexes for frequently queried relationships",
                 "Implement query result caching",
@@ -516,7 +515,7 @@ class PerformanceMonitor:
 
         return recommendations
 
-    def _get_throughput_recommendations(self, component: str) -> List[str]:
+    def _get_throughput_recommendations(self, component: str) -> list[str]:
         """Get throughput optimization recommendations."""
         return [
             "Increase concurrent worker threads",
@@ -526,7 +525,7 @@ class PerformanceMonitor:
             "Review and optimize I/O operations"
         ]
 
-    def _get_cache_recommendations(self, component: str) -> List[str]:
+    def _get_cache_recommendations(self, component: str) -> list[str]:
         """Get cache optimization recommendations."""
         return [
             "Increase cache TTL for stable data",
@@ -536,7 +535,7 @@ class PerformanceMonitor:
             "Implement cache prefetching strategies"
         ]
 
-    def _get_memory_recommendations(self) -> List[str]:
+    def _get_memory_recommendations(self) -> list[str]:
         """Get memory optimization recommendations."""
         return [
             "Implement memory-efficient data structures",
@@ -546,7 +545,7 @@ class PerformanceMonitor:
             "Add memory monitoring and leak detection"
         ]
 
-    def _get_error_rate_recommendations(self, component: str) -> List[str]:
+    def _get_error_rate_recommendations(self, component: str) -> list[str]:
         """Get error rate reduction recommendations."""
         return [
             "Add comprehensive error handling and retries",
@@ -556,73 +555,73 @@ class PerformanceMonitor:
             "Add monitoring for error patterns"
         ]
 
-    def get_active_alerts(self) -> List[Dict[str, Any]]:
+    def get_active_alerts(self) -> list[dict[str, Any]]:
         """Get list of active performance alerts."""
         with self.alerts_lock:
             return [
                 {
-                    'alert_id': alert.alert_id,
-                    'severity': alert.severity.value,
-                    'component': alert.component,
-                    'message': alert.message,
-                    'timestamp': alert.timestamp.isoformat(),
-                    'recommendations': alert.recommendations
+                    "alert_id": alert.alert_id,
+                    "severity": alert.severity.value,
+                    "component": alert.component,
+                    "message": alert.message,
+                    "timestamp": alert.timestamp.isoformat(),
+                    "recommendations": alert.recommendations
                 }
                 for alert in self.active_alerts.values()
             ]
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get comprehensive performance summary."""
         with self.metrics_lock:
             if not self.metrics_history:
-                return {'status': 'no_data'}
+                return {"status": "no_data"}
 
             recent_metrics = self.metrics_history[-10:]  # Last 10 measurements
 
             return {
-                'monitoring_active': self.monitoring_active,
-                'total_measurements': len(self.metrics_history),
-                'active_alerts_count': len(self.active_alerts),
-                'avg_cache_hit_rate': round(
-                    statistics.mean(m.cache_performance.get('overall_hit_rate', 0) for m in recent_metrics), 2
+                "monitoring_active": self.monitoring_active,
+                "total_measurements": len(self.metrics_history),
+                "active_alerts_count": len(self.active_alerts),
+                "avg_cache_hit_rate": round(
+                    statistics.mean(m.cache_performance.get("overall_hit_rate", 0) for m in recent_metrics), 2
                 ),
-                'avg_memory_usage': round(
-                    statistics.mean(m.system_resources.get('memory_percent', 0) for m in recent_metrics), 2
+                "avg_memory_usage": round(
+                    statistics.mean(m.system_resources.get("memory_percent", 0) for m in recent_metrics), 2
                 ),
-                'total_documents_processed': sum(
-                    m.document_processing.get('total_processed', 0) for m in recent_metrics
+                "total_documents_processed": sum(
+                    m.document_processing.get("total_processed", 0) for m in recent_metrics
                 ),
-                'total_queries_executed': sum(
-                    m.graph_analytics.get('total_queries', 0) for m in recent_metrics
+                "total_queries_executed": sum(
+                    m.graph_analytics.get("total_queries", 0) for m in recent_metrics
                 ),
-                'total_workflows_executed': sum(
-                    m.agent_workflow.get('total_workflows', 0) for m in recent_metrics
+                "total_workflows_executed": sum(
+                    m.agent_workflow.get("total_workflows", 0) for m in recent_metrics
                 )
             }
 
     def export_metrics_report(self, filepath: str):
         """Export detailed metrics report to file."""
         report = {
-            'generated_at': datetime.now().isoformat(),
-            'monitoring_config': {
-                'interval': self.monitoring_interval,
-                'alert_cooldown': self.alert_cooldown,
-                'anomaly_detection_enabled': self.enable_anomaly_detection
+            "generated_at": datetime.now().isoformat(),
+            "monitoring_config": {
+                "interval": self.monitoring_interval,
+                "alert_cooldown": self.alert_cooldown,
+                "anomaly_detection_enabled": self.enable_anomaly_detection
             },
-            'current_metrics': self.get_performance_summary(),
-            'active_alerts': self.get_active_alerts(),
-            'recent_history': [
+            "current_metrics": self.get_performance_summary(),
+            "active_alerts": self.get_active_alerts(),
+            "recent_history": [
                 {
-                    'timestamp': m.timestamp.isoformat(),
-                    'cache_hit_rate': m.cache_performance.get('overall_hit_rate', 0),
-                    'memory_usage': m.system_resources.get('memory_percent', 0),
-                    'documents_processed': m.document_processing.get('total_processed', 0)
+                    "timestamp": m.timestamp.isoformat(),
+                    "cache_hit_rate": m.cache_performance.get("overall_hit_rate", 0),
+                    "memory_usage": m.system_resources.get("memory_percent", 0),
+                    "documents_processed": m.document_processing.get("total_processed", 0)
                 }
                 for m in self.metrics_history[-50:]  # Last 50 measurements
             ]
         }
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         logger.info(f"Metrics report exported to {filepath}")
@@ -636,30 +635,30 @@ class AnomalyDetector:
         self.baseline_history = {}
         self.anomaly_history = []
 
-    def detect_anomalies(self, metrics: PerformanceMetrics) -> List[Dict[str, Any]]:
+    def detect_anomalies(self, metrics: PerformanceMetrics) -> list[dict[str, Any]]:
         """Detect anomalies in performance metrics."""
         anomalies = []
 
         # Check cache hit rate
-        cache_hit_rate = metrics.cache_performance.get('overall_hit_rate', 0)
-        if self._is_anomaly('cache_hit_rate', cache_hit_rate):
+        cache_hit_rate = metrics.cache_performance.get("overall_hit_rate", 0)
+        if self._is_anomaly("cache_hit_rate", cache_hit_rate):
             anomalies.append({
-                'component': 'cache',
-                'metric': 'cache_hit_rate',
-                'value': cache_hit_rate,
-                'expected_value': self.baseline_history.get('cache_hit_rate', cache_hit_rate),
-                'description': f"Cache hit rate anomaly: {cache_hit_rate:.1%}"
+                "component": "cache",
+                "metric": "cache_hit_rate",
+                "value": cache_hit_rate,
+                "expected_value": self.baseline_history.get("cache_hit_rate", cache_hit_rate),
+                "description": f"Cache hit rate anomaly: {cache_hit_rate:.1%}"
             })
 
         # Check memory usage
-        memory_usage = metrics.system_resources.get('memory_percent', 0)
-        if self._is_anomaly('memory_usage', memory_usage):
+        memory_usage = metrics.system_resources.get("memory_percent", 0)
+        if self._is_anomaly("memory_usage", memory_usage):
             anomalies.append({
-                'component': 'system',
-                'metric': 'memory_usage',
-                'value': memory_usage,
-                'expected_value': self.baseline_history.get('memory_usage', memory_usage),
-                'description': f"Memory usage anomaly: {memory_usage:.1f}%"
+                "component": "system",
+                "metric": "memory_usage",
+                "value": memory_usage,
+                "expected_value": self.baseline_history.get("memory_usage", memory_usage),
+                "description": f"Memory usage anomaly: {memory_usage:.1f}%"
             })
 
         return anomalies
@@ -681,7 +680,7 @@ class AnomalyDetector:
 
 
 # Global instance
-_performance_monitor: Optional[PerformanceMonitor] = None
+_performance_monitor: PerformanceMonitor | None = None
 
 
 def get_performance_monitor() -> PerformanceMonitor:

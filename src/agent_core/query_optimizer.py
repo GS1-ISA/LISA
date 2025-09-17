@@ -1,7 +1,8 @@
 import re
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
+
 
 class QueryDomain(Enum):
     COMPLIANCE = "compliance"
@@ -40,56 +41,56 @@ class QueryOptimizer:
         # ISA-specific domain keywords
         self.domain_keywords = {
             QueryDomain.COMPLIANCE: [
-                'compliance', 'regulation', 'directive', 'csrd', 'esg', 'gap analysis',
-                'regulatory', 'legal', 'requirement', 'mandate', 'standard compliance'
+                "compliance", "regulation", "directive", "csrd", "esg", "gap analysis",
+                "regulatory", "legal", "requirement", "mandate", "standard compliance"
             ],
             QueryDomain.DOCUMENT_PROCESSING: [
-                'document', 'pdf', 'extract', 'parse', 'analyze document', 'content',
-                'text processing', 'document analysis', 'information extraction'
+                "document", "pdf", "extract", "parse", "analyze document", "content",
+                "text processing", "document analysis", "information extraction"
             ],
             QueryDomain.STANDARDS_MAPPING: [
-                'map', 'mapping', 'gdsn', 'attributes', 'standards', 'ontology',
-                'schema', 'data model', 'attribute mapping', 'gs1 standards'
+                "map", "mapping", "gdsn", "attributes", "standards", "ontology",
+                "schema", "data model", "attribute mapping", "gs1 standards"
             ]
         }
 
         # Technical terms that indicate complexity
         self.technical_terms = [
-            'ontology', 'schema', 'xml', 'json', 'api', 'integration', 'workflow',
-            'metadata', 'taxonomy', 'classification', 'validation', 'certification'
+            "ontology", "schema", "xml", "json", "api", "integration", "workflow",
+            "metadata", "taxonomy", "classification", "validation", "certification"
         ]
 
         # Model configurations optimized for ISA use cases
         self.model_configs = {
-            'google/gemini-2.5-flash-image-preview:free': {
-                'strengths': ['general', 'compliance', 'reasoning'],
-                'max_context': 1000000,
-                'temperature_range': (0.1, 0.3),
-                'accuracy_boost': 1.25
+            "google/gemini-2.5-flash-image-preview:free": {
+                "strengths": ["general", "compliance", "reasoning"],
+                "max_context": 1000000,
+                "temperature_range": (0.1, 0.3),
+                "accuracy_boost": 1.25
             },
-            'meta-llama/llama-4-scout:free': {
-                'strengths': ['long_context', 'document_processing'],
-                'max_context': 2000000,
-                'temperature_range': (0.1, 0.4),
-                'accuracy_boost': 1.15
+            "meta-llama/llama-4-scout:free": {
+                "strengths": ["long_context", "document_processing"],
+                "max_context": 2000000,
+                "temperature_range": (0.1, 0.4),
+                "accuracy_boost": 1.15
             },
-            'mistralai/mistral-small-3.1-24b-instruct:free': {
-                'strengths': ['structured_output', 'standards_mapping', 'fast'],
-                'max_context': 800000,
-                'temperature_range': (0.0, 0.2),
-                'accuracy_boost': 1.30
+            "mistralai/mistral-small-3.1-24b-instruct:free": {
+                "strengths": ["structured_output", "standards_mapping", "fast"],
+                "max_context": 800000,
+                "temperature_range": (0.0, 0.2),
+                "accuracy_boost": 1.30
             },
-            'deepseek/deepseek-r1:free': {
-                'strengths': ['reasoning', 'complex_analysis'],
-                'max_context': 600000,
-                'temperature_range': (0.1, 0.5),
-                'accuracy_boost': 1.35
+            "deepseek/deepseek-r1:free": {
+                "strengths": ["reasoning", "complex_analysis"],
+                "max_context": 600000,
+                "temperature_range": (0.1, 0.5),
+                "accuracy_boost": 1.35
             },
-            'google/gemini-2.0-flash-exp:free': {
-                'strengths': ['backup', 'general'],
-                'max_context': 500000,
-                'temperature_range': (0.1, 0.4),
-                'accuracy_boost': 1.10
+            "google/gemini-2.0-flash-exp:free": {
+                "strengths": ["backup", "general"],
+                "max_context": 500000,
+                "temperature_range": (0.1, 0.4),
+                "accuracy_boost": 1.10
             }
         }
 
@@ -111,10 +112,10 @@ class QueryOptimizer:
         domain = self._detect_domain(query_lower)
 
         # Feature detection
-        has_questions = '?' in query or any(word in query_lower for word in ['what', 'how', 'why', 'explain'])
+        has_questions = "?" in query or any(word in query_lower for word in ["what", "how", "why", "explain"])
         has_technical_terms = any(term in query_lower for term in self.technical_terms)
-        requires_reasoning = any(word in query_lower for word in ['analyze', 'explain', 'why', 'reason', 'justify', 'compare'])
-        requires_structured_output = any(word in query_lower for word in ['map', 'table', 'matrix', 'structure', 'list'])
+        requires_reasoning = any(word in query_lower for word in ["analyze", "explain", "why", "reason", "justify", "compare"])
+        requires_structured_output = any(word in query_lower for word in ["map", "table", "matrix", "structure", "list"])
 
         return QueryAnalysis(
             length_chars=length_chars,
@@ -129,7 +130,7 @@ class QueryOptimizer:
 
     def _analyze_complexity(self, query: str) -> QueryComplexity:
         """Analyze query complexity based on structure and content."""
-        sentences = re.split(r'[.!?]+', query)
+        sentences = re.split(r"[.!?]+", query)
         avg_sentence_length = sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0
 
         # Complexity factors
@@ -137,9 +138,9 @@ class QueryOptimizer:
         if avg_sentence_length > 15: factors += 1  # Lower threshold
         if len(sentences) > 2: factors += 1  # Lower threshold
         if any(term in query.lower() for term in self.technical_terms): factors += 1
-        if ',' in query or ';' in query: factors += 1  # Complex structure
+        if "," in query or ";" in query: factors += 1  # Complex structure
         if len(query.split()) > 20: factors += 1  # Long query
-        if any(word in query.lower() for word in ['analyze', 'compare', 'extract', 'map', 'integrate']): factors += 1
+        if any(word in query.lower() for word in ["analyze", "compare", "extract", "map", "integrate"]): factors += 1
 
         if factors >= 5: return QueryComplexity.VERY_COMPLEX
         elif factors >= 3: return QueryComplexity.COMPLEX
@@ -186,37 +187,37 @@ class QueryOptimizer:
 
         # Long context requirement - highest priority
         if context_length > 500000 or analysis.length_chars > 50000:
-            return 'meta-llama/llama-4-scout:free'
+            return "meta-llama/llama-4-scout:free"
 
         # Domain-specific optimization
         if analysis.domain == QueryDomain.COMPLIANCE:
             if analysis.requires_reasoning:
-                candidates.extend(['deepseek/deepseek-r1:free', 'google/gemini-2.5-flash-image-preview:free'])
+                candidates.extend(["deepseek/deepseek-r1:free", "google/gemini-2.5-flash-image-preview:free"])
             else:
-                candidates.append('google/gemini-2.5-flash-image-preview:free')
+                candidates.append("google/gemini-2.5-flash-image-preview:free")
 
         elif analysis.domain == QueryDomain.DOCUMENT_PROCESSING:
-            candidates.append('meta-llama/llama-4-scout:free')
+            candidates.append("meta-llama/llama-4-scout:free")
 
         elif analysis.domain == QueryDomain.STANDARDS_MAPPING:
             if analysis.requires_structured_output:
-                candidates.append('mistralai/mistral-small-3.1-24b-instruct:free')
+                candidates.append("mistralai/mistral-small-3.1-24b-instruct:free")
             else:
-                candidates.append('google/gemini-2.5-flash-image-preview:free')
+                candidates.append("google/gemini-2.5-flash-image-preview:free")
 
         # Complexity-based selection
         if analysis.complexity in [QueryComplexity.COMPLEX, QueryComplexity.VERY_COMPLEX]:
-            candidates.append('deepseek/deepseek-r1:free')
+            candidates.append("deepseek/deepseek-r1:free")
 
         # Remove duplicates and prioritize by accuracy boost
         unique_candidates = list(set(candidates))
         if unique_candidates:
             # Sort by accuracy boost descending
-            unique_candidates.sort(key=lambda m: self.model_configs[m]['accuracy_boost'], reverse=True)
+            unique_candidates.sort(key=lambda m: self.model_configs[m]["accuracy_boost"], reverse=True)
             return unique_candidates[0]
 
         # Default fallback
-        return 'google/gemini-2.5-flash-image-preview:free'
+        return "google/gemini-2.5-flash-image-preview:free"
 
     def _calculate_optimal_temperature(self, analysis: QueryAnalysis) -> float:
         """Calculate optimal temperature based on query characteristics."""
@@ -279,11 +280,11 @@ class QueryOptimizer:
 
         return " | ".join(reasons)
 
-    def get_optimization_stats(self) -> Dict[str, Any]:
+    def get_optimization_stats(self) -> dict[str, Any]:
         """Get statistics about optimization performance."""
         return {
-            'supported_models': list(self.model_configs.keys()),
-            'domain_coverage': list(self.domain_keywords.keys()),
-            'complexity_levels': [c.value for c in QueryComplexity],
-            'expected_accuracy_improvement': '25-35%'
+            "supported_models": list(self.model_configs.keys()),
+            "domain_coverage": list(self.domain_keywords.keys()),
+            "complexity_levels": [c.value for c in QueryComplexity],
+            "expected_accuracy_improvement": "25-35%"
         }

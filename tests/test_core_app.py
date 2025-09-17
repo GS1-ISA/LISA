@@ -3,15 +3,14 @@ Tests for the core ISA SuperApp functionality.
 """
 
 import asyncio
-import json
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from isa_superapp.core.app import ISASuperApp, create_app
-from isa_superapp.core.config import Config
+from isa_superapp.core.config import ISAConfig
 from isa_superapp.core.exceptions import ConfigurationError, ISAError
 from isa_superapp.core.models import Document, SearchQuery, Task, TaskType
 
@@ -22,7 +21,7 @@ class TestISASuperApp:
     @pytest.fixture
     async def app(self):
         """Create a test app instance."""
-        config = Config(
+        config = ISAConfig(
             vector_store={"provider": "memory", "collection_name": "test_collection"},
             llm={"provider": "mock", "model": "test-model"},
         )
@@ -280,7 +279,7 @@ class TestAppConfiguration:
         ]
 
         for config in configs:
-            app_config = Config(vector_store=config)
+            app_config = ISAConfig(vector_store=config)
             app = ISASuperApp(app_config)
             assert app.vector_store is not None
             await app.shutdown()
@@ -294,7 +293,7 @@ class TestAppConfiguration:
         ]
 
         for config in configs:
-            app_config = Config(llm=config)
+            app_config = ISAConfig(llm=config)
             app = ISASuperApp(app_config)
             assert app.llm_provider is not None
             await app.shutdown()

@@ -6,17 +6,11 @@ land use types and changes for EUDR compliance screening.
 """
 
 import logging
-import time
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
-from datetime import datetime
+from typing import Any
 
 import requests
-import geopandas as gpd
 from shapely.geometry import Point, Polygon
-import pandas as pd
-
-from ..config.performance_config import get_request_timeout
 
 
 @dataclass
@@ -81,7 +75,7 @@ class CORINEClient:
         244: "Agro-forestry areas"
     }
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """
         Initialize CORINE client.
 
@@ -94,18 +88,18 @@ class CORINEClient:
 
         # Set default headers
         self.session.headers.update({
-            'User-Agent': 'ISA-D EUDR Compliance Tool/1.0',
-            'Accept': 'application/json'
+            "User-Agent": "ISA-D EUDR Compliance Tool/1.0",
+            "Accept": "application/json"
         })
 
         if api_key:
-            self.session.headers['Authorization'] = f'Bearer {api_key}'
+            self.session.headers["Authorization"] = f"Bearer {api_key}"
 
     def get_land_cover(
         self,
         geometry: Polygon,
         year: int = 2018
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get land cover composition for a geographic area.
 
@@ -125,13 +119,13 @@ class CORINEClient:
             land_cover_stats = self._analyze_land_cover(geometry, year)
 
             return {
-                'year': year,
-                'total_area_ha': land_cover_stats['total_area'],
-                'forest_area_ha': land_cover_stats['forest_area'],
-                'deforestation_risk_area_ha': land_cover_stats['risk_area'],
-                'land_cover_classes': land_cover_stats['classes'],
-                'forest_percentage': land_cover_stats['forest_percentage'],
-                'risk_percentage': land_cover_stats['risk_percentage']
+                "year": year,
+                "total_area_ha": land_cover_stats["total_area"],
+                "forest_area_ha": land_cover_stats["forest_area"],
+                "deforestation_risk_area_ha": land_cover_stats["risk_area"],
+                "land_cover_classes": land_cover_stats["classes"],
+                "forest_percentage": land_cover_stats["forest_percentage"],
+                "risk_percentage": land_cover_stats["risk_percentage"]
             }
 
         except Exception as e:
@@ -143,7 +137,7 @@ class CORINEClient:
         geometry: Polygon,
         start_year: int = 2012,
         end_year: int = 2018
-    ) -> List[LandCoverChange]:
+    ) -> list[LandCoverChange]:
         """
         Get land cover changes between two periods.
 
@@ -169,7 +163,7 @@ class CORINEClient:
         self,
         geometry: Polygon,
         year: int = 2018
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Assess deforestation risk based on land cover analysis.
 
@@ -184,11 +178,11 @@ class CORINEClient:
             land_cover = self.get_land_cover(geometry, year)
 
             if not land_cover:
-                return {'risk_score': 1.0, 'risk_level': 'unknown'}
+                return {"risk_score": 1.0, "risk_level": "unknown"}
 
             # Calculate risk based on land cover composition
-            forest_percentage = land_cover.get('forest_percentage', 0)
-            risk_percentage = land_cover.get('risk_percentage', 0)
+            forest_percentage = land_cover.get("forest_percentage", 0)
+            risk_percentage = land_cover.get("risk_percentage", 0)
 
             # Risk factors:
             # - Low forest cover increases risk
@@ -199,26 +193,26 @@ class CORINEClient:
             risk_score = (forest_risk * 0.6) + (development_risk * 0.4)
 
             return {
-                'risk_score': min(1.0, risk_score),
-                'risk_level': self._categorize_risk(risk_score),
-                'forest_percentage': forest_percentage,
-                'development_percentage': risk_percentage,
-                'assessment_year': year,
-                'risk_factors': {
-                    'low_forest_cover': forest_risk > 0.5,
-                    'high_development_pressure': development_risk > 0.5
+                "risk_score": min(1.0, risk_score),
+                "risk_level": self._categorize_risk(risk_score),
+                "forest_percentage": forest_percentage,
+                "development_percentage": risk_percentage,
+                "assessment_year": year,
+                "risk_factors": {
+                    "low_forest_cover": forest_risk > 0.5,
+                    "high_development_pressure": development_risk > 0.5
                 }
             }
 
         except Exception as e:
             self.logger.error(f"Error assessing deforestation risk: {str(e)}")
-            return {'risk_score': 1.0, 'risk_level': 'unknown'}
+            return {"risk_score": 1.0, "risk_level": "unknown"}
 
     def screen_supply_chain_locations(
         self,
-        locations: List[Tuple[float, float]],
+        locations: list[tuple[float, float]],
         buffer_km: float = 10
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Screen supply chain locations for land use risk.
 
@@ -241,27 +235,27 @@ class CORINEClient:
                 risk_assessment = self.assess_deforestation_risk(buffer_geom)
 
                 results[f"location_{i}"] = {
-                    'coordinates': (lat, lon),
-                    'buffer_km': buffer_km,
-                    'risk_score': risk_assessment.get('risk_score', 1.0),
-                    'risk_level': risk_assessment.get('risk_level', 'unknown'),
-                    'forest_percentage': risk_assessment.get('forest_percentage', 0),
-                    'development_percentage': risk_assessment.get('development_percentage', 0),
-                    'risk_factors': risk_assessment.get('risk_factors', {})
+                    "coordinates": (lat, lon),
+                    "buffer_km": buffer_km,
+                    "risk_score": risk_assessment.get("risk_score", 1.0),
+                    "risk_level": risk_assessment.get("risk_level", "unknown"),
+                    "forest_percentage": risk_assessment.get("forest_percentage", 0),
+                    "development_percentage": risk_assessment.get("development_percentage", 0),
+                    "risk_factors": risk_assessment.get("risk_factors", {})
                 }
 
             except Exception as e:
                 self.logger.error(f"Error screening location {lat},{lon}: {str(e)}")
                 results[f"location_{i}"] = {
-                    'coordinates': (lat, lon),
-                    'error': str(e),
-                    'risk_score': 1.0,
-                    'risk_level': 'unknown'
+                    "coordinates": (lat, lon),
+                    "error": str(e),
+                    "risk_score": 1.0,
+                    "risk_level": "unknown"
                 }
 
         return results
 
-    def _analyze_land_cover(self, geometry: Polygon, year: int) -> Dict[str, Any]:
+    def _analyze_land_cover(self, geometry: Polygon, year: int) -> dict[str, Any]:
         """Analyze land cover within geometry (mock implementation)."""
         # In production, this would query actual CORINE data
         # For now, return mock data based on geometry size
@@ -273,16 +267,16 @@ class CORINEClient:
         risk_area = area_ha * 0.3    # Assume 30% high-risk land use
 
         return {
-            'total_area': area_ha,
-            'forest_area': forest_area,
-            'risk_area': risk_area,
-            'forest_percentage': (forest_area / area_ha) * 100,
-            'risk_percentage': (risk_area / area_ha) * 100,
-            'classes': {
-                'forest': forest_area,
-                'agriculture': area_ha * 0.3,
-                'urban': area_ha * 0.2,
-                'other': area_ha * 0.1
+            "total_area": area_ha,
+            "forest_area": forest_area,
+            "risk_area": risk_area,
+            "forest_percentage": (forest_area / area_ha) * 100,
+            "risk_percentage": (risk_area / area_ha) * 100,
+            "classes": {
+                "forest": forest_area,
+                "agriculture": area_ha * 0.3,
+                "urban": area_ha * 0.2,
+                "other": area_ha * 0.1
             }
         }
 
@@ -291,7 +285,7 @@ class CORINEClient:
         geometry: Polygon,
         start_year: int,
         end_year: int
-    ) -> List[LandCoverChange]:
+    ) -> list[LandCoverChange]:
         """Analyze land cover changes (mock implementation)."""
         # Mock some changes
         changes = []

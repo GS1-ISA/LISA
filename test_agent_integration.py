@@ -3,11 +3,11 @@
 Simple test script for agent integration.
 Tests that agents can be imported and instantiated without LLM calls.
 """
-import sys
 import os
+import sys
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 def test_agent_imports():
     """Test that agents can be imported."""
@@ -53,7 +53,7 @@ def test_agent_instantiation():
 
         # Mock docs provider
         docs_provider = NullProvider()
-        planner = PlannerAgent(docs_provider=docs_provider)
+        PlannerAgent(docs_provider=docs_provider)
         print("✅ PlannerAgent instantiated successfully")
     except Exception as e:
         print(f"❌ Failed to instantiate PlannerAgent: {e}")
@@ -62,7 +62,7 @@ def test_agent_instantiation():
     try:
         from src.agent_core.agents.synthesizer import SynthesizerAgent
 
-        synthesizer = SynthesizerAgent()
+        SynthesizerAgent()
         print("✅ SynthesizerAgent instantiated successfully")
     except Exception as e:
         print(f"❌ Failed to instantiate SynthesizerAgent: {e}")

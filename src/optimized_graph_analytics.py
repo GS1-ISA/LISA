@@ -5,15 +5,15 @@ High-performance graph analytics with advanced caching and parallel processing.
 
 import asyncio
 import logging
-import time
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
-from .neo4j_gds_analytics import SupplyChainRiskAnalyzer, RiskMetrics
-from .cache.multi_level_cache import get_multilevel_cache, MultiLevelCache
+from .cache.multi_level_cache import MultiLevelCache, get_multilevel_cache
+from .neo4j_gds_analytics import RiskMetrics, SupplyChainRiskAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +52,8 @@ class OptimizedGraphAnalytics:
     """
 
     def __init__(self,
-                 analyzer: Optional[SupplyChainRiskAnalyzer] = None,
-                 cache: Optional[MultiLevelCache] = None,
+                 analyzer: SupplyChainRiskAnalyzer | None = None,
+                 cache: MultiLevelCache | None = None,
                  max_concurrent_queries: int = 6):
         self.analyzer = analyzer or SupplyChainRiskAnalyzer()
         self.cache = cache or get_multilevel_cache()
@@ -64,8 +64,8 @@ class OptimizedGraphAnalytics:
 
         # Performance monitoring
         self.metrics_lock = threading.Lock()
-        self.query_metrics: List[GraphQueryMetrics] = []
-        self.batch_results: List[AnalyticsBatchResult] = []
+        self.query_metrics: list[GraphQueryMetrics] = []
+        self.batch_results: list[AnalyticsBatchResult] = []
 
         # Cache statistics
         self.cache_hits = 0
@@ -77,26 +77,26 @@ class OptimizedGraphAnalytics:
 
         logger.info(f"Initialized OptimizedGraphAnalytics with {max_concurrent_queries} concurrent queries")
 
-    def _generate_cache_key(self, operation: str, params: Dict[str, Any]) -> str:
+    def _generate_cache_key(self, operation: str, params: dict[str, Any]) -> str:
         """Generate cache key for graph operations."""
         key_data = {
-            'operation': operation,
-            'params': sorted(params.items()),
-            'timestamp': int(time.time() / 3600)  # Cache for 1 hour blocks
+            "operation": operation,
+            "params": sorted(params.items()),
+            "timestamp": int(time.time() / 3600)  # Cache for 1 hour blocks
         }
         import hashlib
         key_string = str(key_data)
         return f"graph_analytics:{hashlib.sha256(key_string.encode()).hexdigest()}"
 
     async def analyze_organization_risks_async(self, organization_name: str,
-                                              include_historical: bool = True) -> Tuple[RiskMetrics, GraphQueryMetrics]:
+                                              include_historical: bool = True) -> tuple[RiskMetrics, GraphQueryMetrics]:
         """Asynchronously analyze organization risks with caching."""
         start_time = time.time()
 
         # Check cache first
-        cache_key = self._generate_cache_key('organization_risks', {
-            'org': organization_name,
-            'historical': include_historical
+        cache_key = self._generate_cache_key("organization_risks", {
+            "org": organization_name,
+            "historical": include_historical
         })
         cached_result = self.cache.get(cache_key)
 
@@ -108,14 +108,14 @@ class OptimizedGraphAnalytics:
             metrics = GraphQueryMetrics(
                 query_time=processing_time,
                 cache_hit=True,
-                nodes_processed=cached_result.get('nodes_processed', 0),
-                edges_processed=cached_result.get('edges_processed', 0),
+                nodes_processed=cached_result.get("nodes_processed", 0),
+                edges_processed=cached_result.get("edges_processed", 0),
                 result_size=len(str(cached_result)),
                 timestamp=start_time
             )
 
             # Convert cached data back to RiskMetrics
-            risk_metrics = RiskMetrics(**cached_result['risk_metrics'])
+            risk_metrics = RiskMetrics(**cached_result["risk_metrics"])
             return risk_metrics, metrics
 
         # Cache miss - perform analysis
@@ -139,21 +139,21 @@ class OptimizedGraphAnalytics:
 
         # Cache the result
         cache_data = {
-            'risk_metrics': {
-                'centrality_risk': risk_metrics.centrality_risk,
-                'community_risk': risk_metrics.community_risk,
-                'path_risk': risk_metrics.path_risk,
-                'supplier_diversity_risk': risk_metrics.supplier_diversity_risk,
-                'geographic_risk': risk_metrics.geographic_risk,
-                'temporal_risk': risk_metrics.temporal_risk,
-                'overall_risk_score': risk_metrics.overall_risk_score,
-                'risk_level': risk_metrics.risk_level.value,
-                'confidence_score': risk_metrics.confidence_score,
-                'recommendations': risk_metrics.recommendations,
-                'timestamp': risk_metrics.timestamp.isoformat()
+            "risk_metrics": {
+                "centrality_risk": risk_metrics.centrality_risk,
+                "community_risk": risk_metrics.community_risk,
+                "path_risk": risk_metrics.path_risk,
+                "supplier_diversity_risk": risk_metrics.supplier_diversity_risk,
+                "geographic_risk": risk_metrics.geographic_risk,
+                "temporal_risk": risk_metrics.temporal_risk,
+                "overall_risk_score": risk_metrics.overall_risk_score,
+                "risk_level": risk_metrics.risk_level.value,
+                "confidence_score": risk_metrics.confidence_score,
+                "recommendations": risk_metrics.recommendations,
+                "timestamp": risk_metrics.timestamp.isoformat()
             },
-            'nodes_processed': nodes_processed,
-            'edges_processed': edges_processed
+            "nodes_processed": nodes_processed,
+            "edges_processed": edges_processed
         }
         self.cache.set(cache_key, cache_data)
 
@@ -171,8 +171,8 @@ class OptimizedGraphAnalytics:
 
         return risk_metrics, metrics
 
-    async def batch_analyze_organizations(self, organization_names: List[str],
-                                        include_historical: bool = True) -> List[AnalyticsBatchResult]:
+    async def batch_analyze_organizations(self, organization_names: list[str],
+                                        include_historical: bool = True) -> list[AnalyticsBatchResult]:
         """Analyze multiple organizations in parallel."""
         semaphore = asyncio.Semaphore(self.max_concurrent_queries)
 
@@ -220,8 +220,8 @@ class OptimizedGraphAnalytics:
 
         return results
 
-    async def predict_disruption_scenarios_batch(self, organization_names: List[str],
-                                               scenario_count: int = 3) -> Dict[str, List]:
+    async def predict_disruption_scenarios_batch(self, organization_names: list[str],
+                                               scenario_count: int = 3) -> dict[str, list]:
         """Predict disruption scenarios for multiple organizations."""
         semaphore = asyncio.Semaphore(self.max_concurrent_queries)
 
@@ -244,7 +244,7 @@ class OptimizedGraphAnalytics:
         return result_dict
 
     async def _predict_single_organization_scenarios(self, organization_name: str,
-                                                   scenario_count: int) -> List:
+                                                   scenario_count: int) -> list:
         """Predict disruption scenarios for a single organization."""
         loop = asyncio.get_event_loop()
         scenarios = await loop.run_in_executor(
@@ -256,11 +256,11 @@ class OptimizedGraphAnalytics:
         return scenarios
 
     def analyze_supply_chain_network(self, organization_name: str,
-                                   analysis_depth: int = 3) -> Dict[str, Any]:
+                                   analysis_depth: int = 3) -> dict[str, Any]:
         """Analyze supply chain network with optimized queries."""
-        cache_key = self._generate_cache_key('network_analysis', {
-            'org': organization_name,
-            'depth': analysis_depth
+        cache_key = self._generate_cache_key("network_analysis", {
+            "org": organization_name,
+            "depth": analysis_depth
         })
 
         cached_result = self.cache.get(cache_key)
@@ -274,30 +274,30 @@ class OptimizedGraphAnalytics:
         self.cache.set(cache_key, result)
         return result
 
-    def _perform_network_analysis(self, organization_name: str, depth: int) -> Dict[str, Any]:
+    def _perform_network_analysis(self, organization_name: str, depth: int) -> dict[str, Any]:
         """Perform actual network analysis."""
         # This would implement the actual graph analysis
         # For now, return mock data structure
         return {
-            'organization': organization_name,
-            'network_depth': depth,
-            'total_nodes': 150,
-            'total_relationships': 300,
-            'critical_path_length': 5,
-            'bottleneck_nodes': ['Supplier A', 'Supplier B'],
-            'risk_hotspots': ['Region X', 'Region Y'],
-            'diversity_score': 0.75,
-            'resilience_score': 0.82
+            "organization": organization_name,
+            "network_depth": depth,
+            "total_nodes": 150,
+            "total_relationships": 300,
+            "critical_path_length": 5,
+            "bottleneck_nodes": ["Supplier A", "Supplier B"],
+            "risk_hotspots": ["Region X", "Region Y"],
+            "diversity_score": 0.75,
+            "resilience_score": 0.82
         }
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get comprehensive performance statistics."""
         with self.metrics_lock:
             if not self.query_metrics:
                 return {
-                    'total_queries': 0,
-                    'cache_hit_rate': 0.0,
-                    'avg_query_time': 0.0
+                    "total_queries": 0,
+                    "cache_hit_rate": 0.0,
+                    "avg_query_time": 0.0
                 }
 
             total_queries = len(self.query_metrics)
@@ -313,16 +313,16 @@ class OptimizedGraphAnalytics:
             p95_time = query_times[int(0.95 * len(query_times))] if query_times else 0.0
 
             return {
-                'total_queries': total_queries,
-                'cache_hit_rate': round(cache_hit_rate * 100, 2),
-                'avg_query_time': round(avg_query_time, 4),
-                'p95_query_time': round(p95_time, 4),
-                'avg_nodes_processed': round(avg_nodes_processed, 2),
-                'avg_edges_processed': round(avg_edges_processed, 2),
-                'total_cache_hits': self.cache_hits,
-                'total_cache_misses': self.cache_misses,
-                'concurrent_queries_max': self.max_concurrent_queries,
-                'batch_results_count': len(self.batch_results)
+                "total_queries": total_queries,
+                "cache_hit_rate": round(cache_hit_rate * 100, 2),
+                "avg_query_time": round(avg_query_time, 4),
+                "p95_query_time": round(p95_time, 4),
+                "avg_nodes_processed": round(avg_nodes_processed, 2),
+                "avg_edges_processed": round(avg_edges_processed, 2),
+                "total_cache_hits": self.cache_hits,
+                "total_cache_misses": self.cache_misses,
+                "concurrent_queries_max": self.max_concurrent_queries,
+                "batch_results_count": len(self.batch_results)
             }
 
     def optimize_query_patterns(self):
@@ -351,9 +351,9 @@ class OptimizedGraphAnalytics:
             self.query_metrics.clear()
             self.batch_results.clear()
 
-    def get_risk_heatmap(self, organizations: List[str]) -> Dict[str, Any]:
+    def get_risk_heatmap(self, organizations: list[str]) -> dict[str, Any]:
         """Generate risk heatmap for multiple organizations."""
-        cache_key = self._generate_cache_key('risk_heatmap', {'orgs': sorted(organizations)})
+        cache_key = self._generate_cache_key("risk_heatmap", {"orgs": sorted(organizations)})
 
         cached_result = self.cache.get(cache_key)
         if cached_result:
@@ -366,14 +366,14 @@ class OptimizedGraphAnalytics:
         self.cache.set(cache_key, heatmap_data)
         return heatmap_data
 
-    def _generate_heatmap_data(self, organizations: List[str]) -> Dict[str, Any]:
+    def _generate_heatmap_data(self, organizations: list[str]) -> dict[str, Any]:
         """Generate actual heatmap data."""
         # Mock heatmap generation
         return {
-            'organizations': organizations,
-            'risk_matrix': [[0.3, 0.7, 0.2] for _ in organizations],
-            'dimensions': ['Centrality', 'Community', 'Path'],
-            'generated_at': datetime.now().isoformat()
+            "organizations": organizations,
+            "risk_matrix": [[0.3, 0.7, 0.2] for _ in organizations],
+            "dimensions": ["Centrality", "Community", "Path"],
+            "generated_at": datetime.now().isoformat()
         }
 
     def shutdown(self):
@@ -383,7 +383,7 @@ class OptimizedGraphAnalytics:
 
 
 # Global instance
-_optimized_analytics: Optional[OptimizedGraphAnalytics] = None
+_optimized_analytics: OptimizedGraphAnalytics | None = None
 
 
 def get_optimized_graph_analytics() -> OptimizedGraphAnalytics:

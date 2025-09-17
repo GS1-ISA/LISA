@@ -3,10 +3,8 @@ Tests for retrieval components.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
 from unittest.mock import AsyncMock, Mock, patch
 
-import numpy as np
 import pytest
 
 from isa_superapp.core.exceptions import ConfigurationError, RetrievalError
@@ -369,7 +367,7 @@ class TestReRanker:
         scores = reranker.rerank(query, documents, threshold=0.5)
 
         # Filter out documents below threshold
-        relevant_docs = [doc for doc, score in zip(documents, scores) if score >= 0.5]
+        relevant_docs = [doc for doc, score in zip(documents, scores, strict=False) if score >= 0.5]
         assert len(relevant_docs) == 2
         assert "Machine learning fundamentals" in relevant_docs
         assert "Deep learning neural networks" in relevant_docs

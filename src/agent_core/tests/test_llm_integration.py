@@ -1,7 +1,8 @@
 import asyncio
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from src.agent_core.llm_client import LLMClient, LLMResponse
 
@@ -18,9 +19,9 @@ class TestLLMIntegration:
     async def test_llm_client_initialization(self, llm_client):
         """Test that LLM client initializes correctly."""
         assert llm_client is not None
-        assert hasattr(llm_client, 'openai_client')
-        assert hasattr(llm_client, 'anthropic_client')
-        assert hasattr(llm_client, 'cost_tracker')
+        assert hasattr(llm_client, "openai_client")
+        assert hasattr(llm_client, "anthropic_client")
+        assert hasattr(llm_client, "cost_tracker")
 
     @pytest.mark.asyncio
     async def test_generate_with_mock_openai(self, llm_client):
@@ -32,7 +33,7 @@ class TestLLMIntegration:
         mock_response.usage.total_tokens = 100
         mock_openai.chat.completions.create.return_value = mock_response
 
-        with patch.object(llm_client, 'openai_client', mock_openai):
+        with patch.object(llm_client, "openai_client", mock_openai):
             response = await llm_client.generate(
                 prompt="Test prompt",
                 model="gpt-4"
@@ -54,8 +55,8 @@ class TestLLMIntegration:
         mock_response.usage.output_tokens = 50
         mock_anthropic.messages.create.return_value = mock_response
 
-        with patch.object(llm_client, 'anthropic_client', mock_anthropic):
-            with patch.object(llm_client, 'openai_client', None):  # Force Anthropic
+        with patch.object(llm_client, "anthropic_client", mock_anthropic):
+            with patch.object(llm_client, "openai_client", None):  # Force Anthropic
                 response = await llm_client.generate(
                     prompt="Test prompt",
                     model="claude-3-sonnet-20240229"
@@ -81,8 +82,8 @@ class TestLLMIntegration:
         mock_response.usage.output_tokens = 20
         mock_anthropic.messages.create.return_value = mock_response
 
-        with patch.object(llm_client, 'openai_client', mock_openai), \
-             patch.object(llm_client, 'anthropic_client', mock_anthropic):
+        with patch.object(llm_client, "openai_client", mock_openai), \
+             patch.object(llm_client, "anthropic_client", mock_anthropic):
 
             response = await llm_client.generate(
                 prompt="Test prompt",
@@ -111,7 +112,7 @@ class TestLLMIntegration:
         """Test rate limiting functionality."""
         # This test would need actual API calls to test rate limiting
         # For now, just verify the rate limiter exists
-        assert hasattr(llm_client, 'rate_limiter')
+        assert hasattr(llm_client, "rate_limiter")
         assert llm_client.rate_limiter is not None
 
 

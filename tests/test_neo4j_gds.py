@@ -13,21 +13,20 @@ Tests cover:
 - Error handling and edge cases
 """
 
-import pytest
-import unittest.mock as mock
 from datetime import datetime, timezone
-from typing import Dict, Any, List
+from unittest import mock
 
+import pytest
+
+from src.epcis_tracker import Action, BizStep, EPCISEvent, EventType
+from src.neo4j_gds_analytics import RiskLevel, SupplyChainRiskAnalyzer
+from src.neo4j_gds_client import GDSConfig, Neo4jConfig, Neo4jGDSClient
+from src.neo4j_gds_ingestion import GS1EPCISGraphTransformer, Neo4jGDSDataIngestion
 from src.neo4j_gds_schema import (
-    SupplyChainGraphSchema, NodeType, RelationshipType,
-    GraphNode, GraphRelationship
+    NodeType,
+    RelationshipType,
+    SupplyChainGraphSchema,
 )
-from src.neo4j_gds_client import Neo4jGDSClient, Neo4jConfig, GDSConfig
-from src.neo4j_gds_ingestion import (
-    GS1EPCISGraphTransformer, Neo4jGDSDataIngestion
-)
-from src.neo4j_gds_analytics import SupplyChainRiskAnalyzer, RiskLevel
-from src.epcis_tracker import EPCISEvent, EventType, Action, BizStep
 
 
 class TestSupplyChainGraphSchema:
@@ -178,8 +177,8 @@ class TestNeo4jGDSClient:
         )
         self.gds_config = GDSConfig(graph_name="test-graph")
 
-    @mock.patch('src.neo4j_gds_client.GraphDatabase')
-    @mock.patch('src.neo4j_gds_client.GraphDataScience')
+    @mock.patch("src.neo4j_gds_client.GraphDatabase")
+    @mock.patch("src.neo4j_gds_client.GraphDataScience")
     def test_client_initialization(self, mock_gds, mock_graph_db):
         """Test client initialization."""
         # Mock the driver and GDS
@@ -203,7 +202,7 @@ class TestNeo4jGDSClient:
 
     def test_client_health_check(self):
         """Test client health check functionality."""
-        with mock.patch('src.neo4j_gds_client.GraphDatabase') as mock_graph_db:
+        with mock.patch("src.neo4j_gds_client.GraphDatabase") as mock_graph_db:
             mock_driver = mock.MagicMock()
             mock_graph_db.driver.return_value = mock_driver
             mock_session = mock.MagicMock()
@@ -218,7 +217,7 @@ class TestNeo4jGDSClient:
 
     def test_execute_query(self):
         """Test query execution."""
-        with mock.patch('src.neo4j_gds_client.GraphDatabase') as mock_graph_db:
+        with mock.patch("src.neo4j_gds_client.GraphDatabase") as mock_graph_db:
             mock_driver = mock.MagicMock()
             mock_graph_db.driver.return_value = mock_driver
             mock_session = mock.MagicMock()
@@ -239,7 +238,7 @@ class TestSupplyChainRiskAnalyzer:
         """Setup test fixtures."""
         self.analyzer = SupplyChainRiskAnalyzer()
 
-    @mock.patch('src.neo4j_gds_analytics.Neo4jGDSClient')
+    @mock.patch("src.neo4j_gds_analytics.Neo4jGDSClient")
     def test_risk_analysis_initialization(self, mock_client):
         """Test risk analyzer initialization."""
         mock_client_instance = mock.MagicMock()
@@ -349,11 +348,11 @@ class TestDataIngestion:
 class TestConfiguration:
     """Test cases for configuration management."""
 
-    @mock.patch.dict('os.environ', {
-        'NEO4J_URI': 'bolt://test:7687',
-        'NEO4J_USERNAME': 'test_user',
-        'NEO4J_PASSWORD': 'test_pass',
-        'GDS_GRAPH_NAME': 'test_graph'
+    @mock.patch.dict("os.environ", {
+        "NEO4J_URI": "bolt://test:7687",
+        "NEO4J_USERNAME": "test_user",
+        "NEO4J_PASSWORD": "test_pass",
+        "GDS_GRAPH_NAME": "test_graph"
     })
     def test_configuration_from_environment(self):
         """Test loading configuration from environment variables."""
@@ -362,12 +361,12 @@ class TestConfiguration:
         config = Neo4jGDSConfiguration()
 
         neo4j_config = config.get_neo4j_config()
-        assert neo4j_config.uri == 'bolt://test:7687'
-        assert neo4j_config.username == 'test_user'
-        assert neo4j_config.password == 'test_pass'
+        assert neo4j_config.uri == "bolt://test:7687"
+        assert neo4j_config.username == "test_user"
+        assert neo4j_config.password == "test_pass"
 
         gds_config = config.get_gds_config()
-        assert gds_config.graph_name == 'test_graph'
+        assert gds_config.graph_name == "test_graph"
 
     def test_default_configuration(self):
         """Test default configuration values."""
@@ -376,12 +375,12 @@ class TestConfiguration:
         config = Neo4jGDSConfiguration()
 
         neo4j_config = config.get_neo4j_config()
-        assert neo4j_config.uri == 'bolt://localhost:7687'
-        assert neo4j_config.username == 'neo4j'
-        assert neo4j_config.database == 'neo4j'
+        assert neo4j_config.uri == "bolt://localhost:7687"
+        assert neo4j_config.username == "neo4j"
+        assert neo4j_config.database == "neo4j"
 
         gds_config = config.get_gds_config()
-        assert gds_config.graph_name == 'supply-chain-graph'
+        assert gds_config.graph_name == "supply-chain-graph"
         assert gds_config.concurrency == 4
 
 
@@ -409,7 +408,7 @@ class TestIntegration:
     def test_error_handling(self):
         """Test error handling in various scenarios."""
         # Test connection failures
-        with mock.patch('src.neo4j_gds_client.GraphDatabase') as mock_graph_db:
+        with mock.patch("src.neo4j_gds_client.GraphDatabase") as mock_graph_db:
             mock_graph_db.driver.side_effect = Exception("Connection failed")
 
             client = Neo4jGDSClient()

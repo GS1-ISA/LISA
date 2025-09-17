@@ -5,17 +5,17 @@ High-performance multi-agent orchestration with advanced optimizations.
 
 import asyncio
 import logging
-import time
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from .agent_core.llm_client import get_openrouter_free_client
 from .agent_core.query_optimizer import QueryOptimizer
-from .cache.multi_level_cache import get_multilevel_cache, MultiLevelCache
+from .cache.multi_level_cache import MultiLevelCache, get_multilevel_cache
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class AgentTask:
     role: AgentRole
     content: str
     priority: int = 1
-    dependencies: List[str] = None
+    dependencies: list[str] = None
     timeout: int = 300
 
 
@@ -59,7 +59,7 @@ class WorkflowMetrics:
     avg_task_time: float
     throughput_tasks_per_sec: float
     cache_hit_rate: float
-    agent_utilization: Dict[str, float]
+    agent_utilization: dict[str, float]
     timestamp: datetime
 
 
@@ -71,7 +71,7 @@ class TaskResult:
     result: Any
     processing_time: float
     agent_role: AgentRole
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class OptimizedAgentWorkflow:
@@ -88,7 +88,7 @@ class OptimizedAgentWorkflow:
 
     def __init__(self,
                  llm_client=None,
-                 cache: Optional[MultiLevelCache] = None,
+                 cache: MultiLevelCache | None = None,
                  max_concurrent_agents: int = 8):
         self.llm_client = llm_client or get_openrouter_free_client()
         self.cache = cache or get_multilevel_cache()
@@ -117,8 +117,8 @@ class OptimizedAgentWorkflow:
 
         # Performance monitoring
         self.metrics_lock = threading.Lock()
-        self.workflow_metrics: List[WorkflowMetrics] = []
-        self.task_results: List[TaskResult] = []
+        self.workflow_metrics: list[WorkflowMetrics] = []
+        self.task_results: list[TaskResult] = []
 
         # Task management
         self.task_queue = asyncio.Queue()
@@ -131,7 +131,7 @@ class OptimizedAgentWorkflow:
 
         logger.info(f"Initialized OptimizedAgentWorkflow with {max_concurrent_agents} concurrent agents")
 
-    async def execute_workflow(self, tasks: List[AgentTask]) -> Dict[str, Any]:
+    async def execute_workflow(self, tasks: list[AgentTask]) -> dict[str, Any]:
         """
         Execute a multi-agent workflow with optimized scheduling.
 
@@ -185,16 +185,16 @@ class OptimizedAgentWorkflow:
                 self._optimize_agent_allocation(metrics)
 
             result_summary = {
-                'success': successful_tasks > failed_tasks,
-                'total_tasks': total_tasks,
-                'completed_tasks': successful_tasks,
-                'failed_tasks': failed_tasks,
-                'processing_time': round(processing_time, 2),
-                'throughput': round(metrics.throughput_tasks_per_sec, 2),
-                'cache_hit_rate': round(metrics.cache_hit_rate * 100, 2),
-                'agent_utilization': {k: round(v * 100, 1) for k, v in agent_utilization.items()},
-                'results': [self._format_task_result(r) for r in results],
-                'performance_metrics': self._format_workflow_metrics(metrics)
+                "success": successful_tasks > failed_tasks,
+                "total_tasks": total_tasks,
+                "completed_tasks": successful_tasks,
+                "failed_tasks": failed_tasks,
+                "processing_time": round(processing_time, 2),
+                "throughput": round(metrics.throughput_tasks_per_sec, 2),
+                "cache_hit_rate": round(metrics.cache_hit_rate * 100, 2),
+                "agent_utilization": {k: round(v * 100, 1) for k, v in agent_utilization.items()},
+                "results": [self._format_task_result(r) for r in results],
+                "performance_metrics": self._format_workflow_metrics(metrics)
             }
 
             logger.info(f"Workflow execution completed: {successful_tasks}/{total_tasks} tasks in {processing_time:.2f}s")
@@ -203,13 +203,13 @@ class OptimizedAgentWorkflow:
         except Exception as e:
             logger.error(f"Workflow execution failed: {e}")
             return {
-                'success': False,
-                'error': str(e),
-                'completed_tasks': 0,
-                'total_tasks': total_tasks
+                "success": False,
+                "error": str(e),
+                "completed_tasks": 0,
+                "total_tasks": total_tasks
             }
 
-    async def _execute_tasks_with_dependencies(self, tasks: List[AgentTask]) -> List[TaskResult]:
+    async def _execute_tasks_with_dependencies(self, tasks: list[AgentTask]) -> list[TaskResult]:
         """Execute tasks considering dependencies."""
         # Group tasks by dependency level
         dependency_levels = self._resolve_dependencies(tasks)
@@ -230,7 +230,7 @@ class OptimizedAgentWorkflow:
 
         return all_results
 
-    def _resolve_dependencies(self, tasks: List[AgentTask]) -> List[List[str]]:
+    def _resolve_dependencies(self, tasks: list[AgentTask]) -> list[list[str]]:
         """Resolve task dependencies and return execution levels."""
         # Simple dependency resolution (could be enhanced with topological sort)
         levels = []
@@ -262,7 +262,7 @@ class OptimizedAgentWorkflow:
 
         return levels
 
-    async def _execute_task_batch(self, tasks: List[AgentTask]) -> List[TaskResult]:
+    async def _execute_task_batch(self, tasks: list[AgentTask]) -> list[TaskResult]:
         """Execute a batch of tasks in parallel."""
         semaphore = self.agent_semaphores[tasks[0].role] if tasks else asyncio.Semaphore(self.max_concurrent_agents)
 
@@ -348,35 +348,35 @@ class OptimizedAgentWorkflow:
             result = await self.llm_client.async_chat_completion(
                 messages, model="deepseek/deepseek-r1:free"
             )
-            return result.get('content', '')
+            return result.get("content", "")
 
         elif task.role == AgentRole.RESEARCHER:
             # Research tasks - use document-focused model
             result = await self.llm_client.async_chat_completion(
                 messages, model="meta-llama/llama-4-scout:free"
             )
-            return result.get('content', '')
+            return result.get("content", "")
 
         elif task.role == AgentRole.SYNTHESIZER:
             # Synthesis tasks - use structured output model
             result = await self.llm_client.async_chat_completion(
                 messages, model="mistralai/mistral-small-3.1-24b-instruct:free"
             )
-            return result.get('content', '')
+            return result.get("content", "")
 
         elif task.role == AgentRole.VALIDATOR:
             # Validation tasks - use precision model
             result = await self.llm_client.async_chat_completion(
                 messages, model="google/gemini-2.5-flash-image-preview:free"
             )
-            return result.get('content', '')
+            return result.get("content", "")
 
         else:
             # Default to primary model
             result = await self.llm_client.async_chat_completion(messages)
-            return result.get('content', '')
+            return result.get("content", "")
 
-    def _calculate_agent_utilization(self, results: List[TaskResult]) -> Dict[str, float]:
+    def _calculate_agent_utilization(self, results: list[TaskResult]) -> dict[str, float]:
         """Calculate agent utilization rates."""
         utilization = {role.value: 0.0 for role in AgentRole}
 
@@ -396,11 +396,11 @@ class OptimizedAgentWorkflow:
     def _calculate_cache_hit_rate(self) -> float:
         """Calculate cache hit rate from LLM client."""
         stats = self.llm_client.get_cache_stats()
-        llm_stats = stats.get('llm_specific', {})
-        total_requests = llm_stats.get('total', 0)
+        llm_stats = stats.get("llm_specific", {})
+        total_requests = llm_stats.get("total", 0)
         if total_requests == 0:
             return 0.0
-        return llm_stats.get('hits', 0) / total_requests
+        return llm_stats.get("hits", 0) / total_requests
 
     def _optimize_agent_allocation(self, metrics: WorkflowMetrics):
         """Optimize agent allocation based on performance metrics."""
@@ -420,46 +420,46 @@ class OptimizedAgentWorkflow:
             logger.info(f"Underutilized roles: {underutilized_roles}")
             # Could reduce pool sizes for underutilized roles
 
-    def _format_task_result(self, result: TaskResult) -> Dict[str, Any]:
+    def _format_task_result(self, result: TaskResult) -> dict[str, Any]:
         """Format task result for reporting."""
         return {
-            'task_id': result.task_id,
-            'success': result.success,
-            'agent_role': result.agent_role.value,
-            'processing_time': round(result.processing_time, 4),
-            'result_length': len(str(result.result)) if result.result else 0,
-            'error_message': result.error_message
+            "task_id": result.task_id,
+            "success": result.success,
+            "agent_role": result.agent_role.value,
+            "processing_time": round(result.processing_time, 4),
+            "result_length": len(str(result.result)) if result.result else 0,
+            "error_message": result.error_message
         }
 
-    def _format_workflow_metrics(self, metrics: WorkflowMetrics) -> Dict[str, Any]:
+    def _format_workflow_metrics(self, metrics: WorkflowMetrics) -> dict[str, Any]:
         """Format workflow metrics for reporting."""
         return {
-            'total_tasks': metrics.total_tasks,
-            'completed_tasks': metrics.completed_tasks,
-            'failed_tasks': metrics.failed_tasks,
-            'total_processing_time': round(metrics.total_processing_time, 2),
-            'avg_task_time': round(metrics.avg_task_time, 4),
-            'throughput_tasks_per_sec': round(metrics.throughput_tasks_per_sec, 2),
-            'cache_hit_rate_percent': round(metrics.cache_hit_rate * 100, 2),
-            'agent_utilization': {k: round(v * 100, 1) for k, v in metrics.agent_utilization.items()},
-            'timestamp': metrics.timestamp.isoformat()
+            "total_tasks": metrics.total_tasks,
+            "completed_tasks": metrics.completed_tasks,
+            "failed_tasks": metrics.failed_tasks,
+            "total_processing_time": round(metrics.total_processing_time, 2),
+            "avg_task_time": round(metrics.avg_task_time, 4),
+            "throughput_tasks_per_sec": round(metrics.throughput_tasks_per_sec, 2),
+            "cache_hit_rate_percent": round(metrics.cache_hit_rate * 100, 2),
+            "agent_utilization": {k: round(v * 100, 1) for k, v in metrics.agent_utilization.items()},
+            "timestamp": metrics.timestamp.isoformat()
         }
 
-    def get_workflow_stats(self) -> Dict[str, Any]:
+    def get_workflow_stats(self) -> dict[str, Any]:
         """Get comprehensive workflow performance statistics."""
         with self.metrics_lock:
             if not self.workflow_metrics:
-                return {'total_workflows': 0}
+                return {"total_workflows": 0}
 
             recent_metrics = self.workflow_metrics[-10:]  # Last 10 workflows
 
             return {
-                'total_workflows': len(self.workflow_metrics),
-                'avg_throughput': round(sum(m.throughput_tasks_per_sec for m in recent_metrics) / len(recent_metrics), 2),
-                'avg_cache_hit_rate': round(sum(m.cache_hit_rate for m in recent_metrics) / len(recent_metrics) * 100, 2),
-                'total_tasks_processed': sum(m.completed_tasks for m in self.workflow_metrics),
-                'agent_pool_sizes': {role.value: count for role, count in self.agent_pools.items()},
-                'load_balancing_enabled': self.load_balancing_enabled
+                "total_workflows": len(self.workflow_metrics),
+                "avg_throughput": round(sum(m.throughput_tasks_per_sec for m in recent_metrics) / len(recent_metrics), 2),
+                "avg_cache_hit_rate": round(sum(m.cache_hit_rate for m in recent_metrics) / len(recent_metrics) * 100, 2),
+                "total_tasks_processed": sum(m.completed_tasks for m in self.workflow_metrics),
+                "agent_pool_sizes": {role.value: count for role, count in self.agent_pools.items()},
+                "load_balancing_enabled": self.load_balancing_enabled
             }
 
     def clear_cache(self):
@@ -474,7 +474,7 @@ class OptimizedAgentWorkflow:
 
 
 # Global instance
-_optimized_workflow: Optional[OptimizedAgentWorkflow] = None
+_optimized_workflow: OptimizedAgentWorkflow | None = None
 
 
 def get_optimized_agent_workflow() -> OptimizedAgentWorkflow:

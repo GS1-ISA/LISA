@@ -7,13 +7,13 @@ supply chain factors.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Tuple
-from datetime import datetime, timedelta
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
-from .gfw_client import DeforestationAlert, TreeCoverLoss
 from .corine_client import LandCoverChange
+from .gfw_client import DeforestationAlert, TreeCoverLoss
 
 
 @dataclass
@@ -33,8 +33,8 @@ class DeforestationRiskScore:
     risk_level: str
     components: RiskScoreComponents
     confidence: float
-    factors: List[Dict[str, Any]]
-    recommendations: List[str]
+    factors: list[dict[str, Any]]
+    recommendations: list[str]
 
 
 class DeforestationRiskScorer:
@@ -54,20 +54,20 @@ class DeforestationRiskScorer:
 
         # Scoring weights
         self.WEIGHTS = {
-            'temporal': 0.25,
-            'spatial': 0.20,
-            'intensity': 0.30,
-            'contextual': 0.15,
-            'supply_chain': 0.10
+            "temporal": 0.25,
+            "spatial": 0.20,
+            "intensity": 0.30,
+            "contextual": 0.15,
+            "supply_chain": 0.10
         }
 
     def calculate_risk_score(
         self,
-        alerts: List[DeforestationAlert],
-        losses: List[TreeCoverLoss],
-        land_cover_changes: List[LandCoverChange],
-        location_context: Dict[str, Any],
-        supply_chain_data: Optional[Dict[str, Any]] = None
+        alerts: list[DeforestationAlert],
+        losses: list[TreeCoverLoss],
+        land_cover_changes: list[LandCoverChange],
+        location_context: dict[str, Any],
+        supply_chain_data: dict[str, Any] | None = None
     ) -> DeforestationRiskScore:
         """
         Calculate comprehensive deforestation risk score.
@@ -135,7 +135,7 @@ class DeforestationRiskScorer:
                 recommendations=["Unable to calculate risk score due to error"]
             )
 
-    def _calculate_temporal_risk(self, alerts: List[DeforestationAlert], losses: List[TreeCoverLoss]) -> float:
+    def _calculate_temporal_risk(self, alerts: list[DeforestationAlert], losses: list[TreeCoverLoss]) -> float:
         """Calculate risk based on temporal patterns of deforestation."""
         if not alerts and not losses:
             return 0.0
@@ -182,9 +182,9 @@ class DeforestationRiskScorer:
 
     def _calculate_spatial_risk(
         self,
-        alerts: List[DeforestationAlert],
-        losses: List[TreeCoverLoss],
-        location_context: Dict[str, Any]
+        alerts: list[DeforestationAlert],
+        losses: list[TreeCoverLoss],
+        location_context: dict[str, Any]
     ) -> float:
         """Calculate risk based on spatial distribution and proximity."""
         if not alerts and not losses:
@@ -202,7 +202,7 @@ class DeforestationRiskScorer:
         proximity_risk = self._calculate_proximity_risk(alerts, losses, location_context)
 
         # Spatial density
-        area_km2 = location_context.get('area_km2', 100)  # Default 100 km²
+        area_km2 = location_context.get("area_km2", 100)  # Default 100 km²
         alert_density = len(alerts) / area_km2 if area_km2 > 0 else 0
         loss_density = len(losses) / area_km2 if area_km2 > 0 else 0
 
@@ -220,9 +220,9 @@ class DeforestationRiskScorer:
 
     def _calculate_intensity_risk(
         self,
-        alerts: List[DeforestationAlert],
-        losses: List[TreeCoverLoss],
-        land_cover_changes: List[LandCoverChange]
+        alerts: list[DeforestationAlert],
+        losses: list[TreeCoverLoss],
+        land_cover_changes: list[LandCoverChange]
     ) -> float:
         """Calculate risk based on scale and intensity of deforestation."""
         if not alerts and not losses and not land_cover_changes:
@@ -236,7 +236,7 @@ class DeforestationRiskScorer:
         # Calculate intensity metrics
         avg_alert_size = sum(alert_scales) / len(alert_scales) if alert_scales else 0
         avg_loss_size = sum(loss_scales) / len(loss_scales) if loss_scales else 0
-        avg_change_size = sum(change_scales) / len(change_scales) if change_scales else 0
+        sum(change_scales) / len(change_scales) if change_scales else 0
 
         # Frequency of events
         total_events = len(alerts) + len(losses) + len(land_cover_changes)
@@ -268,39 +268,39 @@ class DeforestationRiskScorer:
 
     def _calculate_contextual_risk(
         self,
-        land_cover_changes: List[LandCoverChange],
-        location_context: Dict[str, Any]
+        land_cover_changes: list[LandCoverChange],
+        location_context: dict[str, Any]
     ) -> float:
         """Calculate risk based on contextual and environmental factors."""
         contextual_score = 0.0
 
         # Land cover change types
-        deforestation_changes = [c for c in land_cover_changes if c.change_type == 'deforestation']
+        deforestation_changes = [c for c in land_cover_changes if c.change_type == "deforestation"]
         if land_cover_changes:
             deforestation_ratio = len(deforestation_changes) / len(land_cover_changes)
             contextual_score += deforestation_ratio * 0.4
 
         # Biodiversity and conservation factors
-        conservation_status = location_context.get('conservation_status', 'unknown')
-        if conservation_status == 'protected':
+        conservation_status = location_context.get("conservation_status", "unknown")
+        if conservation_status == "protected":
             contextual_score += 0.3
-        elif conservation_status == 'high_value':
+        elif conservation_status == "high_value":
             contextual_score += 0.2
 
         # Soil and terrain factors
-        terrain_risk = location_context.get('terrain_risk', 0.0)  # 0-1 scale
-        soil_risk = location_context.get('soil_risk', 0.0)      # 0-1 scale
+        terrain_risk = location_context.get("terrain_risk", 0.0)  # 0-1 scale
+        soil_risk = location_context.get("soil_risk", 0.0)      # 0-1 scale
 
         contextual_score += terrain_risk * 0.15
         contextual_score += soil_risk * 0.15
 
         # Climate and weather factors
-        climate_risk = location_context.get('climate_risk', 0.0)  # 0-1 scale
+        climate_risk = location_context.get("climate_risk", 0.0)  # 0-1 scale
         contextual_score += climate_risk * 0.1
 
         return min(1.0, contextual_score)
 
-    def _calculate_supply_chain_risk(self, supply_chain_data: Optional[Dict[str, Any]]) -> float:
+    def _calculate_supply_chain_risk(self, supply_chain_data: dict[str, Any] | None) -> float:
         """Calculate risk based on supply chain position and volume."""
         if not supply_chain_data:
             return 0.0
@@ -308,21 +308,21 @@ class DeforestationRiskScorer:
         risk_score = 0.0
 
         # Supply chain position (upstream = higher risk)
-        position = supply_chain_data.get('position', 'unknown')
+        position = supply_chain_data.get("position", "unknown")
         position_risks = {
-            'upstream': 0.8,
-            'midstream': 0.5,
-            'downstream': 0.2
+            "upstream": 0.8,
+            "midstream": 0.5,
+            "downstream": 0.2
         }
         risk_score += position_risks.get(position, 0.5) * 0.4
 
         # Volume and scale
-        volume = supply_chain_data.get('annual_volume_mt', 0)  # Metric tons
+        volume = supply_chain_data.get("annual_volume_mt", 0)  # Metric tons
         volume_risk = min(1.0, volume / 10000)  # Normalize to 10,000 MT
         risk_score += volume_risk * 0.3
 
         # Number of suppliers
-        supplier_count = supply_chain_data.get('supplier_count', 1)
+        supplier_count = supply_chain_data.get("supplier_count", 1)
         concentration_risk = 1.0 / math.log(supplier_count + 1) if supplier_count > 0 else 1.0
         risk_score += concentration_risk * 0.3
 
@@ -331,20 +331,20 @@ class DeforestationRiskScorer:
     def _combine_components(self, components: RiskScoreComponents) -> float:
         """Combine individual risk components into overall score."""
         overall = (
-            components.temporal_risk * self.WEIGHTS['temporal'] +
-            components.spatial_risk * self.WEIGHTS['spatial'] +
-            components.intensity_risk * self.WEIGHTS['intensity'] +
-            components.contextual_risk * self.WEIGHTS['contextual'] +
-            components.supply_chain_risk * self.WEIGHTS['supply_chain']
+            components.temporal_risk * self.WEIGHTS["temporal"] +
+            components.spatial_risk * self.WEIGHTS["spatial"] +
+            components.intensity_risk * self.WEIGHTS["intensity"] +
+            components.contextual_risk * self.WEIGHTS["contextual"] +
+            components.supply_chain_risk * self.WEIGHTS["supply_chain"]
         )
 
         return min(1.0, overall)
 
     def _calculate_confidence(
         self,
-        alerts: List[DeforestationAlert],
-        losses: List[TreeCoverLoss],
-        land_cover_changes: List[LandCoverChange]
+        alerts: list[DeforestationAlert],
+        losses: list[TreeCoverLoss],
+        land_cover_changes: list[LandCoverChange]
     ) -> float:
         """Calculate confidence in the risk score based on data availability."""
         data_points = len(alerts) + len(losses) + len(land_cover_changes)
@@ -369,52 +369,52 @@ class DeforestationRiskScorer:
     def _identify_risk_factors(
         self,
         components: RiskScoreComponents,
-        alerts: List[DeforestationAlert],
-        losses: List[TreeCoverLoss],
-        land_cover_changes: List[LandCoverChange]
-    ) -> List[Dict[str, Any]]:
+        alerts: list[DeforestationAlert],
+        losses: list[TreeCoverLoss],
+        land_cover_changes: list[LandCoverChange]
+    ) -> list[dict[str, Any]]:
         """Identify key factors contributing to risk."""
         factors = []
 
         # High temporal risk
         if components.temporal_risk > 0.7:
             factors.append({
-                'type': 'recent_activity',
-                'severity': 'high',
-                'description': 'Recent deforestation activity detected',
-                'component': 'temporal'
+                "type": "recent_activity",
+                "severity": "high",
+                "description": "Recent deforestation activity detected",
+                "component": "temporal"
             })
 
         # High spatial risk
         if components.spatial_risk > 0.7:
             factors.append({
-                'type': 'clustered_activity',
-                'severity': 'high',
-                'description': 'Clustered deforestation activity',
-                'component': 'spatial'
+                "type": "clustered_activity",
+                "severity": "high",
+                "description": "Clustered deforestation activity",
+                "component": "spatial"
             })
 
         # High intensity risk
         if components.intensity_risk > 0.7:
             factors.append({
-                'type': 'intensive_activity',
-                'severity': 'high',
-                'description': 'High-intensity deforestation activity',
-                'component': 'intensity'
+                "type": "intensive_activity",
+                "severity": "high",
+                "description": "High-intensity deforestation activity",
+                "component": "intensity"
             })
 
         # Contextual factors
         if components.contextual_risk > 0.6:
             factors.append({
-                'type': 'environmental_context',
-                'severity': 'medium',
-                'description': 'High-risk environmental context',
-                'component': 'contextual'
+                "type": "environmental_context",
+                "severity": "medium",
+                "description": "High-risk environmental context",
+                "component": "contextual"
             })
 
         return factors
 
-    def _generate_risk_recommendations(self, overall_score: float, factors: List[Dict[str, Any]]) -> List[str]:
+    def _generate_risk_recommendations(self, overall_score: float, factors: list[dict[str, Any]]) -> list[str]:
         """Generate recommendations based on risk score and factors."""
         recommendations = []
 
@@ -443,22 +443,22 @@ class DeforestationRiskScorer:
 
         # Factor-specific recommendations
         for factor in factors:
-            if factor['type'] == 'recent_activity':
+            if factor["type"] == "recent_activity":
                 recommendations.append("Implement real-time deforestation monitoring")
-            elif factor['type'] == 'clustered_activity':
+            elif factor["type"] == "clustered_activity":
                 recommendations.append("Assess spatial patterns and potential hotspots")
-            elif factor['type'] == 'intensive_activity':
+            elif factor["type"] == "intensive_activity":
                 recommendations.append("Evaluate scale and impact of activities")
 
         return recommendations
 
-    def _analyze_deforestation_trend(self, alerts: List[DeforestationAlert], losses: List[TreeCoverLoss]) -> float:
+    def _analyze_deforestation_trend(self, alerts: list[DeforestationAlert], losses: list[TreeCoverLoss]) -> float:
         """Analyze trend in deforestation activity."""
         if not alerts and not losses:
             return 0.0
 
         # Simple trend analysis - check if activity is increasing
-        now = datetime.now()
+        datetime.now()
 
         # Group alerts by year
         alert_years = {}
@@ -492,7 +492,7 @@ class DeforestationRiskScorer:
 
         return 0.0
 
-    def _calculate_clustering(self, locations: List[Tuple[float, float]]) -> float:
+    def _calculate_clustering(self, locations: list[tuple[float, float]]) -> float:
         """Calculate clustering coefficient for locations."""
         if len(locations) < 2:
             return 0.0
@@ -517,29 +517,29 @@ class DeforestationRiskScorer:
 
     def _calculate_proximity_risk(
         self,
-        alerts: List[DeforestationAlert],
-        losses: List[TreeCoverLoss],
-        location_context: Dict[str, Any]
+        alerts: list[DeforestationAlert],
+        losses: list[TreeCoverLoss],
+        location_context: dict[str, Any]
     ) -> float:
         """Calculate risk based on proximity to sensitive areas."""
         proximity_score = 0.0
 
         # Check proximity to protected areas
-        protected_distance = location_context.get('distance_to_protected_area_km', 100)
+        protected_distance = location_context.get("distance_to_protected_area_km", 100)
         if protected_distance < 10:
             proximity_score += 0.5
         elif protected_distance < 50:
             proximity_score += 0.3
 
         # Check proximity to indigenous lands
-        indigenous_distance = location_context.get('distance_to_indigenous_land_km', 100)
+        indigenous_distance = location_context.get("distance_to_indigenous_land_km", 100)
         if indigenous_distance < 10:
             proximity_score += 0.4
         elif indigenous_distance < 50:
             proximity_score += 0.2
 
         # Check proximity to high-value forests
-        hvf_distance = location_context.get('distance_to_high_value_forest_km', 100)
+        hvf_distance = location_context.get("distance_to_high_value_forest_km", 100)
         if hvf_distance < 5:
             proximity_score += 0.3
         elif hvf_distance < 25:

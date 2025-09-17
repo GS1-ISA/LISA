@@ -6,11 +6,9 @@ ESG data and sends encrypted updates to the federated learning server.
 """
 
 import asyncio
-import logging
-from typing import Dict, List, Optional, Any, Union
-import numpy as np
 import json
-from datetime import datetime
+import logging
+from typing import Any
 
 try:
     import aiohttp
@@ -18,7 +16,7 @@ except ImportError:
     logging.warning("aiohttp not installed. FL client will use mock implementation.")
     aiohttp = None
 
-from .fhe import FHEContext, ESGDataEncryptor
+from .fhe import ESGDataEncryptor, FHEContext
 
 logger = logging.getLogger(__name__)
 
@@ -28,16 +26,16 @@ class FederatedLearningClient:
     Client for federated learning that trains models on encrypted local ESG data.
     """
 
-    def __init__(self, client_id: str, server_url: str = 'http://localhost:8080',
-                 fhe_context: Optional[FHEContext] = None):
+    def __init__(self, client_id: str, server_url: str = "http://localhost:8080",
+                 fhe_context: FHEContext | None = None):
         self.client_id = client_id
-        self.server_url = server_url.rstrip('/')
+        self.server_url = server_url.rstrip("/")
         self.fhe_context = fhe_context or FHEContext()
         self.esg_encryptor = ESGDataEncryptor(self.fhe_context)
 
         # Local data and model state
-        self.local_esg_data: List[Dict[str, Union[float, int]]] = []
-        self.local_model: Optional[Dict[str, Any]] = None
+        self.local_esg_data: list[dict[str, float | int]] = []
+        self.local_model: dict[str, Any] | None = None
         self.model_version = 0
         self.current_round = 0
 
@@ -47,7 +45,7 @@ class FederatedLearningClient:
         self.batch_size = 32
 
         # HTTP client session
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self):
         if aiohttp:
@@ -74,14 +72,14 @@ class FederatedLearningClient:
 
         try:
             payload = {
-                'client_id': self.client_id,
-                'data_size': data_size
+                "client_id": self.client_id,
+                "data_size": data_size
             }
 
-            async with self.session.post(f'{self.server_url}/register',
+            async with self.session.post(f"{self.server_url}/register",
                                        json=payload) as response:
                 if response.status == 200:
-                    data = await response.json()
+                    await response.json()
                     logger.info(f"Client {self.client_id} registered successfully")
                     return True
                 else:
@@ -92,7 +90,7 @@ class FederatedLearningClient:
             logger.error(f"Registration error: {e}")
             return False
 
-    def load_local_esg_data(self, esg_data: List[Dict[str, Union[float, int]]]):
+    def load_local_esg_data(self, esg_data: list[dict[str, float | int]]):
         """
         Load local ESG data for training.
 
@@ -102,7 +100,7 @@ class FederatedLearningClient:
         self.local_esg_data = esg_data
         logger.info(f"Loaded {len(esg_data)} ESG data records for client {self.client_id}")
 
-    async def download_global_model(self) -> Optional[Dict[str, Any]]:
+    async def download_global_model(self) -> dict[str, Any] | None:
         """
         Download the current global model from the server.
 
@@ -114,11 +112,11 @@ class FederatedLearningClient:
             return None
 
         try:
-            async with self.session.get(f'{self.server_url}/model') as response:
+            async with self.session.get(f"{self.server_url}/model") as response:
                 if response.status == 200:
                     data = await response.json()
-                    self.local_model = data.get('model')
-                    self.current_round = data.get('round_id', 0)
+                    self.local_model = data.get("model")
+                    self.current_round = data.get("round_id", 0)
                     logger.info(f"Downloaded global model for round {self.current_round}")
                     return self.local_model
                 else:
@@ -129,7 +127,7 @@ class FederatedLearningClient:
             logger.error(f"Model download error: {e}")
             return None
 
-    def train_local_model(self) -> Optional[Dict[str, Any]]:
+    def train_local_model(self) -> dict[str, Any] | None:
         """
         Train local model on encrypted ESG data.
 
@@ -163,7 +161,7 @@ class FederatedLearningClient:
             logger.error(f"Local training failed: {e}")
             return None
 
-    def _initialize_model(self) -> Dict[str, Any]:
+    def _initialize_model(self) -> dict[str, Any]:
         """
         Initialize a simple linear model for ESG analytics.
 
@@ -172,15 +170,15 @@ class FederatedLearningClient:
         """
         # Simple model: predict total emissions from company size and sector
         return {
-            'weights': {
-                'employees': 0.1,
-                'sector_coefficient': 0.05,
-                'bias': 10.0
+            "weights": {
+                "employees": 0.1,
+                "sector_coefficient": 0.05,
+                "bias": 10.0
             },
-            'version': 0
+            "version": 0
         }
 
-    def _perform_encrypted_training(self, encrypted_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _perform_encrypted_training(self, encrypted_data: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Perform training on encrypted data.
 
@@ -201,9 +199,9 @@ class FederatedLearningClient:
 
         # Simulate gradient computation (would be encrypted in real implementation)
         gradient_updates = {
-            'employees': f"encrypted_grad_employees_{total_samples}",
-            'sector_coefficient': f"encrypted_grad_sector_{total_samples}",
-            'bias': f"encrypted_grad_bias_{total_samples}"
+            "employees": f"encrypted_grad_employees_{total_samples}",
+            "sector_coefficient": f"encrypted_grad_sector_{total_samples}",
+            "bias": f"encrypted_grad_bias_{total_samples}"
         }
 
         # Apply learning rate (encrypted multiplication)
@@ -211,16 +209,16 @@ class FederatedLearningClient:
             gradient_updates[param] = f"scaled_{gradient_updates[param]}_{learning_rate}"
 
         model_update = {
-            'client_id': self.client_id,
-            'round_id': self.current_round,
-            'model_version': self.model_version,
-            'encrypted_gradients': gradient_updates,
-            'num_samples': total_samples
+            "client_id": self.client_id,
+            "round_id": self.current_round,
+            "model_version": self.model_version,
+            "encrypted_gradients": gradient_updates,
+            "num_samples": total_samples
         }
 
         return model_update
 
-    async def send_model_update(self, model_update: Dict[str, Any]) -> bool:
+    async def send_model_update(self, model_update: dict[str, Any]) -> bool:
         """
         Send encrypted model update to the FL server.
 
@@ -236,13 +234,13 @@ class FederatedLearningClient:
 
         try:
             payload = {
-                'client_id': self.client_id,
-                'round_id': self.current_round,
-                'encrypted_update': json.dumps(model_update),
-                'model_version': self.model_version
+                "client_id": self.client_id,
+                "round_id": self.current_round,
+                "encrypted_update": json.dumps(model_update),
+                "model_version": self.model_version
             }
 
-            async with self.session.post(f'{self.server_url}/update',
+            async with self.session.post(f"{self.server_url}/update",
                                        json=payload) as response:
                 if response.status == 200:
                     logger.info(f"Model update sent successfully for round {self.current_round}")

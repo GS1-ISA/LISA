@@ -7,8 +7,6 @@ It simulates the integration and validates the policy logic.
 """
 
 import sys
-import os
-import json
 from pathlib import Path
 
 # Add the src directory to the path so we can import our modules
@@ -20,7 +18,9 @@ def test_opa_integration():
 
     try:
         # Import the integration module
-        from opa_integration import ISA_D_ComplianceIntegration, CompliancePolicyEvaluator
+        from opa_integration import (
+            ISA_D_ComplianceIntegration,
+        )
         print("✓ Successfully imported OPA integration modules")
 
         # Create integration instance

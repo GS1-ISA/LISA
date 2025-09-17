@@ -6,12 +6,9 @@ This module contains unit tests for the LLM functionality in the ISA SuperApp,
 including model initialization, text generation, and prompt management.
 """
 
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
-from tests.utils import MockFactory, TestDataGenerator, TestValidators
 
 
 class TestLLMInitialization:
@@ -177,8 +174,6 @@ class TestTextGeneration:
 
     def test_text_generation_with_system_prompt(self, mock_llm_instance):
         """Test text generation with system prompt."""
-        system_prompt = "You are a helpful assistant."
-        user_prompt = "What is 2+2?"
 
         # Generate with system prompt
         # response = mock_llm_instance.generate_with_system_prompt(
@@ -204,8 +199,6 @@ class TestTextGeneration:
 
     def test_text_generation_with_context(self, mock_llm_instance):
         """Test text generation with context."""
-        context = "Previous conversation context here."
-        prompt = "Continue the conversation."
 
         # Generate with context
         # response = mock_llm_instance.generate_with_context(
@@ -230,7 +223,6 @@ class TestTextGeneration:
 
     def test_text_generation_with_stop_sequences(self, mock_llm_instance):
         """Test text generation with stop sequences."""
-        stop_sequences = ["\n", "END", "STOP"]
 
         # Generate with stop sequences
         # response = mock_llm_instance.generate(
@@ -293,10 +285,6 @@ class TestPromptManagement:
     def test_prompt_template_rendering(self, mock_prompt_template):
         """Test prompt template rendering."""
         # Mock template rendering
-        variables = {
-            "context": "The sky is blue.",
-            "question": "What color is the sky?",
-        }
 
         # Render template
         # rendered = prompt_manager.render_template(
@@ -305,15 +293,11 @@ class TestPromptManagement:
         # )
 
         # Verify rendering
-        expected = (
-            "Context: The sky is blue.\n\nQuestion: What color is the sky?\n\nAnswer:"
-        )
         # assert rendered == expected
 
     def test_prompt_template_validation(self, mock_prompt_template):
         """Test prompt template validation."""
         # Test with missing variables
-        incomplete_variables = {"context": "Some context"}
 
         # with pytest.raises(TemplateValidationError):
         #     prompt_manager.render_template(
@@ -322,11 +306,6 @@ class TestPromptManagement:
         #     )
 
         # Test with extra variables (should be allowed)
-        extra_variables = {
-            "context": "Context",
-            "question": "Question",
-            "extra": "Extra",
-        }
 
         # Should not raise error
         # rendered = prompt_manager.render_template(
@@ -352,8 +331,6 @@ class TestPromptManagement:
     def test_dynamic_prompt_generation(self):
         """Test dynamic prompt generation."""
         # Mock dynamic prompt generation
-        context = "Technical documentation about Python"
-        task = "explain decorators"
 
         # Generate dynamic prompt
         # prompt = prompt_manager.generate_dynamic_prompt(
@@ -387,7 +364,6 @@ class TestPromptManagement:
     def test_prompt_optimization(self):
         """Test prompt optimization."""
         # Mock prompt optimization
-        original_prompt = "Tell me about Python"
 
         # Optimize prompt
         # optimized = prompt_manager.optimize_prompt(
@@ -403,12 +379,6 @@ class TestPromptManagement:
     def test_multi_language_prompt_support(self):
         """Test multi-language prompt support."""
         # Test prompts in different languages
-        prompts = {
-            "english": "What is machine learning?",
-            "spanish": "¿Qué es el aprendizaje automático?",
-            "french": "Qu'est-ce que l'apprentissage automatique?",
-            "german": "Was ist maschinelles Lernen?",
-        }
 
         # Process each prompt
         # for language, prompt in prompts.items():
@@ -460,7 +430,6 @@ class TestLLMIntegration:
 
     def test_context_aware_generation(self, mock_llm_instance, mock_vector_store):
         """Test context-aware text generation."""
-        query = "Explain machine learning"
 
         # Test context-aware generation
         # response = generate_with_context(

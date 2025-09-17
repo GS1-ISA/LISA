@@ -7,12 +7,11 @@ including conversation memory, episodic memory, and memory management.
 """
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from tests.utils import MockFactory, TestDataGenerator, TestValidators
+from tests.utils import TestDataGenerator
 
 
 class TestConversationMemory:
@@ -54,11 +53,6 @@ class TestConversationMemory:
 
     def test_conversation_memory_with_custom_config(self, mock_conversation_store):
         """Test conversation memory with custom configuration."""
-        custom_config = {
-            "max_history_length": 50,
-            "memory_window": 10,
-            "summarization_threshold": 20,
-        }
 
         # Initialize with custom config
         # memory = ConversationMemory(
@@ -76,7 +70,7 @@ class TestConversationMemory:
     ):
         """Test adding messages to conversation memory."""
         # Add messages
-        for message in sample_conversation:
+        for _message in sample_conversation:
             # memory.add_message(message)
             mock_conversation_store.add_message.assert_called()
 
@@ -246,7 +240,7 @@ class TestEpisodicMemory:
 
     def test_episode_creation(self, mock_episode_store, sample_episodes):
         """Test episode creation."""
-        episode = sample_episodes[0]
+        sample_episodes[0]
 
         # Create episode
         # memory.add_episode(
@@ -264,8 +258,8 @@ class TestEpisodicMemory:
         mock_episode_store.get_episodes.return_value = sample_episodes
 
         # Define time range
-        start_time = datetime.now() - timedelta(hours=3)
-        end_time = datetime.now()
+        datetime.now() - timedelta(hours=3)
+        datetime.now()
 
         # Retrieve episodes
         # episodes = memory.get_episodes_by_time_range(start_time, end_time)
@@ -420,7 +414,7 @@ class TestSemanticMemory:
         self, mock_knowledge_store, sample_knowledge_items
     ):
         """Test knowledge item creation."""
-        item = sample_knowledge_items[0]
+        sample_knowledge_items[0]
 
         # Create knowledge item
         # memory.add_knowledge(
@@ -702,11 +696,6 @@ class TestMemoryIntegration:
         mock_llm.generate.return_value = "Response based on memory context"
 
         # Mock memory context
-        mock_memory_context = {
-            "conversation_history": ["Previous messages"],
-            "relevant_episodes": ["Recent events"],
-            "related_knowledge": ["Relevant concepts"],
-        }
 
         # Test LLM with memory
         # response = generate_with_memory(

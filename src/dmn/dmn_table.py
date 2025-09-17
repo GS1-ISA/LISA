@@ -5,10 +5,9 @@ This module defines the core data structures for DMN (Decision Model and Notatio
 tables used in compliance rules automation.
 """
 
-from typing import Dict, List, Any, Optional, Union, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-import logging
+from typing import Any
 
 
 class HitPolicy(Enum):
@@ -44,9 +43,9 @@ class InputClause:
     id: str
     label: str
     expression: str
-    type_ref: Optional[str] = None
+    type_ref: str | None = None
     expression_language: ExpressionLanguage = ExpressionLanguage.FEEL
-    description: Optional[str] = None
+    description: str | None = None
 
 
 @dataclass
@@ -55,20 +54,20 @@ class OutputClause:
     id: str
     label: str
     name: str
-    type_ref: Optional[str] = None
-    default_output_entry: Optional[Any] = None
-    description: Optional[str] = None
+    type_ref: str | None = None
+    default_output_entry: Any | None = None
+    description: str | None = None
 
 
 @dataclass
 class Rule:
     """DMN Rule definition."""
     id: str
-    description: Optional[str] = None
-    input_entries: Dict[str, str] = field(default_factory=dict)  # input_clause_id -> expression
-    output_entries: Dict[str, Any] = field(default_factory=dict)  # output_clause_id -> value
-    priority: Optional[int] = None
-    annotation_entries: Dict[str, str] = field(default_factory=dict)
+    description: str | None = None
+    input_entries: dict[str, str] = field(default_factory=dict)  # input_clause_id -> expression
+    output_entries: dict[str, Any] = field(default_factory=dict)  # output_clause_id -> value
+    priority: int | None = None
+    annotation_entries: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -77,14 +76,14 @@ class DecisionTable:
     id: str
     name: str
     hit_policy: HitPolicy = HitPolicy.UNIQUE
-    aggregation: Optional[BuiltinAggregator] = None
-    input_clauses: List[InputClause] = field(default_factory=list)
-    output_clauses: List[OutputClause] = field(default_factory=list)
-    rules: List[Rule] = field(default_factory=list)
-    description: Optional[str] = None
+    aggregation: BuiltinAggregator | None = None
+    input_clauses: list[InputClause] = field(default_factory=list)
+    output_clauses: list[OutputClause] = field(default_factory=list)
+    rules: list[Rule] = field(default_factory=list)
+    description: str | None = None
     expression_language: ExpressionLanguage = ExpressionLanguage.FEEL
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate the decision table structure."""
         errors = []
 
@@ -102,11 +101,11 @@ class DecisionTable:
         output_ids = {clause.id for clause in self.output_clauses}
 
         for rule in self.rules:
-            for input_id in rule.input_entries.keys():
+            for input_id in rule.input_entries:
                 if input_id not in input_ids:
                     errors.append(f"Rule {rule.id} references unknown input clause {input_id}")
 
-            for output_id in rule.output_entries.keys():
+            for output_id in rule.output_entries:
                 if output_id not in output_ids:
                     errors.append(f"Rule {rule.id} references unknown output clause {output_id}")
 
@@ -119,12 +118,12 @@ class DMNTable:
     id: str
     name: str
     namespace: str = "http://www.omg.org/spec/DMN/20191111/MODEL/"
-    decision_tables: List[DecisionTable] = field(default_factory=list)
-    description: Optional[str] = None
+    decision_tables: list[DecisionTable] = field(default_factory=list)
+    description: str | None = None
     version: str = "1.0"
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate the complete DMN table."""
         errors = []
 
@@ -143,7 +142,7 @@ class DMNTable:
             all_ids.extend([clause.id for clause in dt.input_clauses])
             all_ids.extend([clause.id for clause in dt.output_clauses])
 
-        duplicates = set([x for x in all_ids if all_ids.count(x) > 1])
+        duplicates = {x for x in all_ids if all_ids.count(x) > 1}
         if duplicates:
             errors.append(f"Duplicate IDs found: {duplicates}")
 
@@ -153,28 +152,28 @@ class DMNTable:
 @dataclass
 class DMNExecutionContext:
     """Context for DMN execution."""
-    input_data: Dict[str, Any]
-    decision_table_id: Optional[str] = None
-    variables: Dict[str, Any] = field(default_factory=dict)
-    execution_trace: List[Dict[str, Any]] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    input_data: dict[str, Any]
+    decision_table_id: str | None = None
+    variables: dict[str, Any] = field(default_factory=dict)
+    execution_trace: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class DMNExecutionResult:
     """Result of DMN table execution."""
     decision_table_id: str
-    matched_rules: List[str]
-    outputs: Dict[str, Any]
+    matched_rules: list[str]
+    outputs: dict[str, Any]
     hit_policy_result: Any
     execution_time: float
     success: bool
-    errors: List[str] = field(default_factory=list)
-    execution_trace: List[Dict[str, Any]] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    execution_trace: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
-    def single_output(self) -> Optional[Any]:
+    def single_output(self) -> Any | None:
         """Get single output value if only one output clause."""
         if len(self.outputs) == 1:
             return list(self.outputs.values())[0]

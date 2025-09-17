@@ -29,15 +29,15 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
-    from src.xml_utils import collect_coverage_gaps, XMLParseError, XMLValidationError
+    from src.xml_utils import XMLParseError, XMLValidationError, collect_coverage_gaps
 except ImportError:
     # Fallback for direct execution
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-    from xml_utils import collect_coverage_gaps, XMLParseError, XMLValidationError
+    from xml_utils import XMLParseError, XMLValidationError, collect_coverage_gaps
 
 ARTIFACTS_DIR = Path("artifacts/refactor_guard")
 BOARD_FILE = ARTIFACTS_DIR / "board.json"
@@ -57,7 +57,7 @@ def log(msg: str) -> None:
     print(msg)
 
 
-def load_board() -> Dict[str, Any]:
+def load_board() -> dict[str, Any]:
     if BOARD_FILE.exists():
         return json.loads(BOARD_FILE.read_text(encoding="utf-8"))
     return {
@@ -76,34 +76,34 @@ def load_board() -> Dict[str, Any]:
     }
 
 
-def save_board(board: Dict[str, Any]) -> None:
+def save_board(board: dict[str, Any]) -> None:
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
     BOARD_FILE.write_text(json.dumps(board, indent=2), encoding="utf-8")
 
 
-def load_flags() -> Dict[str, Any]:
+def load_flags() -> dict[str, Any]:
     if FLAGS_FILE.exists():
         try:
             return json.loads(FLAGS_FILE.read_text(encoding="utf-8"))
         except Exception:
             pass
     FLAGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    init: Dict[str, Any] = {"flags": {}}  # name -> {"enabled": bool, "traffic": int}
+    init: dict[str, Any] = {"flags": {}}  # name -> {"enabled": bool, "traffic": int}
     FLAGS_FILE.write_text(json.dumps(init, indent=2), encoding="utf-8")
     return init
 
 
-def save_flags(flags: Dict[str, Any]) -> None:
+def save_flags(flags: dict[str, Any]) -> None:
     FLAGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     FLAGS_FILE.write_text(json.dumps(flags, indent=2), encoding="utf-8")
 
 
 def run(
     cmd: str,
-    cwd: Optional[Path] = None,
+    cwd: Path | None = None,
     check: bool = False,
-    env: Optional[Dict[str, str]] = None,
-) -> Tuple[int, str]:
+    env: dict[str, str] | None = None,
+) -> tuple[int, str]:
     proc = subprocess.Popen(
         cmd,
         cwd=str(cwd) if cwd else None,
@@ -138,9 +138,9 @@ def cmd_bootstrap(args: argparse.Namespace) -> None:
 
 def _pytest_once(
     with_cov: bool = False,
-    cov_out_xml: Optional[Path] = None,
-    paths: Optional[List[str]] = None,
-) -> Tuple[int, str]:
+    cov_out_xml: Path | None = None,
+    paths: list[str] | None = None,
+) -> tuple[int, str]:
     paths = paths or ["src"]
     base = "python3 -m pytest -q --maxfail=1"
     if with_cov:
@@ -153,9 +153,9 @@ def _pytest_once(
     return rc, out
 
 
-def _parse_pytest_output_for_failures(out: str) -> List[str]:
+def _parse_pytest_output_for_failures(out: str) -> list[str]:
     # Extract test node IDs that failed from pytest summary lines
-    failed: List[str] = []
+    failed: list[str] = []
     for line in out.splitlines():
         # Example: FAILED src/orchestrator/tests/test_api_server_smoke.py::test_metrics_endpoint - AssertionError
         if line.startswith("FAILED "):
@@ -164,7 +164,7 @@ def _parse_pytest_output_for_failures(out: str) -> List[str]:
     return failed
 
 
-def _collect_coverage_gaps(cov_xml: Path, threshold: float = 80.0) -> List[str]:
+def _collect_coverage_gaps(cov_xml: Path, threshold: float = 80.0) -> list[str]:
     try:
         return collect_coverage_gaps(cov_xml, threshold)
     except (XMLParseError, XMLValidationError) as e:
@@ -184,7 +184,7 @@ def cmd_precheck(args: argparse.Namespace) -> None:
     if Path("requirements-dev.txt").exists():
         run("python3 -m pip install -r requirements-dev.txt", check=False)
     log("PRE-CHECK: running test suite 3x (scoped to src/)")
-    all_failures: List[List[str]] = []
+    all_failures: list[list[str]] = []
     any_red = False
     for i in range(3):
         rc, out = _pytest_once(
@@ -198,9 +198,9 @@ def cmd_precheck(args: argparse.Namespace) -> None:
         log(f"Run {i + 1}: rc={rc}, failed={len(failed)}")
     # Coverage gaps from first run with coverage
     gaps = _collect_coverage_gaps(ARTIFACTS_DIR / "coverage.xml")
-    flaky: List[str] = []
+    flaky: list[str] = []
     # Detect flakies by presence/absence across runs
-    test_set = set([t for runf in all_failures for t in runf])
+    test_set = {t for runf in all_failures for t in runf}
     for t in sorted(test_set):
         appear = sum(1 for runf in all_failures if t in runf)
         if 0 < appear < 3:
@@ -239,7 +239,7 @@ def cmd_precheck(args: argparse.Namespace) -> None:
     print(f"Flaky tests file: {flk_issue}")
 
 
-def _estimate_loc(files: List[str]) -> int:
+def _estimate_loc(files: list[str]) -> int:
     total = 0
     for f in files:
         p = Path(f)
@@ -251,7 +251,7 @@ def _estimate_loc(files: List[str]) -> int:
     return total
 
 
-def _list_repo_files() -> List[str]:
+def _list_repo_files() -> list[str]:
     rc, out = run("rg --files")
     if rc != 0:
         # Fallback to git ls-files
@@ -265,7 +265,7 @@ def _list_repo_files() -> List[str]:
     ]
 
 
-def _load_graph_edges() -> List[Tuple[str, str]]:
+def _load_graph_edges() -> list[tuple[str, str]]:
     if COHERENCE_GRAPH.exists():
         try:
             data = json.loads(COHERENCE_GRAPH.read_text(encoding="utf-8"))
@@ -286,19 +286,19 @@ def _load_graph_edges() -> List[Tuple[str, str]]:
     return []
 
 
-def _propose_slices(max_slices: int = 5) -> List[Dict[str, Any]]:
+def _propose_slices(max_slices: int = 5) -> list[dict[str, Any]]:
     files = _list_repo_files()
     edges = _load_graph_edges()
-    incoming: Dict[str, int] = {f: 0 for f in files}
+    incoming: dict[str, int] = dict.fromkeys(files, 0)
     for _, d in edges:
         if d in incoming:
             incoming[d] += 1
     # Pick small clusters by directory with no or few incoming edges
-    by_dir: Dict[str, List[str]] = {}
+    by_dir: dict[str, list[str]] = {}
     for f in files:
         d = str(Path(f).parent)
         by_dir.setdefault(d, []).append(f)
-    candidates: List[Tuple[str, List[str]]] = []
+    candidates: list[tuple[str, list[str]]] = []
     for d, fs in by_dir.items():
         if len(fs) <= 10:
             # Require that most files in folder have zero incoming edges (approximate boundary)
@@ -307,7 +307,7 @@ def _propose_slices(max_slices: int = 5) -> List[Dict[str, Any]]:
                 candidates.append((d, fs))
     # Sort by estimated LOC ascending (smaller first) to keep slices small
     candidates.sort(key=lambda t: _estimate_loc(t[1]))
-    slices: List[Dict[str, Any]] = []
+    slices: list[dict[str, Any]] = []
     today = time.strftime("%Y%m%d")
     for i, (d, fs) in enumerate(candidates[:max_slices], start=1):
         est = _estimate_loc(fs)
@@ -452,7 +452,7 @@ def cmd_sweep(args: argparse.Namespace) -> None:
         sys.exit(1)
     # Simulate: removing legacy files matching *legacy*.py under slice files' dirs
     dirs = sorted({str(Path(f).parent) for f in s["files"]})
-    legacy: List[str] = []
+    legacy: list[str] = []
     for d in dirs:
         for p in Path(d).glob("*legacy*.py"):
             legacy.append(str(p))
@@ -484,7 +484,7 @@ def cmd_rollback(args: argparse.Namespace) -> None:
 
 def cmd_merge(args: argparse.Namespace) -> None:
     board = load_board()
-    merged: List[str] = []
+    merged: list[str] = []
     for sid in args.slices:
         s = board["slices"].get(sid)
         if not s:
@@ -577,7 +577,7 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     argv = argv or sys.argv[1:]
     parser = build_parser()
     args = parser.parse_args(argv)

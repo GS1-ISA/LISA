@@ -11,28 +11,37 @@ This script validates:
 - Security integration with existing components
 """
 
-import os
-import sys
 import asyncio
 import json
-from datetime import datetime, timedelta
+import os
+import sys
+from datetime import datetime
 from pathlib import Path
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from src.audit_logger import (
+    AuditEventSeverity,
+    AuditEventType,
+    get_audit_logger,
+    log_auth_event,
+    log_data_access,
+)
 from src.auth import (
-    User, UserCreate, UserRole, create_user, authenticate_user,
-    get_oauth2_provider_by_name, create_oauth2_provider, OAuth2ProviderCreate,
-    get_db_manager
+    OAuth2ProviderCreate,
+    UserCreate,
+    UserRole,
+    authenticate_user,
+    create_oauth2_provider,
+    create_user,
+    get_db_manager,
+    get_oauth2_provider_by_name,
 )
 from src.encryption import (
-    get_encryption_service, encrypt_sensitive_data, decrypt_sensitive_data,
-    generate_encryption_key, validate_encryption_key
-)
-from src.audit_logger import (
-    get_audit_logger, AuditEventType, AuditEventSeverity,
-    log_auth_event, log_data_access, log_security_event
+    generate_encryption_key,
+    get_encryption_service,
+    validate_encryption_key,
 )
 
 
@@ -316,7 +325,7 @@ class SecurityTestSuite:
 
         # Save report to file
         report_file = Path(__file__).parent / "security_test_report.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump({
                 "test_run": datetime.now().isoformat(),
                 "results": self.test_results,

@@ -14,14 +14,16 @@ Tests include:
 import asyncio
 import json
 import logging
-import socketio
+import sys
 import time
-from typing import Dict, Any, Optional
+from typing import Any
+
+import socketio
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -106,7 +108,7 @@ class SocketIOTestClient:
         """Send a chat message and wait for response."""
         try:
             logger.info(f"Sending chat message: {message}")
-            await self.sio.emit('chat_message', {'message': message})
+            await self.sio.emit("chat_message", {"message": message})
 
             # Wait for response (typing and chat_response events)
             await asyncio.sleep(3)
@@ -118,7 +120,7 @@ class SocketIOTestClient:
     async def test_empty_message(self) -> bool:
         """Test sending an empty message."""
         try:
-            await self.sio.emit('chat_message', {'message': ''})
+            await self.sio.emit("chat_message", {"message": ""})
             await asyncio.sleep(1)
             return True
         except Exception as e:
@@ -128,7 +130,7 @@ class SocketIOTestClient:
     async def test_invalid_message_format(self) -> bool:
         """Test sending message with invalid format."""
         try:
-            await self.sio.emit('chat_message', {})  # Missing message field
+            await self.sio.emit("chat_message", {})  # Missing message field
             await asyncio.sleep(1)
             return True
         except Exception as e:
@@ -143,7 +145,7 @@ class SocketIOTestClient:
         except Exception as e:
             logger.error(f"Disconnect failed: {str(e)}")
 
-    def get_test_summary(self) -> Dict[str, Any]:
+    def get_test_summary(self) -> dict[str, Any]:
         """Get summary of test results."""
         total_tests = len(self.test_results)
         passed_tests = len([r for r in self.test_results if r["success"]])
@@ -297,4 +299,4 @@ async def main():
 
 if __name__ == "__main__":
     exit_code = asyncio.run(main())
-    exit(exit_code)
+    sys.exit(exit_code)

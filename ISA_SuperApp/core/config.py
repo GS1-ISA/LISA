@@ -7,17 +7,15 @@ for environment variables, configuration files, and runtime updates.
 
 import enum
 import json
-import logging
 import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 import yaml
 
-from .exceptions import ISAConfigurationError, ISAValidationError
-from .logger import get_logger
+from .exceptions import ISAConfigurationError
 
 T = TypeVar("T")
 
@@ -40,6 +38,16 @@ class ConfigLevel(enum.Enum):
     USER = "user"
 
 
+class LogLevel(enum.Enum):
+    """Log levels."""
+
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
 @dataclass
 class ConfigMetadata:
     """Configuration metadata."""
@@ -47,8 +55,8 @@ class ConfigMetadata:
     source: ConfigSource
     level: ConfigLevel
     timestamp: datetime
-    file_path: Optional[str] = None
-    environment_variable: Optional[str] = None
+    file_path: str | None = None
+    environment_variable: str | None = None
 
 
 @dataclass
@@ -198,7 +206,7 @@ class APIConfig:
     auth_token_expiry: int = 3600  # 1 hour
     rate_limit_per_minute: int = 100
     enable_cors: bool = True
-    cors_origins: List[str] = field(default_factory=lambda: ["*"])
+    cors_origins: list[str] = field(default_factory=lambda: ["*"])
 
     # SSL settings
     enable_ssl: bool = False
@@ -245,7 +253,7 @@ class MonitoringConfig:
     # Alerting
     enable_alerts: bool = False
     alert_webhook_url: str = ""
-    alert_thresholds: Dict[str, float] = field(default_factory=dict)
+    alert_thresholds: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
@@ -300,29 +308,30 @@ class ISAConfig:
     enable_beta_features: bool = False
 
     # Metadata
-    metadata: Dict[str, ConfigMetadata] = field(default_factory=dict)
+    metadata: dict[str, ConfigMetadata] = field(default_factory=dict)
 
 
 class ConfigManager:
     """Configuration manager for ISA SuperApp."""
 
-    def __init__(self, config_path: Optional[str] = None) -> None:
+    def __init__(self, config_path: str | None = None) -> None:
         """
         Initialize configuration manager.
 
         Args:
             config_path: Path to configuration file
         """
+        from .logger import get_logger
         self.logger = get_logger("config.manager")
         self.config_path = config_path or self._find_config_file()
         self.config = ISAConfig()
-        self._config_cache: Dict[str, Any] = {}
-        self._metadata: Dict[str, ConfigMetadata] = {}
+        self._config_cache: dict[str, Any] = {}
+        self._metadata: dict[str, ConfigMetadata] = {}
 
         # Load configuration
         self._load_configuration()
 
-    def _find_config_file(self) -> Optional[str]:
+    def _find_config_file(self) -> str | None:
         """Find configuration file in standard locations."""
         search_paths = [
             "./config.yaml",
@@ -365,7 +374,7 @@ class ConfigManager:
                 self.logger.warning(f"Configuration file not found: {file_path}")
                 return
 
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 if path.suffix.lower() in [".yaml", ".yml"]:
                     data = yaml.safe_load(f)
                 elif path.suffix.lower() == ".json":
@@ -381,7 +390,7 @@ class ConfigManager:
 
             # Record metadata
             timestamp = datetime.utcnow()
-            for key in self._flatten_dict(data).keys():
+            for key in self._flatten_dict(data):
                 self._metadata[key] = ConfigMetadata(
                     source=ConfigSource.FILE,
                     level=ConfigLevel.APPLICATION,
@@ -450,12 +459,12 @@ class ConfigManager:
                 except Exception as e:
                     self.logger.warning(f"Error loading {env_var}: {e}")
 
-    def _update_config_from_dict(self, data: Dict[str, Any]) -> None:
+    def _update_config_from_dict(self, data: dict[str, Any]) -> None:
         """Update configuration from dictionary."""
         for key, value in self._flatten_dict(data).items():
             self._set_nested_value(self.config, key, value)
 
-    def _flatten_dict(self, data: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+    def _flatten_dict(self, data: dict[str, Any], prefix: str = "") -> dict[str, Any]:
         """Flatten nested dictionary."""
         result = {}
         for key, value in data.items():
@@ -482,7 +491,7 @@ class ConfigManager:
         else:
             self.logger.warning(f"Configuration field not found: {path}")
 
-    def _convert_value(self, value: str, value_type: Type[T]) -> T:
+    def _convert_value(self, value: str, value_type: type[T]) -> T:
         """Convert string value to specified type."""
         if value_type == bool:
             return value.lower() in ("true", "1", "yes", "on")
@@ -589,7 +598,7 @@ class ConfigManager:
             self.logger.error(f"Error setting configuration key {key}: {e}")
             raise ISAConfigurationError(f"Failed to set configuration {key}: {e}")
 
-    def get_metadata(self, key: str) -> Optional[ConfigMetadata]:
+    def get_metadata(self, key: str) -> ConfigMetadata | None:
         """
         Get configuration metadata.
 
@@ -637,7 +646,7 @@ class ConfigManager:
         self.logger.info("Reloading configuration...")
         self._load_configuration()
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """
         Validate current configuration.
 
@@ -653,7 +662,7 @@ class ConfigManager:
 
         return errors
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
         return asdict(self.config)
 
@@ -663,10 +672,10 @@ class ConfigManager:
 
 
 # Global configuration instance
-_config_manager: Optional[ConfigManager] = None
+_config_manager: ConfigManager | None = None
 
 
-def get_config(config_path: Optional[str] = None) -> ConfigManager:
+def get_config(config_path: str | None = None) -> ConfigManager:
     """
     Get global configuration manager.
 
@@ -735,3 +744,48 @@ def get_testing_config() -> ISAConfig:
     config.vector_store.collection_name = "isa_documents_test"
     config.enable_experimental_features = True
     return config
+
+class Config:
+    """Simple configuration class for backward compatibility."""
+
+    def __init__(self, data: dict[str, Any]):
+        """Initialize config with data."""
+        self._data = data
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get configuration value by key."""
+        keys = key.split(".")
+        current = self._data
+
+        try:
+            for k in keys:
+                current = current[k]
+            return current
+        except (KeyError, TypeError):
+            return default
+
+    def set(self, key: str, value: Any) -> None:
+        """Set configuration value by key."""
+        keys = key.split(".")
+        current = self._data
+
+        for k in keys[:-1]:
+            if k not in current:
+                current[k] = {}
+            current = current[k]
+
+        current[keys[-1]] = value
+
+    def update(self, updates: dict[str, Any]) -> None:
+        """Update configuration with new values."""
+        for key, value in updates.items():
+            self.set(key, value)
+
+    def validate(self) -> None:
+        """Validate configuration."""
+        # Basic validation - can be extended
+        if "app" in self._data:
+            app_config = self._data["app"]
+            if "name" in app_config and not isinstance(app_config["name"], str):
+                from .exceptions import ConfigurationError
+                raise ConfigurationError("App name must be a string")

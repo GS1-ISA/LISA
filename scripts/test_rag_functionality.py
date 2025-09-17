@@ -11,16 +11,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from agent_core.memory.rag_store import RAGMemory
 
+
 def test_rag_functionality():
     """Test basic RAG functionality with sample documents."""
-    
+
     print("🧪 Testing RAG Memory Functionality")
     print("=" * 50)
-    
+
     # Initialize RAG memory
     rag = RAGMemory()
     print("✅ RAG Memory initialized")
-    
+
     # Sample documents to test with
     sample_docs = [
         {
@@ -51,16 +52,16 @@ def test_rag_functionality():
             }
         }
     ]
-    
+
     # Add documents to the store
     print("\n📚 Adding sample documents...")
     for i, doc in enumerate(sample_docs):
         doc_id = f"doc_{i+1}"
         rag.update_document(doc_id, doc["content"], doc["metadata"])
         print(f"✅ Added document: {doc_id}")
-    
+
     print(f"\n📊 Total documents in store: {rag.get_document_count()}")
-    
+
     # Test semantic search
     print("\n🔍 Testing semantic search...")
     queries = [
@@ -69,11 +70,11 @@ def test_rag_functionality():
         "Explain deep learning",
         "How do neural networks work?"
     ]
-    
+
     for query in queries:
         print(f"\n❓ Query: {query}")
         results = rag.search(query, n_results=2)
-        
+
         if results:
             for j, (doc_id, content, metadata, distance) in enumerate(results):
                 print(f"  Result {j+1}:")
@@ -84,7 +85,7 @@ def test_rag_functionality():
                 print()
         else:
             print("  No results found")
-    
+
     # Test document retrieval
     print("\n📄 Testing document retrieval...")
     doc_id = "doc_1"
@@ -96,13 +97,13 @@ def test_rag_functionality():
         print(f"  Metadata: {metadata}")
     else:
         print(f"❌ Document {doc_id} not found")
-    
+
     # Test document deletion
     print("\n🗑️  Testing document deletion...")
     rag.delete_document("doc_2")
     print("✅ Deleted document doc_2")
     print(f"📊 Remaining documents: {rag.get_document_count()}")
-    
+
     print("\n🎉 RAG functionality test completed!")
 
 if __name__ == "__main__":

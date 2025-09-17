@@ -7,7 +7,10 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 INDEX_PATH = Path("docs/audit/search_index.jsonl")
 

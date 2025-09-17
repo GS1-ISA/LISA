@@ -5,7 +5,7 @@ This module defines the base exception hierarchy for the ISA SuperApp framework.
 All custom exceptions inherit from ISAException to provide consistent error handling.
 """
 
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 
 class ISAException(Exception):
@@ -19,9 +19,9 @@ class ISAException(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
+        cause: Exception | None = None,
     ) -> None:
         """
         Initialize the exception.
@@ -38,7 +38,7 @@ class ISAException(Exception):
         self.details = details or {}
         self.cause = cause
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert exception to dictionary format for serialization."""
         return {
             "error_type": self.__class__.__name__,
@@ -50,8 +50,6 @@ class ISAException(Exception):
 
     def __str__(self) -> str:
         """String representation of the exception."""
-        if self.error_code:
-            return f"[{self.error_code}] {self.message}"
         return self.message
 
     def __repr__(self) -> str:
@@ -62,6 +60,31 @@ class ISAException(Exception):
             f"error_code='{self.error_code}', "
             f"details={self.details}, "
             f"cause={self.cause})"
+        )
+
+
+class ISANotFoundError(ISAException):
+    """Exception raised when a requested resource is not found."""
+
+    def __init__(
+        self,
+        message: str,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize not found error."""
+        details = {}
+        if resource_type:
+            details["resource_type"] = resource_type
+        if resource_id:
+            details["resource_id"] = resource_id
+        details.update(kwargs)
+
+        super().__init__(
+            message=message,
+            error_code="NOT_FOUND_ERROR",
+            details=details,
         )
 
 
@@ -76,10 +99,10 @@ class ISAValidationError(ISAException):
     def __init__(
         self,
         message: str,
-        field: Optional[str] = None,
+        field: str | None = None,
         value: Any = None,
-        expected_type: Optional[str] = None,
-        validation_rule: Optional[str] = None,
+        expected_type: str | None = None,
+        validation_rule: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -114,7 +137,7 @@ class ISAConfigurationError(ISAException):
     """Exception raised for configuration-related errors."""
 
     def __init__(
-        self, message: str, config_key: Optional[str] = None, **kwargs: Any
+        self, message: str, config_key: str | None = None, **kwargs: Any
     ) -> None:
         """Initialize configuration error."""
         details = {"config_key": config_key, **kwargs} if config_key else kwargs
@@ -129,7 +152,7 @@ class ISADataError(ISAException):
     """Exception raised for data-related errors."""
 
     def __init__(
-        self, message: str, data_source: Optional[str] = None, **kwargs: Any
+        self, message: str, data_source: str | None = None, **kwargs: Any
     ) -> None:
         """Initialize data error."""
         details = {"data_source": data_source, **kwargs} if data_source else kwargs
@@ -146,8 +169,8 @@ class ISANetworkError(ISAException):
     def __init__(
         self,
         message: str,
-        url: Optional[str] = None,
-        status_code: Optional[int] = None,
+        url: str | None = None,
+        status_code: int | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize network error."""
@@ -165,14 +188,39 @@ class ISANetworkError(ISAException):
         )
 
 
+class ISAConnectionError(ISANetworkError):
+    """Exception raised for connection-related errors."""
+
+    def __init__(
+        self,
+        message: str,
+        host: str | None = None,
+        port: int | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize connection error."""
+        details = {}
+        if host:
+            details["host"] = host
+        if port is not None:
+            details["port"] = port
+        details.update(kwargs)
+
+        super().__init__(
+            message=message,
+            error_code="CONNECTION_ERROR",
+            details=details,
+        )
+
+
 class ISAAIError(ISAException):
     """Exception raised for AI/ML-related errors."""
 
     def __init__(
         self,
         message: str,
-        model_name: Optional[str] = None,
-        error_type: Optional[str] = None,
+        model_name: str | None = None,
+        error_type: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize AI error."""
@@ -194,7 +242,7 @@ class ISASecurityError(ISAException):
     """Exception raised for security-related errors."""
 
     def __init__(
-        self, message: str, security_context: Optional[str] = None, **kwargs: Any
+        self, message: str, security_context: str | None = None, **kwargs: Any
     ) -> None:
         """Initialize security error."""
         details = (
@@ -215,8 +263,8 @@ class ISATimeoutError(ISAException):
     def __init__(
         self,
         message: str,
-        timeout_seconds: Optional[Union[int, float]] = None,
-        operation: Optional[str] = None,
+        timeout_seconds: int | float | None = None,
+        operation: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize timeout error."""
@@ -238,7 +286,7 @@ class ISANotImplementedError(ISAException):
     """Exception raised for not implemented functionality."""
 
     def __init__(
-        self, message: str, feature: Optional[str] = None, **kwargs: Any
+        self, message: str, feature: str | None = None, **kwargs: Any
     ) -> None:
         """Initialize not implemented error."""
         details = {"feature": feature, **kwargs} if feature else kwargs
@@ -255,9 +303,9 @@ class ISAResourceError(ISAException):
     def __init__(
         self,
         message: str,
-        resource_type: Optional[str] = None,
-        requested_amount: Optional[Union[int, float]] = None,
-        available_amount: Optional[Union[int, float]] = None,
+        resource_type: str | None = None,
+        requested_amount: int | float | None = None,
+        available_amount: int | float | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize resource error."""
@@ -283,9 +331,9 @@ class ISADependencyError(ISAException):
     def __init__(
         self,
         message: str,
-        dependency_name: Optional[str] = None,
-        required_version: Optional[str] = None,
-        installed_version: Optional[str] = None,
+        dependency_name: str | None = None,
+        required_version: str | None = None,
+        installed_version: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize dependency error."""
@@ -303,3 +351,123 @@ class ISADependencyError(ISAException):
             error_code="DEPENDENCY_ERROR",
             details=details,
         )
+
+
+class AuthenticationError(ISAException):
+    """Exception raised for authentication-related errors."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        """Initialize authentication error."""
+        super().__init__(
+            message=message,
+            error_code="AUTH_ERROR",
+            details=kwargs,
+        )
+
+
+class LLMError(Exception):
+    """Exception raised for LLM-related errors."""
+    pass
+
+
+class ConfigurationError(ISAException):
+    """Exception raised for configuration-related errors."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        """Initialize configuration error."""
+        super().__init__(
+            message=message,
+            error_code="CONFIG_ERROR",
+            details=kwargs,
+        )
+
+
+class AgentError(ISAException):
+    """Exception raised for agent-related errors."""
+
+    def __init__(
+        self, message: str, agent_id: str | None = None, **kwargs: Any
+    ) -> None:
+        """Initialize agent error."""
+        details = {"agent_id": agent_id, **kwargs} if agent_id else kwargs
+        super().__init__(
+            message=message,
+            error_code="AGENT_ERROR",
+            details=details,
+        )
+
+
+class AuthorizationError(ISAException):
+    """Exception raised for authorization-related errors."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        """Initialize authorization error."""
+        super().__init__(
+            message=message,
+            error_code="AUTHZ_ERROR",
+            details=kwargs,
+        )
+
+
+class LLMRateLimitError(Exception):
+    """Exception raised for LLM rate limit errors."""
+    pass
+
+
+class LLMTimeoutError(Exception):
+    """Exception raised for LLM timeout errors."""
+    pass
+
+
+class VectorStoreConnectionError(Exception):
+    """Exception raised for vector store connection errors."""
+    pass
+
+
+class RetrievalError(Exception):
+    """Exception raised for retrieval-related errors."""
+    pass
+
+
+class VectorStoreError(ISAException):
+    """Exception raised for vector store-related errors."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        """Initialize vector store error."""
+        super().__init__(
+            message=message,
+            error_code="VECTOR_STORE_ERROR",
+            details=kwargs,
+        )
+
+
+# Alias for backward compatibility
+class ISAError(ISAException):
+    """Alias for ISAException with default error code."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        """Initialize ISA error with default error code."""
+        super().__init__(
+            message=message,
+            error_code="ISA_ERROR",
+            details=kwargs,
+        )
+
+ValidationError = ISAValidationError
+class OrchestrationError(ISAException):
+    """Exception raised for orchestration-related errors."""
+
+    def __init__(
+        self, message: str, orchestration_step: str | None = None, **kwargs: Any
+    ) -> None:
+        """Initialize orchestration error."""
+        details = {"orchestration_step": orchestration_step, **kwargs} if orchestration_step else kwargs
+        super().__init__(
+            message=message,
+            error_code="ORCHESTRATION_ERROR",
+            details=details,
+        )
+
+
+# Alias for backward compatibility
+ISAError = ISAException

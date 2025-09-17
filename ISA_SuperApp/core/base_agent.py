@@ -5,14 +5,14 @@ This module provides the foundational agent infrastructure with common functiona
 for all agents in the system.
 """
 
-import asyncio
 import time
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 from .config import ISAConfig
 from .exceptions import ISAConfigurationError, ISAValidationError
@@ -53,12 +53,12 @@ class AgentContext:
 
     agent_id: str
     correlation_id: str
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    user_id: str | None = None
+    session_id: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
     start_time: datetime = field(default_factory=datetime.utcnow)
-    end_time: Optional[datetime] = None
-    duration_ms: Optional[float] = None
+    end_time: datetime | None = None
+    duration_ms: float | None = None
 
 
 @dataclass
@@ -66,11 +66,11 @@ class AgentResult:
     """Agent execution result."""
 
     success: bool
-    data: Optional[Any] = None
-    error: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    data: Any | None = None
+    error: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
     execution_time_ms: float = 0.0
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
 
 
 @dataclass
@@ -82,8 +82,8 @@ class AgentMetrics:
     failed_executions: int = 0
     total_execution_time_ms: float = 0.0
     average_execution_time_ms: float = 0.0
-    last_execution_time: Optional[datetime] = None
-    last_error: Optional[str] = None
+    last_execution_time: datetime | None = None
+    last_error: str | None = None
     error_count: int = 0
 
 
@@ -102,11 +102,11 @@ class BaseAgent(ABC):
 
     def __init__(
         self,
-        agent_id: Optional[str] = None,
-        name: Optional[str] = None,
-        config: Optional[ISAConfig] = None,
-        capabilities: Optional[List[AgentCapability]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        agent_id: str | None = None,
+        name: str | None = None,
+        config: ISAConfig | None = None,
+        capabilities: list[AgentCapability] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Initialize the base agent.
@@ -129,15 +129,15 @@ class BaseAgent(ABC):
 
         # Agent state
         self.status = AgentStatus.IDLE
-        self._current_context: Optional[AgentContext] = None
+        self._current_context: AgentContext | None = None
         self._metrics = AgentMetrics()
-        self._start_time: Optional[datetime] = None
+        self._start_time: datetime | None = None
 
         # Event handlers
-        self._event_handlers: Dict[str, List[Callable]] = {}
+        self._event_handlers: dict[str, list[Callable]] = {}
 
         self.logger.info(
-            f"Agent initialized",
+            "Agent initialized",
             agent_id=self.agent_id,
             name=self.name,
             capabilities=[cap.value for cap in self.capabilities],
@@ -215,7 +215,7 @@ class BaseAgent(ABC):
         if event in self._event_handlers and handler in self._event_handlers[event]:
             self._event_handlers[event].remove(handler)
 
-    def _emit_event(self, event: str, data: Optional[Dict[str, Any]] = None) -> None:
+    def _emit_event(self, event: str, data: dict[str, Any] | None = None) -> None:
         """
         Emit event to handlers.
 
@@ -236,7 +236,7 @@ class BaseAgent(ABC):
                     self.logger.error(f"Error in event handler: {e}", exc_info=True)
 
     def _create_context(
-        self, correlation_id: Optional[str] = None, **kwargs: Any
+        self, correlation_id: str | None = None, **kwargs: Any
     ) -> AgentContext:
         """
         Create execution context.
@@ -255,7 +255,7 @@ class BaseAgent(ABC):
         )
 
     def _update_metrics(
-        self, success: bool, execution_time_ms: float, error: Optional[str] = None
+        self, success: bool, execution_time_ms: float, error: str | None = None
     ) -> None:
         """
         Update agent metrics.
@@ -386,7 +386,7 @@ class BaseAgent(ABC):
         pass
 
     async def execute_with_context(
-        self, correlation_id: Optional[str] = None, **kwargs: Any
+        self, correlation_id: str | None = None, **kwargs: Any
     ) -> AgentResult:
         """
         Execute agent with context management.
@@ -484,7 +484,7 @@ class BaseAgent(ABC):
             self.logger.clear_correlation_id()
             self._current_context = None
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get agent status information.
 
@@ -548,7 +548,7 @@ class AgentRegistry:
 
     def __init__(self) -> None:
         """Initialize the registry."""
-        self._agents: Dict[str, BaseAgent] = {}
+        self._agents: dict[str, BaseAgent] = {}
         self.logger = get_logger("agent_registry")
 
     def register_agent(self, agent: BaseAgent) -> None:
@@ -580,7 +580,7 @@ class AgentRegistry:
         else:
             self.logger.warning(f"Agent not found for unregistration: {agent_id}")
 
-    def get_agent(self, agent_id: str) -> Optional[BaseAgent]:
+    def get_agent(self, agent_id: str) -> BaseAgent | None:
         """
         Get agent by ID.
 
@@ -592,7 +592,7 @@ class AgentRegistry:
         """
         return self._agents.get(agent_id)
 
-    def get_agents_by_capability(self, capability: AgentCapability) -> List[BaseAgent]:
+    def get_agents_by_capability(self, capability: AgentCapability) -> list[BaseAgent]:
         """
         Get agents by capability.
 
@@ -606,7 +606,7 @@ class AgentRegistry:
             agent for agent in self._agents.values() if agent.has_capability(capability)
         ]
 
-    def get_all_agents(self) -> List[BaseAgent]:
+    def get_all_agents(self) -> list[BaseAgent]:
         """
         Get all registered agents.
 
@@ -615,7 +615,7 @@ class AgentRegistry:
         """
         return list(self._agents.values())
 
-    def get_agent_statuses(self) -> Dict[str, Dict[str, Any]]:
+    def get_agent_statuses(self) -> dict[str, dict[str, Any]]:
         """
         Get status information for all agents.
 

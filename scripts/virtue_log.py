@@ -6,7 +6,6 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 OUT = Path("agent/outcomes/virtue_log.jsonl")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 

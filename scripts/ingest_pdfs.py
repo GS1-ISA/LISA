@@ -7,13 +7,15 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 # Optional deps: PyPDF2 and PyYAML
 try:  # pdf reader
     from PyPDF2 import PdfReader  # type: ignore
-except Exception as e:  # pragma: no cover - optional import
+except Exception:  # pragma: no cover - optional import
     PdfReader = None  # type: ignore
 
 try:  # yaml loader
@@ -25,28 +27,28 @@ except Exception:  # pragma: no cover - optional import
 @dataclass
 class SourceSpec:
     path: Path
-    include: List[str]
+    include: list[str]
 
 
 def sha256_text(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8", "ignore")).hexdigest()
 
 
-def load_manifest(path: Path) -> tuple[List[SourceSpec], int]:
+def load_manifest(path: Path) -> tuple[list[SourceSpec], int]:
     if yaml is None:
         raise RuntimeError("PyYAML not installed; run: pip install pyyaml")
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    src_specs: List[SourceSpec] = []
+    src_specs: list[SourceSpec] = []
     for src in data.get("source", []) or []:
         base = Path(src.get("path", "."))
         include = list(src.get("include", []))
         src_specs.append(SourceSpec(path=base, include=include))
     # default: page chunking capped by max_pages
-    max_pages = int(((data.get("chunking", {}) or {}).get("max_pages", 50)))
+    max_pages = int((data.get("chunking", {}) or {}).get("max_pages", 50))
     return src_specs, max_pages
 
 
-def iter_pdfs(specs: List[SourceSpec]) -> Iterable[Path]:
+def iter_pdfs(specs: list[SourceSpec]) -> Iterable[Path]:
     for spec in specs:
         base = spec.path
         if not base.exists():
@@ -58,14 +60,14 @@ def iter_pdfs(specs: List[SourceSpec]) -> Iterable[Path]:
                     yield p
 
 
-def extract_pages(pdf_path: Path, max_pages: int) -> List[tuple[int, str]]:
+def extract_pages(pdf_path: Path, max_pages: int) -> list[tuple[int, str]]:
     if PdfReader is None:
         raise RuntimeError("PyPDF2 not installed; run: pip install PyPDF2")
     try:
         reader = PdfReader(str(pdf_path))
-    except Exception as e:  # corrupt or encrypted
+    except Exception:  # corrupt or encrypted
         return []
-    pages: List[tuple[int, str]] = []
+    pages: list[tuple[int, str]] = []
     limit = min(max_pages, len(reader.pages)) if max_pages > 0 else len(reader.pages)
     for i in range(limit):
         try:

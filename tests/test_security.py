@@ -2,10 +2,10 @@
 Security tests for common vulnerabilities
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
-import json
 
 from src.api_server import app
 from src.auth import User, UserRole, create_access_token
@@ -50,7 +50,7 @@ class TestSQLInjection:
         ]
 
         for malicious_username in malicious_usernames:
-            with patch('src.api_server.authenticate_user', return_value=None):
+            with patch("src.api_server.authenticate_user", return_value=None):
                 login_data = {
                     "username": malicious_username,
                     "password": "testpass"
@@ -113,16 +113,16 @@ class TestXSS:
             "javascript:alert('xss')",
         ]
 
-        with patch('src.api_server.get_current_active_user', return_value=mock_user), \
-             patch('src.api_server.check_user_permissions', return_value=True), \
-             patch('src.api_server.check_rate_limit', return_value=None), \
-             patch('src.api_server.WebResearchTool') as mock_web_tool, \
-             patch('src.api_server.RAGMemory') as mock_rag_memory, \
-             patch('src.api_server.get_docs_provider') as mock_docs_provider, \
-             patch('src.api_server.PlannerAgent') as mock_planner, \
-             patch('src.api_server.ResearcherAgent') as mock_researcher, \
-             patch('src.api_server.SynthesizerAgent') as mock_synthesizer, \
-             patch('src.api_server.ResearchGraph') as mock_graph:
+        with patch("src.api_server.get_current_active_user", return_value=mock_user), \
+             patch("src.api_server.check_user_permissions", return_value=True), \
+             patch("src.api_server.check_rate_limit", return_value=None), \
+             patch("src.api_server.WebResearchTool"), \
+             patch("src.api_server.RAGMemory"), \
+             patch("src.api_server.get_docs_provider"), \
+             patch("src.api_server.PlannerAgent"), \
+             patch("src.api_server.ResearcherAgent"), \
+             patch("src.api_server.SynthesizerAgent"), \
+             patch("src.api_server.ResearchGraph") as mock_graph:
 
             mock_graph_instance = Mock()
             mock_graph_instance.run.return_value = "Safe result"
@@ -208,8 +208,8 @@ class TestAuthorizationBypass:
         other_user.id = 2
         other_user.username = "otheruser"
 
-        with patch('src.api_server.require_role', return_value=lambda: mock_user), \
-             patch('src.api_server.get_db') as mock_get_db:
+        with patch("src.api_server.require_role", return_value=lambda: mock_user), \
+             patch("src.api_server.get_db") as mock_get_db:
 
             mock_db = Mock()
             # Return other user's data when admin tries to update
@@ -307,7 +307,7 @@ class TestRateLimitingSecurity:
         # Make multiple rapid requests
         responses = []
         for _ in range(10):
-            with patch('src.api_server.authenticate_user', return_value=None):
+            with patch("src.api_server.authenticate_user", return_value=None):
                 response = client.post("/auth/login", json=login_data)
                 responses.append(response.status_code)
 
@@ -346,7 +346,7 @@ class TestInformationDisclosure:
             "password": "testpass"
         }
 
-        with patch('src.api_server.authenticate_user', return_value=None):
+        with patch("src.api_server.authenticate_user", return_value=None):
             response = client.post("/auth/login", json=login_data)
 
         assert response.status_code == 401
@@ -361,7 +361,7 @@ class TestInformationDisclosure:
         emails = ["existing@example.com", "nonexisting@example.com"]
 
         for email in emails:
-            with patch('src.api_server.get_user_by_email', return_value=None):
+            with patch("src.api_server.get_user_by_email", return_value=None):
                 response = client.post("/auth/forgot-password", json={"email": email})
 
             # Should always return the same message
@@ -418,7 +418,7 @@ class TestDataExposure:
 
     def test_no_sensitive_data_in_responses(self, client, auth_token, mock_user):
         """Test that sensitive data is not exposed in API responses"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user):
+        with patch("src.api_server.get_current_active_user", return_value=mock_user):
 
             headers = {"Authorization": f"Bearer {auth_token}"}
             response = client.get("/auth/me", headers=headers)

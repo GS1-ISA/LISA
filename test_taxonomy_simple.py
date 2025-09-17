@@ -5,19 +5,18 @@ Simple test script for EFRAG ESRS Taxonomy Loader
 This script tests the complete taxonomy loading pipeline without relative imports.
 """
 
-import sys
-import os
 import json
+import os
+import sys
 import tempfile
-from pathlib import Path
 from datetime import datetime
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from taxonomy.efrag_esrs_loader import EFRAGESRSTaxonomyLoader, ESRSTaxonomy, TaxonomyElement, TaxonomyTable
-from taxonomy.models import create_taxonomy_tables
 from database_manager import get_db_manager
+from taxonomy.efrag_esrs_loader import EFRAGESRSTaxonomyLoader
+from taxonomy.models import create_taxonomy_tables
 
 
 def create_sample_taxonomy_json():
@@ -75,7 +74,7 @@ def test_taxonomy_loading():
     # Create sample taxonomy file
     sample_data = create_sample_taxonomy_json()
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(sample_data, f, indent=2)
         temp_file_path = f.name
 
@@ -121,7 +120,7 @@ def test_taxonomy_loading():
         print(f"   ✓ Supported formats: {stats.get('supported_formats')}")
         print(f"   ✓ Database integration: {stats.get('database_integration')}")
 
-        if stats.get('database_integration'):
+        if stats.get("database_integration"):
             print(f"   ✓ Total taxonomies: {stats.get('total_taxonomies', 0)}")
             print(f"   ✓ Total elements: {stats.get('total_elements', 0)}")
             print(f"   ✓ Total tables: {stats.get('total_tables', 0)}")
@@ -161,4 +160,4 @@ if __name__ == "__main__":
         print("✓ Automated regulatory compliance analysis integration")
     else:
         print("\n❌ Some tests failed. Please review the implementation.")
-        exit(1)
+        sys.exit(1)

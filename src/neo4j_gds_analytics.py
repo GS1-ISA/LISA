@@ -16,16 +16,15 @@ risk assessment pipelines tailored for supply chain management.
 """
 
 import logging
-import time
-from typing import Dict, List, Any, Optional, Tuple, Union
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any
+
 import pandas as pd
-import numpy as np
 
 from .neo4j_gds_client import Neo4jGDSClient, get_gds_client
-from .neo4j_gds_schema import SupplyChainGraphSchema, NodeType, RelationshipType
+from .neo4j_gds_schema import SupplyChainGraphSchema
 
 logger = logging.getLogger(__name__)
 
@@ -59,15 +58,15 @@ class RiskMetrics:
     overall_risk_score: float
     risk_level: RiskLevel
     confidence_score: float
-    recommendations: List[str]
+    recommendations: list[str]
     timestamp: datetime
 
 
 @dataclass
 class SupplyChainPath:
     """Represents a supply chain path with risk metrics."""
-    nodes: List[str]
-    relationships: List[str]
+    nodes: list[str]
+    relationships: list[str]
     total_cost: float
     total_distance: float
     risk_score: float
@@ -78,12 +77,12 @@ class SupplyChainPath:
 @dataclass
 class DisruptionScenario:
     """Models potential supply chain disruptions."""
-    affected_nodes: List[str]
+    affected_nodes: list[str]
     disruption_type: str
     impact_probability: float
     impact_severity: float
-    cascade_effects: List[str]
-    mitigation_strategies: List[str]
+    cascade_effects: list[str]
+    mitigation_strategies: list[str]
     estimated_recovery_time: timedelta
 
 
@@ -95,7 +94,7 @@ class SupplyChainRiskAnalyzer:
     including centrality analysis, community detection, path finding, and predictive modeling.
     """
 
-    def __init__(self, gds_client: Optional[Neo4jGDSClient] = None):
+    def __init__(self, gds_client: Neo4jGDSClient | None = None):
         self.gds_client = gds_client or get_gds_client()
         self.schema = SupplyChainGraphSchema()
 
@@ -211,21 +210,21 @@ class SupplyChainRiskAnalyzer:
 
             # Calculate overall risk score (weighted average)
             weights = {
-                'centrality': 0.25,
-                'community': 0.20,
-                'path': 0.20,
-                'supplier_diversity': 0.15,
-                'geographic': 0.10,
-                'temporal': 0.10
+                "centrality": 0.25,
+                "community": 0.20,
+                "path": 0.20,
+                "supplier_diversity": 0.15,
+                "geographic": 0.10,
+                "temporal": 0.10
             }
 
             overall_risk_score = (
-                centrality_risk * weights['centrality'] +
-                community_risk * weights['community'] +
-                path_risk * weights['path'] +
-                supplier_diversity_risk * weights['supplier_diversity'] +
-                geographic_risk * weights['geographic'] +
-                temporal_risk * weights['temporal']
+                centrality_risk * weights["centrality"] +
+                community_risk * weights["community"] +
+                path_risk * weights["path"] +
+                supplier_diversity_risk * weights["supplier_diversity"] +
+                geographic_risk * weights["geographic"] +
+                temporal_risk * weights["temporal"]
             )
 
             # Determine risk level
@@ -285,7 +284,7 @@ class SupplyChainRiskAnalyzer:
             logger.warning(f"Community analysis failed: {e}")
             return pd.DataFrame()
 
-    def _analyze_supply_paths(self, organization_name: str) -> List[SupplyChainPath]:
+    def _analyze_supply_paths(self, organization_name: str) -> list[SupplyChainPath]:
         """Analyze supply chain paths for the organization."""
         paths = []
 
@@ -320,7 +319,7 @@ class SupplyChainRiskAnalyzer:
 
         return paths
 
-    def _calculate_path_metrics(self, source: str, target: str) -> Optional[SupplyChainPath]:
+    def _calculate_path_metrics(self, source: str, target: str) -> SupplyChainPath | None:
         """Calculate metrics for a supply chain path."""
         try:
             query = self._algorithm_configs["shortest_path"]["query"]
@@ -386,7 +385,7 @@ class SupplyChainRiskAnalyzer:
             return 1.0 - (community_size / max_size)
         return 0.5
 
-    def _calculate_path_risk(self, paths: List[SupplyChainPath]) -> float:
+    def _calculate_path_risk(self, paths: list[SupplyChainPath]) -> float:
         """Calculate risk based on supply chain path analysis."""
         if not paths:
             return 0.8  # High risk if no paths found
@@ -474,7 +473,7 @@ class SupplyChainRiskAnalyzer:
 
     def _generate_risk_recommendations(self, centrality_risk: float, community_risk: float,
                                       path_risk: float, supplier_diversity_risk: float,
-                                      geographic_risk: float, temporal_risk: float) -> List[str]:
+                                      geographic_risk: float, temporal_risk: float) -> list[str]:
         """Generate risk mitigation recommendations."""
         recommendations = []
 
@@ -503,7 +502,7 @@ class SupplyChainRiskAnalyzer:
 
     def _calculate_confidence_score(self, centrality_df: pd.DataFrame,
                                   community_df: pd.DataFrame,
-                                  paths: List[SupplyChainPath]) -> float:
+                                  paths: list[SupplyChainPath]) -> float:
         """Calculate confidence score based on data completeness."""
         confidence_factors = []
 
@@ -527,7 +526,7 @@ class SupplyChainRiskAnalyzer:
 
         return sum(confidence_factors) / len(confidence_factors)
 
-    def _estimate_path_risk(self, nodes: List[str]) -> float:
+    def _estimate_path_risk(self, nodes: list[str]) -> float:
         """Estimate risk score for a supply chain path."""
         # Simplified risk estimation based on path length and node diversity
         path_length = len(nodes)
@@ -539,7 +538,7 @@ class SupplyChainRiskAnalyzer:
 
         return (length_risk + diversity_risk) / 2.0
 
-    def _estimate_path_reliability(self, nodes: List[str]) -> float:
+    def _estimate_path_reliability(self, nodes: list[str]) -> float:
         """Estimate reliability score for a supply chain path."""
         # Simplified reliability based on path characteristics
         path_length = len(nodes)
@@ -573,7 +572,7 @@ class SupplyChainRiskAnalyzer:
             return 0
 
     def predict_disruption_scenarios(self, organization_name: str,
-                                   scenario_count: int = 5) -> List[DisruptionScenario]:
+                                   scenario_count: int = 5) -> list[DisruptionScenario]:
         """
         Predict potential disruption scenarios for an organization.
 
@@ -615,7 +614,7 @@ class SupplyChainRiskAnalyzer:
 
         return scenarios
 
-    def _identify_critical_suppliers(self, org_name: str) -> List[Dict[str, Any]]:
+    def _identify_critical_suppliers(self, org_name: str) -> list[dict[str, Any]]:
         """Identify critical suppliers based on centrality and dependency."""
         try:
             query = """
@@ -633,7 +632,7 @@ class SupplyChainRiskAnalyzer:
         except Exception:
             return []
 
-    def _identify_geographic_concentrations(self, org_name: str) -> List[Dict[str, Any]]:
+    def _identify_geographic_concentrations(self, org_name: str) -> list[dict[str, Any]]:
         """Identify geographic concentrations that could cause regional disruptions."""
         try:
             query = """
@@ -650,7 +649,7 @@ class SupplyChainRiskAnalyzer:
         except Exception:
             return []
 
-    def _identify_temporal_risks(self, org_name: str) -> List[Dict[str, Any]]:
+    def _identify_temporal_risks(self, org_name: str) -> list[dict[str, Any]]:
         """Identify temporal risks from contract expirations."""
         try:
             query = """
@@ -669,7 +668,7 @@ class SupplyChainRiskAnalyzer:
         except Exception:
             return []
 
-    def _create_supplier_disruption_scenario(self, supplier: Dict[str, Any]) -> DisruptionScenario:
+    def _create_supplier_disruption_scenario(self, supplier: dict[str, Any]) -> DisruptionScenario:
         """Create a disruption scenario based on supplier criticality."""
         return DisruptionScenario(
             affected_nodes=[supplier["name"]],
@@ -685,7 +684,7 @@ class SupplyChainRiskAnalyzer:
             estimated_recovery_time=timedelta(days=30)
         )
 
-    def _create_geographic_disruption_scenario(self, geo_risk: Dict[str, Any]) -> DisruptionScenario:
+    def _create_geographic_disruption_scenario(self, geo_risk: dict[str, Any]) -> DisruptionScenario:
         """Create a disruption scenario based on geographic concentration."""
         return DisruptionScenario(
             affected_nodes=[],  # Would need to query for affected suppliers
@@ -701,7 +700,7 @@ class SupplyChainRiskAnalyzer:
             estimated_recovery_time=timedelta(days=60)
         )
 
-    def _create_temporal_disruption_scenario(self, temporal_risk: Dict[str, Any]) -> DisruptionScenario:
+    def _create_temporal_disruption_scenario(self, temporal_risk: dict[str, Any]) -> DisruptionScenario:
         """Create a disruption scenario based on contract expiration."""
         return DisruptionScenario(
             affected_nodes=[temporal_risk["name"]],
@@ -717,7 +716,7 @@ class SupplyChainRiskAnalyzer:
             estimated_recovery_time=timedelta(days=temporal_risk.get("days_to_expiry", 30))
         )
 
-    def _calculate_cascade_effects(self, supplier_name: str) -> List[str]:
+    def _calculate_cascade_effects(self, supplier_name: str) -> list[str]:
         """Calculate potential cascade effects of a supplier disruption."""
         try:
             query = """
@@ -734,7 +733,7 @@ class SupplyChainRiskAnalyzer:
 
 
 # Global analyzer instance
-_supply_chain_analyzer: Optional[SupplyChainRiskAnalyzer] = None
+_supply_chain_analyzer: SupplyChainRiskAnalyzer | None = None
 
 
 def get_supply_chain_analyzer() -> SupplyChainRiskAnalyzer:
@@ -747,7 +746,7 @@ def get_supply_chain_analyzer() -> SupplyChainRiskAnalyzer:
     return _supply_chain_analyzer
 
 
-def initialize_supply_chain_analyzer(gds_client: Optional[Neo4jGDSClient] = None) -> SupplyChainRiskAnalyzer:
+def initialize_supply_chain_analyzer(gds_client: Neo4jGDSClient | None = None) -> SupplyChainRiskAnalyzer:
     """
     Initialize the global supply chain analyzer.
 

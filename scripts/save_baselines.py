@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import contextlib
 import json
 import subprocess
 from pathlib import Path
 
 try:
-    from src.xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
+    from src.xml_utils import XMLParseError, XMLValidationError, parse_coverage_xml
 except ImportError:
     # Fallback for direct execution
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-    from xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
+    from xml_utils import XMLParseError, XMLValidationError, parse_coverage_xml
 
 COVERAGE_XML = Path("ISA_SuperApp/coverage.xml")
 COVERAGE_BASELINE = Path("docs/audit/coverage_baseline.json")
@@ -23,7 +24,7 @@ def parse_coverage_pct(xml_path: Path) -> float:
         return 0.0
     try:
         data = parse_coverage_xml(xml_path)
-        return data['coverage_pct']
+        return data["coverage_pct"]
     except (XMLParseError, XMLValidationError) as e:
         print(f"Error parsing coverage XML {xml_path}: {e}")
         return 0.0
@@ -39,10 +40,8 @@ def repo_disk_usage() -> int:
         for line in out.splitlines():
             p = Path(line)
             if p.exists():
-                try:
+                with contextlib.suppress(Exception):
                     total += p.stat().st_size
-                except Exception:
-                    pass
     except Exception:
         pass
     return total

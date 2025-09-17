@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 try:
     from lxml import etree
@@ -34,7 +34,7 @@ class XMLValidationError(Exception):
     pass
 
 
-def detect_encoding(file_path: Union[str, Path]) -> str:
+def detect_encoding(file_path: str | Path) -> str:
     """
     Detect the encoding of an XML file.
 
@@ -46,30 +46,30 @@ def detect_encoding(file_path: Union[str, Path]) -> str:
     """
     if chardet is None:
         logger.warning("chardet not available, defaulting to utf-8 encoding")
-        return 'utf-8'
+        return "utf-8"
 
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             raw_data = f.read(1024)  # Read first 1KB for detection
             result = chardet.detect(raw_data)
-            encoding = result.get('encoding', 'utf-8')
-            confidence = result.get('confidence', 0.0)
+            encoding = result.get("encoding", "utf-8")
+            confidence = result.get("confidence", 0.0)
 
             if confidence < 0.7:
                 logger.warning(f"Low confidence ({confidence:.2f}) in encoding detection for {file_path}, using utf-8")
-                return 'utf-8'
+                return "utf-8"
 
             logger.debug(f"Detected encoding: {encoding} (confidence: {confidence:.2f}) for {file_path}")
             return encoding.lower()
 
     except Exception as e:
         logger.warning(f"Encoding detection failed for {file_path}: {e}, using utf-8")
-        return 'utf-8'
+        return "utf-8"
 
 
 def parse_xml_file(
-    file_path: Union[str, Path],
-    encoding: Optional[str] = None,
+    file_path: str | Path,
+    encoding: str | None = None,
     validate_structure: bool = True
 ) -> etree._Element:
     """
@@ -135,19 +135,19 @@ def validate_coverage_xml_structure(root: etree._Element) -> None:
     Raises:
         XMLValidationError: If structure is invalid
     """
-    if root.tag != 'coverage':
+    if root.tag != "coverage":
         raise XMLValidationError(f"Expected root element 'coverage', got '{root.tag}'")
 
     # Check for required attributes
-    required_attrs = ['lines-valid', 'lines-covered']
+    required_attrs = ["lines-valid", "lines-covered"]
     for attr in required_attrs:
         if attr not in root.attrib:
             raise XMLValidationError(f"Missing required attribute '{attr}' in coverage element")
 
     # Validate attribute values are numeric
     try:
-        lines_valid = float(root.attrib.get('lines-valid', 0))
-        lines_covered = float(root.attrib.get('lines-covered', 0))
+        lines_valid = float(root.attrib.get("lines-valid", 0))
+        lines_covered = float(root.attrib.get("lines-covered", 0))
 
         if lines_valid < 0 or lines_covered < 0:
             raise XMLValidationError("Coverage values cannot be negative")
@@ -159,7 +159,7 @@ def validate_coverage_xml_structure(root: etree._Element) -> None:
         raise XMLValidationError(f"Invalid numeric values in coverage attributes: {e}") from e
 
 
-def parse_coverage_xml(file_path: Union[str, Path]) -> Dict[str, Any]:
+def parse_coverage_xml(file_path: str | Path) -> dict[str, Any]:
     """
     Parse a coverage XML file and extract coverage statistics.
 
@@ -182,17 +182,17 @@ def parse_coverage_xml(file_path: Union[str, Path]) -> Dict[str, Any]:
         root = parse_xml_file(file_path, validate_structure=True)
         validate_coverage_xml_structure(root)
 
-        lines_valid = int(float(root.attrib.get('lines-valid', 0)))
-        lines_covered = int(float(root.attrib.get('lines-covered', 0)))
+        lines_valid = int(float(root.attrib.get("lines-valid", 0)))
+        lines_covered = int(float(root.attrib.get("lines-covered", 0)))
 
         coverage_pct = 0.0
         if lines_valid > 0:
             coverage_pct = (lines_covered / lines_valid) * 100.0
 
         return {
-            'lines_valid': lines_valid,
-            'lines_covered': lines_covered,
-            'coverage_pct': coverage_pct
+            "lines_valid": lines_valid,
+            "lines_covered": lines_covered,
+            "coverage_pct": coverage_pct
         }
 
     except (XMLParseError, XMLValidationError):
@@ -202,7 +202,7 @@ def parse_coverage_xml(file_path: Union[str, Path]) -> Dict[str, Any]:
 
 
 def collect_coverage_gaps(
-    coverage_xml_path: Union[str, Path],
+    coverage_xml_path: str | Path,
     threshold: float = 80.0
 ) -> list[str]:
     """

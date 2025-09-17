@@ -6,7 +6,10 @@ import datetime as dt
 import hashlib
 import json
 from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 ROOT = Path.cwd()
 AUDIT_DIR = ROOT / "docs" / "audit"
@@ -33,10 +36,7 @@ def should_skip(path: Path) -> bool:
     if parts & EXCLUDE_DIR_NAMES:
         return True
     ap = str(path.resolve())
-    for pref in EXCLUDE_PATH_PREFIXES:
-        if ap.startswith(pref):
-            return True
-    return False
+    return any(ap.startswith(pref) for pref in EXCLUDE_PATH_PREFIXES)
 
 
 def iter_files(root: Path) -> Iterable[Path]:

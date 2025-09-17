@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import contextlib
 import json
 import subprocess
 from pathlib import Path
@@ -16,10 +17,8 @@ def repo_disk_usage() -> int:
         for line in out.splitlines():
             p = Path(line)
             if p.exists():
-                try:
+                with contextlib.suppress(Exception):
                     total += p.stat().st_size
-                except Exception:
-                    pass
     except Exception:
         pass
     return total
@@ -43,10 +42,8 @@ def main() -> int:
     files = repo_file_count()
     baseline = {"size": 0, "files": 0}
     if BASELINE.exists():
-        try:
+        with contextlib.suppress(Exception):
             baseline = json.loads(BASELINE.read_text())
-        except Exception:
-            pass
     size_delta = size - baseline.get("size", 0)
     files_delta = files - baseline.get("files", 0)
     print(

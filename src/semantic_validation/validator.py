@@ -6,17 +6,15 @@ validation using RDF and SHACL constraints.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
-from rdflib import Graph, URIRef, Literal, BNode
-from rdflib.namespace import RDF, RDFS, XSD
-from pyshacl import validate
+from rdflib import Graph
 
-from .engine import SHACLEngine
 from .converter import RDFConverter
-from .schemas import GS1Schemas, ESGSchemas, RegulatorySchemas
+from .engine import SHACLEngine
+from .schemas import ESGSchemas, GS1Schemas, RegulatorySchemas
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +24,9 @@ class ValidationError:
     """Represents a validation error with detailed information."""
     error_type: str
     message: str
-    focus_node: Optional[str] = None
-    result_path: Optional[str] = None
-    value: Optional[Any] = None
+    focus_node: str | None = None
+    result_path: str | None = None
+    value: Any | None = None
     severity: str = "error"  # error, warning, info
 
 
@@ -41,26 +39,26 @@ class ValidationResult:
     total_violations: int
     total_warnings: int
     total_info: int
-    errors: List[ValidationError] = field(default_factory=list)
-    warnings: List[ValidationError] = field(default_factory=list)
-    info_messages: List[ValidationError] = field(default_factory=list)
-    validated_graph: Optional[Graph] = None
-    shapes_graph: Optional[Graph] = None
+    errors: list[ValidationError] = field(default_factory=list)
+    warnings: list[ValidationError] = field(default_factory=list)
+    info_messages: list[ValidationError] = field(default_factory=list)
+    validated_graph: Graph | None = None
+    shapes_graph: Graph | None = None
     timestamp: datetime = field(default_factory=datetime.now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert validation result to dictionary for serialization."""
         return {
-            'is_valid': self.is_valid,
-            'conforms': self.conforms,
-            'validation_time': self.validation_time,
-            'total_violations': self.total_violations,
-            'total_warnings': self.total_warnings,
-            'total_info': self.total_info,
-            'errors': [vars(e) for e in self.errors],
-            'warnings': [vars(e) for e in self.warnings],
-            'info_messages': [vars(e) for e in self.info_messages],
-            'timestamp': self.timestamp.isoformat()
+            "is_valid": self.is_valid,
+            "conforms": self.conforms,
+            "validation_time": self.validation_time,
+            "total_violations": self.total_violations,
+            "total_warnings": self.total_warnings,
+            "total_info": self.total_info,
+            "errors": [vars(e) for e in self.errors],
+            "warnings": [vars(e) for e in self.warnings],
+            "info_messages": [vars(e) for e in self.info_messages],
+            "timestamp": self.timestamp.isoformat()
         }
 
 
@@ -88,15 +86,15 @@ class SemanticValidator:
         self.engine = SHACLEngine()
         self.converter = RDFConverter()
         self.schemas = {
-            'gs1': GS1Schemas(),
-            'esg': ESGSchemas(),
-            'regulatory': RegulatorySchemas()
+            "gs1": GS1Schemas(),
+            "esg": ESGSchemas(),
+            "regulatory": RegulatorySchemas()
         }
 
         logger.info("Initialized SemanticValidator with ontology validation: %s, constraint checking: %s",
                    enable_ontology_validation, enable_constraint_checking)
 
-    def validate_gs1_data(self, data: Dict[str, Any],
+    def validate_gs1_data(self, data: dict[str, Any],
                          schema_type: str = "product") -> ValidationResult:
         """
         Validate GS1 data against GS1 SHACL schemas.
@@ -115,7 +113,7 @@ class SemanticValidator:
             rdf_graph = self.converter.convert_gs1_data(data, schema_type)
 
             # Get appropriate SHACL schema
-            shapes_graph = self.schemas['gs1'].get_schema(schema_type)
+            shapes_graph = self.schemas["gs1"].get_schema(schema_type)
 
             # Perform validation
             result = self.engine.validate(rdf_graph, shapes_graph)
@@ -126,12 +124,12 @@ class SemanticValidator:
                 is_valid=result.conforms,
                 conforms=result.conforms,
                 validation_time=validation_time,
-                total_violations=len(result.violations) if hasattr(result, 'violations') else 0,
-                total_warnings=len(result.warnings) if hasattr(result, 'warnings') else 0,
-                total_info=len(result.info) if hasattr(result, 'info') else 0,
-                errors=self._parse_validation_errors(result, 'error'),
-                warnings=self._parse_validation_errors(result, 'warning'),
-                info_messages=self._parse_validation_errors(result, 'info'),
+                total_violations=len(result.violations) if hasattr(result, "violations") else 0,
+                total_warnings=len(result.warnings) if hasattr(result, "warnings") else 0,
+                total_info=len(result.info) if hasattr(result, "info") else 0,
+                errors=self._parse_validation_errors(result, "error"),
+                warnings=self._parse_validation_errors(result, "warning"),
+                info_messages=self._parse_validation_errors(result, "info"),
                 validated_graph=rdf_graph,
                 shapes_graph=shapes_graph
             )
@@ -152,7 +150,7 @@ class SemanticValidator:
                 )]
             )
 
-    def validate_esg_data(self, data: Dict[str, Any],
+    def validate_esg_data(self, data: dict[str, Any],
                          framework: str = "csrd") -> ValidationResult:
         """
         Validate ESG data against ESG SHACL schemas.
@@ -171,7 +169,7 @@ class SemanticValidator:
             rdf_graph = self.converter.convert_esg_data(data, framework)
 
             # Get appropriate SHACL schema
-            shapes_graph = self.schemas['esg'].get_schema(framework)
+            shapes_graph = self.schemas["esg"].get_schema(framework)
 
             # Perform validation
             result = self.engine.validate(rdf_graph, shapes_graph)
@@ -182,12 +180,12 @@ class SemanticValidator:
                 is_valid=result.conforms,
                 conforms=result.conforms,
                 validation_time=validation_time,
-                total_violations=len(result.violations) if hasattr(result, 'violations') else 0,
-                total_warnings=len(result.warnings) if hasattr(result, 'warnings') else 0,
-                total_info=len(result.info) if hasattr(result, 'info') else 0,
-                errors=self._parse_validation_errors(result, 'error'),
-                warnings=self._parse_validation_errors(result, 'warning'),
-                info_messages=self._parse_validation_errors(result, 'info'),
+                total_violations=len(result.violations) if hasattr(result, "violations") else 0,
+                total_warnings=len(result.warnings) if hasattr(result, "warnings") else 0,
+                total_info=len(result.info) if hasattr(result, "info") else 0,
+                errors=self._parse_validation_errors(result, "error"),
+                warnings=self._parse_validation_errors(result, "warning"),
+                info_messages=self._parse_validation_errors(result, "info"),
                 validated_graph=rdf_graph,
                 shapes_graph=shapes_graph
             )
@@ -208,7 +206,7 @@ class SemanticValidator:
                 )]
             )
 
-    def validate_regulatory_data(self, data: Dict[str, Any],
+    def validate_regulatory_data(self, data: dict[str, Any],
                                regulation: str = "eudr") -> ValidationResult:
         """
         Validate regulatory compliance data against regulatory SHACL schemas.
@@ -227,7 +225,7 @@ class SemanticValidator:
             rdf_graph = self.converter.convert_regulatory_data(data, regulation)
 
             # Get appropriate SHACL schema
-            shapes_graph = self.schemas['regulatory'].get_schema(regulation)
+            shapes_graph = self.schemas["regulatory"].get_schema(regulation)
 
             # Perform validation
             result = self.engine.validate(rdf_graph, shapes_graph)
@@ -238,12 +236,12 @@ class SemanticValidator:
                 is_valid=result.conforms,
                 conforms=result.conforms,
                 validation_time=validation_time,
-                total_violations=len(result.violations) if hasattr(result, 'violations') else 0,
-                total_warnings=len(result.warnings) if hasattr(result, 'warnings') else 0,
-                total_info=len(result.info) if hasattr(result, 'info') else 0,
-                errors=self._parse_validation_errors(result, 'error'),
-                warnings=self._parse_validation_errors(result, 'warning'),
-                info_messages=self._parse_validation_errors(result, 'info'),
+                total_violations=len(result.violations) if hasattr(result, "violations") else 0,
+                total_warnings=len(result.warnings) if hasattr(result, "warnings") else 0,
+                total_info=len(result.info) if hasattr(result, "info") else 0,
+                errors=self._parse_validation_errors(result, "error"),
+                warnings=self._parse_validation_errors(result, "warning"),
+                info_messages=self._parse_validation_errors(result, "info"),
                 validated_graph=rdf_graph,
                 shapes_graph=shapes_graph
             )
@@ -288,12 +286,12 @@ class SemanticValidator:
                 is_valid=result.conforms,
                 conforms=result.conforms,
                 validation_time=validation_time,
-                total_violations=len(result.violations) if hasattr(result, 'violations') else 0,
-                total_warnings=len(result.warnings) if hasattr(result, 'warnings') else 0,
-                total_info=len(result.info) if hasattr(result, 'info') else 0,
-                errors=self._parse_validation_errors(result, 'error'),
-                warnings=self._parse_validation_errors(result, 'warning'),
-                info_messages=self._parse_validation_errors(result, 'info'),
+                total_violations=len(result.violations) if hasattr(result, "violations") else 0,
+                total_warnings=len(result.warnings) if hasattr(result, "warnings") else 0,
+                total_info=len(result.info) if hasattr(result, "info") else 0,
+                errors=self._parse_validation_errors(result, "error"),
+                warnings=self._parse_validation_errors(result, "warning"),
+                info_messages=self._parse_validation_errors(result, "info"),
                 validated_graph=data_graph,
                 shapes_graph=shapes_graph
             )
@@ -314,41 +312,41 @@ class SemanticValidator:
                 )]
             )
 
-    def _parse_validation_errors(self, result: Any, severity: str) -> List[ValidationError]:
+    def _parse_validation_errors(self, result: Any, severity: str) -> list[ValidationError]:
         """Parse validation errors from SHACL validation result."""
         errors = []
 
         # This is a simplified parsing - actual implementation would depend on pyshacl result structure
-        if hasattr(result, 'violations') and severity == 'error':
+        if hasattr(result, "violations") and severity == "error":
             for violation in result.violations:
                 errors.append(ValidationError(
-                    error_type=getattr(violation, 'constraint', 'unknown'),
-                    message=getattr(violation, 'message', 'Validation violation'),
-                    focus_node=str(getattr(violation, 'focus_node', '')),
-                    result_path=str(getattr(violation, 'result_path', '')),
-                    value=getattr(violation, 'value', None),
+                    error_type=getattr(violation, "constraint", "unknown"),
+                    message=getattr(violation, "message", "Validation violation"),
+                    focus_node=str(getattr(violation, "focus_node", "")),
+                    result_path=str(getattr(violation, "result_path", "")),
+                    value=getattr(violation, "value", None),
                     severity=severity
                 ))
 
-        if hasattr(result, 'warnings') and severity == 'warning':
+        if hasattr(result, "warnings") and severity == "warning":
             for warning in result.warnings:
                 errors.append(ValidationError(
-                    error_type=getattr(warning, 'constraint', 'unknown'),
-                    message=getattr(warning, 'message', 'Validation warning'),
-                    focus_node=str(getattr(warning, 'focus_node', '')),
-                    result_path=str(getattr(warning, 'result_path', '')),
-                    value=getattr(warning, 'value', None),
+                    error_type=getattr(warning, "constraint", "unknown"),
+                    message=getattr(warning, "message", "Validation warning"),
+                    focus_node=str(getattr(warning, "focus_node", "")),
+                    result_path=str(getattr(warning, "result_path", "")),
+                    value=getattr(warning, "value", None),
                     severity=severity
                 ))
 
-        if hasattr(result, 'info') and severity == 'info':
+        if hasattr(result, "info") and severity == "info":
             for info in result.info:
                 errors.append(ValidationError(
-                    error_type=getattr(info, 'constraint', 'unknown'),
-                    message=getattr(info, 'message', 'Validation info'),
-                    focus_node=str(getattr(info, 'focus_node', '')),
-                    result_path=str(getattr(info, 'result_path', '')),
-                    value=getattr(info, 'value', None),
+                    error_type=getattr(info, "constraint", "unknown"),
+                    message=getattr(info, "message", "Validation info"),
+                    focus_node=str(getattr(info, "focus_node", "")),
+                    result_path=str(getattr(info, "result_path", "")),
+                    value=getattr(info, "value", None),
                     severity=severity
                 ))
 

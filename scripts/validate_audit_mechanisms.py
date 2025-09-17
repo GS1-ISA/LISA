@@ -11,14 +11,13 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 
 class AuditMechanismValidator:
     """Validates the three self-driving audit mechanisms."""
 
     def __init__(self):
-        self.results: List[Tuple[str, bool, str]] = []
+        self.results: list[tuple[str, bool, str]] = []
         self.github_action_file = Path(".github/workflows/nightly_audit.yml")
         self.pre_commit_config = Path(".pre-commit-config.yaml")
         self.makefile = Path("Makefile")
@@ -27,10 +26,10 @@ class AuditMechanismValidator:
         self.audit_threshold_config = Path(".audit_threshold.json")
         self.readme = Path("README.md")
 
-    def _run_command(self, cmd: List[str], description: str) -> Tuple[bool, str]:
+    def _run_command(self, cmd: list[str], description: str) -> tuple[bool, str]:
         """Run a command and return success status and output."""
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30)
             if result.returncode == 0:
                 return True, result.stdout.strip()
             else:

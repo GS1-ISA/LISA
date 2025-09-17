@@ -1,7 +1,13 @@
-import pytest
 import time
-from unittest.mock import Mock, patch, AsyncMock
-from src.agent_core.streaming_processor import StreamingDocumentProcessor, Chunk, ProcessingResult
+from unittest.mock import patch
+
+import pytest
+
+from src.agent_core.streaming_processor import (
+    Chunk,
+    ProcessingResult,
+    StreamingDocumentProcessor,
+)
 
 
 class TestStreamingDocumentProcessor:
@@ -81,13 +87,13 @@ class TestStreamingDocumentProcessor:
         # Should break at word boundary
         assert boundary == text.rfind(" ", 0, end) + 1
 
-    @patch('src.agent_core.streaming_processor.get_openrouter_free_client')
+    @patch("src.agent_core.streaming_processor.get_openrouter_free_client")
     def test_process_chunk_success(self, mock_client):
         """Test successful chunk processing."""
         mock_response = {
-            'content': 'Processed content',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 100}
+            "content": "Processed content",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 100}
         }
         mock_client.return_value.chat_completion.return_value = mock_response
 
@@ -97,11 +103,11 @@ class TestStreamingDocumentProcessor:
 
         result = processor._process_chunk(chunk, query, None, 0.2)
 
-        assert result.response == 'Processed content'
-        assert result.metadata['success'] == True
-        assert result.metadata['tokens_used'] == 100
+        assert result.response == "Processed content"
+        assert result.metadata["success"]
+        assert result.metadata["tokens_used"] == 100
 
-    @patch('src.agent_core.streaming_processor.get_openrouter_free_client')
+    @patch("src.agent_core.streaming_processor.get_openrouter_free_client")
     def test_process_chunk_error(self, mock_client):
         """Test chunk processing with error."""
         mock_client.return_value.chat_completion.side_effect = Exception("API Error")
@@ -112,9 +118,9 @@ class TestStreamingDocumentProcessor:
 
         result = processor._process_chunk(chunk, query, None, 0.2)
 
-        assert result.response == ''
-        assert result.metadata['success'] == False
-        assert 'error' in result.metadata
+        assert result.response == ""
+        assert not result.metadata["success"]
+        assert "error" in result.metadata
 
     def test_merge_results(self):
         """Test merging results from multiple chunks."""
@@ -124,22 +130,22 @@ class TestStreamingDocumentProcessor:
             ProcessingResult(
                 Chunk("Content 1", 0, 9),
                 "Response 1",
-                {'success': True}
+                {"success": True}
             ),
             ProcessingResult(
                 Chunk("Content 2", 9, 18),
                 "Response 2",
-                {'success': True}
+                {"success": True}
             )
         ]
 
         merged = processor._merge_results(results)
 
-        assert merged['chunks_processed'] == 2
-        assert 'Chunk 1' in merged['content']
-        assert 'Chunk 2' in merged['content']
-        assert 'Response 1' in merged['content']
-        assert 'Response 2' in merged['content']
+        assert merged["chunks_processed"] == 2
+        assert "Chunk 1" in merged["content"]
+        assert "Chunk 2" in merged["content"]
+        assert "Response 1" in merged["content"]
+        assert "Response 2" in merged["content"]
 
     def test_merge_results_with_failures(self):
         """Test merging results when some chunks fail."""
@@ -149,21 +155,21 @@ class TestStreamingDocumentProcessor:
             ProcessingResult(
                 Chunk("Content 1", 0, 9),
                 "Response 1",
-                {'success': True}
+                {"success": True}
             ),
             ProcessingResult(
                 Chunk("Content 2", 9, 18),
                 "",
-                {'success': False, 'error': 'Failed'}
+                {"success": False, "error": "Failed"}
             )
         ]
 
         merged = processor._merge_results(results)
 
-        assert merged['chunks_processed'] == 1  # Only successful ones
-        assert merged['total_chunks'] == 2
-        assert 'Response 1' in merged['content']
-        assert 'Response 2' not in merged['content']
+        assert merged["chunks_processed"] == 1  # Only successful ones
+        assert merged["total_chunks"] == 2
+        assert "Response 1" in merged["content"]
+        assert "Response 2" not in merged["content"]
 
     def test_merge_results_empty(self):
         """Test merging empty results."""
@@ -171,8 +177,8 @@ class TestStreamingDocumentProcessor:
 
         merged = processor._merge_results([])
 
-        assert merged['content'] == ''
-        assert merged['chunks_processed'] == 0
+        assert merged["content"] == ""
+        assert merged["chunks_processed"] == 0
 
     def test_calculate_efficiency(self):
         """Test efficiency calculation."""
@@ -211,18 +217,18 @@ class TestStreamingDocumentProcessor:
 
         stats = processor.get_stats()
 
-        assert stats['processed_chunks'] == 5
-        assert stats['memory_usage_mb'] == 2.0
-        assert stats['total_tokens'] == 1000
-        assert stats['average_chunk_size'] == (2048 * 1024) / 5 / 1024  # KB per chunk
+        assert stats["processed_chunks"] == 5
+        assert stats["memory_usage_mb"] == 2.0
+        assert stats["total_tokens"] == 1000
+        assert stats["average_chunk_size"] == (2048 * 1024) / 5 / 1024  # KB per chunk
 
-    @patch('src.agent_core.streaming_processor.get_openrouter_free_client')
+    @patch("src.agent_core.streaming_processor.get_openrouter_free_client")
     def test_process_document_small(self, mock_client):
         """Test processing a small document."""
         mock_response = {
-            'content': 'Processed content',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 50}
+            "content": "Processed content",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 50}
         }
         mock_client.return_value.chat_completion.return_value = mock_response
 
@@ -232,19 +238,19 @@ class TestStreamingDocumentProcessor:
 
         result = processor.process_document(document, query)
 
-        assert 'content' in result
-        assert 'metadata' in result
-        assert result['metadata']['total_chunks'] == 1
-        assert result['metadata']['total_characters'] == len(document)
-        assert result['metadata']['chunks_processed'] == 1
+        assert "content" in result
+        assert "metadata" in result
+        assert result["metadata"]["total_chunks"] == 1
+        assert result["metadata"]["total_characters"] == len(document)
+        assert result["metadata"]["chunks_processed"] == 1
 
-    @patch('src.agent_core.streaming_processor.get_openrouter_free_client')
+    @patch("src.agent_core.streaming_processor.get_openrouter_free_client")
     def test_process_document_large(self, mock_client):
         """Test processing a large document with multiple chunks."""
         mock_response = {
-            'content': 'Chunk processed',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 100}
+            "content": "Chunk processed",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 100}
         }
         mock_client.return_value.chat_completion.return_value = mock_response
 
@@ -254,19 +260,19 @@ class TestStreamingDocumentProcessor:
 
         result = processor.process_document(document, query)
 
-        assert result['metadata']['total_chunks'] > 1
-        assert result['metadata']['total_characters'] == len(document)
-        assert 'chunks_processed' in result['metadata']
+        assert result["metadata"]["total_chunks"] > 1
+        assert result["metadata"]["total_characters"] == len(document)
+        assert "chunks_processed" in result["metadata"]
 
-    @patch('src.agent_core.streaming_processor.get_openrouter_free_client')
+    @patch("src.agent_core.streaming_processor.get_openrouter_free_client")
     def test_process_document_with_errors(self, mock_client):
         """Test processing document when some chunks fail."""
         # First call succeeds, second fails
         mock_client.return_value.chat_completion.side_effect = [
             {
-                'content': 'Success response',
-                'model_used': 'test-model',
-                'usage': {'total_tokens': 50}
+                "content": "Success response",
+                "model_used": "test-model",
+                "usage": {"total_tokens": 50}
             },
             Exception("API Error")
         ]
@@ -278,20 +284,19 @@ class TestStreamingDocumentProcessor:
         result = processor.process_document(document, query)
 
         # Should still have some successful processing
-        assert result['metadata']['total_chunks'] == 2
-        assert result['metadata']['chunks_processed'] == 1  # Only one successful
+        assert result["metadata"]["total_chunks"] == 2
+        assert result["metadata"]["chunks_processed"] == 1  # Only one successful
 
     def test_memory_tracking(self):
         """Test memory usage tracking during processing."""
         processor = StreamingDocumentProcessor()
 
         # Simulate memory usage
-        initial_memory = processor.memory_usage
         processor.memory_usage += 1000
         processor.processed_chunks = 1
 
         stats = processor.get_stats()
-        assert stats['memory_usage_mb'] > 0
+        assert stats["memory_usage_mb"] > 0
 
     def test_chunk_text_edge_cases(self):
         """Test chunking edge cases."""
@@ -330,10 +335,10 @@ class TestStreamingDocumentProcessor:
         assert len(chunks) > 1
 
         # Verify chunks contain ISA-specific content
-        all_content = ' '.join(chunk.content for chunk in chunks)
-        assert 'CSRD' in all_content
-        assert 'GDSN' in all_content
-        assert 'ESG' in all_content
+        all_content = " ".join(chunk.content for chunk in chunks)
+        assert "CSRD" in all_content
+        assert "GDSN" in all_content
+        assert "ESG" in all_content
 
     def test_performance_large_document(self):
         """Test performance with large documents."""
@@ -372,13 +377,13 @@ class TestStreamingDocumentProcessor:
         boundary2 = processor._find_optimal_boundary(text2, 0, 40)
         assert boundary2 == text2.find(". ") + 2
 
-    @patch('src.agent_core.streaming_processor.get_openrouter_free_client')
+    @patch("src.agent_core.streaming_processor.get_openrouter_free_client")
     def test_concurrent_processing_simulation(self, mock_client):
         """Test processing simulation with multiple chunks."""
         mock_response = {
-            'content': 'Processed chunk content',
-            'model_used': 'test-model',
-            'usage': {'total_tokens': 75}
+            "content": "Processed chunk content",
+            "model_used": "test-model",
+            "usage": {"total_tokens": 75}
         }
         mock_client.return_value.chat_completion.return_value = mock_response
 
@@ -396,9 +401,9 @@ class TestStreamingDocumentProcessor:
 
         result = processor.process_document(document, "Extract regulatory requirements")
 
-        assert result['metadata']['total_chunks'] > 2
-        assert result['metadata']['chunks_processed'] > 0
-        assert 'CSRD' in result['content'] or 'regulatory' in result['content'].lower()
+        assert result["metadata"]["total_chunks"] > 2
+        assert result["metadata"]["chunks_processed"] > 0
+        assert "CSRD" in result["content"] or "regulatory" in result["content"].lower()
 
 
 if __name__ == "__main__":

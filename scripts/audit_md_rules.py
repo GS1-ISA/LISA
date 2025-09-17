@@ -4,7 +4,10 @@ from __future__ import annotations
 import csv
 import re
 from pathlib import Path
-from typing import Iterable, List, Tuple
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 EXCLUDE_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
 NON_NORMATIVE = [
@@ -38,8 +41,8 @@ def iter_md_files(root: Path) -> Iterable[Path]:
         yield p
 
 
-def extract_rules(path: Path) -> List[Tuple[Path, int, str]]:
-    rules: List[Tuple[Path, int, str]] = []
+def extract_rules(path: Path) -> list[tuple[Path, int, str]]:
+    rules: list[tuple[Path, int, str]] = []
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except Exception:

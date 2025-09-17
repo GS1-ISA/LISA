@@ -1,8 +1,8 @@
-import logging
 import asyncio
+import logging
 
-from src.agent_core.memory.rag_store import RAGMemory
 from src.agent_core.llm_client import get_openrouter_free_client
+from src.agent_core.memory.rag_store import RAGMemory
 from src.tools.web_research import WebResearchTool
 
 # Configure logging
@@ -60,7 +60,7 @@ Guidelines:
 
             result = await self.llm_client.async_chat_completion(messages)
 
-            action = result['content'].strip()
+            action = result["content"].strip()
             logging.info(f"LLM decided action: {action} using {result['model_used']}")
             return action
 
@@ -68,7 +68,7 @@ Guidelines:
             logging.error(f"Failed to reason with LLM: {e}")
             # Fallback logic
             if "search for" in prompt.lower():
-                query = prompt.split('search for')[-1].strip()
+                query = prompt.split("search for")[-1].strip()
                 return f"Action: search('{query}')"
             if "read url" in prompt.lower():
                 url = prompt.split("read url")[-1].strip()
@@ -168,7 +168,7 @@ Guidelines:
 
             summary_result = await self.llm_client.async_chat_completion(messages)
 
-            final_summary = summary_result['content']
+            final_summary = summary_result["content"]
 
         except Exception as e:
             logging.error(f"Failed to generate summary with LLM: {e}")

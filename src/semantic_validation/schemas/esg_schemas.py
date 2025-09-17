@@ -6,10 +6,9 @@ including CSRD, SFDR, and TCFD frameworks.
 """
 
 import logging
-from typing import Dict, Any, Optional
 
-from rdflib import Graph, URIRef, Literal, BNode, Namespace
-from rdflib.namespace import RDF, RDFS, XSD
+from rdflib import BNode, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import RDF, XSD
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +48,9 @@ class ESGSchemas:
 
     def _load_schemas(self):
         """Load all ESG SHACL schemas."""
-        self._schemas['csrd'] = self._create_csrd_schema()
-        self._schemas['sfdr'] = self._create_sfdr_schema()
-        self._schemas['tcfd'] = self._create_tcfd_schema()
+        self._schemas["csrd"] = self._create_csrd_schema()
+        self._schemas["sfdr"] = self._create_sfdr_schema()
+        self._schemas["tcfd"] = self._create_tcfd_schema()
 
         logger.info("Loaded ESG SHACL schemas")
 

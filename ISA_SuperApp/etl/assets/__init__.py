@@ -5,26 +5,26 @@ This module contains all Dagster assets for data ingestion, transformation,
 and loading operations.
 """
 
-from .eurostat import (
-    eurostat_economic_indicators,
-    eurostat_population_data,
-    eurostat_trade_statistics,
-)
 from .esma import (
     esma_financial_instruments,
     esma_market_data,
     esma_regulatory_reports,
 )
-from .transformations import (
-    clean_eurostat_data,
-    clean_esma_data,
-    merge_datasets,
-    validate_data_quality,
+from .eurostat import (
+    eurostat_economic_indicators,
+    eurostat_population_data,
+    eurostat_trade_statistics,
 )
 from .storage import (
-    store_eurostat_data,
     store_esma_data,
+    store_eurostat_data,
     update_vector_store,
+)
+from .transformations import (
+    clean_esma_data,
+    clean_eurostat_data,
+    merge_datasets,
+    validate_data_quality,
 )
 
 __all__ = [

@@ -6,12 +6,12 @@ import json
 from pathlib import Path
 
 try:
-    from src.xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
+    from src.xml_utils import XMLParseError, XMLValidationError, parse_coverage_xml
 except ImportError:
     # Fallback for direct execution
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-    from xml_utils import parse_coverage_xml, XMLParseError, XMLValidationError
+    from xml_utils import XMLParseError, XMLValidationError, parse_coverage_xml
 
 BASELINE = Path("docs/audit/coverage_baseline.json")
 
@@ -19,7 +19,7 @@ BASELINE = Path("docs/audit/coverage_baseline.json")
 def parse_coverage(path: Path) -> float:
     try:
         data = parse_coverage_xml(path)
-        return data['coverage_pct']
+        return data["coverage_pct"]
     except (XMLParseError, XMLValidationError) as e:
         print(f"Error parsing coverage XML {path}: {e}")
         return 0.0

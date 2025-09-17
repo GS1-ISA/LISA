@@ -11,29 +11,29 @@ try:
 except Exception:  # pragma: no cover
     # Minimal fallbacks to keep imports alive during partial refactors
     from dataclasses import dataclass
-    from typing import List, Optional, Protocol
+    from typing import Protocol
 
     @dataclass(frozen=True)
     class DocsSnippet:  # type: ignore[no-redef]
         source: str
         content: str
-        version: Optional[str] = None
-        url: Optional[str] = None
-        license: Optional[str] = None
+        version: str | None = None
+        url: str | None = None
+        license: str | None = None
 
     @dataclass(frozen=True)
     class ProviderResult:  # type: ignore[no-redef]
-        snippets: List[DocsSnippet]
+        snippets: list[DocsSnippet]
 
     class DocsProvider(Protocol):  # type: ignore[no-redef]
         def get_docs(
             self,
             query: str,
             *,
-            libs: List[str],
-            version: Optional[str] = None,
+            libs: list[str],
+            version: str | None = None,
             limit: int = 5,
-            section_hints: Optional[List[str]] = None,
+            section_hints: list[str] | None = None,
         ) -> ProviderResult: ...
 
     class NullProvider(DocsProvider):  # type: ignore[no-redef]
@@ -41,10 +41,10 @@ except Exception:  # pragma: no cover
             self,
             query: str,
             *,
-            libs: List[str],
-            version: Optional[str] = None,
+            libs: list[str],
+            version: str | None = None,
             limit: int = 5,
-            section_hints: Optional[List[str]] = None,
+            section_hints: list[str] | None = None,
         ) -> ProviderResult:
             return ProviderResult(snippets=[])
 

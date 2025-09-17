@@ -5,17 +5,18 @@ This module provides the core execution engine for DMN (Decision Model and Notat
 tables, enabling automated decision-making based on business rules.
 """
 
-import time
 import logging
-from typing import Dict, List, Any, Optional, Union, Callable
-from dataclasses import dataclass
-import operator
-import re
+import time
+from typing import Any
 
 from .dmn_table import (
-    DMNTable, DecisionTable, Rule, InputClause, OutputClause,
-    HitPolicy, BuiltinAggregator, ExpressionLanguage,
-    DMNExecutionContext, DMNExecutionResult
+    BuiltinAggregator,
+    DecisionTable,
+    DMNExecutionContext,
+    DMNExecutionResult,
+    ExpressionLanguage,
+    HitPolicy,
+    Rule,
 )
 
 
@@ -25,7 +26,7 @@ class DMNExpressionEvaluator:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def evaluate_expression(self, expression: str, context: Dict[str, Any],
+    def evaluate_expression(self, expression: str, context: dict[str, Any],
                           expression_language: ExpressionLanguage = ExpressionLanguage.FEEL) -> Any:
         """
         Evaluate a DMN expression against the given context.
@@ -51,7 +52,7 @@ class DMNExpressionEvaluator:
             self.logger.error(f"Expression evaluation failed: {expression} - {str(e)}")
             return None
 
-    def _evaluate_feel_expression(self, expression: str, context: Dict[str, Any]) -> Any:
+    def _evaluate_feel_expression(self, expression: str, context: dict[str, Any]) -> Any:
         """Evaluate FEEL (Friendly Enough Expression Language) expression."""
         # Simple FEEL-like expression evaluation
         expression = expression.strip()
@@ -106,12 +107,12 @@ class DMNExpressionEvaluator:
         # Handle variable references
         return self._get_value(expression, context)
 
-    def _evaluate_python_expression(self, expression: str, context: Dict[str, Any]) -> Any:
+    def _evaluate_python_expression(self, expression: str, context: dict[str, Any]) -> Any:
         """Evaluate Python expression."""
         try:
             # Create a safe evaluation context
             safe_context = {
-                'context': context,
+                "context": context,
                 **context
             }
             return eval(expression, {"__builtins__": {}}, safe_context)
@@ -119,12 +120,12 @@ class DMNExpressionEvaluator:
             self.logger.error(f"Python expression evaluation failed: {str(e)}")
             return None
 
-    def _evaluate_javelin_expression(self, expression: str, context: Dict[str, Any]) -> Any:
+    def _evaluate_javelin_expression(self, expression: str, context: dict[str, Any]) -> Any:
         """Evaluate simple Javelin expression."""
         # Very basic expression evaluation for simple cases
         return self._evaluate_feel_expression(expression, context)
 
-    def _get_value(self, key: str, context: Dict[str, Any]) -> Any:
+    def _get_value(self, key: str, context: dict[str, Any]) -> Any:
         """Get value from context by key."""
         if key in context:
             return context[key]
@@ -156,8 +157,8 @@ class DMNEngine:
         self.logger = logging.getLogger(__name__)
 
     def execute_decision_table(self, decision_table: DecisionTable,
-                             input_data: Dict[str, Any],
-                             context: Optional[DMNExecutionContext] = None) -> DMNExecutionResult:
+                             input_data: dict[str, Any],
+                             context: DMNExecutionContext | None = None) -> DMNExecutionResult:
         """
         Execute a decision table with given input data.
 
@@ -201,20 +202,20 @@ class DMNEngine:
                 if rule_match:
                     matched_rules.append(rule.id)
                     rule_results.append({
-                        'rule_id': rule.id,
-                        'outputs': rule_match,
-                        'priority': rule.priority
+                        "rule_id": rule.id,
+                        "outputs": rule_match,
+                        "priority": rule.priority
                     })
 
                     context.execution_trace.append({
-                        'rule_id': rule.id,
-                        'matched': True,
-                        'outputs': rule_match
+                        "rule_id": rule.id,
+                        "matched": True,
+                        "outputs": rule_match
                     })
                 else:
                     context.execution_trace.append({
-                        'rule_id': rule.id,
-                        'matched': False
+                        "rule_id": rule.id,
+                        "matched": False
                     })
 
             # Apply hit policy
@@ -229,7 +230,7 @@ class DMNEngine:
                 outputs = hit_policy_result
             elif isinstance(hit_policy_result, list) and hit_policy_result:
                 # For COLLECT policy, use the first result's outputs
-                outputs = hit_policy_result[0].get('outputs', {}) if hit_policy_result else {}
+                outputs = hit_policy_result[0].get("outputs", {}) if hit_policy_result else {}
 
             execution_time = time.time() - start_time
 
@@ -260,7 +261,7 @@ class DMNEngine:
             )
 
     def _evaluate_rule(self, rule: Rule, decision_table: DecisionTable,
-                      input_data: Dict[str, Any], context: DMNExecutionContext) -> Optional[Dict[str, Any]]:
+                      input_data: dict[str, Any], context: DMNExecutionContext) -> dict[str, Any] | None:
         """
         Evaluate a single rule against input data.
 
@@ -299,8 +300,8 @@ class DMNEngine:
 
         return outputs
 
-    def _apply_hit_policy(self, hit_policy: HitPolicy, rule_results: List[Dict[str, Any]],
-                         aggregation: Optional[BuiltinAggregator] = None) -> Any:
+    def _apply_hit_policy(self, hit_policy: HitPolicy, rule_results: list[dict[str, Any]],
+                         aggregation: BuiltinAggregator | None = None) -> Any:
         """
         Apply the specified hit policy to the rule results.
         """
@@ -310,52 +311,52 @@ class DMNEngine:
         if hit_policy == HitPolicy.UNIQUE:
             if len(rule_results) > 1:
                 raise ValueError("UNIQUE hit policy violated: multiple rules matched")
-            return rule_results[0]['outputs'] if rule_results else {}
+            return rule_results[0]["outputs"] if rule_results else {}
 
         elif hit_policy == HitPolicy.FIRST:
             # Return first matching rule (assuming rules are in priority order)
-            sorted_results = sorted(rule_results, key=lambda x: x.get('priority', 999))
-            return sorted_results[0]['outputs'] if sorted_results else {}
+            sorted_results = sorted(rule_results, key=lambda x: x.get("priority", 999))
+            return sorted_results[0]["outputs"] if sorted_results else {}
 
         elif hit_policy == HitPolicy.PRIORITY:
             # Return highest priority rule
-            sorted_results = sorted(rule_results, key=lambda x: x.get('priority', 999))
-            return sorted_results[0]['outputs'] if sorted_results else {}
+            sorted_results = sorted(rule_results, key=lambda x: x.get("priority", 999))
+            return sorted_results[0]["outputs"] if sorted_results else {}
 
         elif hit_policy == HitPolicy.ANY:
             # Check that all matched rules have the same outputs
             if len(rule_results) > 1:
-                first_outputs = rule_results[0]['outputs']
+                first_outputs = rule_results[0]["outputs"]
                 for result in rule_results[1:]:
-                    if result['outputs'] != first_outputs:
+                    if result["outputs"] != first_outputs:
                         raise ValueError("ANY hit policy violated: inconsistent rule outputs")
-            return rule_results[0]['outputs'] if rule_results else {}
+            return rule_results[0]["outputs"] if rule_results else {}
 
         elif hit_policy == HitPolicy.COLLECT:
             if aggregation:
                 return self._apply_aggregation(aggregation, rule_results)
             else:
-                return [result['outputs'] for result in rule_results]
+                return [result["outputs"] for result in rule_results]
 
         elif hit_policy == HitPolicy.RULE_ORDER:
-            return [result['outputs'] for result in rule_results]
+            return [result["outputs"] for result in rule_results]
 
         elif hit_policy == HitPolicy.OUTPUT_ORDER:
             # Sort by output values
-            return sorted([result['outputs'] for result in rule_results],
+            return sorted([result["outputs"] for result in rule_results],
                          key=lambda x: str(list(x.values()) if x else ""))
 
-        return rule_results[0]['outputs'] if rule_results else {}
+        return rule_results[0]["outputs"] if rule_results else {}
 
-    def _apply_aggregation(self, aggregation: BuiltinAggregator, rule_results: List[Dict[str, Any]]) -> Any:
+    def _apply_aggregation(self, aggregation: BuiltinAggregator, rule_results: list[dict[str, Any]]) -> Any:
         """Apply aggregation function to rule results."""
         if not rule_results:
             return None
 
         values = []
         for result in rule_results:
-            for output_value in result['outputs'].values():
-                if isinstance(output_value, (int, float)):
+            for output_value in result["outputs"].values():
+                if isinstance(output_value, int | float):
                     values.append(output_value)
 
         if not values:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Protocol
+from typing import Protocol
 
 
 @dataclass(frozen=True)
@@ -10,16 +10,16 @@ class DocsSnippet:
 
     source: str
     content: str
-    version: Optional[str] = None
-    url: Optional[str] = None
-    license: Optional[str] = None
+    version: str | None = None
+    url: str | None = None
+    license: str | None = None
 
 
 @dataclass(frozen=True)
 class ProviderResult:
     """The result returned by a documentation provider."""
 
-    snippets: List[DocsSnippet]
+    snippets: list[DocsSnippet]
 
 
 class DocsProvider(Protocol):
@@ -29,10 +29,10 @@ class DocsProvider(Protocol):
         self,
         query: str,
         *,
-        libs: List[str],
-        version: Optional[str] = None,
+        libs: list[str],
+        version: str | None = None,
         limit: int = 5,
-        section_hints: Optional[List[str]] = None,
+        section_hints: list[str] | None = None,
     ) -> ProviderResult:
         """Fetches documentation for a given query."""
         ...
@@ -45,9 +45,9 @@ class NullProvider(DocsProvider):
         self,
         query: str,
         *,
-        libs: List[str],
-        version: Optional[str] = None,
+        libs: list[str],
+        version: str | None = None,
         limit: int = 5,
-        section_hints: Optional[List[str]] = None,
+        section_hints: list[str] | None = None,
     ) -> ProviderResult:
         return ProviderResult(snippets=[])

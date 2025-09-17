@@ -6,11 +6,11 @@ for performing constraint validation on RDF graphs.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any
 
-from rdflib import Graph, URIRef, Literal
 from pyshacl import validate as pyshacl_validate
+from rdflib import Graph
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +32,10 @@ class SHACLValidationOptions:
 class SHACLResult:
     """Result of SHACL validation."""
     conforms: bool
-    violations: List[Dict[str, Any]] = None
-    warnings: List[Dict[str, Any]] = None
-    info: List[Dict[str, Any]] = None
-    data_graph: Optional[Graph] = None
+    violations: list[dict[str, Any]] = None
+    warnings: list[dict[str, Any]] = None
+    info: list[dict[str, Any]] = None
+    data_graph: Graph | None = None
 
     def __post_init__(self):
         if self.violations is None:
@@ -57,7 +57,7 @@ class SHACLEngine:
     - Performance optimizations
     """
 
-    def __init__(self, options: Optional[SHACLValidationOptions] = None):
+    def __init__(self, options: SHACLValidationOptions | None = None):
         self.options = options or SHACLValidationOptions()
         self._validation_cache = {}  # Simple cache for repeated validations
 
@@ -65,7 +65,7 @@ class SHACLEngine:
 
     def validate(self, data_graph: Graph,
                 shapes_graph: Graph,
-                options: Optional[SHACLValidationOptions] = None) -> SHACLResult:
+                options: SHACLValidationOptions | None = None) -> SHACLResult:
         """
         Validate RDF data graph against SHACL shapes.
 
@@ -93,14 +93,14 @@ class SHACLEngine:
                 data_graph=data_graph,
                 shacl_graph=shapes_graph,
                 options={
-                    'allow_warnings': validation_options.allow_warnings,
-                    'allow_info': validation_options.allow_info,
-                    'debug': validation_options.debug,
-                    'advanced': validation_options.advanced,
-                    'inplace': validation_options.inplace,
-                    'abort_on_first': validation_options.abort_on_first,
-                    'meta_shacl': validation_options.meta_shacl,
-                    'iterate_rules': validation_options.iterate_rules
+                    "allow_warnings": validation_options.allow_warnings,
+                    "allow_info": validation_options.allow_info,
+                    "debug": validation_options.debug,
+                    "advanced": validation_options.advanced,
+                    "inplace": validation_options.inplace,
+                    "abort_on_first": validation_options.abort_on_first,
+                    "meta_shacl": validation_options.meta_shacl,
+                    "iterate_rules": validation_options.iterate_rules
                 }
             )
 
@@ -129,15 +129,15 @@ class SHACLEngine:
             return SHACLResult(
                 conforms=False,
                 violations=[{
-                    'constraint': 'validation_error',
-                    'message': f'SHACL validation failed: {str(e)}',
-                    'severity': 'error'
+                    "constraint": "validation_error",
+                    "message": f"SHACL validation failed: {str(e)}",
+                    "severity": "error"
                 }]
             )
 
     def validate_with_inference(self, data_graph: Graph,
                                shapes_graph: Graph,
-                               ontology_graph: Optional[Graph] = None) -> SHACLResult:
+                               ontology_graph: Graph | None = None) -> SHACLResult:
         """
         Validate with OWL/RDFS inference enabled.
 
@@ -175,14 +175,14 @@ class SHACLEngine:
             return SHACLResult(
                 conforms=False,
                 violations=[{
-                    'constraint': 'inference_validation_error',
-                    'message': f'Inference validation failed: {str(e)}',
-                    'severity': 'error'
+                    "constraint": "inference_validation_error",
+                    "message": f"Inference validation failed: {str(e)}",
+                    "severity": "error"
                 }]
             )
 
     def validate_multiple_shapes(self, data_graph: Graph,
-                                shapes_list: List[Graph]) -> List[SHACLResult]:
+                                shapes_list: list[Graph]) -> list[SHACLResult]:
         """
         Validate data against multiple SHACL shape graphs.
 
@@ -205,20 +205,20 @@ class SHACLEngine:
                 results.append(SHACLResult(
                     conforms=False,
                     violations=[{
-                        'constraint': 'multi_validation_error',
-                        'message': f'Validation against shapes graph {i+1} failed: {str(e)}',
-                        'severity': 'error'
+                        "constraint": "multi_validation_error",
+                        "message": f"Validation against shapes graph {i+1} failed: {str(e)}",
+                        "severity": "error"
                     }]
                 ))
 
         return results
 
-    def get_validation_statistics(self) -> Dict[str, Any]:
+    def get_validation_statistics(self) -> dict[str, Any]:
         """Get statistics about validation engine performance."""
         return {
-            'cache_size': len(self._validation_cache),
-            'cache_enabled': True,
-            'options': vars(self.options)
+            "cache_size": len(self._validation_cache),
+            "cache_enabled": True,
+            "options": vars(self.options)
         }
 
     def clear_cache(self):
@@ -238,7 +238,7 @@ class SHACLEngine:
 
         return f"{data_size}_{shapes_size}_{data_hash}_{shapes_hash}"
 
-    def _parse_validation_results(self, results_graph: Graph) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
+    def _parse_validation_results(self, results_graph: Graph) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
         """
         Parse SHACL validation results from the results graph.
 
@@ -272,21 +272,21 @@ class SHACLEngine:
 
             for row in results_graph.query(query):
                 result_dict = {
-                    'focus_node': str(row.focus) if row.focus else None,
-                    'result_path': str(row.path) if row.path else None,
-                    'value': str(row.value) if row.value else None,
-                    'message': str(row.message) if row.message else 'Validation constraint violated',
-                    'constraint': str(row.constraint) if row.constraint else 'unknown',
-                    'severity': str(row.severity) if row.severity else 'error'
+                    "focus_node": str(row.focus) if row.focus else None,
+                    "result_path": str(row.path) if row.path else None,
+                    "value": str(row.value) if row.value else None,
+                    "message": str(row.message) if row.message else "Validation constraint violated",
+                    "constraint": str(row.constraint) if row.constraint else "unknown",
+                    "severity": str(row.severity) if row.severity else "error"
                 }
 
                 # Categorize by severity
-                severity = result_dict['severity']
-                if severity == str(SH.Violation) or 'violation' in severity.lower():
+                severity = result_dict["severity"]
+                if severity == str(SH.Violation) or "violation" in severity.lower():
                     violations.append(result_dict)
-                elif severity == str(SH.Warning) or 'warning' in severity.lower():
+                elif severity == str(SH.Warning) or "warning" in severity.lower():
                     warnings.append(result_dict)
-                elif severity == str(SH.Info) or 'info' in severity.lower():
+                elif severity == str(SH.Info) or "info" in severity.lower():
                     info.append(result_dict)
                 else:
                     # Default to violation for unknown severity
@@ -296,9 +296,9 @@ class SHACLEngine:
             logger.warning(f"Failed to parse validation results: {e}")
             # Return a generic violation
             violations.append({
-                'constraint': 'parsing_error',
-                'message': f'Failed to parse validation results: {str(e)}',
-                'severity': 'error'
+                "constraint": "parsing_error",
+                "message": f"Failed to parse validation results: {str(e)}",
+                "severity": "error"
             })
 
         return violations, warnings, info

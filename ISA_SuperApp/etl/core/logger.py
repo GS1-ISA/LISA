@@ -7,7 +7,6 @@ integration with monitoring systems.
 
 import logging
 import sys
-from typing import Optional
 
 import structlog
 
@@ -20,7 +19,7 @@ def get_logger(name: str) -> logging.Logger:
 def setup_logging(
     level: str = "INFO",
     format_type: str = "json",
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
 ) -> None:
     """Setup structured logging for the ETL system."""
     # Configure standard logging

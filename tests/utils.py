@@ -13,13 +13,13 @@ import random
 import string
 import tempfile
 import time
+from collections.abc import Awaitable, Callable
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Union
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
-import pytest
 from faker import Faker
 
 # Initialize Faker for generating test data
@@ -35,7 +35,7 @@ class TestDataGenerator:
         min_length: int = 100,
         max_length: int = 1000,
         include_metadata: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate test documents with realistic content."""
         documents = []
         categories = ["AI", "ML", "DL", "NLP", "CV", "Robotics", "Data Science"]
@@ -61,7 +61,7 @@ class TestDataGenerator:
         return documents
 
     @staticmethod
-    def generate_queries(count: int = 5) -> List[str]:
+    def generate_queries(count: int = 5) -> list[str]:
         """Generate realistic search queries."""
         query_templates = [
             "What is {topic}?",
@@ -102,7 +102,7 @@ class TestDataGenerator:
         count: int = 10,
         dimension: int = 1536,
         normalize: bool = True,
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         """Generate random embeddings for testing."""
         embeddings = []
 
@@ -121,7 +121,7 @@ class TestDataGenerator:
         return embeddings
 
     @staticmethod
-    def generate_metadata(count: int = 10) -> List[Dict[str, Any]]:
+    def generate_metadata(count: int = 10) -> list[dict[str, Any]]:
         """Generate realistic metadata for documents."""
         metadata_list = []
 
@@ -152,7 +152,7 @@ class MockFactory:
     def create_openai_response(
         content: str = "Test response",
         model: str = "gpt-3.5-turbo",
-        usage: Optional[Dict[str, int]] = None,
+        usage: dict[str, int] | None = None,
     ) -> MagicMock:
         """Create a mock OpenAI API response."""
         if usage is None:
@@ -179,7 +179,7 @@ class MockFactory:
 
     @staticmethod
     def create_embedding_response(
-        embeddings: List[List[float]],
+        embeddings: list[list[float]],
         model: str = "text-embedding-3-small",
     ) -> MagicMock:
         """Create a mock embedding API response."""
@@ -191,10 +191,10 @@ class MockFactory:
 
     @staticmethod
     def create_chroma_query_response(
-        documents: List[str],
-        metadatas: List[Dict[str, Any]],
-        distances: Optional[List[float]] = None,
-    ) -> Dict[str, Any]:
+        documents: list[str],
+        metadatas: list[dict[str, Any]],
+        distances: list[float] | None = None,
+    ) -> dict[str, Any]:
         """Create a mock ChromaDB query response."""
         if distances is None:
             distances = [random.uniform(0.1, 0.9) for _ in documents]
@@ -209,7 +209,7 @@ class MockFactory:
     @staticmethod
     def create_http_response(
         status_code: int = 200,
-        json_data: Optional[Dict[str, Any]] = None,
+        json_data: dict[str, Any] | None = None,
         text: str = "OK",
     ) -> MagicMock:
         """Create a mock HTTP response."""
@@ -241,7 +241,7 @@ class PerformanceMonitor:
         process = psutil.Process(os.getpid())
         self.start_memory = process.memory_info().rss / 1024 / 1024  # MB
 
-    def stop(self) -> Dict[str, float]:
+    def stop(self) -> dict[str, float]:
         """Stop performance monitoring and return metrics."""
         import os
 
@@ -276,9 +276,9 @@ class AsyncTestHelpers:
 
     @staticmethod
     async def gather_with_concurrency(
-        coros: List[Awaitable[Any]],
+        coros: list[Awaitable[Any]],
         max_concurrent: int = 10,
-    ) -> List[Any]:
+    ) -> list[Any]:
         """Run coroutines with limited concurrency."""
         semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -293,7 +293,7 @@ class TestValidators:
     """Validators for test data and results."""
 
     @staticmethod
-    def validate_document(document: Dict[str, Any]) -> bool:
+    def validate_document(document: dict[str, Any]) -> bool:
         """Validate document structure."""
         if not isinstance(document, dict):
             return False
@@ -307,13 +307,10 @@ class TestValidators:
         if len(document["content"].strip()) == 0:
             return False
 
-        if "metadata" in document and not isinstance(document["metadata"], dict):
-            return False
-
-        return True
+        return not ("metadata" in document and not isinstance(document["metadata"], dict))
 
     @staticmethod
-    def validate_embedding(embedding: List[float]) -> bool:
+    def validate_embedding(embedding: list[float]) -> bool:
         """Validate embedding structure."""
         if not isinstance(embedding, list):
             return False
@@ -321,13 +318,10 @@ class TestValidators:
         if len(embedding) == 0:
             return False
 
-        if not all(isinstance(x, (int, float)) for x in embedding):
-            return False
-
-        return True
+        return all(isinstance(x, int | float) for x in embedding)
 
     @staticmethod
-    def validate_query_result(result: Dict[str, Any]) -> bool:
+    def validate_query_result(result: dict[str, Any]) -> bool:
         """Validate query result structure."""
         required_keys = ["documents", "metadatas", "distances"]
 
@@ -343,15 +337,12 @@ class TestValidators:
 
         # Check that all lists have the same length
         lengths = [len(result[key]) for key in required_keys]
-        if len(set(lengths)) > 1:
-            return False
-
-        return True
+        return not len(set(lengths)) > 1
 
 
 # Context managers for testing
 @contextmanager
-def temp_env_vars(env_vars: Dict[str, str]) -> None:
+def temp_env_vars(env_vars: dict[str, str]) -> None:
     """Temporarily set environment variables."""
     original_vars = {}
 
@@ -397,8 +388,8 @@ def mock_external_services() -> None:
 # Utility functions
 def create_test_file(
     content: str,
-    filename: Optional[str] = None,
-    directory: Optional[Path] = None,
+    filename: str | None = None,
+    directory: Path | None = None,
 ) -> Path:
     """Create a temporary test file."""
     if directory is None:
@@ -413,7 +404,7 @@ def create_test_file(
     return file_path
 
 
-def load_test_data(filename: str) -> Dict[str, Any]:
+def load_test_data(filename: str) -> dict[str, Any]:
     """Load test data from JSON file."""
     test_data_dir = Path(__file__).parent / "data"
     file_path = test_data_dir / filename
@@ -421,11 +412,11 @@ def load_test_data(filename: str) -> Dict[str, Any]:
     if not file_path.exists():
         raise FileNotFoundError(f"Test data file not found: {file_path}")
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         return json.load(f)
 
 
-def save_test_data(data: Dict[str, Any], filename: str) -> None:
+def save_test_data(data: dict[str, Any], filename: str) -> None:
     """Save test data to JSON file."""
     test_data_dir = Path(__file__).parent / "data"
     test_data_dir.mkdir(exist_ok=True)

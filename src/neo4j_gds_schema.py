@@ -161,10 +161,10 @@ Graph Algorithms for Risk Analysis:
    - GraphSAGE: Inductive learning for new nodes
 """
 
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 
 class NodeType(Enum):
@@ -193,12 +193,12 @@ class RelationshipType(Enum):
 class GraphNode:
     """Base class for graph nodes."""
     node_type: NodeType
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
 
     def to_cypher_create(self) -> str:
         """Generate Cypher CREATE statement for this node."""
         labels = f":{self.node_type.value}"
-        props = ", ".join([f"{k}: ${k}" for k in self.properties.keys()])
+        props = ", ".join([f"{k}: ${k}" for k in self.properties])
         return f"CREATE (n{labels} {{ {props} }})"
 
 
@@ -208,14 +208,14 @@ class GraphRelationship:
     relationship_type: RelationshipType
     from_node: GraphNode
     to_node: GraphNode
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
 
     def to_cypher_create(self) -> str:
         """Generate Cypher CREATE statement for this relationship."""
         rel_type = self.relationship_type.value
         props = ""
         if self.properties:
-            props = " {" + ", ".join([f"{k}: ${k}" for k in self.properties.keys()]) + "}"
+            props = " {" + ", ".join([f"{k}: ${k}" for k in self.properties]) + "}"
 
         return f"CREATE (from)-[:{rel_type}{props}]->(to)"
 
@@ -224,7 +224,7 @@ class SupplyChainGraphSchema:
     """Neo4j graph schema definition for supply chain analytics."""
 
     @staticmethod
-    def get_node_constraints() -> List[str]:
+    def get_node_constraints() -> list[str]:
         """Get Cypher statements for node constraints."""
         return [
             "CREATE CONSTRAINT product_epc IF NOT EXISTS FOR (p:Product) REQUIRE p.epc IS UNIQUE",
@@ -236,7 +236,7 @@ class SupplyChainGraphSchema:
         ]
 
     @staticmethod
-    def get_indexes() -> List[str]:
+    def get_indexes() -> list[str]:
         """Get Cypher statements for indexes."""
         return [
             "CREATE INDEX product_gtin IF NOT EXISTS FOR (p:Product) ON (p.gtin)",
@@ -248,7 +248,7 @@ class SupplyChainGraphSchema:
         ]
 
     @staticmethod
-    def get_schema_initialization() -> List[str]:
+    def get_schema_initialization() -> list[str]:
         """Get all Cypher statements for schema initialization."""
         statements = []
         statements.extend(SupplyChainGraphSchema.get_node_constraints())

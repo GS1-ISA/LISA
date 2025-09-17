@@ -5,33 +5,31 @@ This module provides a complete VC issuance service with DID support,
 cryptographic signing, and integration with the supplier attestation system.
 """
 
+import base64
 import json
 import logging
-from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timezone
 from pathlib import Path
-import base64
-import hashlib
+from typing import Any
 
 # VC libraries (to be installed)
 try:
     import didkit
-    from vc_di import DataIntegrityProof
-    from jwcrypto import jwk, jwt
+    import pyld
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import ed25519
-    import pyld
+    from jwcrypto import jwk, jwt
+    from vc_di import DataIntegrityProof
 except ImportError as e:
     logging.warning(f"VC libraries not available: {e}. Using mock implementations.")
 
 from .supplier_attestation_vc import (
+    ComplianceAttestation,
+    GeolocationAttestation,
+    RiskAssessment,
     SupplierAttestationCredential,
     SupplierInfo,
-    ComplianceAttestation,
     SustainabilityClaim,
-    RiskAssessment,
-    GeolocationAttestation,
-    ComplianceLevel
 )
 
 logger = logging.getLogger(__name__)
@@ -42,7 +40,7 @@ class DIDManager:
     def __init__(self, key_store_path: str = "keys"):
         self.key_store_path = Path(key_store_path)
         self.key_store_path.mkdir(exist_ok=True)
-        self.keys: Dict[str, Dict[str, Any]] = {}
+        self.keys: dict[str, dict[str, Any]] = {}
 
     def create_did_key(self, entity_id: str) -> str:
         """Create a did:key DID for an entity."""
@@ -90,7 +88,7 @@ class DIDManager:
             # Fallback to mock DID
             return f"did:mock:{entity_id}"
 
-    def get_did(self, entity_id: str) -> Optional[str]:
+    def get_did(self, entity_id: str) -> str | None:
         """Get DID for an entity."""
         if entity_id in self.keys:
             return self.keys[entity_id]["did"]
@@ -101,7 +99,7 @@ class DIDManager:
 
         return None
 
-    def get_private_key(self, entity_id: str) -> Optional[bytes]:
+    def get_private_key(self, entity_id: str) -> bytes | None:
         """Get private key for signing."""
         if entity_id in self.keys:
             return self.keys[entity_id]["private_key_pem"].encode()
@@ -111,10 +109,10 @@ class DIDManager:
 
         return None
 
-    def _save_key(self, entity_id: str, key_data: Dict[str, Any]):
+    def _save_key(self, entity_id: str, key_data: dict[str, Any]):
         """Save key data to file."""
         key_file = self.key_store_path / f"{entity_id}.json"
-        with open(key_file, 'w') as f:
+        with open(key_file, "w") as f:
             json.dump(key_data, f, indent=2)
 
     def _load_key(self, entity_id: str) -> bool:
@@ -122,7 +120,7 @@ class DIDManager:
         key_file = self.key_store_path / f"{entity_id}.json"
         if key_file.exists():
             try:
-                with open(key_file, 'r') as f:
+                with open(key_file) as f:
                     self.keys[entity_id] = json.load(f)
                 return True
             except Exception as e:
@@ -135,7 +133,7 @@ class VCProofGenerator:
     def __init__(self, did_manager: DIDManager):
         self.did_manager = did_manager
 
-    def generate_proof(self, vc_dict: Dict[str, Any], issuer_id: str) -> Dict[str, Any]:
+    def generate_proof(self, vc_dict: dict[str, Any], issuer_id: str) -> dict[str, Any]:
         """Generate a cryptographic proof for the VC."""
         try:
             # Get issuer's private key
@@ -154,7 +152,7 @@ class VCProofGenerator:
 
             # Canonicalize the VC for signing (exclude proof)
             vc_to_sign = {k: v for k, v in vc_dict.items() if k != "proof"}
-            vc_canonical = json.dumps(vc_to_sign, sort_keys=True, separators=(',', ':'))
+            vc_canonical = json.dumps(vc_to_sign, sort_keys=True, separators=(",", ":"))
 
             # Sign the canonical VC
             signature = private_key.sign(vc_canonical.encode())
@@ -186,12 +184,12 @@ class VCIssuerService:
     def __init__(self, key_store_path: str = "keys"):
         self.did_manager = DIDManager(key_store_path)
         self.proof_generator = VCProofGenerator(self.did_manager)
-        self.issued_credentials: Dict[str, SupplierAttestationCredential] = {}
+        self.issued_credentials: dict[str, SupplierAttestationCredential] = {}
 
     def issue_compliance_vc(
         self,
         supplier: SupplierInfo,
-        attestations: List[ComplianceAttestation],
+        attestations: list[ComplianceAttestation],
         issuer_name: str,
         issuer_entity_id: str
     ) -> SupplierAttestationCredential:
@@ -223,7 +221,7 @@ class VCIssuerService:
     def issue_sustainability_vc(
         self,
         supplier: SupplierInfo,
-        claims: List[SustainabilityClaim],
+        claims: list[SustainabilityClaim],
         issuer_name: str,
         issuer_entity_id: str
     ) -> SupplierAttestationCredential:
@@ -255,7 +253,7 @@ class VCIssuerService:
     def issue_risk_assessment_vc(
         self,
         supplier: SupplierInfo,
-        risk_assessments: List[RiskAssessment],
+        risk_assessments: list[RiskAssessment],
         issuer_name: str,
         issuer_entity_id: str
     ) -> SupplierAttestationCredential:
@@ -308,11 +306,11 @@ class VCIssuerService:
         logger.info(f"Issued geolocation VC: {credential.id}")
         return credential
 
-    def get_issued_credential(self, credential_id: str) -> Optional[SupplierAttestationCredential]:
+    def get_issued_credential(self, credential_id: str) -> SupplierAttestationCredential | None:
         """Retrieve an issued credential."""
         return self.issued_credentials.get(credential_id)
 
-    def list_issued_credentials(self, issuer_entity_id: Optional[str] = None) -> List[SupplierAttestationCredential]:
+    def list_issued_credentials(self, issuer_entity_id: str | None = None) -> list[SupplierAttestationCredential]:
         """List issued credentials, optionally filtered by issuer."""
         if issuer_entity_id:
             issuer_did = self.did_manager.get_did(issuer_entity_id)
@@ -339,7 +337,7 @@ class VCVerifierService:
     def __init__(self, did_manager: DIDManager):
         self.did_manager = did_manager
 
-    def verify_credential(self, credential: SupplierAttestationCredential) -> Dict[str, Any]:
+    def verify_credential(self, credential: SupplierAttestationCredential) -> dict[str, Any]:
         """Verify a VC's signature and validity."""
         result = {
             "valid": False,
@@ -351,7 +349,7 @@ class VCVerifierService:
         try:
             # Check expiration
             if credential.expiration_date:
-                exp_date = datetime.fromisoformat(credential.expiration_date.replace('Z', '+00:00'))
+                exp_date = datetime.fromisoformat(credential.expiration_date.replace("Z", "+00:00"))
                 if exp_date < datetime.now(timezone.utc):
                     result["errors"].append("Credential has expired")
 
@@ -392,7 +390,7 @@ class VCVerifierService:
             # Get issuer's public key
             # In a real implementation, this would resolve the DID to get the public key
             # For now, we'll assume the key is available locally
-            issuer_entity_id = issuer_did.split(":")[-1]  # Extract entity ID from DID
+            issuer_did.split(":")[-1]  # Extract entity ID from DID
             public_key_pem = self._get_public_key_for_did(issuer_did)
 
             if not public_key_pem:
@@ -405,14 +403,14 @@ class VCVerifierService:
             # Recreate the signed content
             vc_dict = credential.to_dict()
             vc_to_verify = {k: v for k, v in vc_dict.items() if k != "proof"}
-            vc_canonical = json.dumps(vc_to_verify, sort_keys=True, separators=(',', ':'))
+            vc_canonical = json.dumps(vc_to_verify, sort_keys=True, separators=(",", ":"))
 
             # Get signature
             signature_b64 = proof.get("proofValue", "")
             if signature_b64 == "mock_signature":
                 return True  # Accept mock signatures for development
 
-            signature = base64.urlsafe_b64decode(signature_b64 + '=' * (4 - len(signature_b64) % 4))
+            signature = base64.urlsafe_b64decode(signature_b64 + "=" * (4 - len(signature_b64) % 4))
 
             # Verify signature
             public_key.verify(signature, vc_canonical.encode())
@@ -423,16 +421,16 @@ class VCVerifierService:
             logger.error(f"Proof verification failed: {e}")
             return False
 
-    def _get_public_key_for_did(self, did: str) -> Optional[str]:
+    def _get_public_key_for_did(self, did: str) -> str | None:
         """Get public key for a DID."""
         # In a real implementation, this would resolve the DID document
         # For now, we'll look it up in our local store
-        for entity_id, key_data in self.did_manager.keys.items():
+        for _entity_id, key_data in self.did_manager.keys.items():
             if key_data["did"] == did:
                 return key_data["public_key_pem"]
         return None
 
-    def _validate_credential_structure(self, credential: SupplierAttestationCredential, result: Dict[str, Any]):
+    def _validate_credential_structure(self, credential: SupplierAttestationCredential, result: dict[str, Any]):
         """Validate the credential structure."""
         # Check required fields
         required_fields = ["@context", "type", "credentialSubject", "issuer", "issuanceDate"]
@@ -449,7 +447,7 @@ class VCVerifierService:
 
         # Validate dates
         try:
-            issuance = datetime.fromisoformat(vc_dict["issuanceDate"].replace('Z', '+00:00'))
+            issuance = datetime.fromisoformat(vc_dict["issuanceDate"].replace("Z", "+00:00"))
             if issuance > datetime.now(timezone.utc):
                 result["warnings"].append("Issuance date is in the future")
         except:

@@ -7,25 +7,22 @@ agent orchestration, task management, and coordination.
 
 import abc
 import asyncio
+import contextlib
 import enum
-import json
-import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Union
+from typing import Any
 
-from .embedding import BaseEmbeddingProvider, EmbeddingFactory
-from .exceptions import ISAConfigurationError, ISANotFoundError, ISAValidationError
+from .exceptions import ISAConfigurationError, ISAValidationError
 from .logger import get_logger
 from .models import (
-    Agent,
     AgentCapability,
     AgentStatus,
     AgentType,
     Message,
     MessageType,
-    SearchResult,
     Task,
     TaskPriority,
     TaskStatus,
@@ -52,11 +49,11 @@ class AgentEvent:
     """Agent system event."""
 
     event_type: AgentEventType
-    agent_id: Optional[str] = None
-    task_id: Optional[str] = None
-    message_id: Optional[str] = None
+    agent_id: str | None = None
+    task_id: str | None = None
+    message_id: str | None = None
     timestamp: datetime = field(default_factory=datetime.utcnow)
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -68,7 +65,7 @@ class AgentSystemConfig:
     task_timeout: int = 3600  # 1 hour
     message_queue_size: int = 1000
     enable_retrieval: bool = True
-    retrieval_config: Optional[Dict[str, Any]] = None
+    retrieval_config: dict[str, Any] | None = None
     enable_caching: bool = True
     cache_size: int = 1000
     enable_monitoring: bool = True
@@ -102,7 +99,7 @@ class BaseAgent(abc.ABC):
     """Abstract base class for agents."""
 
     def __init__(
-        self, agent_id: str, agent_type: AgentType, config: Dict[str, Any]
+        self, agent_id: str, agent_type: AgentType, config: dict[str, Any]
     ) -> None:
         """
         Initialize base agent.
@@ -116,12 +113,12 @@ class BaseAgent(abc.ABC):
         self.agent_type = agent_type
         self.config = config
         self.status = AgentStatus.IDLE
-        self.capabilities: Set[AgentCapability] = set()
-        self.current_tasks: List[str] = []
+        self.capabilities: set[AgentCapability] = set()
+        self.current_tasks: list[str] = []
         self.message_queue: asyncio.Queue = asyncio.Queue(maxsize=100)
         self.logger = get_logger(f"agent.{agent_id}")
         self._running = False
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
 
     @abc.abstractmethod
     async def initialize(self) -> None:
@@ -174,10 +171,8 @@ class BaseAgent(abc.ABC):
 
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
 
         self.logger.info(f"Agent {self.agent_id} stopped")
 
@@ -284,7 +279,7 @@ class BaseAgent(abc.ABC):
             result = await self.process_task(task)
 
             # Send completion message
-            completion_message = Message(
+            Message(
                 message_id=str(uuid.uuid4()),
                 sender_id=self.agent_id,
                 receiver_id="system",
@@ -304,7 +299,7 @@ class BaseAgent(abc.ABC):
             self.logger.error(f"Task {task.task_id} failed: {e}")
 
             # Send failure message
-            failure_message = Message(
+            Message(
                 message_id=str(uuid.uuid4()),
                 sender_id=self.agent_id,
                 receiver_id="system",
@@ -324,7 +319,7 @@ class BaseAgent(abc.ABC):
 class ResearchAgent(BaseAgent):
     """Research agent for document analysis and information retrieval."""
 
-    def __init__(self, agent_id: str, config: Dict[str, Any]) -> None:
+    def __init__(self, agent_id: str, config: dict[str, Any]) -> None:
         """
         Initialize research agent.
 
@@ -333,7 +328,7 @@ class ResearchAgent(BaseAgent):
             config: Agent configuration
         """
         super().__init__(agent_id, AgentType.RESEARCH, config)
-        self.retrieval_system: Optional[RetrievalSystem] = None
+        self.retrieval_system: RetrievalSystem | None = None
         self.capabilities.add(AgentCapability.INFORMATION_RETRIEVAL)
         self.capabilities.add(AgentCapability.DOCUMENT_ANALYSIS)
         self.capabilities.add(AgentCapability.SEARCH)
@@ -389,7 +384,7 @@ class ResearchAgent(BaseAgent):
             self.logger.warning(f"Unhandled message type: {message.message_type}")
             return None
 
-    async def _create_retrieval_system(self, config: Dict[str, Any]) -> RetrievalSystem:
+    async def _create_retrieval_system(self, config: dict[str, Any]) -> RetrievalSystem:
         """Create retrieval system for the agent."""
         retrieval_config = RetrievalConfig(
             strategy=config.get("strategy", "dense"),
@@ -405,7 +400,7 @@ class ResearchAgent(BaseAgent):
 
         return RetrievalSystem(retrieval_config)
 
-    async def _handle_search_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_search_task(self, task_data: dict[str, Any]) -> dict[str, Any]:
         """Handle search task."""
         query = task_data.get("query")
         top_k = task_data.get("top_k", 10)
@@ -425,7 +420,7 @@ class ResearchAgent(BaseAgent):
             "result_count": len(results),
         }
 
-    async def _handle_analyze_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_analyze_task(self, task_data: dict[str, Any]) -> dict[str, Any]:
         """Handle analyze task."""
         document_id = task_data.get("document_id")
         analysis_type = task_data.get("analysis_type", "general")
@@ -446,7 +441,7 @@ class ResearchAgent(BaseAgent):
 
         return analysis_result
 
-    async def _handle_summarize_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_summarize_task(self, task_data: dict[str, Any]) -> dict[str, Any]:
         """Handle summarize task."""
         document_ids = task_data.get("document_ids", [])
         max_length = task_data.get("max_length", 500)
@@ -465,7 +460,7 @@ class ResearchAgent(BaseAgent):
 
         return summary_result
 
-    async def _handle_query(self, content: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_query(self, content: dict[str, Any]) -> dict[str, Any]:
         """Handle query message."""
         query = content.get("query")
 
@@ -483,10 +478,10 @@ class ResearchAgent(BaseAgent):
             "result_count": len(results),
         }
 
-    async def _handle_command(self, content: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_command(self, content: dict[str, Any]) -> dict[str, Any]:
         """Handle command message."""
         command = content.get("command")
-        params = content.get("params", {})
+        content.get("params", {})
 
         if command == "status":
             return {
@@ -513,12 +508,12 @@ class AgentOrchestrator:
         """
         self.config = config
         self.logger = get_logger("agent.orchestrator")
-        self.agents: Dict[str, BaseAgent] = {}
-        self.tasks: Dict[str, Task] = {}
-        self.event_listeners: List[Callable[[AgentEvent], None]] = []
-        self.retrieval_system: Optional[RetrievalSystem] = None
+        self.agents: dict[str, BaseAgent] = {}
+        self.tasks: dict[str, Task] = {}
+        self.event_listeners: list[Callable[[AgentEvent], None]] = []
+        self.retrieval_system: RetrievalSystem | None = None
         self._running = False
-        self._monitoring_task: Optional[asyncio.Task] = None
+        self._monitoring_task: asyncio.Task | None = None
 
     async def initialize(self) -> None:
         """Initialize the orchestrator."""
@@ -548,10 +543,8 @@ class AgentOrchestrator:
         # Stop monitoring
         if self._monitoring_task:
             self._monitoring_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._monitoring_task
-            except asyncio.CancelledError:
-                pass
 
         # Stop all agents
         for agent in self.agents.values():
@@ -582,7 +575,7 @@ class AgentOrchestrator:
         if listener in self.event_listeners:
             self.event_listeners.remove(listener)
 
-    async def create_agent(self, agent_type: AgentType, config: Dict[str, Any]) -> str:
+    async def create_agent(self, agent_type: AgentType, config: dict[str, Any]) -> str:
         """
         Create a new agent.
 
@@ -654,9 +647,9 @@ class AgentOrchestrator:
     async def create_task(
         self,
         task_type: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         priority: TaskPriority = TaskPriority.MEDIUM,
-        assigned_agent_id: Optional[str] = None,
+        assigned_agent_id: str | None = None,
     ) -> str:
         """
         Create a new task.
@@ -740,7 +733,7 @@ class AgentOrchestrator:
 
         return success
 
-    async def get_agent_status(self, agent_id: str) -> Optional[Dict[str, Any]]:
+    async def get_agent_status(self, agent_id: str) -> dict[str, Any] | None:
         """
         Get agent status.
 
@@ -763,7 +756,7 @@ class AgentOrchestrator:
             "task_count": len(agent.current_tasks),
         }
 
-    async def get_system_status(self) -> Dict[str, Any]:
+    async def get_system_status(self) -> dict[str, Any]:
         """
         Get overall system status.
 
@@ -847,7 +840,7 @@ class AgentOrchestrator:
 async def create_agent_system(
     max_agents: int = 100,
     enable_retrieval: bool = True,
-    retrieval_config: Optional[Dict[str, Any]] = None,
+    retrieval_config: dict[str, Any] | None = None,
     **kwargs,
 ) -> AgentOrchestrator:
     """
@@ -875,7 +868,7 @@ async def create_agent_system(
 
 
 async def create_agent_system_from_config(
-    config_dict: Dict[str, Any],
+    config_dict: dict[str, Any],
 ) -> AgentOrchestrator:
     """
     Create an agent system from configuration dictionary.

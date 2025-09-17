@@ -5,13 +5,13 @@ This module implements W3C Verifiable Credentials for supplier attestations
 in supply chain transparency, including compliance verification and sustainability claims.
 """
 
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timezone, timedelta
-from enum import Enum
-import json
 import hashlib
+import json
 import logging
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +36,10 @@ class SupplierInfo:
     """Basic supplier information."""
     id: str
     name: str
-    legal_entity_id: Optional[str] = None
-    address: Optional[Dict[str, Any]] = None
-    contact_info: Optional[Dict[str, Any]] = None
-    business_type: Optional[str] = None
+    legal_entity_id: str | None = None
+    address: dict[str, Any] | None = None
+    contact_info: dict[str, Any] | None = None
+    business_type: str | None = None
 
 @dataclass
 class ComplianceAttestation:
@@ -48,9 +48,9 @@ class ComplianceAttestation:
     compliance_level: ComplianceLevel
     assessment_date: str
     assessment_method: str
-    valid_until: Optional[str] = None
-    evidence: Optional[List[str]] = None
-    mitigating_actions: Optional[List[str]] = None
+    valid_until: str | None = None
+    evidence: list[str] | None = None
+    mitigating_actions: list[str] | None = None
 
 @dataclass
 class SustainabilityClaim:
@@ -58,10 +58,10 @@ class SustainabilityClaim:
     claim_type: str  # e.g., "deforestation-free", "carbon-neutral", "fair-trade"
     scope: str  # e.g., "product", "operation", "supply-chain"
     valid_from: str
-    standard: Optional[str] = None  # e.g., "ISO-14001", "RSPO"
-    verification_body: Optional[str] = None
-    valid_until: Optional[str] = None
-    evidence: Optional[List[str]] = None
+    standard: str | None = None  # e.g., "ISO-14001", "RSPO"
+    verification_body: str | None = None
+    valid_until: str | None = None
+    evidence: list[str] | None = None
 
 @dataclass
 class RiskAssessment:
@@ -70,38 +70,38 @@ class RiskAssessment:
     risk_score: float  # 0.0 to 1.0
     risk_level: str  # "low", "medium", "high"
     assessment_date: str
-    factors: List[str]
-    mitigation_measures: Optional[List[str]] = None
+    factors: list[str]
+    mitigation_measures: list[str] | None = None
 
 @dataclass
 class GeolocationAttestation:
     """Geolocation attestation for supply chain transparency."""
-    coordinates: Dict[str, float]  # {"latitude": float, "longitude": float}
+    coordinates: dict[str, float]  # {"latitude": float, "longitude": float}
     precision: str  # "exact", "approximate", "region"
     source: str  # "GPS", "address", "survey"
     verification_method: str
     attested_date: str
-    land_use_type: Optional[str] = None
-    risk_indicators: Optional[List[str]] = None
+    land_use_type: str | None = None
+    risk_indicators: list[str] | None = None
 
 @dataclass
 class SupplierAttestationCredential:
     """W3C Verifiable Credential for supplier attestations."""
-    context: List[str]
+    context: list[str]
     id: str
-    type: List[str]
+    type: list[str]
     issuer: str
     issuance_date: str
-    expiration_date: Optional[str]
-    credential_subject: Dict[str, Any]
-    proof: Optional[Dict[str, Any]] = None
+    expiration_date: str | None
+    credential_subject: dict[str, Any]
+    proof: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'SupplierAttestationCredential':
+    def from_dict(cls, data: dict[str, Any]) -> "SupplierAttestationCredential":
         """Create from dictionary."""
         return cls(**data)
 
@@ -109,12 +109,12 @@ class SupplierAttestationVCManager:
     """Manager for creating and managing supplier attestation VCs."""
 
     def __init__(self):
-        self.credentials: Dict[str, SupplierAttestationCredential] = {}
+        self.credentials: dict[str, SupplierAttestationCredential] = {}
 
     def create_compliance_attestation_vc(
         self,
         supplier: SupplierInfo,
-        attestations: List[ComplianceAttestation],
+        attestations: list[ComplianceAttestation],
         issuer: str,
         issuer_did: str,
         expiration_days: int = 365
@@ -157,7 +157,7 @@ class SupplierAttestationVCManager:
     def create_sustainability_claim_vc(
         self,
         supplier: SupplierInfo,
-        claims: List[SustainabilityClaim],
+        claims: list[SustainabilityClaim],
         issuer: str,
         issuer_did: str,
         expiration_days: int = 365
@@ -198,7 +198,7 @@ class SupplierAttestationVCManager:
     def create_risk_assessment_vc(
         self,
         supplier: SupplierInfo,
-        risk_assessments: List[RiskAssessment],
+        risk_assessments: list[RiskAssessment],
         issuer: str,
         issuer_did: str,
         expiration_days: int = 180
@@ -296,11 +296,11 @@ class SupplierAttestationVCManager:
         else:
             raise ValueError(f"Unsupported format: {format}")
 
-    def get_credential(self, credential_id: str) -> Optional[SupplierAttestationCredential]:
+    def get_credential(self, credential_id: str) -> SupplierAttestationCredential | None:
         """Retrieve a credential by ID."""
         return self.credentials.get(credential_id)
 
-    def list_credentials_for_supplier(self, supplier_id: str) -> List[SupplierAttestationCredential]:
+    def list_credentials_for_supplier(self, supplier_id: str) -> list[SupplierAttestationCredential]:
         """List all credentials for a supplier."""
         return [
             cred for cred in self.credentials.values()

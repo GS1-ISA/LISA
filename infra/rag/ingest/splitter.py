@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from typing import List
 
-
-def split_text(text: str, max_len: int = 100) -> List[str]:
+def split_text(text: str, max_len: int = 100) -> list[str]:
     """Deterministic splitter for RAG stubs.
 
     Splits on whitespace boundaries; ensures UTF-8 stable newline policy is irrelevant at this layer.

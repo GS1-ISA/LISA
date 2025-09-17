@@ -6,7 +6,10 @@ import re
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_GRAPH = ROOT / "coherence_graph.json"
@@ -72,7 +75,7 @@ class Edge:
     ctx: str
 
 
-def parse_py_edges(text: str) -> List[Tuple[str, str]]:
+def parse_py_edges(text: str) -> list[tuple[str, str]]:
     edges = []
     for m in re.finditer(r"^\s*from\s+([\w\.]+)\s+import\s+", text, re.M):
         edges.append(("import", m.group(1)))
@@ -87,14 +90,14 @@ def parse_py_edges(text: str) -> List[Tuple[str, str]]:
     return edges
 
 
-def parse_md_edges(text: str) -> List[Tuple[str, str]]:
+def parse_md_edges(text: str) -> list[tuple[str, str]]:
     edges = []
     for m in re.finditer(r"\[[^\]]+\]\(([^\)]+)\)", text):
         edges.append(("link", m.group(1)))
     return edges
 
 
-def collect_terms_py(text: str) -> List[str]:
+def collect_terms_py(text: str) -> list[str]:
     terms = []
     for m in re.finditer(r"\b([A-Z][A-Z0-9_]{2,})\b", text):
         terms.append(m.group(1))
@@ -102,9 +105,9 @@ def collect_terms_py(text: str) -> List[str]:
 
 
 def main() -> int:
-    nodes: Dict[str, Node] = {}
-    edges: List[Edge] = []
-    term_freq: Dict[str, int] = defaultdict(int)
+    nodes: dict[str, Node] = {}
+    edges: list[Edge] = []
+    term_freq: dict[str, int] = defaultdict(int)
 
     files = list(walk_files(ROOT))
 
@@ -160,8 +163,8 @@ def main() -> int:
     )
 
     # Orphans & dead-ends
-    indeg: Dict[str, int] = defaultdict(int)
-    outdeg: Dict[str, int] = defaultdict(int)
+    indeg: dict[str, int] = defaultdict(int)
+    outdeg: dict[str, int] = defaultdict(int)
     for e in edges:
         outdeg[e.src] += 1
         indeg[e.dst] += 1

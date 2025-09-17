@@ -2,16 +2,28 @@
 Unit tests for authentication module
 """
 
-import pytest
 from unittest.mock import Mock, patch
-from datetime import datetime, timedelta
+
+import pytest
 from sqlalchemy.orm import Session
 
 from src.auth import (
-    User, UserCreate, UserRole, hash_password, verify_password,
-    create_access_token, verify_token, generate_api_key, hash_api_key,
-    verify_api_key, authenticate_user, create_user, check_user_permissions,
-    get_user_by_username, get_user_by_email, update_user_password
+    User,
+    UserCreate,
+    UserRole,
+    authenticate_user,
+    check_user_permissions,
+    create_access_token,
+    create_user,
+    generate_api_key,
+    get_user_by_email,
+    get_user_by_username,
+    hash_api_key,
+    hash_password,
+    update_user_password,
+    verify_api_key,
+    verify_password,
+    verify_token,
 )
 
 
@@ -141,7 +153,7 @@ class TestUserPermissions:
 class TestUserOperations:
     """Test user database operations"""
 
-    @patch('src.auth.SessionLocal')
+    @patch("src.auth.SessionLocal")
     def test_get_user_by_username(self, mock_session):
         """Test getting user by username"""
         mock_db = Mock(spec=Session)
@@ -149,14 +161,14 @@ class TestUserOperations:
         mock_user.username = "testuser"
         mock_db.query.return_value.filter.return_value.first.return_value = mock_user
 
-        with patch('src.auth.get_db', return_value=mock_db):
+        with patch("src.auth.get_db", return_value=mock_db):
             result = get_user_by_username(mock_db, "testuser")
 
         assert result == mock_user
         mock_db.query.assert_called_once_with(User)
         mock_db.query.return_value.filter.assert_called_once()
 
-    @patch('src.auth.SessionLocal')
+    @patch("src.auth.SessionLocal")
     def test_get_user_by_email(self, mock_session):
         """Test getting user by email"""
         mock_db = Mock(spec=Session)
@@ -164,12 +176,12 @@ class TestUserOperations:
         mock_user.email = "test@example.com"
         mock_db.query.return_value.filter.return_value.first.return_value = mock_user
 
-        with patch('src.auth.get_db', return_value=mock_db):
+        with patch("src.auth.get_db", return_value=mock_db):
             result = get_user_by_email(mock_db, "test@example.com")
 
         assert result == mock_user
 
-    @patch('src.auth.SessionLocal')
+    @patch("src.auth.SessionLocal")
     def test_authenticate_user_success(self, mock_session):
         """Test successful user authentication"""
         mock_db = Mock(spec=Session)
@@ -178,15 +190,15 @@ class TestUserOperations:
         mock_user.hashed_password = hash_password("testpass")
         mock_user.is_active = True
 
-        with patch('src.auth.get_user_by_username', return_value=mock_user), \
-             patch('src.auth.verify_password', return_value=True), \
-             patch('src.auth.get_db', return_value=mock_db):
+        with patch("src.auth.get_user_by_username", return_value=mock_user), \
+             patch("src.auth.verify_password", return_value=True), \
+             patch("src.auth.get_db", return_value=mock_db):
 
             result = authenticate_user(mock_db, "testuser", "testpass")
 
         assert result == mock_user
 
-    @patch('src.auth.SessionLocal')
+    @patch("src.auth.SessionLocal")
     def test_authenticate_user_wrong_password(self, mock_session):
         """Test user authentication with wrong password"""
         mock_db = Mock(spec=Session)
@@ -194,27 +206,27 @@ class TestUserOperations:
         mock_user.username = "testuser"
         mock_user.hashed_password = hash_password("testpass")
 
-        with patch('src.auth.get_user_by_username', return_value=mock_user), \
-             patch('src.auth.verify_password', return_value=False), \
-             patch('src.auth.get_db', return_value=mock_db):
+        with patch("src.auth.get_user_by_username", return_value=mock_user), \
+             patch("src.auth.verify_password", return_value=False), \
+             patch("src.auth.get_db", return_value=mock_db):
 
             result = authenticate_user(mock_db, "testuser", "wrongpass")
 
         assert result is None
 
-    @patch('src.auth.SessionLocal')
+    @patch("src.auth.SessionLocal")
     def test_authenticate_user_not_found(self, mock_session):
         """Test user authentication with non-existent user"""
         mock_db = Mock(spec=Session)
 
-        with patch('src.auth.get_user_by_username', return_value=None), \
-             patch('src.auth.get_db', return_value=mock_db):
+        with patch("src.auth.get_user_by_username", return_value=None), \
+             patch("src.auth.get_db", return_value=mock_db):
 
             result = authenticate_user(mock_db, "nonexistent", "testpass")
 
         assert result is None
 
-    @patch('src.auth.SessionLocal')
+    @patch("src.auth.SessionLocal")
     def test_create_user(self, mock_session):
         """Test user creation"""
         mock_db = Mock(spec=Session)
@@ -225,10 +237,10 @@ class TestUserOperations:
             role=UserRole.RESEARCHER
         )
 
-        with patch('src.auth.hash_password', return_value="hashedpass"), \
-             patch('src.auth.generate_api_key', return_value="testkey"), \
-             patch('src.auth.hash_api_key', return_value="hashedkey"), \
-             patch('src.auth.get_db', return_value=mock_db):
+        with patch("src.auth.hash_password", return_value="hashedpass"), \
+             patch("src.auth.generate_api_key", return_value="testkey"), \
+             patch("src.auth.hash_api_key", return_value="hashedkey"), \
+             patch("src.auth.get_db", return_value=mock_db):
 
             result = create_user(mock_db, user_data)
 
@@ -237,14 +249,14 @@ class TestUserOperations:
         mock_db.commit.assert_called()
         mock_db.refresh.assert_called_once()
 
-    @patch('src.auth.SessionLocal')
+    @patch("src.auth.SessionLocal")
     def test_update_user_password(self, mock_session):
         """Test password update"""
         mock_db = Mock(spec=Session)
         mock_user = Mock(spec=User)
 
-        with patch('src.auth.hash_password', return_value="newhashedpass"), \
-             patch('src.auth.get_db', return_value=mock_db):
+        with patch("src.auth.hash_password", return_value="newhashedpass"), \
+             patch("src.auth.get_db", return_value=mock_db):
 
             update_user_password(mock_db, mock_user, "newpassword")
 

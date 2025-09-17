@@ -4,7 +4,6 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List
 
 
 @dataclass
@@ -20,8 +19,8 @@ def load_fixture(path: str | Path) -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def normalize_tr_entries(data: dict) -> List[TRDoc]:
-    docs: List[TRDoc] = []
+def normalize_tr_entries(data: dict) -> list[TRDoc]:
+    docs: list[TRDoc] = []
     items = data.get("items", [])
     for it in items:
         title = it.get("title", "")

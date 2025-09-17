@@ -6,10 +6,10 @@ in the ISA_D database for regulatory compliance analysis.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Table
-from sqlalchemy.orm import relationship, declarative_base
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 # Use the same Base as auth.py
 Base = declarative_base()

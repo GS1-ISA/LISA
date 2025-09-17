@@ -7,15 +7,18 @@ comprehensive deforestation risk assessments.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
-from .gfw_client import GFWClient
 from .corine_client import CORINEClient
-from .risk_assessment import GeospatialRiskAssessor, LocationRiskAssessment, SupplyChainRiskProfile
-from .supply_chain_analysis import SupplyChainGeospatialAnalyzer, SupplyChainNode
 from .deforestation_scorer import DeforestationRiskScorer
+from .gfw_client import GFWClient
+from .risk_assessment import (
+    GeospatialRiskAssessor,
+    LocationRiskAssessment,
+)
+from .supply_chain_analysis import SupplyChainGeospatialAnalyzer, SupplyChainNode
 
 
 @dataclass
@@ -23,13 +26,13 @@ class EUDRScreeningResult:
     """Result of EUDR geospatial screening."""
     screening_id: str
     timestamp: datetime
-    target_locations: List[Tuple[float, float]]
-    risk_assessments: List[LocationRiskAssessment]
+    target_locations: list[tuple[float, float]]
+    risk_assessments: list[LocationRiskAssessment]
     overall_compliance_score: float
     compliance_level: str
-    high_risk_locations: List[Dict[str, Any]]
-    mitigation_actions: List[Dict[str, Any]]
-    data_sources: Dict[str, Any]
+    high_risk_locations: list[dict[str, Any]]
+    mitigation_actions: list[dict[str, Any]]
+    data_sources: dict[str, Any]
     confidence_score: float
 
 
@@ -38,10 +41,10 @@ class ComplianceReport:
     """Comprehensive EUDR compliance report."""
     report_id: str
     generated_at: datetime
-    screening_results: List[EUDRScreeningResult]
-    supply_chain_analysis: Optional[Dict[str, Any]]
-    regulatory_requirements: Dict[str, Any]
-    recommendations: List[str]
+    screening_results: list[EUDRScreeningResult]
+    supply_chain_analysis: dict[str, Any] | None
+    regulatory_requirements: dict[str, Any]
+    recommendations: list[str]
     next_review_date: datetime
 
 
@@ -55,8 +58,8 @@ class EUDRGeospatialScreeningEngine:
 
     def __init__(
         self,
-        gfw_api_key: Optional[str] = None,
-        corine_api_key: Optional[str] = None
+        gfw_api_key: str | None = None,
+        corine_api_key: str | None = None
     ):
         """
         Initialize the EUDR screening engine.
@@ -74,10 +77,10 @@ class EUDRGeospatialScreeningEngine:
 
     def screen_supply_chain_locations(
         self,
-        locations: List[Tuple[float, float]],
+        locations: list[tuple[float, float]],
         buffer_km: float = 50,
         lookback_years: int = 5,
-        screening_id: Optional[str] = None
+        screening_id: str | None = None
     ) -> EUDRScreeningResult:
         """
         Screen supply chain locations for EUDR compliance.
@@ -118,16 +121,16 @@ class EUDRGeospatialScreeningEngine:
 
             # Document data sources
             data_sources = {
-                'gfw': {
-                    'api_version': 'v2',
-                    'data_types': ['deforestation_alerts', 'tree_cover_loss'],
-                    'temporal_coverage': f"{lookback_years} years",
-                    'spatial_resolution': f"{buffer_km}km buffer"
+                "gfw": {
+                    "api_version": "v2",
+                    "data_types": ["deforestation_alerts", "tree_cover_loss"],
+                    "temporal_coverage": f"{lookback_years} years",
+                    "spatial_resolution": f"{buffer_km}km buffer"
                 },
-                'corine': {
-                    'dataset': 'CLC 2018',
-                    'data_types': ['land_cover_classes', 'land_cover_changes'],
-                    'spatial_resolution': f"{buffer_km}km buffer"
+                "corine": {
+                    "dataset": "CLC 2018",
+                    "data_types": ["land_cover_classes", "land_cover_changes"],
+                    "spatial_resolution": f"{buffer_km}km buffer"
                 }
             }
 
@@ -164,11 +167,11 @@ class EUDRGeospatialScreeningEngine:
 
     def analyze_supply_chain_network(
         self,
-        nodes: List[SupplyChainNode],
-        connections: List[Tuple[str, str]],
+        nodes: list[SupplyChainNode],
+        connections: list[tuple[str, str]],
         buffer_km: float = 50,
         lookback_years: int = 5
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform comprehensive supply chain network analysis.
 
@@ -187,13 +190,13 @@ class EUDRGeospatialScreeningEngine:
             )
         except Exception as e:
             self.logger.error(f"Error in supply chain network analysis: {str(e)}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def generate_compliance_report(
         self,
-        screening_results: List[EUDRScreeningResult],
-        supply_chain_analysis: Optional[Dict[str, Any]] = None,
-        company_info: Optional[Dict[str, Any]] = None
+        screening_results: list[EUDRScreeningResult],
+        supply_chain_analysis: dict[str, Any] | None = None,
+        company_info: dict[str, Any] | None = None
     ) -> ComplianceReport:
         """
         Generate comprehensive EUDR compliance report.
@@ -216,13 +219,11 @@ class EUDRGeospatialScreeningEngine:
 
             # Calculate aggregate metrics
             if all_assessments:
-                avg_compliance = sum(a.combined_risk_score for a in all_assessments) / len(all_assessments)
-                high_risk_count = sum(1 for a in all_assessments if a.risk_level == "high")
-                total_locations = len(all_assessments)
+                sum(a.combined_risk_score for a in all_assessments) / len(all_assessments)
+                sum(1 for a in all_assessments if a.risk_level == "high")
+                len(all_assessments)
             else:
-                avg_compliance = 0.0
-                high_risk_count = 0
-                total_locations = 0
+                pass
 
             # Generate recommendations
             recommendations = self._generate_report_recommendations(
@@ -234,20 +235,20 @@ class EUDRGeospatialScreeningEngine:
 
             # Regulatory requirements summary
             regulatory_requirements = {
-                'eudr_regulation': 'EU 2023/1115',
-                'effective_date': '2024-12-30',
-                'reporting_requirements': [
-                    'Due diligence statements',
-                    'Supply chain geolocation data',
-                    'Deforestation risk assessments'
+                "eudr_regulation": "EU 2023/1115",
+                "effective_date": "2024-12-30",
+                "reporting_requirements": [
+                    "Due diligence statements",
+                    "Supply chain geolocation data",
+                    "Deforestation risk assessments"
                 ],
-                'high_risk_commodities': [
-                    'Cattle', 'Cocoa', 'Coffee', 'Oil palm', 'Rubber', 'Soy', 'Wood'
+                "high_risk_commodities": [
+                    "Cattle", "Cocoa", "Coffee", "Oil palm", "Rubber", "Soy", "Wood"
                 ],
-                'compliance_thresholds': {
-                    'maximum_risk_score': 0.3,
-                    'minimum_forest_cover': 30,
-                    'maximum_recent_deforestation': 50  # hectares
+                "compliance_thresholds": {
+                    "maximum_risk_score": 0.3,
+                    "minimum_forest_cover": 30,
+                    "maximum_recent_deforestation": 50  # hectares
                 }
             }
 
@@ -278,9 +279,9 @@ class EUDRGeospatialScreeningEngine:
 
     def validate_due_diligence_data(
         self,
-        due_diligence_statement: Dict[str, Any],
-        location_data: List[Tuple[float, float]]
-    ) -> Dict[str, Any]:
+        due_diligence_statement: dict[str, Any],
+        location_data: list[tuple[float, float]]
+    ) -> dict[str, Any]:
         """
         Validate due diligence statement against geospatial data.
 
@@ -293,47 +294,47 @@ class EUDRGeospatialScreeningEngine:
         """
         try:
             validation_results = {
-                'statement_valid': True,
-                'location_risks': [],
-                'discrepancies': [],
-                'recommendations': []
+                "statement_valid": True,
+                "location_risks": [],
+                "discrepancies": [],
+                "recommendations": []
             }
 
             # Screen locations
             screening_result = self.screen_supply_chain_locations(location_data)
 
             # Check for high-risk locations not mentioned in statement
-            high_risk_in_statement = due_diligence_statement.get('high_risk_areas', [])
-            actual_high_risk = [loc for loc in screening_result.high_risk_locations]
+            high_risk_in_statement = due_diligence_statement.get("high_risk_areas", [])
+            actual_high_risk = list(screening_result.high_risk_locations)
 
             for risk_loc in actual_high_risk:
-                coords = risk_loc['coordinates']
+                coords = risk_loc["coordinates"]
                 if not any(self._coordinates_match(coords, stmt_loc) for stmt_loc in high_risk_in_statement):
-                    validation_results['discrepancies'].append({
-                        'type': 'undisclosed_high_risk',
-                        'location': coords,
-                        'risk_score': risk_loc['risk_score']
+                    validation_results["discrepancies"].append({
+                        "type": "undisclosed_high_risk",
+                        "location": coords,
+                        "risk_score": risk_loc["risk_score"]
                     })
 
             # Validate risk mitigation measures
-            mitigation_measures = due_diligence_statement.get('risk_mitigation', [])
+            mitigation_measures = due_diligence_statement.get("risk_mitigation", [])
             if screening_result.overall_compliance_score > 0.3 and not mitigation_measures:
-                validation_results['discrepancies'].append({
-                    'type': 'missing_mitigation',
-                    'description': 'High risk identified but no mitigation measures specified'
+                validation_results["discrepancies"].append({
+                    "type": "missing_mitigation",
+                    "description": "High risk identified but no mitigation measures specified"
                 })
 
             # Overall validation
-            validation_results['statement_valid'] = len(validation_results['discrepancies']) == 0
-            validation_results['recommendations'] = screening_result.mitigation_actions
+            validation_results["statement_valid"] = len(validation_results["discrepancies"]) == 0
+            validation_results["recommendations"] = screening_result.mitigation_actions
 
             return validation_results
 
         except Exception as e:
             self.logger.error(f"Error validating due diligence data: {str(e)}")
-            return {'statement_valid': False, 'error': str(e)}
+            return {"statement_valid": False, "error": str(e)}
 
-    def _calculate_overall_compliance_score(self, assessments: List[LocationRiskAssessment]) -> float:
+    def _calculate_overall_compliance_score(self, assessments: list[LocationRiskAssessment]) -> float:
         """Calculate overall compliance score from individual assessments."""
         if not assessments:
             return 1.0  # Default to compliant if no data
@@ -361,7 +362,7 @@ class EUDRGeospatialScreeningEngine:
         if total_weight == 0:
             return sum(scores) / len(scores) if scores else 1.0
 
-        weighted_score = sum(s * w for s, w in zip(scores, weights)) / total_weight
+        weighted_score = sum(s * w for s, w in zip(scores, weights, strict=False)) / total_weight
 
         # Convert to compliance score (lower risk = higher compliance)
         compliance_score = 1.0 - weighted_score
@@ -379,63 +380,63 @@ class EUDRGeospatialScreeningEngine:
         else:
             return "non_compliant"
 
-    def _identify_high_risk_locations(self, assessments: List[LocationRiskAssessment]) -> List[Dict[str, Any]]:
+    def _identify_high_risk_locations(self, assessments: list[LocationRiskAssessment]) -> list[dict[str, Any]]:
         """Identify locations with high deforestation risk."""
         high_risk = []
 
         for assessment in assessments:
             if assessment.risk_level == "high" or assessment.combined_risk_score > 0.7:
                 high_risk.append({
-                    'coordinates': assessment.coordinates,
-                    'risk_score': assessment.combined_risk_score,
-                    'risk_factors': assessment.risk_factors,
-                    'alerts_count': assessment.alerts_count,
-                    'recent_deforestation_ha': assessment.recent_deforestation_ha,
-                    'forest_cover_percentage': assessment.forest_cover_percentage
+                    "coordinates": assessment.coordinates,
+                    "risk_score": assessment.combined_risk_score,
+                    "risk_factors": assessment.risk_factors,
+                    "alerts_count": assessment.alerts_count,
+                    "recent_deforestation_ha": assessment.recent_deforestation_ha,
+                    "forest_cover_percentage": assessment.forest_cover_percentage
                 })
 
         return high_risk
 
     def _generate_mitigation_actions(
         self,
-        assessments: List[LocationRiskAssessment],
-        high_risk_locations: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        assessments: list[LocationRiskAssessment],
+        high_risk_locations: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Generate mitigation actions based on risk assessments."""
         actions = []
 
         # Actions for high-risk locations
         for location in high_risk_locations:
             actions.append({
-                'type': 'supplier_audit',
-                'priority': 'high',
-                'description': f'Conduct immediate audit of supplier at {location["coordinates"]}',
-                'location': location['coordinates'],
-                'risk_score': location['risk_score']
+                "type": "supplier_audit",
+                "priority": "high",
+                "description": f'Conduct immediate audit of supplier at {location["coordinates"]}',
+                "location": location["coordinates"],
+                "risk_score": location["risk_score"]
             })
 
         # General mitigation actions
         total_alerts = sum(a.alerts_count for a in assessments)
         if total_alerts > 20:
             actions.append({
-                'type': 'monitoring_system',
-                'priority': 'high',
-                'description': 'Implement real-time deforestation monitoring system',
-                'rationale': f'{total_alerts} deforestation alerts detected across supply chain'
+                "type": "monitoring_system",
+                "priority": "high",
+                "description": "Implement real-time deforestation monitoring system",
+                "rationale": f"{total_alerts} deforestation alerts detected across supply chain"
             })
 
         low_forest_count = sum(1 for a in assessments if a.forest_cover_percentage < 30)
         if low_forest_count > 0:
             actions.append({
-                'type': 'supplier_diversification',
-                'priority': 'medium',
-                'description': f'Diversify suppliers in {low_forest_count} low-forest-cover regions',
-                'rationale': 'Reduce exposure to deforestation-vulnerable areas'
+                "type": "supplier_diversification",
+                "priority": "medium",
+                "description": f"Diversify suppliers in {low_forest_count} low-forest-cover regions",
+                "rationale": "Reduce exposure to deforestation-vulnerable areas"
             })
 
         return actions
 
-    def _calculate_screening_confidence(self, assessments: List[LocationRiskAssessment]) -> float:
+    def _calculate_screening_confidence(self, assessments: list[LocationRiskAssessment]) -> float:
         """Calculate confidence score for the screening results."""
         if not assessments:
             return 0.0
@@ -464,9 +465,9 @@ class EUDRGeospatialScreeningEngine:
 
     def _generate_report_recommendations(
         self,
-        screening_results: List[EUDRScreeningResult],
-        supply_chain_analysis: Optional[Dict[str, Any]]
-    ) -> List[str]:
+        screening_results: list[EUDRScreeningResult],
+        supply_chain_analysis: dict[str, Any] | None
+    ) -> list[str]:
         """Generate recommendations for the compliance report."""
         recommendations = []
 
@@ -485,7 +486,7 @@ class EUDRGeospatialScreeningEngine:
             )
 
         if supply_chain_analysis:
-            network_risks = supply_chain_analysis.get('risk_hotspots', [])
+            network_risks = supply_chain_analysis.get("risk_hotspots", [])
             if network_risks:
                 recommendations.append(
                     f"Strengthen supply chain resilience: {len(network_risks)} network vulnerabilities identified"
@@ -501,7 +502,7 @@ class EUDRGeospatialScreeningEngine:
 
         return recommendations
 
-    def _coordinates_match(self, coord1: Tuple[float, float], coord2: Tuple[float, float], tolerance: float = 0.01) -> bool:
+    def _coordinates_match(self, coord1: tuple[float, float], coord2: tuple[float, float], tolerance: float = 0.01) -> bool:
         """Check if coordinates match within tolerance."""
         lat1, lon1 = coord1
         lat2, lon2 = coord2

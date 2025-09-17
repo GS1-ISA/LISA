@@ -5,14 +5,16 @@ This module provides integration with ISA_D's vector store for
 storing processed ETL data.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from ..core.logger import get_logger
+from isa_superapp.etl.core.logger import get_logger
 
 # Import from parent ISA_SuperApp
 try:
-    from ...core.vector_store import create_vector_store as isa_create_vector_store
-    from ...core.vector_store import VectorStoreConfig
+    from isa_superapp.core.vector_store import VectorStoreConfig
+    from isa_superapp.core.vector_store import (
+        create_vector_store as isa_create_vector_store,
+    )
 except ImportError:
     # Fallback if import fails
     isa_create_vector_store = None
@@ -50,17 +52,17 @@ class MockVectorStore:
         self.vectors = []
         logger.info("Mock vector store initialized")
 
-    async def add_vectors(self, vectors: List[Dict[str, Any]]) -> None:
+    async def add_vectors(self, vectors: list[dict[str, Any]]) -> None:
         """Add vectors to mock store."""
         self.vectors.extend(vectors)
         logger.info(f"Added {len(vectors)} vectors to mock store")
 
     async def search(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         k: int = 10,
         **kwargs
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Mock search implementation."""
         # Return mock results
         return [{

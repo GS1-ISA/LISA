@@ -5,12 +5,10 @@ This module implements a federated learning coordinator that manages encrypted
 model updates from multiple clients without accessing their raw data.
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass
 from datetime import datetime
-import json
+from typing import Any
 
 try:
     import aiohttp
@@ -40,9 +38,9 @@ class TrainingRound:
     """Information about a training round."""
     round_id: int
     start_time: datetime
-    end_time: Optional[datetime]
-    participating_clients: Set[str]
-    aggregated_updates: Optional[Any]
+    end_time: datetime | None
+    participating_clients: set[str]
+    aggregated_updates: Any | None
     status: str  # 'active', 'completed', 'failed'
 
 
@@ -51,18 +49,18 @@ class FederatedLearningServer:
     Server for coordinating federated learning with encrypted model updates.
     """
 
-    def __init__(self, host: str = 'localhost', port: int = 8080,
-                 fhe_context: Optional[FHEContext] = None):
+    def __init__(self, host: str = "localhost", port: int = 8080,
+                 fhe_context: FHEContext | None = None):
         self.host = host
         self.port = port
         self.fhe_context = fhe_context or FHEContext()
         self.fhe_ops = FHEOperations(self.fhe_context)
 
         # Server state
-        self.clients: Dict[str, ClientInfo] = {}
-        self.training_rounds: List[TrainingRound] = []
-        self.current_round: Optional[TrainingRound] = None
-        self.global_model: Optional[Any] = None
+        self.clients: dict[str, ClientInfo] = {}
+        self.training_rounds: list[TrainingRound] = []
+        self.current_round: TrainingRound | None = None
+        self.global_model: Any | None = None
         self.min_clients_per_round = 3
         self.max_rounds = 100
 
@@ -80,11 +78,11 @@ class FederatedLearningServer:
             return
 
         self.app = web.Application()
-        self.app.router.add_post('/register', self.register_client)
-        self.app.router.add_post('/update', self.receive_model_update)
-        self.app.router.add_get('/model', self.get_global_model)
-        self.app.router.add_get('/status', self.get_server_status)
-        self.app.router.add_post('/start_round', self.start_training_round)
+        self.app.router.add_post("/register", self.register_client)
+        self.app.router.add_post("/update", self.receive_model_update)
+        self.app.router.add_get("/model", self.get_global_model)
+        self.app.router.add_get("/status", self.get_server_status)
+        self.app.router.add_post("/start_round", self.start_training_round)
 
     async def register_client(self, request: web.Request) -> web.Response:
         """
@@ -98,16 +96,16 @@ class FederatedLearningServer:
         """
         try:
             data = await request.json()
-            client_id = data.get('client_id')
-            data_size = data.get('data_size', 0)
+            client_id = data.get("client_id")
+            data_size = data.get("data_size", 0)
 
             if not client_id:
-                return web.json_response({'error': 'client_id required'}, status=400)
+                return web.json_response({"error": "client_id required"}, status=400)
 
             client_info = ClientInfo(
                 client_id=client_id,
                 last_seen=datetime.now(),
-                status='idle',
+                status="idle",
                 model_version=0,
                 data_size=data_size
             )
@@ -116,14 +114,14 @@ class FederatedLearningServer:
             logger.info(f"Client {client_id} registered with {data_size} data points")
 
             return web.json_response({
-                'status': 'registered',
-                'client_id': client_id,
-                'fhe_public_key': self.fhe_context.serialize_public_key().decode('latin-1') if self.fhe_context.serialize_public_key() else None
+                "status": "registered",
+                "client_id": client_id,
+                "fhe_public_key": self.fhe_context.serialize_public_key().decode("latin-1") if self.fhe_context.serialize_public_key() else None
             })
 
         except Exception as e:
             logger.error(f"Client registration failed: {e}")
-            return web.json_response({'error': str(e)}, status=500)
+            return web.json_response({"error": str(e)}, status=500)
 
     async def receive_model_update(self, request: web.Request) -> web.Response:
         """
@@ -139,20 +137,20 @@ class FederatedLearningServer:
         """
         try:
             data = await request.json()
-            client_id = data.get('client_id')
-            round_id = data.get('round_id')
-            encrypted_update = data.get('encrypted_update')
-            model_version = data.get('model_version', 0)
+            client_id = data.get("client_id")
+            round_id = data.get("round_id")
+            encrypted_update = data.get("encrypted_update")
+            model_version = data.get("model_version", 0)
 
             if not all([client_id, round_id is not None]):
-                return web.json_response({'error': 'client_id and round_id required'}, status=400)
+                return web.json_response({"error": "client_id and round_id required"}, status=400)
 
             if client_id not in self.clients:
-                return web.json_response({'error': 'client not registered'}, status=404)
+                return web.json_response({"error": "client not registered"}, status=404)
 
             # Update client status
             self.clients[client_id].last_seen = datetime.now()
-            self.clients[client_id].status = 'idle'
+            self.clients[client_id].status = "idle"
             self.clients[client_id].model_version = model_version
 
             # Add to current round if active
@@ -174,11 +172,11 @@ class FederatedLearningServer:
 
             logger.info(f"Received model update from {client_id} for round {round_id}")
 
-            return web.json_response({'status': 'update_received'})
+            return web.json_response({"status": "update_received"})
 
         except Exception as e:
             logger.error(f"Model update reception failed: {e}")
-            return web.json_response({'error': str(e)}, status=500)
+            return web.json_response({"error": str(e)}, status=500)
 
     def _aggregate_encrypted_updates(self, update1: Any, update2: Any) -> Any:
         """
@@ -198,7 +196,7 @@ class FederatedLearningServer:
             return
 
         self.current_round.end_time = datetime.now()
-        self.current_round.status = 'completed'
+        self.current_round.status = "completed"
 
         # Update global model with aggregated updates
         self.global_model = self.current_round.aggregated_updates
@@ -214,10 +212,10 @@ class FederatedLearningServer:
         """Manually start a new training round."""
         try:
             await self._start_new_round()
-            return web.json_response({'status': 'round_started'})
+            return web.json_response({"status": "round_started"})
         except Exception as e:
             logger.error(f"Failed to start round: {e}")
-            return web.json_response({'error': str(e)}, status=500)
+            return web.json_response({"error": str(e)}, status=500)
 
     async def _start_new_round(self):
         """Start a new training round."""
@@ -229,7 +227,7 @@ class FederatedLearningServer:
             end_time=None,
             participating_clients=set(),
             aggregated_updates=None,
-            status='active'
+            status="active"
         )
 
         self.training_rounds.append(new_round)
@@ -241,18 +239,18 @@ class FederatedLearningServer:
     async def get_global_model(self, request: web.Request) -> web.Response:
         """Get the current global model."""
         return web.json_response({
-            'model': self.global_model,
-            'round_id': self.current_round.round_id if self.current_round else None
+            "model": self.global_model,
+            "round_id": self.current_round.round_id if self.current_round else None
         })
 
     async def get_server_status(self, request: web.Request) -> web.Response:
         """Get server status information."""
         return web.json_response({
-            'active_clients': len([c for c in self.clients.values() if c.status == 'active']),
-            'total_clients': len(self.clients),
-            'current_round': self.current_round.round_id if self.current_round else None,
-            'round_status': self.current_round.status if self.current_round else None,
-            'total_rounds': len(self.training_rounds)
+            "active_clients": len([c for c in self.clients.values() if c.status == "active"]),
+            "total_clients": len(self.clients),
+            "current_round": self.current_round.round_id if self.current_round else None,
+            "round_status": self.current_round.status if self.current_round else None,
+            "total_rounds": len(self.training_rounds)
         })
 
     async def start_server(self):

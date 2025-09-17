@@ -38,12 +38,11 @@ def validate(rows: list[dict[str, Any]]) -> list[Violation]:
             if f not in r:
                 v.append(Violation(idx, f, "missing"))
         # types and ranges
-        if isinstance(r.get("price"), (int, float)):
+        if isinstance(r.get("price"), int | float):
             if r["price"] < 0:
                 v.append(Violation(idx, "price", "negative"))
-        else:
-            if "price" in r:
-                v.append(Violation(idx, "price", "not a number"))
+        elif "price" in r:
+            v.append(Violation(idx, "price", "not a number"))
         # name non-empty
         if "name" in r and (not isinstance(r["name"], str) or not r["name"].strip()):
             v.append(Violation(idx, "name", "empty or not string"))

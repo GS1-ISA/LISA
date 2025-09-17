@@ -4,8 +4,7 @@ Tests for agent components.
 
 import asyncio
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -19,7 +18,7 @@ from isa_superapp.agents.specialized import (
     IntegrationAgent,
     ResearchAgent,
 )
-from isa_superapp.core.exceptions import AgentError, ConfigurationError
+from isa_superapp.core.exceptions import AgentError
 
 
 class TestAgentResponse:

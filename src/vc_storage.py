@@ -7,11 +7,10 @@ with efficient retrieval mechanisms and indexing.
 
 import json
 import logging
-from typing import Dict, List, Optional, Any, Set
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
-from dataclasses import asdict
+from typing import Any
 
 from .supplier_attestation_vc import SupplierAttestationCredential
 
@@ -27,7 +26,7 @@ class VCStorage:
     def _init_database(self):
         """Initialize the SQLite database."""
         with sqlite3.connect(self.storage_path) as conn:
-            conn.execute('''
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS credentials (
                     id TEXT PRIMARY KEY,
                     issuer TEXT,
@@ -40,17 +39,17 @@ class VCStorage:
                     created_at TEXT,
                     updated_at TEXT
                 )
-            ''')
+            """)
 
             # Create indexes for efficient queries
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_issuer ON credentials(issuer)')
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_subject ON credentials(subject_id)')
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_type ON credentials(type)')
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_status ON credentials(status)')
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_expiration ON credentials(expiration_date)')
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_issuer ON credentials(issuer)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_subject ON credentials(subject_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_type ON credentials(type)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON credentials(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_expiration ON credentials(expiration_date)")
 
             # Revocation table
-            conn.execute('''
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS revocations (
                     credential_id TEXT PRIMARY KEY,
                     revocation_date TEXT,
@@ -58,7 +57,7 @@ class VCStorage:
                     revoked_by TEXT,
                     FOREIGN KEY (credential_id) REFERENCES credentials(id)
                 )
-            ''')
+            """)
 
     def store_credential(self, credential: SupplierAttestationCredential) -> bool:
         """Store a VC in the database."""
@@ -66,12 +65,12 @@ class VCStorage:
             credential_data = json.dumps(credential.to_dict(), default=str)
 
             with sqlite3.connect(self.storage_path) as conn:
-                conn.execute('''
+                conn.execute("""
                     INSERT OR REPLACE INTO credentials
                     (id, issuer, subject_id, type, issuance_date, expiration_date,
                      credential_data, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
+                """, (
                     credential.id,
                     credential.issuer,
                     credential.credential_subject.get("id", ""),
@@ -90,14 +89,14 @@ class VCStorage:
             logger.error(f"Failed to store VC {credential.id}: {e}")
             return False
 
-    def retrieve_credential(self, credential_id: str) -> Optional[SupplierAttestationCredential]:
+    def retrieve_credential(self, credential_id: str) -> SupplierAttestationCredential | None:
         """Retrieve a VC by ID."""
         try:
             with sqlite3.connect(self.storage_path) as conn:
-                cursor = conn.execute('''
+                cursor = conn.execute("""
                     SELECT credential_data FROM credentials
                     WHERE id = ? AND status = 'active'
-                ''', (credential_id,))
+                """, (credential_id,))
 
                 row = cursor.fetchone()
                 if row:
@@ -109,16 +108,16 @@ class VCStorage:
 
         return None
 
-    def retrieve_credentials_by_subject(self, subject_id: str) -> List[SupplierAttestationCredential]:
+    def retrieve_credentials_by_subject(self, subject_id: str) -> list[SupplierAttestationCredential]:
         """Retrieve all VCs for a subject."""
         credentials = []
         try:
             with sqlite3.connect(self.storage_path) as conn:
-                cursor = conn.execute('''
+                cursor = conn.execute("""
                     SELECT credential_data FROM credentials
                     WHERE subject_id = ? AND status = 'active'
                     ORDER BY issuance_date DESC
-                ''', (subject_id,))
+                """, (subject_id,))
 
                 for row in cursor.fetchall():
                     data = json.loads(row[0])
@@ -129,16 +128,16 @@ class VCStorage:
 
         return credentials
 
-    def retrieve_credentials_by_issuer(self, issuer: str) -> List[SupplierAttestationCredential]:
+    def retrieve_credentials_by_issuer(self, issuer: str) -> list[SupplierAttestationCredential]:
         """Retrieve all VCs issued by an issuer."""
         credentials = []
         try:
             with sqlite3.connect(self.storage_path) as conn:
-                cursor = conn.execute('''
+                cursor = conn.execute("""
                     SELECT credential_data FROM credentials
                     WHERE issuer = ? AND status = 'active'
                     ORDER BY issuance_date DESC
-                ''', (issuer,))
+                """, (issuer,))
 
                 for row in cursor.fetchall():
                     data = json.loads(row[0])
@@ -149,16 +148,16 @@ class VCStorage:
 
         return credentials
 
-    def retrieve_credentials_by_type(self, credential_type: str) -> List[SupplierAttestationCredential]:
+    def retrieve_credentials_by_type(self, credential_type: str) -> list[SupplierAttestationCredential]:
         """Retrieve VCs by type."""
         credentials = []
         try:
             with sqlite3.connect(self.storage_path) as conn:
-                cursor = conn.execute('''
+                cursor = conn.execute("""
                     SELECT credential_data FROM credentials
                     WHERE type LIKE ? AND status = 'active'
                     ORDER BY issuance_date DESC
-                ''', (f'%{credential_type}%',))
+                """, (f"%{credential_type}%",))
 
                 for row in cursor.fetchall():
                     data = json.loads(row[0])
@@ -174,17 +173,17 @@ class VCStorage:
         try:
             with sqlite3.connect(self.storage_path) as conn:
                 # Update credential status
-                conn.execute('''
+                conn.execute("""
                     UPDATE credentials SET status = 'revoked', updated_at = ?
                     WHERE id = ?
-                ''', (datetime.now(timezone.utc).isoformat(), credential_id))
+                """, (datetime.now(timezone.utc).isoformat(), credential_id))
 
                 # Add revocation record
-                conn.execute('''
+                conn.execute("""
                     INSERT INTO revocations
                     (credential_id, revocation_date, revocation_reason, revoked_by)
                     VALUES (?, ?, ?, ?)
-                ''', (
+                """, (
                     credential_id,
                     datetime.now(timezone.utc).isoformat(),
                     reason,
@@ -198,14 +197,14 @@ class VCStorage:
             logger.error(f"Failed to revoke VC {credential_id}: {e}")
             return False
 
-    def check_revocation_status(self, credential_id: str) -> Optional[Dict[str, Any]]:
+    def check_revocation_status(self, credential_id: str) -> dict[str, Any] | None:
         """Check if a VC is revoked."""
         try:
             with sqlite3.connect(self.storage_path) as conn:
-                cursor = conn.execute('''
+                cursor = conn.execute("""
                     SELECT revocation_date, revocation_reason, revoked_by
                     FROM revocations WHERE credential_id = ?
-                ''', (credential_id,))
+                """, (credential_id,))
 
                 row = cursor.fetchone()
                 if row:
@@ -217,9 +216,9 @@ class VCStorage:
                     }
 
                 # Check if credential exists and is active
-                cursor = conn.execute('SELECT status FROM credentials WHERE id = ?', (credential_id,))
+                cursor = conn.execute("SELECT status FROM credentials WHERE id = ?", (credential_id,))
                 row = cursor.fetchone()
-                if row and row[0] == 'revoked':
+                if row and row[0] == "revoked":
                     return {"revoked": True, "reason": "Credential revoked"}
 
         except Exception as e:
@@ -227,16 +226,16 @@ class VCStorage:
 
         return {"revoked": False}
 
-    def get_expired_credentials(self) -> List[str]:
+    def get_expired_credentials(self) -> list[str]:
         """Get list of expired credential IDs."""
         expired = []
         try:
             now = datetime.now(timezone.utc).isoformat()
             with sqlite3.connect(self.storage_path) as conn:
-                cursor = conn.execute('''
+                cursor = conn.execute("""
                     SELECT id FROM credentials
                     WHERE expiration_date < ? AND status = 'active'
-                ''', (now,))
+                """, (now,))
 
                 expired = [row[0] for row in cursor.fetchall()]
 
@@ -250,10 +249,10 @@ class VCStorage:
         try:
             now = datetime.now(timezone.utc).isoformat()
             with sqlite3.connect(self.storage_path) as conn:
-                cursor = conn.execute('''
+                cursor = conn.execute("""
                     UPDATE credentials SET status = 'expired', updated_at = ?
                     WHERE expiration_date < ? AND status = 'active'
-                ''', (now, now))
+                """, (now, now))
 
                 count = cursor.rowcount
 
@@ -264,7 +263,7 @@ class VCStorage:
             logger.error(f"Failed to cleanup expired credentials: {e}")
             return 0
 
-    def get_storage_stats(self) -> Dict[str, Any]:
+    def get_storage_stats(self) -> dict[str, Any]:
         """Get storage statistics."""
         stats = {
             "total_credentials": 0,
@@ -277,14 +276,14 @@ class VCStorage:
         try:
             with sqlite3.connect(self.storage_path) as conn:
                 # Count credentials by status
-                cursor = conn.execute('SELECT status, COUNT(*) FROM credentials GROUP BY status')
+                cursor = conn.execute("SELECT status, COUNT(*) FROM credentials GROUP BY status")
                 for row in cursor.fetchall():
                     status, count = row
                     stats[f"{status}_credentials"] = count
                     stats["total_credentials"] += count
 
                 # Count revocations
-                cursor = conn.execute('SELECT COUNT(*) FROM revocations')
+                cursor = conn.execute("SELECT COUNT(*) FROM revocations")
                 stats["total_revocations"] = cursor.fetchone()[0]
 
         except Exception as e:
@@ -297,7 +296,7 @@ class VCRegistry:
 
     def __init__(self, storage: VCStorage):
         self.storage = storage
-        self.registry: Dict[str, Dict[str, Any]] = {}
+        self.registry: dict[str, dict[str, Any]] = {}
 
     def register_credential(self, credential: SupplierAttestationCredential) -> bool:
         """Register a VC in the registry."""
@@ -317,7 +316,7 @@ class VCRegistry:
             logger.error(f"Failed to register VC {credential.id}: {e}")
             return False
 
-    def get_credential_status(self, credential_id: str) -> Optional[Dict[str, Any]]:
+    def get_credential_status(self, credential_id: str) -> dict[str, Any] | None:
         """Get the status of a VC."""
         # Check registry first
         if credential_id in self.registry:
@@ -356,7 +355,7 @@ class VCRegistry:
             logger.error(f"Failed to update VC status {credential_id}: {e}")
             return False
 
-    def list_credentials_by_status(self, status: str) -> List[str]:
+    def list_credentials_by_status(self, status: str) -> list[str]:
         """List credential IDs by status."""
         return [
             cred_id for cred_id, info in self.registry.items()

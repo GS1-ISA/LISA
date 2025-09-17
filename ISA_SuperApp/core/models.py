@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .exceptions import ISAValidationError
 
@@ -73,17 +73,17 @@ class EmbeddingProvider(Enum):
 class DocumentMetadata:
     """Document metadata."""
 
-    title: Optional[str] = None
-    author: Optional[str] = None
-    description: Optional[str] = None
-    keywords: List[str] = field(default_factory=list)
-    language: Optional[str] = None
-    source: Optional[str] = None
-    category: Optional[str] = None
-    tags: List[str] = field(default_factory=list)
-    custom_fields: Dict[str, Any] = field(default_factory=dict)
+    title: str | None = None
+    author: str | None = None
+    description: str | None = None
+    keywords: list[str] = field(default_factory=list)
+    language: str | None = None
+    source: str | None = None
+    category: str | None = None
+    tags: list[str] = field(default_factory=list)
+    custom_fields: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "title": self.title,
@@ -98,7 +98,7 @@ class DocumentMetadata:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "DocumentMetadata":
+    def from_dict(cls, data: dict[str, Any]) -> "DocumentMetadata":
         """Create from dictionary."""
         return cls(**data)
 
@@ -111,14 +111,14 @@ class Document:
     content: str
     document_type: DocumentType
     metadata: DocumentMetadata
-    file_path: Optional[Path] = None
-    file_size: Optional[int] = None
-    checksum: Optional[str] = None
+    file_path: Path | None = None
+    file_size: int | None = None
+    checksum: str | None = None
     status: DocumentStatus = DocumentStatus.PENDING
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    processed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
+    processed_at: datetime | None = None
+    error_message: str | None = None
     version: int = 1
 
     def __post_init__(self) -> None:
@@ -131,7 +131,7 @@ class Document:
                 "Document content cannot be empty", field="content"
             )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -152,7 +152,7 @@ class Document:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Document":
+    def from_dict(cls, data: dict[str, Any]) -> "Document":
         """Create from dictionary."""
         # Convert string values back to enums
         if isinstance(data.get("document_type"), str):
@@ -186,8 +186,8 @@ class DocumentChunk:
     chunk_index: int
     start_index: int
     end_index: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    embedding: Optional[List[float]] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    embedding: list[float] | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
 
     def __post_init__(self) -> None:
@@ -208,7 +208,7 @@ class DocumentChunk:
                 "Start index must be less than end index", field="indices"
             )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -223,7 +223,7 @@ class DocumentChunk:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "DocumentChunk":
+    def from_dict(cls, data: dict[str, Any]) -> "DocumentChunk":
         """Create from dictionary."""
         # Convert datetime
         if isinstance(data.get("created_at"), str):
@@ -237,10 +237,10 @@ class Vector:
     """Vector representation."""
 
     id: str
-    vector: List[float]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    document_id: Optional[str] = None
-    chunk_id: Optional[str] = None
+    vector: list[float]
+    metadata: dict[str, Any] = field(default_factory=dict)
+    document_id: str | None = None
+    chunk_id: str | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -252,12 +252,12 @@ class Vector:
         if not self.vector:
             raise ISAValidationError("Vector cannot be empty", field="vector")
 
-        if not all(isinstance(x, (int, float)) for x in self.vector):
+        if not all(isinstance(x, int | float) for x in self.vector):
             raise ISAValidationError(
                 "Vector must contain only numeric values", field="vector"
             )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -270,7 +270,7 @@ class Vector:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Vector":
+    def from_dict(cls, data: dict[str, Any]) -> "Vector":
         """Create from dictionary."""
         # Convert datetime
         for field in ["created_at", "updated_at"]:
@@ -286,12 +286,12 @@ class SearchResult:
 
     vector_id: str
     score: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    document_id: Optional[str] = None
-    chunk_id: Optional[str] = None
-    content: Optional[str] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    document_id: str | None = None
+    chunk_id: str | None = None
+    content: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "vector_id": self.vector_id,
@@ -310,8 +310,8 @@ class SearchQuery:
     query: str
     top_k: int = 10
     threshold: float = 0.0
-    filters: Dict[str, Any] = field(default_factory=dict)
-    metadata_fields: List[str] = field(default_factory=list)
+    filters: dict[str, Any] = field(default_factory=dict)
+    metadata_fields: list[str] = field(default_factory=list)
 
     def validate(self) -> None:
         """Validate the search query."""
@@ -335,11 +335,11 @@ class IngestionResult:
     success: bool
     chunks_created: int = 0
     vectors_created: int = 0
-    error_message: Optional[str] = None
+    error_message: str | None = None
     processing_time_ms: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "document_id": self.document_id,
@@ -360,12 +360,12 @@ class ProcessingJob:
     job_type: str
     status: str
     priority: int = 1
-    data: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
     retry_count: int = 0
     max_retries: int = 3
 
@@ -390,7 +390,7 @@ class ProcessingJob:
                 "Max retries cannot be negative", field="max_retries"
             )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -410,7 +410,7 @@ class ProcessingJob:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ProcessingJob":
+    def from_dict(cls, data: dict[str, Any]) -> "ProcessingJob":
         """Create from dictionary."""
         # Convert datetime
         for field in ["created_at", "started_at", "completed_at"]:
@@ -426,20 +426,20 @@ class DataCatalog:
 
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     data_type: str = "unknown"
-    source: Optional[str] = None
-    location: Optional[str] = None
-    schema: Optional[Dict[str, Any]] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    source: str | None = None
+    location: str | None = None
+    schema: dict[str, Any] | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    last_accessed: Optional[datetime] = None
+    last_accessed: datetime | None = None
     access_count: int = 0
-    tags: List[str] = field(default_factory=list)
-    owner: Optional[str] = None
-    size_bytes: Optional[int] = None
-    row_count: Optional[int] = None
+    tags: list[str] = field(default_factory=list)
+    owner: str | None = None
+    size_bytes: int | None = None
+    row_count: int | None = None
 
     def __post_init__(self) -> None:
         """Post-initialization validation."""
@@ -449,7 +449,7 @@ class DataCatalog:
         if not self.name:
             raise ISAValidationError("Name cannot be empty", field="name")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -473,7 +473,7 @@ class DataCatalog:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "DataCatalog":
+    def from_dict(cls, data: dict[str, Any]) -> "DataCatalog":
         """Create from dictionary."""
         # Convert datetime
         for field in ["created_at", "updated_at", "last_accessed"]:
@@ -489,23 +489,23 @@ class ModelCard:
 
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     model_type: str = "unknown"
     version: str = "1.0.0"
-    framework: Optional[str] = None
-    architecture: Optional[str] = None
-    parameters: Optional[int] = None
-    training_data: Optional[str] = None
-    performance_metrics: Dict[str, Any] = field(default_factory=dict)
-    limitations: List[str] = field(default_factory=list)
-    use_cases: List[str] = field(default_factory=list)
-    ethical_considerations: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    framework: str | None = None
+    architecture: str | None = None
+    parameters: int | None = None
+    training_data: str | None = None
+    performance_metrics: dict[str, Any] = field(default_factory=dict)
+    limitations: list[str] = field(default_factory=list)
+    use_cases: list[str] = field(default_factory=list)
+    ethical_considerations: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    owner: Optional[str] = None
-    license: Optional[str] = None
-    url: Optional[str] = None
+    owner: str | None = None
+    license: str | None = None
+    url: str | None = None
 
     def __post_init__(self) -> None:
         """Post-initialization validation."""
@@ -515,7 +515,7 @@ class ModelCard:
         if not self.name:
             raise ISAValidationError("Name cannot be empty", field="name")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -540,7 +540,7 @@ class ModelCard:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ModelCard":
+    def from_dict(cls, data: dict[str, Any]) -> "ModelCard":
         """Create from dictionary."""
         # Convert datetime
         for field in ["created_at", "updated_at"]:
@@ -551,7 +551,7 @@ class ModelCard:
 
 
 # Utility functions for model operations
-def validate_document_type(file_path: Union[str, Path]) -> DocumentType:
+def validate_document_type(file_path: str | Path) -> DocumentType:
     """
     Validate and determine document type from file path.
 
@@ -609,9 +609,9 @@ def validate_document_type(file_path: Union[str, Path]) -> DocumentType:
 
 
 def create_document_from_file(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     content: str,
-    metadata: Optional[DocumentMetadata] = None,
+    metadata: DocumentMetadata | None = None,
 ) -> Document:
     """
     Create a document from a file.
@@ -659,3 +659,141 @@ def create_document_from_file(
         file_path=file_path,
         file_size=file_size,
     )
+
+
+@dataclass
+class Agent:
+    """Agent representation."""
+    id: str
+    name: str
+    type: str
+    status: str = "inactive"
+    created_at: datetime = field(default_factory=datetime.utcnow)
+
+
+@dataclass
+class Workflow:
+    """Workflow representation."""
+    id: str
+    name: str
+    status: str = "pending"
+    created_at: datetime = field(default_factory=datetime.utcnow)
+
+
+class AgentStatus(Enum):
+    """Agent status enumeration."""
+    IDLE = "idle"
+    ACTIVE = "active"
+    WORKING = "working"
+    ERROR = "error"
+    STOPPED = "stopped"
+
+
+class AgentCapability(Enum):
+    """Agent capability enumeration."""
+    INFORMATION_RETRIEVAL = "information_retrieval"
+    DOCUMENT_ANALYSIS = "document_analysis"
+    SEARCH = "search"
+    SUMMARIZATION = "summarization"
+    QUESTION_ANSWERING = "question_answering"
+
+
+class AgentType(Enum):
+    """Agent type enumeration."""
+    RESEARCH = "research"
+    ANALYSIS = "analysis"
+    COORDINATION = "coordination"
+
+
+class TaskType(Enum):
+    """Task type enumeration."""
+    RESEARCH = "research"
+    ANALYSIS = "analysis"
+    SEARCH = "search"
+
+
+class MessageType(Enum):
+    """Message type enumeration."""
+    TASK = "task"
+    RESULT = "result"
+    QUERY = "query"
+    RESPONSE = "response"
+    COMMAND = "command"
+    STATUS = "status"
+
+
+class TaskPriority(Enum):
+    """Task priority enumeration."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    URGENT = "urgent"
+
+
+class TaskStatus(Enum):
+    """Task status enumeration."""
+    PENDING = "pending"
+    ASSIGNED = "assigned"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+@dataclass
+class Message:
+    """Message representation."""
+    message_id: str
+    sender_id: str
+    receiver_id: str
+    message_type: MessageType
+    content: dict[str, Any]
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+
+
+@dataclass
+class Task:
+    """Task representation."""
+    task_id: str
+    type: TaskType
+    data: dict[str, Any]
+    priority: TaskPriority = TaskPriority.MEDIUM
+    status: TaskStatus = TaskStatus.PENDING
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    assigned_agent_id: str | None = None
+    assigned_at: datetime | None = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "task_id": self.task_id,
+            "type": self.type.value,
+            "data": self.data,
+            "priority": self.priority.value,
+            "status": self.status.value,
+            "created_at": self.created_at.isoformat(),
+            "assigned_agent_id": self.assigned_agent_id,
+            "assigned_at": self.assigned_at.isoformat() if self.assigned_at else None,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "error_message": self.error_message,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "Task":
+        """Create from dictionary."""
+        # Convert string values back to enums
+        if isinstance(data.get("type"), str):
+            data["type"] = TaskType(data["type"])
+        if isinstance(data.get("priority"), str):
+            data["priority"] = TaskPriority(data["priority"])
+        if isinstance(data.get("status"), str):
+            data["status"] = TaskStatus(data["status"])
+
+        # Convert datetime strings
+        for field in ["created_at", "assigned_at", "completed_at"]:
+            if isinstance(data.get(field), str):
+                data[field] = datetime.fromisoformat(data[field])
+
+        return cls(**data)

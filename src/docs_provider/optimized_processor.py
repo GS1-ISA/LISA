@@ -4,18 +4,18 @@ Performance-optimized document processing with advanced caching and parallel pro
 """
 
 import asyncio
-import concurrent.futures
 import hashlib
 import logging
-import time
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
-from .pymupdf_processor import PyMuPDFProcessor, PDFProcessingResult
-from ..cache.multi_level_cache import get_multilevel_cache, MultiLevelCache
+from src.cache.multi_level_cache import MultiLevelCache, get_multilevel_cache
+
+from .pymupdf_processor import PDFProcessingResult, PyMuPDFProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class OptimizedDocumentProcessor:
     """
 
     def __init__(self,
-                 cache: Optional[MultiLevelCache] = None,
+                 cache: MultiLevelCache | None = None,
                  max_workers: int = 4,
                  chunk_size: int = 1000,
                  overlap: int = 200):
@@ -60,7 +60,7 @@ class OptimizedDocumentProcessor:
 
         # Performance metrics
         self.metrics_lock = threading.Lock()
-        self.processing_metrics: List[ProcessingMetrics] = []
+        self.processing_metrics: list[ProcessingMetrics] = []
 
         # Cache statistics
         self.cache_hits = 0
@@ -68,18 +68,18 @@ class OptimizedDocumentProcessor:
 
         logger.info(f"Initialized OptimizedDocumentProcessor with {max_workers} workers")
 
-    def _generate_cache_key(self, file_path: str, processor_config: Dict[str, Any]) -> str:
+    def _generate_cache_key(self, file_path: str, processor_config: dict[str, Any]) -> str:
         """Generate cache key for document processing."""
         key_data = {
-            'file_path': file_path,
-            'chunk_size': processor_config.get('chunk_size', self.chunk_size),
-            'overlap': processor_config.get('overlap', self.overlap),
-            'file_mtime': Path(file_path).stat().st_mtime if Path(file_path).exists() else 0
+            "file_path": file_path,
+            "chunk_size": processor_config.get("chunk_size", self.chunk_size),
+            "overlap": processor_config.get("overlap", self.overlap),
+            "file_mtime": Path(file_path).stat().st_mtime if Path(file_path).exists() else 0
         }
         key_string = str(sorted(key_data.items()))
         return f"doc_proc:{hashlib.sha256(key_string.encode()).hexdigest()}"
 
-    async def process_document_async(self, file_path: str) -> Tuple[PDFProcessingResult, ProcessingMetrics]:
+    async def process_document_async(self, file_path: str) -> tuple[PDFProcessingResult, ProcessingMetrics]:
         """Asynchronously process a document with performance optimizations."""
         start_time = time.time()
 
@@ -95,19 +95,19 @@ class OptimizedDocumentProcessor:
             metrics = ProcessingMetrics(
                 processing_time=processing_time,
                 cache_hit=True,
-                chunk_count=len(cached_result.get('chunks', [])),
-                text_length=len(cached_result.get('text', '')),
+                chunk_count=len(cached_result.get("chunks", [])),
+                text_length=len(cached_result.get("text", "")),
                 compression_ratio=1.0,  # Cached result
                 timestamp=start_time
             )
 
             # Convert cached dict back to PDFProcessingResult
             result = PDFProcessingResult(
-                text=cached_result['text'],
-                metadata=cached_result['metadata'],
-                chunks=cached_result['chunks'],
-                success=cached_result['success'],
-                error_message=cached_result.get('error_message')
+                text=cached_result["text"],
+                metadata=cached_result["metadata"],
+                chunks=cached_result["chunks"],
+                success=cached_result["success"],
+                error_message=cached_result.get("error_message")
             )
 
             return result, metrics
@@ -129,16 +129,16 @@ class OptimizedDocumentProcessor:
         # Cache the result
         if result.success:
             cache_data = {
-                'text': result.text,
-                'metadata': {
-                    'title': result.metadata.title,
-                    'author': result.metadata.author,
-                    'pages': result.metadata.pages,
-                    'file_size': result.metadata.file_size
+                "text": result.text,
+                "metadata": {
+                    "title": result.metadata.title,
+                    "author": result.metadata.author,
+                    "pages": result.metadata.pages,
+                    "file_size": result.metadata.file_size
                 },
-                'chunks': result.chunks,
-                'success': result.success,
-                'error_message': result.error_message
+                "chunks": result.chunks,
+                "success": result.success,
+                "error_message": result.error_message
             }
             self.cache.set(cache_key, cache_data)
 
@@ -158,7 +158,7 @@ class OptimizedDocumentProcessor:
 
         return result, metrics
 
-    async def process_batch_async(self, file_paths: List[str]) -> List[Tuple[str, PDFProcessingResult, ProcessingMetrics]]:
+    async def process_batch_async(self, file_paths: list[str]) -> list[tuple[str, PDFProcessingResult, ProcessingMetrics]]:
         """Process multiple documents in parallel."""
         tasks = []
         for file_path in file_paths:
@@ -192,7 +192,7 @@ class OptimizedDocumentProcessor:
 
         return results
 
-    def process_document_sync(self, file_path: str) -> Tuple[PDFProcessingResult, ProcessingMetrics]:
+    def process_document_sync(self, file_path: str) -> tuple[PDFProcessingResult, ProcessingMetrics]:
         """Synchronous version for compatibility."""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -201,16 +201,16 @@ class OptimizedDocumentProcessor:
         finally:
             loop.close()
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get comprehensive performance statistics."""
         with self.metrics_lock:
             if not self.processing_metrics:
                 return {
-                    'total_processed': 0,
-                    'cache_hit_rate': 0.0,
-                    'avg_processing_time': 0.0,
-                    'total_cache_hits': self.cache_hits,
-                    'total_cache_misses': self.cache_misses
+                    "total_processed": 0,
+                    "cache_hit_rate": 0.0,
+                    "avg_processing_time": 0.0,
+                    "total_cache_hits": self.cache_hits,
+                    "total_cache_misses": self.cache_misses
                 }
 
             total_processed = len(self.processing_metrics)
@@ -227,24 +227,24 @@ class OptimizedDocumentProcessor:
             p95_time = processing_times[int(0.95 * len(processing_times))] if processing_times else 0.0
 
             return {
-                'total_processed': total_processed,
-                'cache_hit_rate': round(cache_hit_rate * 100, 2),
-                'avg_processing_time': round(avg_processing_time, 4),
-                'p95_processing_time': round(p95_time, 4),
-                'avg_chunk_count': round(avg_chunk_count, 2),
-                'avg_text_length': round(avg_text_length, 2),
-                'avg_compression_ratio': round(avg_compression_ratio, 3),
-                'total_cache_hits': self.cache_hits,
-                'total_cache_misses': self.cache_misses,
-                'thread_pool_workers': self.max_workers,
-                'cache_stats': self.cache.get_stats()
+                "total_processed": total_processed,
+                "cache_hit_rate": round(cache_hit_rate * 100, 2),
+                "avg_processing_time": round(avg_processing_time, 4),
+                "p95_processing_time": round(p95_time, 4),
+                "avg_chunk_count": round(avg_chunk_count, 2),
+                "avg_text_length": round(avg_text_length, 2),
+                "avg_compression_ratio": round(avg_compression_ratio, 3),
+                "total_cache_hits": self.cache_hits,
+                "total_cache_misses": self.cache_misses,
+                "thread_pool_workers": self.max_workers,
+                "cache_stats": self.cache.get_stats()
             }
 
-    def optimize_chunking_strategy(self, document_content: str) -> List[Dict[str, Any]]:
+    def optimize_chunking_strategy(self, document_content: str) -> list[dict[str, Any]]:
         """Optimize chunking strategy based on document content analysis."""
         # Analyze document structure
-        sentences = document_content.split('. ')
-        paragraphs = document_content.split('\n\n')
+        sentences = document_content.split(". ")
+        paragraphs = document_content.split("\n\n")
 
         # Adaptive chunking based on content
         if len(sentences) > 100:  # Long document
@@ -254,10 +254,10 @@ class OptimizedDocumentProcessor:
         else:  # Short document
             return self._fixed_chunking(document_content)
 
-    def _semantic_chunking(self, content: str) -> List[Dict[str, Any]]:
+    def _semantic_chunking(self, content: str) -> list[dict[str, Any]]:
         """Semantic chunking that respects document structure."""
         chunks = []
-        sentences = content.split('. ')
+        sentences = content.split(". ")
 
         current_chunk = ""
         current_sentences = []
@@ -266,31 +266,31 @@ class OptimizedDocumentProcessor:
             if len(current_chunk + sentence) > self.chunk_size and current_sentences:
                 # Create chunk
                 chunks.append({
-                    'text': current_chunk.strip(),
-                    'sentences': len(current_sentences),
-                    'type': 'semantic'
+                    "text": current_chunk.strip(),
+                    "sentences": len(current_sentences),
+                    "type": "semantic"
                 })
 
                 # Start new chunk with overlap
                 overlap_sentences = current_sentences[-2:] if len(current_sentences) > 2 else current_sentences
-                current_chunk = '. '.join(overlap_sentences) + '. ' + sentence
+                current_chunk = ". ".join(overlap_sentences) + ". " + sentence
                 current_sentences = overlap_sentences + [sentence]
             else:
-                current_chunk += sentence + '. '
+                current_chunk += sentence + ". "
                 current_sentences.append(sentence)
 
         if current_chunk:
             chunks.append({
-                'text': current_chunk.strip(),
-                'sentences': len(current_sentences),
-                'type': 'semantic'
+                "text": current_chunk.strip(),
+                "sentences": len(current_sentences),
+                "type": "semantic"
             })
 
         return chunks
 
-    def _paragraph_chunking(self, content: str) -> List[Dict[str, Any]]:
+    def _paragraph_chunking(self, content: str) -> list[dict[str, Any]]:
         """Chunking based on paragraph boundaries."""
-        paragraphs = content.split('\n\n')
+        paragraphs = content.split("\n\n")
         chunks = []
 
         current_chunk = ""
@@ -299,28 +299,28 @@ class OptimizedDocumentProcessor:
         for paragraph in paragraphs:
             if len(current_chunk + paragraph) > self.chunk_size and current_paragraphs:
                 chunks.append({
-                    'text': current_chunk.strip(),
-                    'paragraphs': len(current_paragraphs),
-                    'type': 'paragraph'
+                    "text": current_chunk.strip(),
+                    "paragraphs": len(current_paragraphs),
+                    "type": "paragraph"
                 })
 
                 # Overlap with last paragraph
-                current_chunk = current_paragraphs[-1] + '\n\n' + paragraph
+                current_chunk = current_paragraphs[-1] + "\n\n" + paragraph
                 current_paragraphs = [current_paragraphs[-1], paragraph]
             else:
-                current_chunk += paragraph + '\n\n'
+                current_chunk += paragraph + "\n\n"
                 current_paragraphs.append(paragraph)
 
         if current_chunk:
             chunks.append({
-                'text': current_chunk.strip(),
-                'paragraphs': len(current_paragraphs),
-                'type': 'paragraph'
+                "text": current_chunk.strip(),
+                "paragraphs": len(current_paragraphs),
+                "type": "paragraph"
             })
 
         return chunks
 
-    def _fixed_chunking(self, content: str) -> List[Dict[str, Any]]:
+    def _fixed_chunking(self, content: str) -> list[dict[str, Any]]:
         """Fixed-size chunking for short documents."""
         return self.base_processor._create_chunks(content)
 
@@ -339,7 +339,7 @@ class OptimizedDocumentProcessor:
 
 
 # Global instance
-_optimized_processor: Optional[OptimizedDocumentProcessor] = None
+_optimized_processor: OptimizedDocumentProcessor | None = None
 
 
 def get_optimized_document_processor() -> OptimizedDocumentProcessor:

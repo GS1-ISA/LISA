@@ -12,7 +12,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -22,7 +21,7 @@ from urllib3.util.retry import Retry
 class AuditRunner:
     """Handles comprehensive audit execution and issue creation."""
 
-    def __init__(self, github_token: Optional[str] = None, repo: Optional[str] = None):
+    def __init__(self, github_token: str | None = None, repo: str | None = None):
         self.github_token = github_token or os.environ.get("GITHUB_TOKEN")
         self.repo = repo or os.environ.get("GITHUB_REPOSITORY")
         self.audit_dir = Path("docs/audit")
@@ -48,7 +47,7 @@ class AuditRunner:
                 }
             )
 
-    def run_audit_suite(self) -> Dict[str, float]:
+    def run_audit_suite(self) -> dict[str, float]:
         """Run the complete audit suite and return scores."""
         print("🚀 Running comprehensive audit suite...")
 
@@ -58,7 +57,7 @@ class AuditRunner:
         print("📋 Running audit completeness check...")
         result = subprocess.run(
             [sys.executable, "scripts/audit_completeness.py"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
         )
 
@@ -69,7 +68,7 @@ class AuditRunner:
         print("📊 Running audit synthesis...")
         result = subprocess.run(
             [sys.executable, "scripts/audit_synthesis.py"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
         )
 
@@ -83,7 +82,7 @@ class AuditRunner:
 
         return scores
 
-    def _extract_scores(self) -> Dict[str, float]:
+    def _extract_scores(self) -> dict[str, float]:
         """Extract scores from audit report."""
         audit_report = self.audit_dir / "audit_report.md"
         if not audit_report.exists():
@@ -124,13 +123,13 @@ class AuditRunner:
                     scores["gates_enforced"] = int(match.group(2))
                     scores["gates_advisory"] = int(match.group(3))
 
-        except (IOError, ValueError) as e:
+        except (OSError, ValueError) as e:
             print(f"⚠️  Error extracting scores: {e}")
             return {"overall": 0.0, "passes": 0, "warns": 0, "fails": 0}
 
         return scores
 
-    def load_baseline(self) -> Dict[str, float]:
+    def load_baseline(self) -> dict[str, float]:
         """Load baseline scores."""
         if not self.baseline_file.exists():
             return {"coverage_pct": 0.0}
@@ -157,11 +156,11 @@ class AuditRunner:
 
     def create_github_issue(
         self,
-        scores: Dict[str, float],
+        scores: dict[str, float],
         delta: float,
         current_score: float,
         baseline_score: float,
-    ) -> Optional[int]:
+    ) -> int | None:
         """Create GitHub issue for significant score change."""
         if not self.github_token or not self.repo:
             print(
@@ -207,7 +206,7 @@ class AuditRunner:
 
     def _generate_issue_body(
         self,
-        scores: Dict[str, float],
+        scores: dict[str, float],
         delta: float,
         current_score: float,
         baseline_score: float,

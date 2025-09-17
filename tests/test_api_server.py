@@ -2,11 +2,11 @@
 Integration tests for API server endpoints
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
-from fastapi.testclient import TestClient
 from fastapi import HTTPException
-import json
+from fastapi.testclient import TestClient
 
 from src.api_server import app
 from src.auth import User, UserRole, create_access_token
@@ -59,10 +59,10 @@ class TestHealthEndpoints:
 class TestAuthenticationEndpoints:
     """Test authentication endpoints"""
 
-    @patch('src.api_server.get_user_by_username')
-    @patch('src.api_server.get_user_by_email')
-    @patch('src.api_server.create_user')
-    @patch('src.api_server.get_db')
+    @patch("src.api_server.get_user_by_username")
+    @patch("src.api_server.get_user_by_email")
+    @patch("src.api_server.create_user")
+    @patch("src.api_server.get_db")
     def test_register_success(self, mock_get_db, mock_create_user, mock_get_email, mock_get_username, client):
         """Test successful user registration"""
         mock_get_username.return_value = None
@@ -88,7 +88,7 @@ class TestAuthenticationEndpoints:
 
     def test_register_existing_username(self, client):
         """Test registration with existing username"""
-        with patch('src.api_server.get_user_by_username') as mock_get_user:
+        with patch("src.api_server.get_user_by_username") as mock_get_user:
             mock_existing_user = Mock()
             mock_existing_user.username = "existinguser"
             mock_get_user.return_value = mock_existing_user
@@ -106,8 +106,8 @@ class TestAuthenticationEndpoints:
 
     def test_register_existing_email(self, client):
         """Test registration with existing email"""
-        with patch('src.api_server.get_user_by_username') as mock_get_user, \
-             patch('src.api_server.get_user_by_email') as mock_get_email:
+        with patch("src.api_server.get_user_by_username") as mock_get_user, \
+             patch("src.api_server.get_user_by_email") as mock_get_email:
 
             mock_get_user.return_value = None
             mock_existing_email = Mock()
@@ -125,7 +125,7 @@ class TestAuthenticationEndpoints:
             assert response.status_code == 400
             assert "Email already registered" in response.json()["detail"]
 
-    @patch('src.api_server.authenticate_user')
+    @patch("src.api_server.authenticate_user")
     def test_login_success(self, mock_authenticate, mock_user, client):
         """Test successful login"""
         mock_authenticate.return_value = mock_user
@@ -141,7 +141,7 @@ class TestAuthenticationEndpoints:
         assert "access_token" in data
         assert data["token_type"] == "bearer"
 
-    @patch('src.api_server.authenticate_user')
+    @patch("src.api_server.authenticate_user")
     def test_login_failure(self, mock_authenticate, client):
         """Test login failure"""
         mock_authenticate.return_value = None
@@ -167,16 +167,16 @@ class TestProtectedEndpoints:
 
     def test_research_with_jwt(self, client, auth_token, mock_user):
         """Test research endpoint with JWT authentication"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user), \
-             patch('src.api_server.check_user_permissions', return_value=True), \
-             patch('src.api_server.check_rate_limit', return_value=None), \
-             patch('src.api_server.WebResearchTool') as mock_web_tool, \
-             patch('src.api_server.RAGMemory') as mock_rag_memory, \
-             patch('src.api_server.get_docs_provider') as mock_docs_provider, \
-             patch('src.api_server.PlannerAgent') as mock_planner, \
-             patch('src.api_server.ResearcherAgent') as mock_researcher, \
-             patch('src.api_server.SynthesizerAgent') as mock_synthesizer, \
-             patch('src.api_server.ResearchGraph') as mock_graph:
+        with patch("src.api_server.get_current_active_user", return_value=mock_user), \
+             patch("src.api_server.check_user_permissions", return_value=True), \
+             patch("src.api_server.check_rate_limit", return_value=None), \
+             patch("src.api_server.WebResearchTool"), \
+             patch("src.api_server.RAGMemory"), \
+             patch("src.api_server.get_docs_provider"), \
+             patch("src.api_server.PlannerAgent"), \
+             patch("src.api_server.ResearcherAgent"), \
+             patch("src.api_server.SynthesizerAgent"), \
+             patch("src.api_server.ResearchGraph") as mock_graph:
 
             # Setup mocks
             mock_graph_instance = Mock()
@@ -193,8 +193,8 @@ class TestProtectedEndpoints:
 
     def test_research_insufficient_permissions(self, client, auth_token, mock_user):
         """Test research endpoint with insufficient permissions"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user), \
-             patch('src.api_server.check_user_permissions', return_value=False):
+        with patch("src.api_server.get_current_active_user", return_value=mock_user), \
+             patch("src.api_server.check_user_permissions", return_value=False):
 
             headers = {"Authorization": f"Bearer {auth_token}"}
             response = client.get("/research?query=test", headers=headers)
@@ -204,16 +204,16 @@ class TestProtectedEndpoints:
 
     def test_research_with_api_key(self, client, mock_user):
         """Test research endpoint with API key authentication"""
-        with patch('src.api_server.get_user_by_api_key', return_value=mock_user), \
-             patch('src.api_server.check_user_permissions', return_value=True), \
-             patch('src.api_server.check_rate_limit', return_value=None), \
-             patch('src.api_server.WebResearchTool') as mock_web_tool, \
-             patch('src.api_server.RAGMemory') as mock_rag_memory, \
-             patch('src.api_server.get_docs_provider') as mock_docs_provider, \
-             patch('src.api_server.PlannerAgent') as mock_planner, \
-             patch('src.api_server.ResearcherAgent') as mock_researcher, \
-             patch('src.api_server.SynthesizerAgent') as mock_synthesizer, \
-             patch('src.api_server.ResearchGraph') as mock_graph:
+        with patch("src.api_server.get_user_by_api_key", return_value=mock_user), \
+             patch("src.api_server.check_user_permissions", return_value=True), \
+             patch("src.api_server.check_rate_limit", return_value=None), \
+             patch("src.api_server.WebResearchTool"), \
+             patch("src.api_server.RAGMemory"), \
+             patch("src.api_server.get_docs_provider"), \
+             patch("src.api_server.PlannerAgent"), \
+             patch("src.api_server.ResearcherAgent"), \
+             patch("src.api_server.SynthesizerAgent"), \
+             patch("src.api_server.ResearchGraph") as mock_graph:
 
             # Setup mocks
             mock_graph_instance = Mock()
@@ -234,7 +234,7 @@ class TestUserManagementEndpoints:
 
     def test_get_current_user_profile(self, client, auth_token, mock_user):
         """Test getting current user profile"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user):
+        with patch("src.api_server.get_current_active_user", return_value=mock_user):
 
             headers = {"Authorization": f"Bearer {auth_token}"}
             response = client.get("/auth/me", headers=headers)
@@ -247,8 +247,8 @@ class TestUserManagementEndpoints:
 
     def test_update_user_profile(self, client, auth_token, mock_user):
         """Test updating user profile"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user), \
-             patch('src.api_server.get_db') as mock_get_db:
+        with patch("src.api_server.get_current_active_user", return_value=mock_user), \
+             patch("src.api_server.get_db") as mock_get_db:
 
             mock_db = Mock()
             mock_get_db.return_value = mock_db
@@ -266,10 +266,10 @@ class TestUserManagementEndpoints:
 
     def test_change_password_success(self, client, auth_token, mock_user):
         """Test successful password change"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user), \
-             patch('src.api_server.verify_password', return_value=True), \
-             patch('src.api_server.update_user_password'), \
-             patch('src.api_server.get_db') as mock_get_db:
+        with patch("src.api_server.get_current_active_user", return_value=mock_user), \
+             patch("src.api_server.verify_password", return_value=True), \
+             patch("src.api_server.update_user_password"), \
+             patch("src.api_server.get_db") as mock_get_db:
 
             mock_db = Mock()
             mock_get_db.return_value = mock_db
@@ -287,8 +287,8 @@ class TestUserManagementEndpoints:
 
     def test_change_password_wrong_old(self, client, auth_token, mock_user):
         """Test password change with wrong old password"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user), \
-             patch('src.api_server.verify_password', return_value=False):
+        with patch("src.api_server.get_current_active_user", return_value=mock_user), \
+             patch("src.api_server.verify_password", return_value=False):
 
             headers = {"Authorization": f"Bearer {auth_token}"}
             password_data = {
@@ -313,8 +313,8 @@ class TestAdminEndpoints:
         admin_user.role = UserRole.ADMIN.value
         admin_user.is_active = True
 
-        with patch('src.api_server.require_role', return_value=lambda: admin_user), \
-             patch('src.api_server.get_db') as mock_get_db:
+        with patch("src.api_server.require_role", return_value=lambda: admin_user), \
+             patch("src.api_server.get_db") as mock_get_db:
 
             mock_db = Mock()
             mock_users = [mock_user]
@@ -330,7 +330,7 @@ class TestAdminEndpoints:
 
     def test_list_users_non_admin(self, client, auth_token, mock_user):
         """Test listing users as non-admin"""
-        with patch('src.api_server.require_role') as mock_require_role:
+        with patch("src.api_server.require_role") as mock_require_role:
             mock_require_role.side_effect = HTTPException(status_code=403, detail="Forbidden")
 
             headers = {"Authorization": f"Bearer {auth_token}"}
@@ -344,9 +344,9 @@ class TestRateLimiting:
 
     def test_rate_limit_exceeded(self, client, auth_token, mock_user):
         """Test rate limit exceeded"""
-        with patch('src.api_server.get_current_active_user', return_value=mock_user), \
-             patch('src.api_server.check_user_permissions', return_value=True), \
-             patch('src.api_server.check_rate_limit') as mock_rate_limit:
+        with patch("src.api_server.get_current_active_user", return_value=mock_user), \
+             patch("src.api_server.check_user_permissions", return_value=True), \
+             patch("src.api_server.check_rate_limit") as mock_rate_limit:
 
             mock_rate_limit.side_effect = HTTPException(status_code=429, detail="Rate limit exceeded")
 

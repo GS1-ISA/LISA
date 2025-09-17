@@ -2,13 +2,12 @@
 Tests for vector store functionality.
 """
 
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
 
-from isa_superapp.core.exceptions import VectorStoreConnectionError, VectorStoreError
+from isa_superapp.core.exceptions import VectorStoreError
 from isa_superapp.vector_stores.base import SearchResult, VectorStore
 from isa_superapp.vector_stores.chroma_store import ChromaVectorStore
 from isa_superapp.vector_stores.faiss_store import FaissVectorStore
@@ -435,7 +434,7 @@ class TestChromaVectorStore:
         query_embedding = np.random.rand(384).tolist()
         filter_dict = {"source": "test"}
 
-        results = await chroma_store.search(
+        await chroma_store.search(
             query="test query", query_embedding=query_embedding, filter_dict=filter_dict
         )
 
@@ -767,7 +766,7 @@ class TestVectorStorePerformance:
         # Test search performance
         query_embedding = np.random.rand(384).tolist()
         start_time = time.time()
-        results = await store.search(
+        await store.search(
             query="performance test", query_embedding=query_embedding, limit=10
         )
         search_time = time.time() - start_time

@@ -1,30 +1,32 @@
-import os
-import time
-import json
 import hashlib
+import json
+import os
 import threading
-from typing import Dict, List, Optional, Any
-import openai
+import time
+from typing import Any
+
 from openai import OpenAI
-import redis
+
+from src.cache.multi_level_cache import MultiLevelCache, get_multilevel_cache
+
 from .query_optimizer import QueryOptimizer
-from ..cache.multi_level_cache import get_multilevel_cache, MultiLevelCache
+
 
 class ModelWarmer:
     """Pre-warms frequently used free models to reduce cold start latency."""
 
-    def __init__(self, client: 'OpenRouterFreeClient'):
+    def __init__(self, client: "OpenRouterFreeClient"):
         self.client = client
         self.models_to_warm = list(client.free_models.values())
 
         # Configuration from environment
-        self.warm_up_interval = int(os.getenv('MODEL_WARM_UP_INTERVAL_SECONDS', '300'))  # 5 minutes
-        self.health_check_interval = int(os.getenv('MODEL_HEALTH_CHECK_INTERVAL_SECONDS', '60'))  # 1 minute
-        self.health_check_timeout = int(os.getenv('MODEL_HEALTH_CHECK_TIMEOUT_SECONDS', '10'))  # 10 seconds
-        self.max_failures_before_recovery = int(os.getenv('MODEL_MAX_FAILURES_RECOVERY', '3'))
+        self.warm_up_interval = int(os.getenv("MODEL_WARM_UP_INTERVAL_SECONDS", "300"))  # 5 minutes
+        self.health_check_interval = int(os.getenv("MODEL_HEALTH_CHECK_INTERVAL_SECONDS", "60"))  # 1 minute
+        self.health_check_timeout = int(os.getenv("MODEL_HEALTH_CHECK_TIMEOUT_SECONDS", "10"))  # 10 seconds
+        self.max_failures_before_recovery = int(os.getenv("MODEL_MAX_FAILURES_RECOVERY", "3"))
 
         # Health status tracking
-        self.model_health = {model: {'healthy': True, 'failures': 0, 'last_check': 0, 'latency': 0} for model in self.models_to_warm}
+        self.model_health = {model: {"healthy": True, "failures": 0, "last_check": 0, "latency": 0} for model in self.models_to_warm}
 
         # Metrics
         self.warm_up_count = 0
@@ -80,7 +82,7 @@ class ModelWarmer:
         count = 0
 
         for model in self.models_to_warm:
-            if not self.model_health[model]['healthy']:
+            if not self.model_health[model]["healthy"]:
                 continue  # Skip unhealthy models
 
             try:
@@ -109,11 +111,11 @@ class ModelWarmer:
                 latency = time.time() - start_time
 
                 # Check if response is valid
-                if response and response.get('content') and len(response['content']) > 0:
-                    self.model_health[model]['healthy'] = True
-                    self.model_health[model]['failures'] = 0
-                    self.model_health[model]['latency'] = latency
-                    self.model_health[model]['last_check'] = time.time()
+                if response and response.get("content") and len(response["content"]) > 0:
+                    self.model_health[model]["healthy"] = True
+                    self.model_health[model]["failures"] = 0
+                    self.model_health[model]["latency"] = latency
+                    self.model_health[model]["last_check"] = time.time()
                     print(f"ModelWarmer: Health check passed for {model} ({latency:.2f}s)")
                 else:
                     self._handle_model_failure(model)
@@ -125,9 +127,9 @@ class ModelWarmer:
 
     def _handle_model_failure(self, model: str):
         """Handle model failure by incrementing failure count and attempting recovery."""
-        self.model_health[model]['failures'] += 1
-        if self.model_health[model]['failures'] >= self.max_failures_before_recovery:
-            self.model_health[model]['healthy'] = False
+        self.model_health[model]["failures"] += 1
+        if self.model_health[model]["failures"] >= self.max_failures_before_recovery:
+            self.model_health[model]["healthy"] = False
             print(f"ModelWarmer: Model {model} marked unhealthy after {self.model_health[model]['failures']} failures")
             self._attempt_recovery(model)
 
@@ -141,39 +143,39 @@ class ModelWarmer:
             response = self.client.chat_completion(recovery_message, model=model, max_tokens=10)
             latency = time.time() - start_time
 
-            if response and response.get('content'):
-                self.model_health[model]['healthy'] = True
-                self.model_health[model]['failures'] = 0
-                self.model_health[model]['latency'] = latency
+            if response and response.get("content"):
+                self.model_health[model]["healthy"] = True
+                self.model_health[model]["failures"] = 0
+                self.model_health[model]["latency"] = latency
                 print(f"ModelWarmer: Successfully recovered {model} ({latency:.2f}s)")
             else:
                 print(f"ModelWarmer: Recovery failed for {model}")
         except Exception as e:
             print(f"ModelWarmer: Recovery attempt failed for {model}: {e}")
 
-    def get_warm_stats(self) -> Dict[str, Any]:
+    def get_warm_stats(self) -> dict[str, Any]:
         """Get pre-warming statistics and metrics."""
         return {
-            'warm_up_count': self.warm_up_count,
-            'health_check_count': self.health_check_count,
-            'recovery_attempts': self.recovery_attempts,
-            'average_warm_up_latency': round(self.average_warm_up_latency, 3),
-            'model_health_status': {model: info['healthy'] for model, info in self.model_health.items()},
-            'latency_reduction_estimate': '30-50%'  # Estimated based on typical cold start times
+            "warm_up_count": self.warm_up_count,
+            "health_check_count": self.health_check_count,
+            "recovery_attempts": self.recovery_attempts,
+            "average_warm_up_latency": round(self.average_warm_up_latency, 3),
+            "model_health_status": {model: info["healthy"] for model, info in self.model_health.items()},
+            "latency_reduction_estimate": "30-50%"  # Estimated based on typical cold start times
         }
 
     def is_model_healthy(self, model: str) -> bool:
         """Check if a specific model is healthy."""
-        return self.model_health.get(model, {}).get('healthy', False)
+        return self.model_health.get(model, {}).get("healthy", False)
 
 class OpenRouterFreeClient:
     """OpenRouter client optimized for free tier models."""
 
     def __init__(self):
-        self.api_key = os.getenv('OPENROUTER_API_KEY')
+        self.api_key = os.getenv("OPENROUTER_API_KEY")
         # Allow missing API key in test environments
-        if not self.api_key and os.getenv('PYTEST_CURRENT_TEST'):
-            self.api_key = 'test-key'
+        if not self.api_key and os.getenv("PYTEST_CURRENT_TEST"):
+            self.api_key = "test-key"
             self.test_mode = True
         elif not self.api_key:
             raise ValueError("OPENROUTER_API_KEY environment variable is required")
@@ -194,17 +196,17 @@ class OpenRouterFreeClient:
 
         # Free model configuration from latest research
         self.free_models = {
-            'primary': os.getenv('OPENROUTER_PRIMARY_FREE_MODEL', 'google/gemini-2.5-flash-image-preview:free'),
-            'long_context': os.getenv('OPENROUTER_FALLBACK_FREE_MODEL', 'meta-llama/llama-4-scout:free'),
-            'fast': os.getenv('OPENROUTER_FAST_FREE_MODEL', 'mistralai/mistral-small-3.1-24b-instruct:free'),
-            'reasoning': os.getenv('OPENROUTER_REASONING_FREE_MODEL', 'deepseek/deepseek-r1:free'),
-            'backup': os.getenv('OPENROUTER_BACKUP_FREE_MODEL', 'google/gemini-2.0-flash-exp:free')
+            "primary": os.getenv("OPENROUTER_PRIMARY_FREE_MODEL", "google/gemini-2.5-flash-image-preview:free"),
+            "long_context": os.getenv("OPENROUTER_FALLBACK_FREE_MODEL", "meta-llama/llama-4-scout:free"),
+            "fast": os.getenv("OPENROUTER_FAST_FREE_MODEL", "mistralai/mistral-small-3.1-24b-instruct:free"),
+            "reasoning": os.getenv("OPENROUTER_REASONING_FREE_MODEL", "deepseek/deepseek-r1:free"),
+            "backup": os.getenv("OPENROUTER_BACKUP_FREE_MODEL", "google/gemini-2.0-flash-exp:free")
         }
 
         # Rate limiting for free tier
-        self.rate_limit = int(os.getenv('OPENROUTER_FREE_RATE_LIMIT', '50'))
+        self.rate_limit = int(os.getenv("OPENROUTER_FREE_RATE_LIMIT", "50"))
         self.request_times = []
-        self.max_tokens = int(os.getenv('OPENROUTER_FREE_MAX_TOKENS', '10000'))
+        self.max_tokens = int(os.getenv("OPENROUTER_FREE_MAX_TOKENS", "10000"))
 
     def _enforce_rate_limit(self):
         """Enforce rate limiting for free tier (60 requests/minute)."""
@@ -229,17 +231,17 @@ class OpenRouterFreeClient:
             return optimization_result.model
         except Exception as e:
             print(f"QueryOptimizer error: {e}, falling back to primary model")
-            return self.free_models['primary']
+            return self.free_models["primary"]
 
     def chat_completion(self,
-                         messages: List[Dict[str, str]],
-                         model: Optional[str] = None,
-                         temperature: Optional[float] = None,
-                         max_tokens: Optional[int] = None) -> Dict[str, Any]:
+                         messages: list[dict[str, str]],
+                         model: str | None = None,
+                         temperature: float | None = None,
+                         max_tokens: int | None = None) -> dict[str, Any]:
 
         # Extract query from messages for optimization
         query_content = str(messages) if not model else ""
-        total_chars = sum(len(str(msg.get('content', ''))) for msg in messages)
+        total_chars = sum(len(str(msg.get("content", ""))) for msg in messages)
         estimated_tokens = total_chars // 4
 
         # Use optimizer for automatic parameter selection if not explicitly provided
@@ -272,35 +274,35 @@ class OpenRouterFreeClient:
             )
 
             return {
-                'content': response.choices[0].message.content,
-                'model': response.model,
-                'usage': {
-                    'prompt_tokens': response.usage.prompt_tokens if response.usage else 0,
-                    'completion_tokens': response.usage.completion_tokens if response.usage else 0,
-                    'total_tokens': response.usage.total_tokens if response.usage else 0
+                "content": response.choices[0].message.content,
+                "model": response.model,
+                "usage": {
+                    "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                    "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                    "total_tokens": response.usage.total_tokens if response.usage else 0
                 },
-                'cost': 0.0,  # Free tier
-                'model_used': model,
-                'optimization_used': True if not all([model, temperature, max_tokens]) else False
+                "cost": 0.0,  # Free tier
+                "model_used": model,
+                "optimization_used": bool(not all([model, temperature, max_tokens]))
             }
 
         except Exception as e:
             print(f"Free model error: {e}")
             # Try backup model
-            if model != self.free_models['backup']:
+            if model != self.free_models["backup"]:
                 print(f"Trying backup model: {self.free_models['backup']}")
-                return self.chat_completion(messages, self.free_models['backup'], temperature, max_tokens)
+                return self.chat_completion(messages, self.free_models["backup"], temperature, max_tokens)
             raise e
 
     async def async_chat_completion(self,
-                                     messages: List[Dict[str, str]],
-                                     model: Optional[str] = None,
-                                     temperature: Optional[float] = None,
-                                     max_tokens: Optional[int] = None) -> Dict[str, Any]:
+                                     messages: list[dict[str, str]],
+                                     model: str | None = None,
+                                     temperature: float | None = None,
+                                     max_tokens: int | None = None) -> dict[str, Any]:
 
         # Extract query from messages for optimization
         query_content = str(messages) if not model else ""
-        total_chars = sum(len(str(msg.get('content', ''))) for msg in messages)
+        total_chars = sum(len(str(msg.get("content", ""))) for msg in messages)
         estimated_tokens = total_chars // 4
 
         # Use optimizer for automatic parameter selection if not explicitly provided
@@ -333,48 +335,48 @@ class OpenRouterFreeClient:
             )
 
             return {
-                'content': response.choices[0].message.content,
-                'model': response.model,
-                'usage': {
-                    'prompt_tokens': response.usage.prompt_tokens if response.usage else 0,
-                    'completion_tokens': response.usage.completion_tokens if response.usage else 0,
-                    'total_tokens': response.usage.total_tokens if response.usage else 0
+                "content": response.choices[0].message.content,
+                "model": response.model,
+                "usage": {
+                    "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                    "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                    "total_tokens": response.usage.total_tokens if response.usage else 0
                 },
-                'cost': 0.0,  # Free tier
-                'model_used': model,
-                'optimization_used': True if not all([model, temperature, max_tokens]) else False
+                "cost": 0.0,  # Free tier
+                "model_used": model,
+                "optimization_used": bool(not all([model, temperature, max_tokens]))
             }
 
         except Exception as e:
             print(f"Free model async error: {e}")
             # Try backup model
-            if model != self.free_models['backup']:
+            if model != self.free_models["backup"]:
                 print(f"Trying backup model: {self.free_models['backup']}")
-                return await self.async_chat_completion(messages, self.free_models['backup'], temperature, max_tokens)
+                return await self.async_chat_completion(messages, self.free_models["backup"], temperature, max_tokens)
             raise e
 
-    def get_available_free_models(self) -> List[str]:
+    def get_available_free_models(self) -> list[str]:
         """Get list of configured free models."""
         return list(self.free_models.values())
 
-    def get_model_rankings(self) -> Dict[str, str]:
+    def get_model_rankings(self) -> dict[str, str]:
         """Get ISA-specific model rankings."""
         return {
-            'best_overall': self.free_models['primary'],
-            'long_context': self.free_models['long_context'],
-            'fast_processing': self.free_models['fast'],
-            'reasoning': self.free_models['reasoning'],
-            'backup': self.free_models['backup']
+            "best_overall": self.free_models["primary"],
+            "long_context": self.free_models["long_context"],
+            "fast_processing": self.free_models["fast"],
+            "reasoning": self.free_models["reasoning"],
+            "backup": self.free_models["backup"]
         }
 
-    def get_optimizer_stats(self) -> Dict[str, Any]:
+    def get_optimizer_stats(self) -> dict[str, Any]:
         """Get QueryOptimizer statistics and configuration."""
         return self.optimizer.get_optimization_stats()
 
 class CachedOpenRouterClient:
     """Multi-level cached wrapper for OpenRouterFreeClient to reduce API calls."""
 
-    def __init__(self, cache: Optional[MultiLevelCache] = None):
+    def __init__(self, cache: MultiLevelCache | None = None):
         self.cache = cache or get_multilevel_cache()
         self.cache_hits = 0
         self.cache_misses = 0
@@ -382,36 +384,36 @@ class CachedOpenRouterClient:
         self.warmer = ModelWarmer(self.underlying_client)
         self.warmer.start()
 
-    def _generate_cache_key(self, messages: List[Dict[str, str]], model: Optional[str], temperature: float, max_tokens: Optional[int]) -> str:
+    def _generate_cache_key(self, messages: list[dict[str, str]], model: str | None, temperature: float, max_tokens: int | None) -> str:
         """Generate a unique cache key based on request parameters."""
         # Create a string representation of the key components
         key_data = {
-            'messages': messages,
-            'model': model,
-            'temperature': temperature,
-            'max_tokens': max_tokens
+            "messages": messages,
+            "model": model,
+            "temperature": temperature,
+            "max_tokens": max_tokens
         }
         # Hash the key data for consistent length
         key_string = json.dumps(key_data, sort_keys=True)
         cache_key = hashlib.sha256(key_string.encode()).hexdigest()
         return f"llm_cache:{cache_key}"
 
-    def _get_cache_stats(self) -> Dict[str, int]:
+    def _get_cache_stats(self) -> dict[str, int]:
         """Get current cache hit/miss statistics."""
         total_requests = self.cache_hits + self.cache_misses
         hit_rate = (self.cache_hits / total_requests * 100) if total_requests > 0 else 0
         return {
-            'hits': self.cache_hits,
-            'misses': self.cache_misses,
-            'total': total_requests,
-            'hit_rate_percent': round(hit_rate, 2)
+            "hits": self.cache_hits,
+            "misses": self.cache_misses,
+            "total": total_requests,
+            "hit_rate_percent": round(hit_rate, 2)
         }
 
     def chat_completion(self,
-                        messages: List[Dict[str, str]],
-                        model: Optional[str] = None,
+                        messages: list[dict[str, str]],
+                        model: str | None = None,
                         temperature: float = 0.2,
-                        max_tokens: Optional[int] = None) -> Dict[str, Any]:
+                        max_tokens: int | None = None) -> dict[str, Any]:
 
         # Generate cache key
         cache_key = self._generate_cache_key(messages, model, temperature, max_tokens)
@@ -435,10 +437,10 @@ class CachedOpenRouterClient:
         return response
 
     async def async_chat_completion(self,
-                                    messages: List[Dict[str, str]],
-                                    model: Optional[str] = None,
+                                    messages: list[dict[str, str]],
+                                    model: str | None = None,
                                     temperature: float = 0.2,
-                                    max_tokens: Optional[int] = None) -> Dict[str, Any]:
+                                    max_tokens: int | None = None) -> dict[str, Any]:
 
         # Generate cache key
         cache_key = self._generate_cache_key(messages, model, temperature, max_tokens)
@@ -461,15 +463,15 @@ class CachedOpenRouterClient:
 
         return response
 
-    def get_available_free_models(self) -> List[str]:
+    def get_available_free_models(self) -> list[str]:
         """Delegate to underlying client."""
         return self.underlying_client.get_available_free_models()
 
-    def get_model_rankings(self) -> Dict[str, str]:
+    def get_model_rankings(self) -> dict[str, str]:
         """Delegate to underlying client."""
         return self.underlying_client.get_model_rankings()
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get comprehensive cache performance statistics."""
         # Get MultiLevelCache stats
         multilevel_stats = self.cache.get_stats()
@@ -479,9 +481,9 @@ class CachedOpenRouterClient:
 
         # Combine stats
         combined_stats = {
-            'llm_specific': llm_stats,
-            'multilevel_cache': multilevel_stats,
-            'combined_hit_rate': llm_stats.get('hit_rate_percent', 0)
+            "llm_specific": llm_stats,
+            "multilevel_cache": multilevel_stats,
+            "combined_hit_rate": llm_stats.get("hit_rate_percent", 0)
         }
 
         return combined_stats
@@ -492,10 +494,10 @@ class CachedOpenRouterClient:
         self.cache.clear()
         return 0  # MultiLevelCache doesn't return count
 
-    def get_optimizer_stats(self) -> Dict[str, Any]:
+    def get_optimizer_stats(self) -> dict[str, Any]:
         """Delegate to underlying client."""
         return self.underlying_client.get_optimizer_stats()
-    def get_warm_stats(self) -> Dict[str, Any]:
+    def get_warm_stats(self) -> dict[str, Any]:
         """Get pre-warming statistics and metrics."""
         return self.warmer.get_warm_stats()
 
@@ -510,21 +512,21 @@ def get_openrouter_free_client() -> CachedOpenRouterClient:
     return _openrouter_free_client
 
 # Backward compatibility functions
-def generate_response(messages: List[Dict[str, str]],
-                     model: Optional[str] = None,
+def generate_response(messages: list[dict[str, str]],
+                     model: str | None = None,
                      temperature: float = 0.2) -> str:
     """Generate response using free OpenRouter models."""
     client = get_openrouter_free_client()
     result = client.chat_completion(messages, model, temperature)
-    return result['content']
+    return result["content"]
 
-def generate_response_sync(messages: List[Dict[str, str]],
-                          model: Optional[str] = None,
+def generate_response_sync(messages: list[dict[str, str]],
+                          model: str | None = None,
                           temperature: float = 0.2) -> str:
     """Generate response using free OpenRouter models (sync version)."""
     client = get_openrouter_free_client()
     result = client.chat_completion(messages, model, temperature)
-    return result['content']
+    return result["content"]
 
 # Test function
 def test_free_models():
@@ -556,11 +558,11 @@ def test_free_models():
 
         try:
             result = client.chat_completion(messages)
-            optimization_used = result.get('optimization_used', False)
+            optimization_used = result.get("optimization_used", False)
             print(f"✅ Model: {result['model_used']}")
             print(f"🔧 Optimization: {'AUTO' if optimization_used else 'MANUAL'}")
             print(f"📊 Tokens: {result['usage']['total_tokens']}")
-            print(f"💰 Cost: FREE")
+            print("💰 Cost: FREE")
             print(f"📝 Response: {result['content'][:150]}...")
         except Exception as e:
             print(f"❌ Error: {e}")
@@ -577,39 +579,39 @@ class LLMClient:
         self._total_tokens = 0
         self._requests_count = 0
 
-    async def generate(self, prompt: str, model: Optional[str] = None) -> 'LLMResponse':
+    async def generate(self, prompt: str, model: str | None = None) -> "LLMResponse":
         """Generate response from prompt."""
         messages = [{"role": "user", "content": prompt}]
 
         try:
             result = await self.client.async_chat_completion(messages, model)
-            self._total_cost += result.get('cost', 0.0)
-            self._total_tokens += result.get('usage', {}).get('total_tokens', 0)
+            self._total_cost += result.get("cost", 0.0)
+            self._total_tokens += result.get("usage", {}).get("total_tokens", 0)
             self._requests_count += 1
 
             return LLMResponse(
-                content=result.get('content', ''),
-                model=result.get('model_used', model or 'unknown'),
-                provider='openrouter',
-                tokens_used=result.get('usage', {}).get('total_tokens', 0),
-                cost=result.get('cost', 0.0)
+                content=result.get("content", ""),
+                model=result.get("model_used", model or "unknown"),
+                provider="openrouter",
+                tokens_used=result.get("usage", {}).get("total_tokens", 0),
+                cost=result.get("cost", 0.0)
             )
         except Exception as e:
             # Return a basic response for testing
             return LLMResponse(
                 content=f"Error: {str(e)}",
-                model=model or 'unknown',
-                provider='openrouter',
+                model=model or "unknown",
+                provider="openrouter",
                 tokens_used=0,
                 cost=0.0
             )
 
-    def get_cost_summary(self) -> Dict[str, Any]:
+    def get_cost_summary(self) -> dict[str, Any]:
         """Get cost summary."""
         return {
-            'total_cost': self._total_cost,
-            'total_tokens': self._total_tokens,
-            'requests_count': self._requests_count
+            "total_cost": self._total_cost,
+            "total_tokens": self._total_tokens,
+            "requests_count": self._requests_count
         }
 
 class LLMResponse:

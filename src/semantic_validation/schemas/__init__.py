@@ -7,8 +7,8 @@ This module contains SHACL shape definitions for:
 - Regulatory compliance validation
 """
 
-from .gs1_schemas import GS1Schemas
 from .esg_schemas import ESGSchemas
+from .gs1_schemas import GS1Schemas
 from .regulatory_schemas import RegulatorySchemas
 
-__all__ = ['GS1Schemas', 'ESGSchemas', 'RegulatorySchemas']
+__all__ = ["GS1Schemas", "ESGSchemas", "RegulatorySchemas"]

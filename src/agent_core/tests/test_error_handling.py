@@ -1,11 +1,12 @@
-import pytest
-import json
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
+
+import pytest
+
+from src.agent_core.llm_client import CachedOpenRouterClient
+from src.agent_core.memory.rag_store import RAGMemory
 from src.agent_core.query_optimizer import QueryOptimizer
 from src.agent_core.streaming_processor import StreamingDocumentProcessor
-from src.agent_core.memory.rag_store import RAGMemory
-from src.agent_core.llm_client import CachedOpenRouterClient
 
 
 class TestErrorHandling:
@@ -74,13 +75,13 @@ class TestErrorHandling:
         """Test RAGMemory error handling."""
         # Test adding with empty parameters
         success = self.rag_memory.add("", "", "")
-        assert success == False
+        assert not success
 
         success = self.rag_memory.add("content", "", "")
-        assert success == False
+        assert not success
 
         success = self.rag_memory.add("", "source", "doc_id")
-        assert success == False
+        assert not success
 
         # Test batch add with invalid documents
         invalid_docs = [
@@ -90,7 +91,7 @@ class TestErrorHandling:
         ]
 
         success = self.rag_memory.batch_add(invalid_docs)
-        assert success == False  # Should fail due to invalid documents
+        assert not success  # Should fail due to invalid documents
 
         # Test querying empty collection
         results = self.rag_memory.query("nonexistent")
@@ -98,24 +99,24 @@ class TestErrorHandling:
 
         # Test conversation history with invalid inputs
         success = self.rag_memory.add_conversation_entry("", "")
-        assert success == False
+        assert not success
 
         success = self.rag_memory.add_conversation_entry("invalid_role", "content")
-        assert success == False
+        assert not success
 
         # Test document operations on nonexistent documents
         success = self.rag_memory.delete_document("nonexistent")
-        assert success == True  # Should succeed (no-op)
+        assert success  # Should succeed (no-op)
 
         success = self.rag_memory.update_document("nonexistent", "new content", "source")
-        assert success == False
+        assert not success
 
     def test_llm_client_error_handling(self):
         """Test LLM client error handling."""
         # Mock Redis for testing
         redis_mock = Mock()
         client = CachedOpenRouterClient(
-            redis_host='localhost',
+            redis_host="localhost",
             redis_port=6379,
             redis_db=0,
             ttl_seconds=3600
@@ -127,9 +128,9 @@ class TestErrorHandling:
         redis_mock.setex.side_effect = Exception("Redis write error")
 
         # Mock underlying client
-        with patch.object(client.underlying_client, 'chat_completion', return_value={'content': 'response'}) as mock_chat:
+        with patch.object(client.underlying_client, "chat_completion", return_value={"content": "response"}) as mock_chat:
             result = client.chat_completion([{"role": "user", "content": "test"}])
-            assert result == {'content': 'response'}
+            assert result == {"content": "response"}
             mock_chat.assert_called_once()
 
         # Test invalid JSON in cache
@@ -145,7 +146,7 @@ class TestErrorHandling:
         mock_client.chat_completion.side_effect = [
             Exception("Network timeout"),
             Exception("API rate limit"),
-            {'content': 'Success after retries', 'model_used': 'test', 'usage': {'total_tokens': 50}}
+            {"content": "Success after retries", "model_used": "test", "usage": {"total_tokens": 50}}
         ]
         processor.llm_client = mock_client
 
@@ -153,7 +154,7 @@ class TestErrorHandling:
         result = processor.process_document(document, "Test query")
 
         # Should eventually succeed or handle gracefully
-        assert 'metadata' in result
+        assert "metadata" in result
 
     def test_corrupted_data_handling(self):
         """Test handling of corrupted data."""
@@ -168,7 +169,7 @@ class TestErrorHandling:
         # Test RAG memory with special characters
         special_content = "Content with special chars: àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
         success = self.rag_memory.add(special_content, "special_test", "special_doc")
-        assert success == True
+        assert success
 
         results = self.rag_memory.query("special chars")
         assert len(results) > 0
@@ -257,9 +258,9 @@ class TestErrorHandling:
             import time
             time.sleep(0.1)  # Simulate delay
             return {
-                'content': 'Slow response',
-                'model_used': 'test',
-                'usage': {'total_tokens': 50}
+                "content": "Slow response",
+                "model_used": "test",
+                "usage": {"total_tokens": 50}
             }
 
         mock_client = Mock()
@@ -274,7 +275,7 @@ class TestErrorHandling:
 
         # Should complete without hanging
         assert (end_time - start_time) < 1.0  # Should not take too long
-        assert 'metadata' in result
+        assert "metadata" in result
 
     def test_partial_failure_recovery(self):
         """Test recovery from partial failures."""
@@ -288,9 +289,9 @@ class TestErrorHandling:
             if call_count % 3 == 0:  # Every third call fails
                 raise Exception(f"Simulated failure {call_count}")
             return {
-                'content': f'Successful response {call_count}',
-                'model_used': 'test',
-                'usage': {'total_tokens': 50}
+                "content": f"Successful response {call_count}",
+                "model_used": "test",
+                "usage": {"total_tokens": 50}
             }
 
         mock_client = Mock()
@@ -303,15 +304,15 @@ class TestErrorHandling:
         result = processor.process_document(document, "Test query with partial failures")
 
         # Should have some successful processing despite failures
-        assert result['metadata']['total_chunks'] > 0
-        assert result['metadata']['chunks_processed'] >= 0  # At least some should succeed
+        assert result["metadata"]["total_chunks"] > 0
+        assert result["metadata"]["chunks_processed"] >= 0  # At least some should succeed
 
     def test_data_integrity_validation(self):
         """Test data integrity validation."""
         # Test checksum validation
         content = "Test content for integrity validation"
         success = self.rag_memory.add(content, "integrity_test", "integrity_doc")
-        assert success == True
+        assert success
 
         # Verify data can be retrieved
         results = self.rag_memory.query("integrity validation")
@@ -319,7 +320,7 @@ class TestErrorHandling:
 
         # Test conversation integrity
         success = self.rag_memory.add_conversation_entry("user", "Test message")
-        assert success == True
+        assert success
 
         history = self.rag_memory.get_conversation_history()
         assert len(history) > 0
@@ -347,22 +348,22 @@ class TestErrorHandling:
     def test_external_dependency_failures(self):
         """Test handling of external dependency failures."""
         # Mock ChromaDB failures
-        with patch('src.agent_core.memory.rag_store.chromadb.PersistentClient') as mock_chroma:
+        with patch("src.agent_core.memory.rag_store.chromadb.PersistentClient") as mock_chroma:
             mock_chroma.side_effect = Exception("ChromaDB connection failed")
 
             # Should handle ChromaDB failures gracefully
             try:
-                rag = RAGMemory(collection_name="fail_test", persist_directory=str(self.temp_dir / "fail"))
+                RAGMemory(collection_name="fail_test", persist_directory=str(self.temp_dir / "fail"))
                 # May succeed or fail depending on implementation
             except Exception:
                 pass  # Acceptable to fail with external dependency issues
 
         # Test embedding function failures
-        with patch('src.agent_core.memory.rag_store.embedding_functions.SentenceTransformerEmbeddingFunction') as mock_embed:
+        with patch("src.agent_core.memory.rag_store.embedding_functions.SentenceTransformerEmbeddingFunction") as mock_embed:
             mock_embed.side_effect = Exception("Embedding model failed")
 
             try:
-                rag = RAGMemory(collection_name="embed_fail", persist_directory=str(self.temp_dir / "embed"))
+                RAGMemory(collection_name="embed_fail", persist_directory=str(self.temp_dir / "embed"))
             except Exception:
                 pass  # Acceptable
 

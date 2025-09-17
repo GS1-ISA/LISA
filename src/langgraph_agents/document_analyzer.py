@@ -6,10 +6,10 @@ relevant regulatory information using advanced NLP techniques.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, TypedDict
+from typing import Any, TypedDict
 
 try:
-    from langgraph.graph import StateGraph, END
+    from langgraph.graph import END, StateGraph
     from langgraph.prebuilt import ToolNode
     LANGGRAPH_AVAILABLE = True
 except ImportError:
@@ -20,22 +20,22 @@ except ImportError:
     class ToolNode:
         pass
 
-from ..agent_core.llm_client import get_openrouter_free_client
-from ..docs_provider.pymupdf_processor import PyMuPDFProcessor
+from src.agent_core.llm_client import get_openrouter_free_client
+from src.docs_provider.pymupdf_processor import PyMuPDFProcessor
 
 
 class DocumentAnalysisState(TypedDict):
     """State for document analysis workflow."""
     document_path: str
     processed_text: str
-    chunks: List[str]
-    metadata: Dict[str, Any]
-    entities: List[Dict[str, Any]]
-    compliance_requirements: List[Dict[str, Any]]
-    risk_indicators: List[Dict[str, Any]]
-    analysis_summary: Dict[str, Any]
+    chunks: list[str]
+    metadata: dict[str, Any]
+    entities: list[dict[str, Any]]
+    compliance_requirements: list[dict[str, Any]]
+    risk_indicators: list[dict[str, Any]]
+    analysis_summary: dict[str, Any]
     current_step: str
-    errors: List[str]
+    errors: list[str]
 
 
 class DocumentAnalyzerAgent:
@@ -80,7 +80,7 @@ class DocumentAnalyzerAgent:
 
         return workflow.compile()
 
-    def analyze_document(self, document_path: str) -> Dict[str, Any]:
+    def analyze_document(self, document_path: str) -> dict[str, Any]:
         """
         Analyze a single document for compliance information.
 
@@ -304,7 +304,7 @@ class DocumentAnalyzerAgent:
 
         return state
 
-    def _parse_entity_response(self, response: str) -> List[Dict[str, Any]]:
+    def _parse_entity_response(self, response: str) -> list[dict[str, Any]]:
         """Parse LLM response for entities."""
         try:
             # Simplified parsing - in practice would use more robust JSON extraction
@@ -325,7 +325,7 @@ class DocumentAnalyzerAgent:
             {"type": "regulation", "value": "General compliance", "context": "Document content"}
         ]
 
-    def _parse_requirement_response(self, response: str) -> List[Dict[str, Any]]:
+    def _parse_requirement_response(self, response: str) -> list[dict[str, Any]]:
         """Parse LLM response for requirements."""
         try:
             import json
@@ -341,7 +341,7 @@ class DocumentAnalyzerAgent:
             {"type": "general", "description": "Compliance requirements identified", "deadline": "Ongoing", "severity": "medium"}
         ]
 
-    def _parse_risk_response(self, response: str) -> List[Dict[str, Any]]:
+    def _parse_risk_response(self, response: str) -> list[dict[str, Any]]:
         """Parse LLM response for risks."""
         try:
             import json

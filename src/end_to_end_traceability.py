@@ -5,15 +5,14 @@ This module implements VC-based traceability using EPCIS events and Verifiable C
 to create 'proof of connectedness' for supply chain visibility and trust relationships.
 """
 
-import json
 import hashlib
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass, asdict
-from pathlib import Path
+import json
 import logging
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from typing import Any
 
-from .epcis_tracker import EPCISEvent, EPCISDocument
+from .epcis_tracker import EPCISEvent
 from .webvoc_loader import GS1WebVocLoader
 
 logger = logging.getLogger(__name__)
@@ -25,25 +24,25 @@ class SanitizedEPCISEvent:
     type: str
     action: str
     bizStep: str
-    disposition: Optional[str] = None
-    epcList: Optional[List[str]] = None
-    eventTime: Optional[str] = None
-    eventTimeZoneOffset: Optional[str] = None
-    readPoint: Optional[Dict[str, Any]] = None
-    bizLocation: Optional[Dict[str, Any]] = None
+    disposition: str | None = None
+    epcList: list[str] | None = None
+    eventTime: str | None = None
+    eventTimeZoneOffset: str | None = None
+    readPoint: dict[str, Any] | None = None
+    bizLocation: dict[str, Any] | None = None
     # Note: bizTransactionList, parentID, childEPCs, etc. are removed for privacy
 
 @dataclass
 class TraceabilityCredential:
     """Verifiable Credential for traceability proof."""
-    context: List[str]
+    context: list[str]
     id: str
-    type: List[str]
+    type: list[str]
     issuer: str
     issuanceDate: str
-    expirationDate: Optional[str]
-    credentialSubject: Dict[str, Any]
-    proof: Optional[Dict[str, Any]] = None
+    expirationDate: str | None
+    credentialSubject: dict[str, Any]
+    proof: dict[str, Any] | None = None
 
 @dataclass
 class ProofOfConnectedness:
@@ -52,18 +51,18 @@ class ProofOfConnectedness:
     type: str
     issuer: str
     issuanceDate: str
-    supplyChainPath: List[Dict[str, Any]]
-    sanitizedEvents: List[SanitizedEPCISEvent]
-    trustRelationships: List[Dict[str, Any]]
-    proof: Optional[Dict[str, Any]] = None
+    supplyChainPath: list[dict[str, Any]]
+    sanitizedEvents: list[SanitizedEPCISEvent]
+    trustRelationships: list[dict[str, Any]]
+    proof: dict[str, Any] | None = None
 
 class EndToEndTraceabilityManager:
     """Manager for end-to-end traceability using VCs and EPCIS events."""
 
-    def __init__(self, webvoc_loader: Optional[GS1WebVocLoader] = None):
+    def __init__(self, webvoc_loader: GS1WebVocLoader | None = None):
         self.webvoc_loader = webvoc_loader or GS1WebVocLoader()
-        self.traceability_credentials: Dict[str, TraceabilityCredential] = {}
-        self.proofs_of_connectedness: Dict[str, ProofOfConnectedness] = {}
+        self.traceability_credentials: dict[str, TraceabilityCredential] = {}
+        self.proofs_of_connectedness: dict[str, ProofOfConnectedness] = {}
 
     def sanitize_epcis_event(self, event: EPCISEvent) -> SanitizedEPCISEvent:
         """Sanitize EPCIS event by removing sensitive business transaction data."""
@@ -81,7 +80,7 @@ class EndToEndTraceabilityManager:
         )
 
     def create_traceability_credential(self,
-                                     epcis_events: List[EPCISEvent],
+                                     epcis_events: list[EPCISEvent],
                                      issuer: str,
                                      subject_id: str,
                                      expiration_days: int = 365) -> TraceabilityCredential:
@@ -129,7 +128,7 @@ class EndToEndTraceabilityManager:
         return credential
 
     def create_proof_of_connectedness(self,
-                                    credentials: List[TraceabilityCredential],
+                                    credentials: list[TraceabilityCredential],
                                     issuer: str) -> ProofOfConnectedness:
         """Create a proof of connectedness from multiple traceability credentials."""
 
@@ -198,7 +197,7 @@ class EndToEndTraceabilityManager:
             logger.error(f"Error verifying traceability chain: {e}")
             return False
 
-    def _extract_supply_chain_path(self, events: List[EPCISEvent]) -> List[str]:
+    def _extract_supply_chain_path(self, events: list[EPCISEvent]) -> list[str]:
         """Extract supply chain path from EPCIS events."""
         path = []
         for event in events:
@@ -208,7 +207,7 @@ class EndToEndTraceabilityManager:
                     path.append(location_id)
         return path
 
-    def _add_semantic_context(self, credential_subject: Dict[str, Any]) -> Dict[str, Any]:
+    def _add_semantic_context(self, credential_subject: dict[str, Any]) -> dict[str, Any]:
         """Add semantic context from GS1 Web Vocabulary."""
         enhanced_subject = credential_subject.copy()
 
@@ -221,11 +220,11 @@ class EndToEndTraceabilityManager:
 
         return enhanced_subject
 
-    def _establish_trust_relationships(self, credentials: List[TraceabilityCredential]) -> List[Dict[str, Any]]:
+    def _establish_trust_relationships(self, credentials: list[TraceabilityCredential]) -> list[dict[str, Any]]:
         """Establish trust relationships between credential issuers."""
         relationships = []
 
-        issuers = list(set(cred.issuer for cred in credentials))
+        issuers = list({cred.issuer for cred in credentials})
         for issuer in issuers:
             relationships.append({
                 "issuer": issuer,
@@ -236,7 +235,7 @@ class EndToEndTraceabilityManager:
 
         return relationships
 
-    def _verify_trust_relationship(self, relationship: Dict[str, Any]) -> bool:
+    def _verify_trust_relationship(self, relationship: dict[str, Any]) -> bool:
         """Verify a trust relationship (placeholder implementation)."""
         # In a real implementation, this would verify cryptographic signatures
         # and check against trusted issuer registries

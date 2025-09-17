@@ -8,19 +8,23 @@ This module provides:
 - Thread-safe session management
 """
 
-import logging
-import time
-import threading
 import hashlib
 import json
-from typing import Optional, Dict, Any
+import logging
+import threading
+import time
 from contextlib import contextmanager
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import create_engine, text, exc
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import create_engine, exc, text
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
-from .cache.multi_level_cache import get_multilevel_cache, MultiLevelCache
+
+from .cache.multi_level_cache import get_multilevel_cache
+from .shared.paths import DEFAULT_DATABASE_URL
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Engine
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +72,9 @@ class DatabaseConnectionManager:
         self.max_retries = max_retries
         self.retry_delay = retry_delay
 
-        self._engine: Optional[Engine] = None
-        self._session_maker: Optional[sessionmaker] = None
-        self._health_monitor_thread: Optional[threading.Thread] = None
+        self._engine: Engine | None = None
+        self._session_maker: sessionmaker | None = None
+        self._health_monitor_thread: threading.Thread | None = None
         self._stop_monitoring = threading.Event()
         self._last_health_check = 0
         self._connection_failures = 0
@@ -101,7 +105,7 @@ class DatabaseConnectionManager:
                 pool_pre_ping=True,  # Check connections before use
                 echo=self.echo,
                 # Additional optimizations for ISA workloads
-                pool_reset_on_return='rollback',  # Reset connections on return
+                pool_reset_on_return="rollback",  # Reset connections on return
                 # isolation_level='READ_COMMITTED',  # SQLite doesn't support this isolation level
             )
 
@@ -228,7 +232,7 @@ class DatabaseConnectionManager:
         finally:
             session.close()
 
-    def execute_cached_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    def execute_cached_query(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Execute a SELECT query with multi-level caching."""
         # Generate cache key
         cache_key = self._generate_query_cache_key(query, params)
@@ -251,16 +255,16 @@ class DatabaseConnectionManager:
 
         return result
 
-    def _generate_query_cache_key(self, query: str, params: Optional[Dict[str, Any]]) -> str:
+    def _generate_query_cache_key(self, query: str, params: dict[str, Any] | None) -> str:
         """Generate a cache key for a query."""
         key_data = {
-            'query': query.strip(),
-            'params': params or {}
+            "query": query.strip(),
+            "params": params or {}
         }
         key_string = json.dumps(key_data, sort_keys=True)
         return f"db_query:{hashlib.sha256(key_string.encode()).hexdigest()}"
 
-    def _execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    def _execute_query(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Execute a query and return results."""
         with self.session_scope() as session:
             try:
@@ -270,20 +274,20 @@ class DatabaseConnectionManager:
                 logger.error(f"Query execution failed: {e}")
                 raise
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get database cache statistics."""
         total_requests = self.cache_hits + self.cache_misses
         hit_rate = (self.cache_hits / total_requests * 100) if total_requests > 0 else 0
 
         return {
-            'cache_hits': self.cache_hits,
-            'cache_misses': self.cache_misses,
-            'total_requests': total_requests,
-            'hit_rate_percent': round(hit_rate, 2),
-            'multilevel_cache_stats': self.cache.get_stats()
+            "cache_hits": self.cache_hits,
+            "cache_misses": self.cache_misses,
+            "total_requests": total_requests,
+            "hit_rate_percent": round(hit_rate, 2),
+            "multilevel_cache_stats": self.cache.get_stats()
         }
 
-    def get_pool_status(self) -> Dict[str, Any]:
+    def get_pool_status(self) -> dict[str, Any]:
         """Get current connection pool status."""
         if not self._engine:
             return {"status": "not_initialized"}
@@ -338,17 +342,17 @@ class DatabaseConnectionManager:
 
 
 # Global instance for application-wide use
-_db_manager: Optional[DatabaseConnectionManager] = None
+_db_manager: DatabaseConnectionManager | None = None
 
 
-def get_db_manager(database_url: Optional[str] = None) -> DatabaseConnectionManager:
+def get_db_manager(database_url: str | None = None) -> DatabaseConnectionManager:
     """Get or create the global database manager instance."""
     global _db_manager
 
     if _db_manager is None:
         if database_url is None:
             import os
-            database_url = os.getenv("DATABASE_URL", "sqlite:///./isa_auth.db")
+            database_url = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
         _db_manager = DatabaseConnectionManager(database_url)
 

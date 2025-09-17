@@ -14,7 +14,7 @@ from typing import List
 @dataclass
 class PlanResult:
     final: str
-    steps: List[str]
+    steps: list[str]
 
 
 class PlanToolReflect:

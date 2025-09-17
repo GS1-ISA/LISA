@@ -7,10 +7,10 @@ defined in JSON-LD ontologies and context files.
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Union, Set
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -31,30 +31,30 @@ class VCType(Enum):
 class ValidationResult:
     """Result of VC validation."""
     is_valid: bool
-    errors: List[str]
-    warnings: List[str]
-    vc_type: Optional[VCType] = None
+    errors: list[str]
+    warnings: list[str]
+    vc_type: VCType | None = None
 
 @dataclass
 class PropertyDefinition:
     """Definition of a property from the ontology."""
     id: str
-    type: List[str]
-    domain: Optional[str] = None
-    range: Optional[str] = None
-    comment: Optional[str] = None
-    label: Optional[str] = None
+    type: list[str]
+    domain: str | None = None
+    range: str | None = None
+    comment: str | None = None
+    label: str | None = None
     required: bool = False
 
 @dataclass
 class VCClassDefinition:
     """Definition of a VC class from the ontology."""
     id: str
-    type: List[str]
-    subClassOf: Optional[str] = None
-    comment: Optional[str] = None
-    label: Optional[str] = None
-    properties: Dict[str, PropertyDefinition] = None
+    type: list[str]
+    subClassOf: str | None = None
+    comment: str | None = None
+    label: str | None = None
+    properties: dict[str, PropertyDefinition] = None
 
     def __post_init__(self):
         if self.properties is None:
@@ -65,10 +65,10 @@ class GS1VCDataModelVerifier:
 
     def __init__(self, models_path: str = "gs1_research/VC-Data-Model"):
         self.models_path = Path(models_path)
-        self.ontologies: Dict[VCType, Dict[str, Any]] = {}
-        self.contexts: Dict[VCType, Dict[str, Any]] = {}
-        self.class_definitions: Dict[str, VCClassDefinition] = {}
-        self.property_definitions: Dict[str, PropertyDefinition] = {}
+        self.ontologies: dict[VCType, dict[str, Any]] = {}
+        self.contexts: dict[VCType, dict[str, Any]] = {}
+        self.class_definitions: dict[str, VCClassDefinition] = {}
+        self.property_definitions: dict[str, PropertyDefinition] = {}
         self._loaded = False
 
     def load_data_models(self) -> bool:
@@ -84,12 +84,12 @@ class GS1VCDataModelVerifier:
                 context_file = self.models_path / f"{vc_type.value}-context.jsonld"
 
                 if ontology_file.exists():
-                    with open(ontology_file, 'r', encoding='utf-8') as f:
+                    with open(ontology_file, encoding="utf-8") as f:
                         self.ontologies[vc_type] = json.load(f)
                     logger.info(f"Loaded ontology for {vc_type.value}")
 
                 if context_file.exists():
-                    with open(context_file, 'r', encoding='utf-8') as f:
+                    with open(context_file, encoding="utf-8") as f:
                         self.contexts[vc_type] = json.load(f)
                     logger.info(f"Loaded context for {vc_type.value}")
 
@@ -104,7 +104,7 @@ class GS1VCDataModelVerifier:
 
     def _parse_ontologies(self):
         """Parse ontology definitions into structured data."""
-        for vc_type, ontology in self.ontologies.items():
+        for _vc_type, ontology in self.ontologies.items():
             if "@graph" not in ontology:
                 continue
 
@@ -142,7 +142,7 @@ class GS1VCDataModelVerifier:
                     if prop_def.domain and prop_def.domain in self.class_definitions:
                         self.class_definitions[prop_def.domain].properties[item_id] = prop_def
 
-    def _extract_value(self, value_obj: Any) -> Optional[str]:
+    def _extract_value(self, value_obj: Any) -> str | None:
         """Extract string value from JSON-LD value object."""
         if isinstance(value_obj, str):
             return value_obj
@@ -150,7 +150,7 @@ class GS1VCDataModelVerifier:
             return value_obj.get("@value")
         return None
 
-    def validate_vc(self, vc_payload: Dict[str, Any]) -> ValidationResult:
+    def validate_vc(self, vc_payload: dict[str, Any]) -> ValidationResult:
         """Validate a GS1 VC payload against the data models."""
         if not self._loaded:
             raise ValidationError("Data models not loaded. Call load_data_models() first.")
@@ -188,7 +188,7 @@ class GS1VCDataModelVerifier:
         is_valid = len(errors) == 0
         return ValidationResult(is_valid, errors, warnings, vc_type)
 
-    def _determine_vc_type(self, vc_payload: Dict[str, Any]) -> Optional[VCType]:
+    def _determine_vc_type(self, vc_payload: dict[str, Any]) -> VCType | None:
         """Determine the GS1 VC type from the credential."""
         vc_types = vc_payload.get("type", [])
         if isinstance(vc_types, str):
@@ -210,8 +210,8 @@ class GS1VCDataModelVerifier:
 
         return None
 
-    def _validate_vc_structure(self, vc_payload: Dict[str, Any],
-                              errors: List[str], warnings: List[str]):
+    def _validate_vc_structure(self, vc_payload: dict[str, Any],
+                              errors: list[str], warnings: list[str]):
         """Validate basic VC structure."""
         required_fields = ["@context", "type", "credentialSubject", "issuer", "issuanceDate"]
 
@@ -238,8 +238,8 @@ class GS1VCDataModelVerifier:
             except Exception:
                 warnings.append("Invalid expirationDate format")
 
-    def _validate_credential_subject(self, subject: Dict[str, Any],
-                                    vc_type: VCType, errors: List[str], warnings: List[str]):
+    def _validate_credential_subject(self, subject: dict[str, Any],
+                                    vc_type: VCType, errors: list[str], warnings: list[str]):
         """Validate credential subject against ontology."""
         if not isinstance(subject, dict):
             errors.append("credentialSubject must be an object")
@@ -272,7 +272,7 @@ class GS1VCDataModelVerifier:
                 )
 
     def _validate_property_value(self, value: Any, prop_def: PropertyDefinition,
-                                prop_name: str, errors: List[str], warnings: List[str]):
+                                prop_name: str, errors: list[str], warnings: list[str]):
         """Validate a property value against its definition."""
         # Validate range/type
         if prop_def.range:
@@ -287,7 +287,7 @@ class GS1VCDataModelVerifier:
             elif expected_type == "boolean" and not isinstance(value, bool):
                 errors.append(f"Property {prop_name} must be a boolean")
 
-    def _get_expected_type(self, range_iri: str) -> Optional[str]:
+    def _get_expected_type(self, range_iri: str) -> str | None:
         """Get expected type from range IRI."""
         type_mapping = {
             "http://www.w3.org/2001/XMLSchema#string": "string",
@@ -298,14 +298,14 @@ class GS1VCDataModelVerifier:
         }
         return type_mapping.get(range_iri)
 
-    def _validate_context(self, context: Union[str, List, Dict],
-                         vc_type: VCType, warnings: List[str]):
+    def _validate_context(self, context: str | list | dict,
+                         vc_type: VCType, warnings: list[str]):
         """Validate JSON-LD context."""
         if vc_type not in self.contexts:
             warnings.append(f"No context definition available for {vc_type.value}")
             return
 
-        expected_context = self.contexts[vc_type]
+        self.contexts[vc_type]
 
         # Basic context validation - check if required GS1 terms are present
         if isinstance(context, list):
@@ -318,14 +318,14 @@ class GS1VCDataModelVerifier:
             if not gs1_context_found:
                 warnings.append("GS1 context not found in @context")
 
-    def get_supported_vc_types(self) -> List[VCType]:
+    def get_supported_vc_types(self) -> list[VCType]:
         """Get list of supported VC types."""
         return list(self.ontologies.keys())
 
-    def get_class_definition(self, class_id: str) -> Optional[VCClassDefinition]:
+    def get_class_definition(self, class_id: str) -> VCClassDefinition | None:
         """Get class definition by ID."""
         return self.class_definitions.get(class_id)
 
-    def get_property_definition(self, property_id: str) -> Optional[PropertyDefinition]:
+    def get_property_definition(self, property_id: str) -> PropertyDefinition | None:
         """Get property definition by ID."""
         return self.property_definitions.get(property_id)

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 FLAGS_FILE = Path("infra/feature_flags/local_flags.json")
 
 
-def _load() -> Dict[str, Any]:
+def _load() -> dict[str, Any]:
     if not FLAGS_FILE.exists():
         FLAGS_FILE.parent.mkdir(parents=True, exist_ok=True)
         FLAGS_FILE.write_text(json.dumps({"flags": {}}, indent=2), encoding="utf-8")
@@ -17,7 +17,7 @@ def _load() -> Dict[str, Any]:
         return {"flags": {}}
 
 
-def _save(data: Dict[str, Any]) -> None:
+def _save(data: dict[str, Any]) -> None:
     FLAGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     FLAGS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
 

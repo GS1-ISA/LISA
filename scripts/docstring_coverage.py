@@ -4,10 +4,9 @@ from __future__ import annotations
 import argparse
 import ast
 from pathlib import Path
-from typing import Tuple
 
 
-def count_docstrings(root: Path) -> Tuple[int, int]:
+def count_docstrings(root: Path) -> tuple[int, int]:
     total = 0
     documented = 0
     for p in root.rglob("*.py"):
@@ -24,7 +23,7 @@ def count_docstrings(root: Path) -> Tuple[int, int]:
         if ast.get_docstring(tree):
             documented += 1
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
                 total += 1
                 if ast.get_docstring(node):
                     documented += 1

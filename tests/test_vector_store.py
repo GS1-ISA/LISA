@@ -3,7 +3,7 @@ Tests for vector store components.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import numpy as np
@@ -190,27 +190,27 @@ class TestBaseVectorStore:
             async def initialize(self):
                 pass
 
-            async def add_documents(self, documents: List[VectorDocument]) -> List[str]:
+            async def add_documents(self, documents: list[VectorDocument]) -> list[str]:
                 return [doc.id for doc in documents]
 
             async def search(
                 self,
-                query_embedding: List[float],
-                filters: Optional[SearchFilters] = None,
+                query_embedding: list[float],
+                filters: SearchFilters | None = None,
                 limit: int = 10,
-            ) -> List[SearchResult]:
+            ) -> list[SearchResult]:
                 return []
 
-            async def delete_documents(self, document_ids: List[str]) -> bool:
+            async def delete_documents(self, document_ids: list[str]) -> bool:
                 return True
 
-            async def update_documents(self, documents: List[VectorDocument]) -> bool:
+            async def update_documents(self, documents: list[VectorDocument]) -> bool:
                 return True
 
-            async def get_document(self, document_id: str) -> Optional[VectorDocument]:
+            async def get_document(self, document_id: str) -> VectorDocument | None:
                 return None
 
-            async def get_collection_stats(self) -> Dict[str, Any]:
+            async def get_collection_stats(self) -> dict[str, Any]:
                 return {"total_documents": 0}
 
             async def clear_collection(self) -> bool:
@@ -218,10 +218,10 @@ class TestBaseVectorStore:
 
             async def similarity_search_with_score(
                 self,
-                query_embedding: List[float],
+                query_embedding: list[float],
                 k: int = 10,
-                filter: Optional[Dict[str, Any]] = None,
-            ) -> List[tuple]:
+                filter: dict[str, Any] | None = None,
+            ) -> list[tuple]:
                 return []
 
         return TestVectorStore(config)
@@ -695,7 +695,6 @@ class TestHybridVectorStore:
     @pytest.mark.asyncio
     async def test_search_hybrid(self, hybrid_store):
         """Test hybrid search combining dense and sparse results."""
-        query = "machine learning algorithms"
         query_embedding = [0.1, 0.2, 0.3, 0.4]
 
         # Mock dense search results
@@ -775,17 +774,17 @@ class TestVectorStoreErrorHandling:
             async def initialize(self):
                 raise VectorStoreError("Initialization failed")
 
-            async def add_documents(self, documents: List[VectorDocument]) -> List[str]:
+            async def add_documents(self, documents: list[VectorDocument]) -> list[str]:
                 if not documents:
                     raise VectorStoreError("No documents provided")
                 raise VectorStoreError("Add operation failed")
 
             async def search(
                 self,
-                query_embedding: List[float],
-                filters: Optional[SearchFilters] = None,
+                query_embedding: list[float],
+                filters: SearchFilters | None = None,
                 limit: int = 10,
-            ) -> List[SearchResult]:
+            ) -> list[SearchResult]:
                 if len(query_embedding) != self.config.embedding_dimension:
                     raise ConfigurationError("Invalid embedding dimension")
                 raise VectorStoreError("Search operation failed")

@@ -7,16 +7,15 @@ It includes database setup, API clients, mock services, and other testing utilit
 """
 
 import asyncio
-import json
 import logging
 import os
 import tempfile
+from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, Generator, List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
-import pytest_asyncio
 from _pytest.config import Config
 from _pytest.monkeypatch import MonkeyPatch
 
@@ -51,7 +50,7 @@ def pytest_configure(config: Config) -> None:
     )
 
 
-def pytest_collection_modifyitems(config: Config, items: List[pytest.Item]) -> None:
+def pytest_collection_modifyitems(config: Config, items: list[pytest.Item]) -> None:
     """Modify test collection to add markers based on test location."""
     for item in items:
         # Add markers based on test file location
@@ -65,7 +64,7 @@ def pytest_collection_modifyitems(config: Config, items: List[pytest.Item]) -> N
 
 # Environment Configuration
 @pytest.fixture(scope="session")
-def test_env_vars() -> Dict[str, str]:
+def test_env_vars() -> dict[str, str]:
     """Provide test environment variables."""
     return {
         "TESTING": "true",
@@ -86,7 +85,7 @@ def test_env_vars() -> Dict[str, str]:
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment(
-    test_env_vars: Dict[str, str], monkeypatch_session: MonkeyPatch
+    test_env_vars: dict[str, str], monkeypatch_session: MonkeyPatch
 ) -> None:
     """Set up test environment variables."""
     for key, value in test_env_vars.items():
@@ -154,7 +153,6 @@ async def test_database() -> AsyncGenerator[Any, None]:
     """Provide a test database session."""
     # This would typically set up a test database
     # For now, we'll use an in-memory SQLite database
-    from sqlalchemy import create_engine
     from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
     from sqlalchemy.orm import sessionmaker
 
@@ -162,7 +160,7 @@ async def test_database() -> AsyncGenerator[Any, None]:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
 
     # Create tables
-    async with engine.begin() as conn:
+    async with engine.begin():
         # Import and create your models here
         # await conn.run_sync(Base.metadata.create_all)
         pass
@@ -188,7 +186,6 @@ async def db_session(test_database: Any) -> AsyncGenerator[Any, None]:
 @pytest.fixture
 async def test_client() -> AsyncGenerator[Any, None]:
     """Provide a test client for the FastAPI application."""
-    from fastapi.testclient import TestClient
 
     # Import your FastAPI app here
     # from isa_superapp.api.app import app
@@ -231,7 +228,7 @@ def temp_dir() -> Generator[Path, None, None]:
 
 
 @pytest.fixture
-def sample_documents() -> List[Dict[str, Any]]:
+def sample_documents() -> list[dict[str, Any]]:
     """Provide sample documents for testing."""
     return [
         {
@@ -257,7 +254,7 @@ def sample_query() -> str:
 
 # Performance Testing Fixtures
 @pytest.fixture(scope="session")
-def performance_benchmark() -> Dict[str, Any]:
+def performance_benchmark() -> dict[str, Any]:
     """Provide performance benchmark configuration."""
     return {
         "max_response_time": 2.0,  # seconds
@@ -283,7 +280,7 @@ def mock_http_error() -> Exception:
 
 # Configuration Fixtures
 @pytest.fixture
-def app_config() -> Dict[str, Any]:
+def app_config() -> dict[str, Any]:
     """Provide application configuration for testing."""
     return {
         "app_name": "ISA SuperApp Test",
@@ -355,7 +352,7 @@ class ISAAssertions:
     """Custom assertions for ISA SuperApp tests."""
 
     @staticmethod
-    def assert_valid_document(document: Dict[str, Any]) -> None:
+    def assert_valid_document(document: dict[str, Any]) -> None:
         """Assert that a document has valid structure."""
         assert "content" in document, "Document must have content"
         assert isinstance(document["content"], str), "Document content must be string"
@@ -374,11 +371,11 @@ class ISAAssertions:
         assert len(query) <= 1000, "Query too long (max 1000 characters)"
 
     @staticmethod
-    def assert_valid_embedding(embedding: List[float]) -> None:
+    def assert_valid_embedding(embedding: list[float]) -> None:
         """Assert that an embedding is valid."""
         assert isinstance(embedding, list), "Embedding must be list"
         assert len(embedding) > 0, "Embedding cannot be empty"
-        assert all(isinstance(x, (int, float)) for x in embedding), (
+        assert all(isinstance(x, int | float) for x in embedding), (
             "Embedding must contain numbers"
         )
         assert all(-1 <= x <= 1 for x in embedding), (
@@ -396,7 +393,6 @@ def isa_assertions() -> ISAAssertions:
 @pytest.fixture(scope="session")
 def performance_monitor() -> Generator[Any, None, None]:
     """Monitor performance during test execution."""
-    import os
     import time
 
     import psutil
@@ -423,7 +419,7 @@ def performance_monitor() -> Generator[Any, None, None]:
 def document_generator() -> Any:
     """Provide a document generator for testing."""
 
-    def generate_documents(count: int = 10) -> List[Dict[str, Any]]:
+    def generate_documents(count: int = 10) -> list[dict[str, Any]]:
         """Generate test documents."""
         documents = []
         for i in range(count):

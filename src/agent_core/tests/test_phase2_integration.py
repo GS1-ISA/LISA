@@ -1,14 +1,16 @@
-import pytest
-import time
-import threading
 import statistics
-from unittest.mock import Mock, patch, MagicMock
+import threading
+import time
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 # Import all Phase 2 components
-from src.agent_core.llm_client import CachedOpenRouterClient, ModelWarmer
-from src.database_manager import DatabaseConnectionManager
+from src.agent_core.llm_client import CachedOpenRouterClient
 from src.agent_core.streaming_processor import StreamingDocumentProcessor
+from src.database_manager import DatabaseConnectionManager
+from src.shared.paths import DATABASE_URLS
 
 
 class TestPhase2Integration:
@@ -27,10 +29,10 @@ class TestPhase2Integration:
     def teardown_method(self):
         """Cleanup all test resources."""
         # Stop background processes
-        if hasattr(self, 'warmer') and self.warmer.running:
+        if hasattr(self, "warmer") and self.warmer.running:
             self.warmer.stop()
 
-        if hasattr(self, 'db_manager'):
+        if hasattr(self, "db_manager"):
             self.db_manager.shutdown()
 
         # Cleanup temp directory
@@ -41,7 +43,7 @@ class TestPhase2Integration:
     def _setup_database(self):
         """Setup database with connection pooling."""
         self.db_manager = DatabaseConnectionManager(
-            database_url="sqlite:///:memory:",
+            database_url=DATABASE_URLS["MEMORY"],
             pool_size=10,
             max_overflow=15,
             health_check_interval=2
@@ -49,9 +51,9 @@ class TestPhase2Integration:
 
     def _setup_llm_client(self):
         """Setup LLM client with pre-warming."""
-        with patch('redis.Redis'):
+        with patch("redis.Redis"):
             self.llm_client = CachedOpenRouterClient(
-                redis_host='localhost',
+                redis_host="localhost",
                 redis_port=6379,
                 ttl_seconds=300
             )
@@ -73,7 +75,7 @@ class TestPhase2Integration:
         # ISA-specific test data
         isa_documents = [
             {
-                'content': """
+                "content": """
                 CSRD Article 8 requires comprehensive ESG disclosures including:
                 - Climate change mitigation strategies
                 - Biodiversity impact assessments
@@ -83,10 +85,10 @@ class TestPhase2Integration:
                 Companies must report on their value chain impacts and implement
                 due diligence processes for sustainable business practices.
                 """ * 10,
-                'metadata': {'source': 'eu_regulatory', 'type': 'csrd'}
+                "metadata": {"source": "eu_regulatory", "type": "csrd"}
             },
             {
-                'content': """
+                "content": """
                 GDSN standards provide structured data exchange for retail products:
                 - GTIN identification system
                 - Attribute mapping matrices
@@ -95,10 +97,10 @@ class TestPhase2Integration:
 
                 Integration with XBRL taxonomy enables automated reporting workflows.
                 """ * 10,
-                'metadata': {'source': 'gs1_standards', 'type': 'gdsn'}
+                "metadata": {"source": "gs1_standards", "type": "gdsn"}
             },
             {
-                'content': """
+                "content": """
                 XBRL taxonomy framework for ESG reporting:
                 - Structured data tags for environmental metrics
                 - Social impact disclosures
@@ -107,7 +109,7 @@ class TestPhase2Integration:
 
                 Automated validation against regulatory templates ensures compliance.
                 """ * 10,
-                'metadata': {'source': 'xbrl_taxonomy', 'type': 'esg_reporting'}
+                "metadata": {"source": "xbrl_taxonomy", "type": "esg_reporting"}
             }
         ]
 
@@ -116,26 +118,26 @@ class TestPhase2Integration:
         # Phase 1: Store documents in database with connection pooling
         stored_docs = []
         for i, doc in enumerate(isa_documents):
-            with self.db_manager.session_scope() as session:
+            with self.db_manager.session_scope():
                 # Simulate storing document metadata
                 doc_id = f"doc_{i}"
                 stored_docs.append({
-                    'id': doc_id,
-                    'content': doc['content'],
-                    'metadata': doc['metadata']
+                    "id": doc_id,
+                    "content": doc["content"],
+                    "metadata": doc["metadata"]
                 })
 
         # Phase 2: Process documents with streaming processor (uses pre-warmed models)
         processing_results = []
         for doc in stored_docs:
             result = self.streaming_processor.process_document(
-                doc['content'],
+                doc["content"],
                 f"Analyze {doc['metadata']['type']} content for compliance requirements"
             )
             processing_results.append({
-                'doc_id': doc['id'],
-                'result': result,
-                'chunks': result['metadata']['total_chunks']
+                "doc_id": doc["id"],
+                "result": result,
+                "chunks": result["metadata"]["total_chunks"]
             })
 
         # Phase 3: Query and retrieve with optimized models
@@ -151,18 +153,18 @@ class TestPhase2Integration:
             messages = [{"role": "user", "content": query}]
 
             # Mock the response for testing
-            with patch.object(self.llm_client.underlying_client, 'chat_completion') as mock_chat:
+            with patch.object(self.llm_client.underlying_client, "chat_completion") as mock_chat:
                 mock_chat.return_value = {
-                    'content': f'Analysis result for: {query}',
-                    'model_used': 'test-model',
-                    'usage': {'total_tokens': 150}
+                    "content": f"Analysis result for: {query}",
+                    "model_used": "test-model",
+                    "usage": {"total_tokens": 150}
                 }
 
                 result = self.llm_client.chat_completion(messages)
                 query_results.append({
-                    'query': query,
-                    'result': result,
-                    'cached': 'hits' in self.llm_client.get_cache_stats()
+                    "query": query,
+                    "result": result,
+                    "cached": "hits" in self.llm_client.get_cache_stats()
                 })
 
         workflow_end = time.perf_counter()
@@ -179,13 +181,13 @@ class TestPhase2Integration:
 
         # Check streaming processing results
         for result in processing_results:
-            assert result['chunks'] > 0
-            assert 'content' in result['result']
+            assert result["chunks"] > 0
+            assert "content" in result["result"]
 
         # Check query results
         for result in query_results:
-            assert 'content' in result['result']
-            assert result['result']['model_used'] == 'test-model'
+            assert "content" in result["result"]
+            assert result["result"]["model_used"] == "test-model"
 
     def test_concurrent_workload_simulation(self):
         """Test concurrent ISA workloads across all Phase 2 systems."""
@@ -201,9 +203,9 @@ class TestPhase2Integration:
                 worker_start = time.perf_counter()
 
                 # Simulate database operations
-                with self.db_manager.session_scope() as session:
+                with self.db_manager.session_scope():
                     # Simulate ISA research operations
-                    for i in range(5):
+                    for _i in range(5):
                         # In real scenario, this would be actual ISA operations
                         pass  # Simplified for testing
 
@@ -216,21 +218,21 @@ class TestPhase2Integration:
 
                 # Simulate LLM queries
                 messages = [{"role": "user", "content": f"ISA query {worker_id}"}]
-                with patch.object(self.llm_client.underlying_client, 'chat_completion') as mock_chat:
+                with patch.object(self.llm_client.underlying_client, "chat_completion") as mock_chat:
                     mock_chat.return_value = {
-                        'content': f'Response {worker_id}',
-                        'model_used': 'test-model',
-                        'usage': {'total_tokens': 50}
+                        "content": f"Response {worker_id}",
+                        "model_used": "test-model",
+                        "usage": {"total_tokens": 50}
                     }
-                    llm_result = self.llm_client.chat_completion(messages)
+                    self.llm_client.chat_completion(messages)
 
                 worker_end = time.perf_counter()
 
                 results.append({
-                    'worker': worker_id,
-                    'duration': worker_end - worker_start,
-                    'chunks_processed': result['metadata']['total_chunks'],
-                    'llm_calls': 1
+                    "worker": worker_id,
+                    "duration": worker_end - worker_start,
+                    "chunks_processed": result["metadata"]["total_chunks"],
+                    "llm_calls": 1
                 })
 
             except Exception as e:
@@ -252,9 +254,9 @@ class TestPhase2Integration:
         assert len(results) == num_workers
         assert len(errors) == 0
 
-        total_time = sum(r['duration'] for r in results)
+        total_time = sum(r["duration"] for r in results)
         avg_time = total_time / num_workers
-        total_chunks = sum(r['chunks_processed'] for r in results)
+        total_chunks = sum(r["chunks_processed"] for r in results)
 
         print(f"Concurrent workload - Avg time: {avg_time:.4f}s, Total chunks: {total_chunks}")
 
@@ -265,7 +267,7 @@ class TestPhase2Integration:
         # Check system health
         assert self.db_manager.is_healthy()
         warm_stats = self.warmer.get_warm_stats()
-        assert warm_stats['warm_up_count'] >= 0
+        assert warm_stats["warm_up_count"] >= 0
 
     def test_performance_benchmarks_integration(self):
         """Comprehensive performance benchmarks across all systems."""
@@ -284,38 +286,38 @@ class TestPhase2Integration:
             end = time.perf_counter()
             db_times.append(end - start)
 
-        benchmark_results['database'] = {
-            'avg_time': statistics.mean(db_times),
-            'p95_time': statistics.quantiles(db_times, n=20)[18],
-            'total_operations': len(db_times)
+        benchmark_results["database"] = {
+            "avg_time": statistics.mean(db_times),
+            "p95_time": statistics.quantiles(db_times, n=20)[18],
+            "total_operations": len(db_times)
         }
 
         # 2. LLM pre-warming and caching benchmark
         llm_times = []
-        cache_hits_before = self.llm_client.get_cache_stats()['hits']
+        cache_hits_before = self.llm_client.get_cache_stats()["hits"]
 
         for i in range(50):
             messages = [{"role": "user", "content": f"ISA benchmark query {i}"}]
             start = time.perf_counter()
 
-            with patch.object(self.llm_client.underlying_client, 'chat_completion') as mock_chat:
+            with patch.object(self.llm_client.underlying_client, "chat_completion") as mock_chat:
                 mock_chat.return_value = {
-                    'content': f'Response {i}',
-                    'model_used': 'test-model',
-                    'usage': {'total_tokens': 100}
+                    "content": f"Response {i}",
+                    "model_used": "test-model",
+                    "usage": {"total_tokens": 100}
                 }
                 self.llm_client.chat_completion(messages)
 
             end = time.perf_counter()
             llm_times.append(end - start)
 
-        cache_hits_after = self.llm_client.get_cache_stats()['hits']
+        cache_hits_after = self.llm_client.get_cache_stats()["hits"]
 
-        benchmark_results['llm'] = {
-            'avg_time': statistics.mean(llm_times),
-            'p95_time': statistics.quantiles(llm_times, n=20)[18],
-            'cache_hits': cache_hits_after - cache_hits_before,
-            'total_operations': len(llm_times)
+        benchmark_results["llm"] = {
+            "avg_time": statistics.mean(llm_times),
+            "p95_time": statistics.quantiles(llm_times, n=20)[18],
+            "cache_hits": cache_hits_after - cache_hits_before,
+            "total_operations": len(llm_times)
         }
 
         # 3. Streaming processor benchmark
@@ -328,18 +330,18 @@ class TestPhase2Integration:
 
         for doc in test_documents:
             start = time.perf_counter()
-            result = self.streaming_processor.process_document(
+            self.streaming_processor.process_document(
                 doc, "Analyze regulatory content"
             )
             end = time.perf_counter()
             processor_times.append(end - start)
 
-        benchmark_results['streaming'] = {
-            'avg_time': statistics.mean(processor_times),
-            'total_chunks': sum(result['metadata']['total_chunks'] for result in
+        benchmark_results["streaming"] = {
+            "avg_time": statistics.mean(processor_times),
+            "total_chunks": sum(result["metadata"]["total_chunks"] for result in
                               [self.streaming_processor.process_document(doc, "test")
                                for doc in test_documents[:1]]),  # Just one for stats
-            'total_operations': len(test_documents)
+            "total_operations": len(test_documents)
         }
 
         # Print comprehensive benchmark results
@@ -348,21 +350,22 @@ class TestPhase2Integration:
             print(f"{component.upper()}:")
             print(".4f")
             print(".4f")
-            if 'cache_hits' in metrics:
+            if "cache_hits" in metrics:
                 print(f"  Cache hits: {metrics['cache_hits']}")
-            if 'total_chunks' in metrics:
+            if "total_chunks" in metrics:
                 print(f"  Total chunks: {metrics['total_chunks']}")
             print(f"  Operations: {metrics['total_operations']}")
 
         # Overall performance assertions
-        assert benchmark_results['database']['avg_time'] < 0.01  # Fast DB access
-        assert benchmark_results['llm']['avg_time'] < 0.5  # Reasonable LLM response time
-        assert benchmark_results['streaming']['avg_time'] < 3.0  # Reasonable processing time
+        assert benchmark_results["database"]["avg_time"] < 0.01  # Fast DB access
+        assert benchmark_results["llm"]["avg_time"] < 0.5  # Reasonable LLM response time
+        assert benchmark_results["streaming"]["avg_time"] < 3.0  # Reasonable processing time
 
     def test_memory_efficiency_integration(self):
         """Test memory efficiency across all Phase 2 systems."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
@@ -377,23 +380,23 @@ class TestPhase2Integration:
             large_documents.append(content)
 
             # Process through streaming processor
-            result = self.streaming_processor.process_document(
+            self.streaming_processor.process_document(
                 content, f"Analyze document {i}"
             )
 
             # Store in database
-            with self.db_manager.session_scope() as session:
+            with self.db_manager.session_scope():
                 # Simulate storage operations
                 pass
 
         # Make many LLM calls
         for i in range(100):
             messages = [{"role": "user", "content": f"Query {i}"}]
-            with patch.object(self.llm_client.underlying_client, 'chat_completion') as mock_chat:
+            with patch.object(self.llm_client.underlying_client, "chat_completion") as mock_chat:
                 mock_chat.return_value = {
-                    'content': f'Response {i}',
-                    'model_used': 'test-model',
-                    'usage': {'total_tokens': 50}
+                    "content": f"Response {i}",
+                    "model_used": "test-model",
+                    "usage": {"total_tokens": 50}
                 }
                 self.llm_client.chat_completion(messages)
 
@@ -422,15 +425,15 @@ class TestPhase2Integration:
         assert self.db_manager._engine is not original_engine
 
         # Test LLM model failure and recovery
-        with patch.object(self.llm_client.underlying_client, 'chat_completion') as mock_chat:
+        with patch.object(self.llm_client.underlying_client, "chat_completion") as mock_chat:
             # Simulate failures followed by recovery
             mock_chat.side_effect = [
                 Exception("Model temporarily unavailable"),
                 Exception("Rate limit exceeded"),
                 {
-                    'content': 'Recovered response',
-                    'model_used': 'backup-model',
-                    'usage': {'total_tokens': 100}
+                    "content": "Recovered response",
+                    "model_used": "backup-model",
+                    "usage": {"total_tokens": 100}
                 }
             ]
 
@@ -438,58 +441,58 @@ class TestPhase2Integration:
 
             # Should eventually succeed
             result = self.llm_client.chat_completion(messages)
-            assert result['content'] == 'Recovered response'
-            assert result['model_used'] == 'backup-model'
+            assert result["content"] == "Recovered response"
+            assert result["model_used"] == "backup-model"
 
     def test_isa_compliance_scenarios(self):
         """Test ISA-specific compliance and regulatory scenarios."""
         compliance_scenarios = [
             {
-                'query': 'CSRD Article 8 reporting requirements',
-                'documents': [
-                    'EU sustainability reporting standards',
-                    'Climate disclosure mandates',
-                    'Value chain due diligence'
+                "query": "CSRD Article 8 reporting requirements",
+                "documents": [
+                    "EU sustainability reporting standards",
+                    "Climate disclosure mandates",
+                    "Value chain due diligence"
                 ]
             },
             {
-                'query': 'GDSN attribute mapping for ESG data',
-                'documents': [
-                    'GS1 standards integration',
-                    'Product data synchronization',
-                    'Regulatory compliance flags'
+                "query": "GDSN attribute mapping for ESG data",
+                "documents": [
+                    "GS1 standards integration",
+                    "Product data synchronization",
+                    "Regulatory compliance flags"
                 ]
             },
             {
-                'query': 'XBRL taxonomy for ESG disclosures',
-                'documents': [
-                    'Financial reporting frameworks',
-                    'ESG data tagging standards',
-                    'Automated validation rules'
+                "query": "XBRL taxonomy for ESG disclosures",
+                "documents": [
+                    "Financial reporting frameworks",
+                    "ESG data tagging standards",
+                    "Automated validation rules"
                 ]
             }
         ]
 
         for scenario in compliance_scenarios:
             # Process query with pre-warmed models
-            messages = [{"role": "user", "content": scenario['query']}]
+            messages = [{"role": "user", "content": scenario["query"]}]
 
-            with patch.object(self.llm_client.underlying_client, 'chat_completion') as mock_chat:
+            with patch.object(self.llm_client.underlying_client, "chat_completion") as mock_chat:
                 mock_chat.return_value = {
-                    'content': f'Compliance analysis: {scenario["query"]}',
-                    'model_used': 'compliance-model',
-                    'usage': {'total_tokens': 200}
+                    "content": f'Compliance analysis: {scenario["query"]}',
+                    "model_used": "compliance-model",
+                    "usage": {"total_tokens": 200}
                 }
 
                 result = self.llm_client.chat_completion(messages)
-                assert 'compliance analysis' in result['content'].lower()
+                assert "compliance analysis" in result["content"].lower()
 
             # Process related documents
-            for doc_title in scenario['documents']:
+            for doc_title in scenario["documents"]:
                 doc_content = f"{doc_title} content. " * 100
 
                 # Store in database
-                with self.db_manager.session_scope() as session:
+                with self.db_manager.session_scope():
                     # Simulate document storage
                     pass
 
@@ -499,8 +502,8 @@ class TestPhase2Integration:
                     f"Extract compliance information from {doc_title}"
                 )
 
-                assert stream_result['metadata']['total_chunks'] > 0
-                assert len(stream_result['content']) > 0
+                assert stream_result["metadata"]["total_chunks"] > 0
+                assert len(stream_result["content"]) > 0
 
     def test_scalability_under_load(self):
         """Test scalability of integrated Phase 2 systems under load."""
@@ -517,16 +520,16 @@ class TestPhase2Integration:
             # Simulate concurrent operations
             def load_worker(worker_id):
                 # Database operations
-                with self.db_manager.session_scope() as session:
+                with self.db_manager.session_scope():
                     pass  # Simplified
 
                 # LLM operations
                 messages = [{"role": "user", "content": f"Load test query {worker_id}"}]
-                with patch.object(self.llm_client.underlying_client, 'chat_completion') as mock_chat:
+                with patch.object(self.llm_client.underlying_client, "chat_completion") as mock_chat:
                     mock_chat.return_value = {
-                        'content': f'Response {worker_id}',
-                        'model_used': 'test-model',
-                        'usage': {'total_tokens': 50}
+                        "content": f"Response {worker_id}",
+                        "model_used": "test-model",
+                        "usage": {"total_tokens": 50}
                     }
                     self.llm_client.chat_completion(messages)
 
@@ -547,9 +550,9 @@ class TestPhase2Integration:
             duration = load_end - load_start
 
             load_test_results.append({
-                'load_level': load_level,
-                'duration': duration,
-                'ops_per_second': load_level / duration
+                "load_level": load_level,
+                "duration": duration,
+                "ops_per_second": load_level / duration
             })
 
         # Analyze scalability
@@ -558,7 +561,7 @@ class TestPhase2Integration:
 
         # Should maintain reasonable performance
         high_load = load_test_results[-1]
-        assert high_load['ops_per_second'] > 5  # At least 5 operations per second under high load
+        assert high_load["ops_per_second"] > 5  # At least 5 operations per second under high load
 
         # Stop systems
         self.warmer.stop()

@@ -6,13 +6,13 @@ including database connections, API clients, and monitoring resources.
 """
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 from dagster import ConfigurableResource, InitResourceContext
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-from ..core.logger import get_logger
+from isa_superapp.core.logger import get_logger
 
 
 class DatabaseResource(ConfigurableResource):
@@ -57,7 +57,7 @@ class EurostatAPIResource(ConfigurableResource):
     retry_attempts: int = 3
     retry_delay: float = 1.0
 
-    def create_resource(self, context: InitResourceContext) -> Dict[str, Any]:
+    def create_resource(self, context: InitResourceContext) -> dict[str, Any]:
         """Create Eurostat API client configuration."""
         logger = get_logger("etl.eurostat_api")
 
@@ -84,7 +84,7 @@ class ESMAApiResource(ConfigurableResource):
     retry_attempts: int = 3
     retry_delay: float = 1.0
 
-    def create_resource(self, context: InitResourceContext) -> Dict[str, Any]:
+    def create_resource(self, context: InitResourceContext) -> dict[str, Any]:
         """Create ESMA API client configuration."""
         logger = get_logger("etl.esma_api")
 
@@ -106,11 +106,11 @@ class ESMAApiResource(ConfigurableResource):
 class MonitoringResource(ConfigurableResource):
     """Monitoring and alerting resource."""
 
-    datadog_api_key: Optional[str] = None
-    sentry_dsn: Optional[str] = None
-    prometheus_gateway: Optional[str] = None
+    datadog_api_key: str | None = None
+    sentry_dsn: str | None = None
+    prometheus_gateway: str | None = None
 
-    def create_resource(self, context: InitResourceContext) -> Dict[str, Any]:
+    def create_resource(self, context: InitResourceContext) -> dict[str, Any]:
         """Create monitoring configuration."""
         logger = get_logger("etl.monitoring")
 

@@ -7,13 +7,13 @@ rules automation.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
-from .dmn_table import DMNTable, DecisionTable, DMNExecutionContext, DMNExecutionResult
 from .dmn_engine import DMNEngine
-from .dmn_parser import DMNParser, DMNParseError
+from .dmn_parser import DMNParser
+from .dmn_table import DecisionTable, DMNExecutionContext, DMNExecutionResult, DMNTable
 
 
 @dataclass
@@ -33,7 +33,7 @@ class DMNManager:
     for automated decision-making in compliance workflows.
     """
 
-    def __init__(self, config: Optional[DMNManagerConfig] = None):
+    def __init__(self, config: DMNManagerConfig | None = None):
         """
         Initialize DMN Manager.
 
@@ -47,11 +47,11 @@ class DMNManager:
         self.parser = DMNParser()
 
         # Storage for loaded DMN tables
-        self.dmn_tables: Dict[str, DMNTable] = {}
-        self.decision_tables: Dict[str, DecisionTable] = {}
+        self.dmn_tables: dict[str, DMNTable] = {}
+        self.decision_tables: dict[str, DecisionTable] = {}
 
         # Cache for execution results
-        self.execution_cache: Dict[str, DMNExecutionResult] = {}
+        self.execution_cache: dict[str, DMNExecutionResult] = {}
 
         # Initialize
         self._ensure_dmn_directory()
@@ -67,7 +67,7 @@ class DMNManager:
         # This will be populated with actual built-in tables
         pass
 
-    def load_dmn_table(self, file_path: Union[str, Path]) -> DMNTable:
+    def load_dmn_table(self, file_path: str | Path) -> DMNTable:
         """
         Load a DMN table from file.
 
@@ -102,8 +102,8 @@ class DMNManager:
             self.logger.error(f"Failed to load DMN table from {file_path}: {str(e)}")
             raise
 
-    def load_dmn_from_string(self, content: str, format: str = 'json',
-                           table_id: Optional[str] = None) -> DMNTable:
+    def load_dmn_from_string(self, content: str, format: str = "json",
+                           table_id: str | None = None) -> DMNTable:
         """
         Load a DMN table from string content.
 
@@ -134,7 +134,7 @@ class DMNManager:
         return dmn_table
 
     def execute_decision_table(self, decision_table_id: str,
-                             input_data: Dict[str, Any],
+                             input_data: dict[str, Any],
                              use_cache: bool = True) -> DMNExecutionResult:
         """
         Execute a decision table with given input data.
@@ -174,7 +174,7 @@ class DMNManager:
         return result
 
     def execute_dmn_table(self, dmn_table_id: str,
-                         input_data: Dict[str, Any]) -> Dict[str, DMNExecutionResult]:
+                         input_data: dict[str, Any]) -> dict[str, DMNExecutionResult]:
         """
         Execute all decision tables in a DMN table.
 
@@ -197,7 +197,7 @@ class DMNManager:
 
         return results
 
-    def get_decision_table(self, decision_table_id: str) -> Optional[DecisionTable]:
+    def get_decision_table(self, decision_table_id: str) -> DecisionTable | None:
         """
         Get a decision table by ID.
 
@@ -209,7 +209,7 @@ class DMNManager:
         """
         return self.decision_tables.get(decision_table_id)
 
-    def get_dmn_table(self, dmn_table_id: str) -> Optional[DMNTable]:
+    def get_dmn_table(self, dmn_table_id: str) -> DMNTable | None:
         """
         Get a DMN table by ID.
 
@@ -221,7 +221,7 @@ class DMNManager:
         """
         return self.dmn_tables.get(dmn_table_id)
 
-    def list_decision_tables(self) -> List[Dict[str, Any]]:
+    def list_decision_tables(self) -> list[dict[str, Any]]:
         """
         List all available decision tables.
 
@@ -231,17 +231,17 @@ class DMNManager:
         tables = []
         for dt_id, dt in self.decision_tables.items():
             tables.append({
-                'id': dt_id,
-                'name': dt.name,
-                'description': dt.description,
-                'hit_policy': dt.hit_policy.value,
-                'input_count': len(dt.input_clauses),
-                'output_count': len(dt.output_clauses),
-                'rule_count': len(dt.rules)
+                "id": dt_id,
+                "name": dt.name,
+                "description": dt.description,
+                "hit_policy": dt.hit_policy.value,
+                "input_count": len(dt.input_clauses),
+                "output_count": len(dt.output_clauses),
+                "rule_count": len(dt.rules)
             })
         return tables
 
-    def list_dmn_tables(self) -> List[Dict[str, Any]]:
+    def list_dmn_tables(self) -> list[dict[str, Any]]:
         """
         List all available DMN tables.
 
@@ -251,16 +251,16 @@ class DMNManager:
         tables = []
         for dmn_id, dmn_table in self.dmn_tables.items():
             tables.append({
-                'id': dmn_id,
-                'name': dmn_table.name,
-                'description': dmn_table.description,
-                'version': dmn_table.version,
-                'decision_table_count': len(dmn_table.decision_tables)
+                "id": dmn_id,
+                "name": dmn_table.name,
+                "description": dmn_table.description,
+                "version": dmn_table.version,
+                "decision_table_count": len(dmn_table.decision_tables)
             })
         return tables
 
-    def create_compliance_decision_table(self, name: str, rules: List[Dict[str, Any]],
-                                       inputs: List[str], outputs: List[str]) -> DecisionTable:
+    def create_compliance_decision_table(self, name: str, rules: list[dict[str, Any]],
+                                       inputs: list[str], outputs: list[str]) -> DecisionTable:
         """
         Create a decision table for compliance rules.
 
@@ -301,22 +301,22 @@ class DMNManager:
 
             # Map rule conditions to input entries
             for j, input_name in enumerate(inputs):
-                condition = rule_def.get('conditions', {}).get(input_name)
+                condition = rule_def.get("conditions", {}).get(input_name)
                 if condition is not None:
                     input_entries[f"input_{j}"] = str(condition)
 
             # Map rule outputs
             for j, output_name in enumerate(outputs):
-                output_value = rule_def.get('outputs', {}).get(output_name)
+                output_value = rule_def.get("outputs", {}).get(output_name)
                 if output_value is not None:
                     output_entries[f"output_{j}"] = output_value
 
             rule_objects.append(Rule(
                 id=f"rule_{i}",
-                description=rule_def.get('description'),
+                description=rule_def.get("description"),
                 input_entries=input_entries,
                 output_entries=output_entries,
-                priority=rule_def.get('priority')
+                priority=rule_def.get("priority")
             ))
 
         decision_table = DecisionTable(

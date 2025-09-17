@@ -1,13 +1,13 @@
-import re
 import logging
-from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any
+
 from .llm_client import get_openrouter_free_client
 
 # Import GS1 parser
 try:
-    import sys
     import os
+    import sys
     # Add src to path for imports
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
     from gs1_parser import GS1Encoder, parse_gs1_data
@@ -30,7 +30,7 @@ class ProcessingResult:
     """Result of processing a chunk."""
     chunk: Chunk
     response: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 class StreamingDocumentProcessor:
     """Processes large documents by streaming them through LLM in chunks."""
@@ -44,7 +44,7 @@ class StreamingDocumentProcessor:
         self.total_tokens = 0
         self.llm_client = get_openrouter_free_client()
 
-    def _create_chunks(self, document: str) -> List[Chunk]:
+    def _create_chunks(self, document: str) -> list[Chunk]:
         """Create overlapping chunks from document."""
         if not document:
             return []
@@ -88,26 +88,26 @@ class StreamingDocumentProcessor:
     def _find_optimal_boundary(self, text: str, start: int, end: int) -> int:
         """Find optimal boundary for chunking (paragraph, sentence, word)."""
         # Look for paragraph breaks first
-        for boundary in ['\n\n', '\r\n\r\n']:
+        for boundary in ["\n\n", "\r\n\r\n"]:
             pos = text.rfind(boundary, start, end)
             if pos != -1:
                 return pos + len(boundary)
 
         # Look for sentence endings
-        for boundary in ['. ', '! ', '? ']:
+        for boundary in [". ", "! ", "? "]:
             pos = text.rfind(boundary, start, end)
             if pos != -1:
                 return pos + len(boundary)
 
         # Look for word boundaries
-        pos = text.rfind(' ', start, end)
+        pos = text.rfind(" ", start, end)
         if pos != -1:
             return pos + 1
 
         # No good boundary found, return original end
         return end
 
-    def _process_chunk(self, chunk: Chunk, query: str, model: Optional[str] = None,
+    def _process_chunk(self, chunk: Chunk, query: str, model: str | None = None,
                       temperature: float = 0.2) -> ProcessingResult:
         """Process a single chunk with LLM."""
         try:
@@ -123,40 +123,40 @@ class StreamingDocumentProcessor:
             )
 
             self.processed_chunks += 1
-            self.total_tokens += result.get('usage', {}).get('total_tokens', 0)
-            self.memory_usage += len(chunk.content.encode('utf-8'))
+            self.total_tokens += result.get("usage", {}).get("total_tokens", 0)
+            self.memory_usage += len(chunk.content.encode("utf-8"))
 
             return ProcessingResult(
                 chunk=chunk,
-                response=result.get('content', ''),
+                response=result.get("content", ""),
                 metadata={
-                    'success': True,
-                    'model_used': result.get('model_used', 'unknown'),
-                    'tokens_used': result.get('usage', {}).get('total_tokens', 0),
-                    'cost': result.get('cost', 0.0)
+                    "success": True,
+                    "model_used": result.get("model_used", "unknown"),
+                    "tokens_used": result.get("usage", {}).get("total_tokens", 0),
+                    "cost": result.get("cost", 0.0)
                 }
             )
 
         except Exception as e:
             return ProcessingResult(
                 chunk=chunk,
-                response='',
+                response="",
                 metadata={
-                    'success': False,
-                    'error': str(e)
+                    "success": False,
+                    "error": str(e)
                 }
             )
 
-    def _merge_results(self, results: List[ProcessingResult]) -> Dict[str, Any]:
+    def _merge_results(self, results: list[ProcessingResult]) -> dict[str, Any]:
         """Merge results from multiple chunks."""
-        successful_results = [r for r in results if r.metadata.get('success', False)]
+        successful_results = [r for r in results if r.metadata.get("success", False)]
 
         if not successful_results:
             return {
-                'content': '',
-                'chunks_processed': 0,
-                'total_chunks': len(results),
-                'metadata': {'error': 'No successful processing'}
+                "content": "",
+                "chunks_processed": 0,
+                "total_chunks": len(results),
+                "metadata": {"error": "No successful processing"}
             }
 
         merged_content = []
@@ -165,15 +165,15 @@ class StreamingDocumentProcessor:
         for i, result in enumerate(successful_results):
             merged_content.append(f"Chunk {i+1}: {result.chunk.content}")
             merged_content.append(f"Response {i+1}: {result.response}")
-            total_tokens += result.metadata.get('tokens_used', 0)
+            total_tokens += result.metadata.get("tokens_used", 0)
 
         return {
-            'content': '\n\n'.join(merged_content),
-            'chunks_processed': len(successful_results),
-            'total_chunks': len(results),
-            'total_tokens': total_tokens,
-            'metadata': {
-                'processing_efficiency': len(successful_results) / len(results) if results else 0
+            "content": "\n\n".join(merged_content),
+            "chunks_processed": len(successful_results),
+            "total_chunks": len(results),
+            "total_tokens": total_tokens,
+            "metadata": {
+                "processing_efficiency": len(successful_results) / len(results) if results else 0
             }
         }
 
@@ -186,28 +186,28 @@ class StreamingDocumentProcessor:
         efficiency = 1.0 - (memory_mb / self.max_memory_mb)
         return max(0.0, min(1.0, efficiency))
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get processing statistics."""
         return {
-            'processed_chunks': self.processed_chunks,
-            'memory_usage_mb': self.memory_usage / (1024 * 1024),
-            'total_tokens': self.total_tokens,
-            'average_chunk_size': self.memory_usage / max(1, self.processed_chunks) / 1024,  # KB
-            'efficiency': self._calculate_efficiency('')
+            "processed_chunks": self.processed_chunks,
+            "memory_usage_mb": self.memory_usage / (1024 * 1024),
+            "total_tokens": self.total_tokens,
+            "average_chunk_size": self.memory_usage / max(1, self.processed_chunks) / 1024,  # KB
+            "efficiency": self._calculate_efficiency("")
         }
 
-    def process_document(self, document: str, query: str, model: Optional[str] = None,
-                        temperature: float = 0.2) -> Dict[str, Any]:
+    def process_document(self, document: str, query: str, model: str | None = None,
+                        temperature: float = 0.2) -> dict[str, Any]:
         """Process entire document by chunking and processing each chunk."""
         chunks = self._create_chunks(document)
 
         if not chunks:
             return {
-                'content': '',
-                'metadata': {
-                    'total_chunks': 0,
-                    'chunks_processed': 0,
-                    'total_characters': 0
+                "content": "",
+                "metadata": {
+                    "total_chunks": 0,
+                    "chunks_processed": 0,
+                    "total_characters": 0
                 }
             }
 
@@ -219,17 +219,17 @@ class StreamingDocumentProcessor:
         merged = self._merge_results(results)
 
         return {
-            'content': merged['content'],
-            'metadata': {
-                'total_chunks': len(chunks),
-                'chunks_processed': merged['chunks_processed'],
-                'total_characters': len(document),
-                'total_tokens': merged.get('total_tokens', 0),
-                'processing_efficiency': merged['metadata'].get('processing_efficiency', 0)
+            "content": merged["content"],
+            "metadata": {
+                "total_chunks": len(chunks),
+                "chunks_processed": merged["chunks_processed"],
+                "total_characters": len(document),
+                "total_tokens": merged.get("total_tokens", 0),
+                "processing_efficiency": merged["metadata"].get("processing_efficiency", 0)
             }
         }
 
-    def _chunk_text(self, text: str, chunk_size: int, overlap: int) -> List[str]:
+    def _chunk_text(self, text: str, chunk_size: int, overlap: int) -> list[str]:
         """Simple text chunking utility."""
         if not text:
             return []

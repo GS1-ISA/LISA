@@ -6,11 +6,9 @@ existing compliance workflows, enabling policy-as-code validation for CSRD
 and EUDR compliance.
 """
 
-import json
 import logging
-from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass
-from pathlib import Path
+from typing import Any
 
 try:
     import requests
@@ -19,18 +17,17 @@ except ImportError:
     REQUESTS_AVAILABLE = False
     logging.warning("requests library not available. Install with: pip install requests")
 
-from .agent_core.llm_client import get_openrouter_free_client
 
 
 @dataclass
 class OPAResult:
     """Result from OPA policy evaluation."""
     allow: bool
-    violations: List[Dict[str, Any]]
-    recommendations: List[Dict[str, Any]]
+    violations: list[dict[str, Any]]
+    recommendations: list[dict[str, Any]]
     compliance_score: float
     risk_level: str
-    raw_response: Dict[str, Any]
+    raw_response: dict[str, Any]
 
 
 class OPAIntegrationError(Exception):
@@ -53,14 +50,14 @@ class OPAClient:
             opa_url: URL of the OPA server
             timeout: Request timeout in seconds
         """
-        self.opa_url = opa_url.rstrip('/')
+        self.opa_url = opa_url.rstrip("/")
         self.timeout = timeout
         self.logger = logging.getLogger(__name__)
 
         if not REQUESTS_AVAILABLE:
             raise OPAIntegrationError("requests library is required for OPA integration")
 
-    def evaluate_policy(self, policy_path: str, input_data: Dict[str, Any]) -> OPAResult:
+    def evaluate_policy(self, policy_path: str, input_data: dict[str, Any]) -> OPAResult:
         """
         Evaluate a policy with given input data.
 
@@ -98,7 +95,7 @@ class OPAClient:
             self.logger.error(f"OPA evaluation failed: {str(e)}")
             raise OPAIntegrationError(f"Failed to evaluate policy {policy_path}: {str(e)}")
 
-    def get_policy_decision(self, policy_path: str, input_data: Dict[str, Any]) -> bool:
+    def get_policy_decision(self, policy_path: str, input_data: dict[str, Any]) -> bool:
         """
         Get simple allow/deny decision from policy.
 
@@ -120,7 +117,7 @@ class CompliancePolicyEvaluator:
     Integrates with ISA_D's existing compliance workflows.
     """
 
-    def __init__(self, opa_client: Optional[OPAClient] = None):
+    def __init__(self, opa_client: OPAClient | None = None):
         """
         Initialize compliance policy evaluator.
 
@@ -130,9 +127,9 @@ class CompliancePolicyEvaluator:
         self.opa_client = opa_client or OPAClient()
         self.logger = logging.getLogger(__name__)
 
-    def evaluate_csrd_compliance(self, disclosures: List[Dict[str, Any]],
-                                company_info: Dict[str, Any],
-                                reporting_period: Dict[str, str]) -> OPAResult:
+    def evaluate_csrd_compliance(self, disclosures: list[dict[str, Any]],
+                                company_info: dict[str, Any],
+                                reporting_period: dict[str, str]) -> OPAResult:
         """
         Evaluate CSRD disclosure compliance.
 
@@ -153,9 +150,9 @@ class CompliancePolicyEvaluator:
 
         return self.opa_client.evaluate_policy("compliance/csrd/disclosure", input_data)
 
-    def evaluate_eudr_supply_chain(self, suppliers: List[Dict[str, Any]],
-                                  products: List[Dict[str, Any]],
-                                  mitigation_measures: List[Dict[str, Any]]) -> OPAResult:
+    def evaluate_eudr_supply_chain(self, suppliers: list[dict[str, Any]],
+                                  products: list[dict[str, Any]],
+                                  mitigation_measures: list[dict[str, Any]]) -> OPAResult:
         """
         Evaluate EUDR supply chain compliance.
 
@@ -182,8 +179,8 @@ class CompliancePolicyEvaluator:
 
         return self.opa_client.evaluate_policy("compliance/eudr/supply_chain", input_data)
 
-    def evaluate_eudr_due_diligence(self, due_diligence_statement: Dict[str, Any],
-                                   risk_mitigation: List[Dict[str, Any]]) -> OPAResult:
+    def evaluate_eudr_due_diligence(self, due_diligence_statement: dict[str, Any],
+                                   risk_mitigation: list[dict[str, Any]]) -> OPAResult:
         """
         Evaluate EUDR due diligence statement.
 
@@ -214,7 +211,7 @@ class ISA_D_ComplianceIntegration:
         self.policy_evaluator = CompliancePolicyEvaluator()
         self.logger = logging.getLogger(__name__)
 
-    def enhance_compliance_analysis(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+    def enhance_compliance_analysis(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
         """
         Enhance existing compliance analysis with OPA policy evaluation.
 
@@ -290,7 +287,7 @@ class ISA_D_ComplianceIntegration:
             self.logger.error(f"Failed to enhance compliance analysis: {str(e)}")
             return analysis_data
 
-    def validate_due_diligence_statement(self, statement: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_due_diligence_statement(self, statement: dict[str, Any]) -> dict[str, Any]:
         """
         Validate EUDR due diligence statement using OPA.
 
@@ -323,7 +320,7 @@ class ISA_D_ComplianceIntegration:
                 "issues": [{"type": "validation_error", "description": "OPA validation failed"}]
             }
 
-    def get_policy_recommendations(self, compliance_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_policy_recommendations(self, compliance_data: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Get policy-based recommendations for compliance improvement.
 

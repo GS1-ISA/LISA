@@ -7,10 +7,8 @@ embedding providers and models.
 
 import abc
 import asyncio
-import json
-import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any
 
 import numpy as np
 
@@ -63,7 +61,7 @@ class BaseEmbeddingProvider(abc.ABC):
         self.config = config
         self.logger = get_logger(f"embedding.{config.provider}")
         self._initialized = False
-        self._cache: Dict[str, List[float]] = {}
+        self._cache: dict[str, list[float]] = {}
         self._cache_lock = asyncio.Lock()
 
     @abc.abstractmethod
@@ -77,7 +75,7 @@ class BaseEmbeddingProvider(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def embed_text(self, text: str) -> List[float]:
+    async def embed_text(self, text: str) -> list[float]:
         """
         Embed a single text.
 
@@ -90,7 +88,7 @@ class BaseEmbeddingProvider(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def embed_texts(self, texts: List[str]) -> List[List[float]]:
+    async def embed_texts(self, texts: list[str]) -> list[list[float]]:
         """
         Embed multiple texts.
 
@@ -112,14 +110,14 @@ class BaseEmbeddingProvider(abc.ABC):
                 field="text",
             )
 
-    def _validate_texts(self, texts: List[str]) -> None:
+    def _validate_texts(self, texts: list[str]) -> None:
         """Validate texts input."""
         if not texts:
             raise ISAValidationError("Texts list cannot be empty", field="texts")
         for text in texts:
             self._validate_text(text)
 
-    def _normalize_vector(self, vector: List[float]) -> List[float]:
+    def _normalize_vector(self, vector: list[float]) -> list[float]:
         """Normalize vector to unit length."""
         if not self.config.normalize:
             return vector
@@ -131,7 +129,7 @@ class BaseEmbeddingProvider(abc.ABC):
 
         return (v / norm).tolist()
 
-    def _apply_pooling(self, embeddings: List[List[float]]) -> List[float]:
+    def _apply_pooling(self, embeddings: list[list[float]]) -> list[float]:
         """Apply pooling strategy to embeddings."""
         if not embeddings:
             return []
@@ -150,7 +148,7 @@ class BaseEmbeddingProvider(abc.ABC):
                 f"Unsupported pooling strategy: {self.config.pooling_strategy}"
             )
 
-    async def _get_cached_embedding(self, text: str) -> Optional[List[float]]:
+    async def _get_cached_embedding(self, text: str) -> list[float] | None:
         """Get embedding from cache."""
         if not self.config.cache_enabled:
             return None
@@ -158,7 +156,7 @@ class BaseEmbeddingProvider(abc.ABC):
         async with self._cache_lock:
             return self._cache.get(text)
 
-    async def _set_cached_embedding(self, text: str, embedding: List[float]) -> None:
+    async def _set_cached_embedding(self, text: str, embedding: list[float]) -> None:
         """Set embedding in cache."""
         if not self.config.cache_enabled:
             return
@@ -239,7 +237,7 @@ class SentenceTransformerEmbeddingProvider(BaseEmbeddingProvider):
         self._initialized = False
         self.logger.info("Sentence Transformers embedding provider closed")
 
-    async def embed_text(self, text: str) -> List[float]:
+    async def embed_text(self, text: str) -> list[float]:
         """Embed a single text."""
         self._validate_text(text)
 
@@ -264,7 +262,7 @@ class SentenceTransformerEmbeddingProvider(BaseEmbeddingProvider):
                 f"Failed to embed text with Sentence Transformers: {e}"
             )
 
-    async def embed_texts(self, texts: List[str]) -> List[List[float]]:
+    async def embed_texts(self, texts: list[str]) -> list[list[float]]:
         """Embed multiple texts."""
         self._validate_texts(texts)
 
@@ -283,7 +281,7 @@ class SentenceTransformerEmbeddingProvider(BaseEmbeddingProvider):
                 embeddings.extend(batch_embeddings)
 
                 # Cache results
-                for text, embedding in zip(batch, batch_embeddings):
+                for text, embedding in zip(batch, batch_embeddings, strict=False):
                     await self._set_cached_embedding(text, embedding)
 
             return embeddings
@@ -338,7 +336,7 @@ class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
         self._initialized = False
         self.logger.info("OpenAI embedding provider closed")
 
-    async def embed_text(self, text: str) -> List[float]:
+    async def embed_text(self, text: str) -> list[float]:
         """Embed a single text."""
         self._validate_text(text)
 
@@ -365,7 +363,7 @@ class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
             self.logger.error(f"Failed to embed text with OpenAI: {e}")
             raise ISAConfigurationError(f"Failed to embed text with OpenAI: {e}")
 
-    async def embed_texts(self, texts: List[str]) -> List[List[float]]:
+    async def embed_texts(self, texts: list[str]) -> list[list[float]]:
         """Embed multiple texts."""
         self._validate_texts(texts)
 
@@ -386,7 +384,7 @@ class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
                 embeddings.extend(batch_embeddings)
 
                 # Cache results
-                for text, embedding in zip(batch, batch_embeddings):
+                for text, embedding in zip(batch, batch_embeddings, strict=False):
                     await self._set_cached_embedding(text, embedding)
 
             return embeddings
@@ -444,7 +442,7 @@ class EmbeddingService:
             metadata=document.metadata or {},
         )
 
-    async def embed_documents(self, documents: List[Document]) -> List[Vector]:
+    async def embed_documents(self, documents: list[Document]) -> list[Vector]:
         """
         Embed multiple documents.
 
@@ -467,7 +465,7 @@ class EmbeddingService:
 
         # Create vectors
         vectors = []
-        for doc, embedding in zip(documents, embeddings):
+        for doc, embedding in zip(documents, embeddings, strict=False):
             vector = Vector(
                 id=doc.id,
                 vector=embedding,
@@ -480,10 +478,10 @@ class EmbeddingService:
 
     async def embed_text_chunks(
         self,
-        text_chunks: List[str],
-        chunk_ids: Optional[List[str]] = None,
-        metadata: Optional[List[Dict[str, Any]]] = None,
-    ) -> List[Vector]:
+        text_chunks: list[str],
+        chunk_ids: list[str] | None = None,
+        metadata: list[dict[str, Any]] | None = None,
+    ) -> list[Vector]:
         """
         Embed text chunks.
 
@@ -520,7 +518,7 @@ class EmbeddingService:
         # Create vectors
         vectors = []
         for chunk_id, text, embedding, meta in zip(
-            chunk_ids, text_chunks, embeddings, metadata
+            chunk_ids, text_chunks, embeddings, metadata, strict=False
         ):
             vector = Vector(
                 id=chunk_id,
@@ -566,7 +564,7 @@ class EmbeddingProviderFactory:
 
     @classmethod
     def register_provider(
-        cls, provider_name: str, provider_class: Type[BaseEmbeddingProvider]
+        cls, provider_name: str, provider_class: type[BaseEmbeddingProvider]
     ) -> None:
         """
         Register a new embedding provider.
@@ -578,7 +576,7 @@ class EmbeddingProviderFactory:
         cls._providers[provider_name] = provider_class
 
     @classmethod
-    def get_supported_providers(cls) -> List[str]:
+    def get_supported_providers(cls) -> list[str]:
         """
         Get list of supported providers.
 
@@ -618,7 +616,7 @@ async def create_embedding_service(
 
 
 async def create_embedding_service_from_config(
-    config_dict: Dict[str, Any],
+    config_dict: dict[str, Any],
 ) -> EmbeddingService:
     """
     Create an embedding service from configuration dictionary.
